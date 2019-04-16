@@ -1,0 +1,74 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'false') {
+    defaultTasks 'build', 'publish'
+
+} else {
+    defaultTasks 'build', 'publishToMavenLocal'
+}
+
+group = 'gyro'
+version = '0.14-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+
+    maven {
+        url 'https://artifactory.psdops.com/public'
+    }
+
+    maven {
+        url 'https://artifactory.psdops.com/gyro-snapshots'
+    }
+}
+
+configurations {
+    gyroDoclet
+}
+
+dependencies {
+    api 'gyro:gyro-core:0.14-SNAPSHOT'
+
+    gyroDoclet "gyro:gyro-doclet:0.14-SNAPSHOT"
+}
+
+task referenceDocs(type: Javadoc) {
+    title = null // Prevents -doctitle and -windowtitle from being passed to GyroDoclet
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
+    options.doclet = "gyro.doclet.GyroDoclet"
+    options.docletpath = configurations.gyroDoclet.files.asType(List)
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            credentials {
+                username System.getenv('GRADLE_DEPLOY_USER')
+                password System.getenv('GRADLE_DEPLOY_PASSWORD')
+            }
+
+            if (project.version.endsWith('-SNAPSHOT')) {
+                url 'https://artifactory.psdops.com/gyro-snapshots'
+
+            } else {
+                url 'https://artifactory.psdops.com/gyro-releases'
+            }
+        }
+    }
+}
