@@ -37,6 +37,10 @@ configurations {
 
 dependencies {
     api 'gyro:gyro-core:0.14-SNAPSHOT'
+    implementation 'com.google.guava:guava:23.0'
+    implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
+    
+    implementation 'com.google.cloud:google-cloud-compute:0.87.0-alpha'
 
     gyroDoclet "gyro:gyro-doclet:0.14-SNAPSHOT"
 }
