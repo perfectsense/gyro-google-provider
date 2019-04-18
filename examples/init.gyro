@@ -1,0 +1,12 @@
+plugin
+    artifact: 'gyro:gyro-google-provider:0.14-SNAPSHOT'
+    repositories: [
+        'https://artifactory.psdops.com/public',
+        'https://artifactory.psdops.com/gyro-snapshots'
+    ]
+end
+
+google::credentials default
+    credential-file-path: "/Users/dbhattacharyya/Downloads/gyro-sandbox-google-cred.json"
+    project-id: "aerobic-lock-236714"
+end

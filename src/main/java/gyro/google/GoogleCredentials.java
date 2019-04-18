@@ -9,9 +9,29 @@ import java.util.Map;
 @ResourceName("credentials")
 public class GoogleCredentials extends Credentials {
 
+    private String projectId;
+
+    private String credentialFilePath;
+
     @Override
     public String getCloudName() {
         return "google";
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getCredentialFilePath() {
+        return credentialFilePath;
+    }
+
+    public void setCredentialFilePath(String credentialFilePath) {
+        this.credentialFilePath = credentialFilePath;
     }
 
     @Override
