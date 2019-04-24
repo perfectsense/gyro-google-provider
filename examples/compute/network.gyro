@@ -3,5 +3,5 @@
 google::network network-example
     network-name: "vpc-example"
     description: "vpc-example-desc"
-    global-dynamic-routing: true
+    global-dynamic-routing: false
 end

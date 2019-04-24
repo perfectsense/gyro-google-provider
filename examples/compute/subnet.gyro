@@ -1,0 +1,15 @@
+@import ../init as _
+
+google::network network-example-subnet
+    network-name: "vpc-example-subnet"
+    description: "vpc-example-desc-subnet"
+    global-dynamic-routing: false
+end
+
+google::subnet subnet-example
+    subnet-name: "subnet-example"
+    description: "subnet-example-description"
+    ip-cidr-range: "10.0.0.0/16"
+    network-id: $(google::network network-example-subnet | network-name)
+    region: "us-east1"
+end

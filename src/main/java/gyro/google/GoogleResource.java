@@ -2,9 +2,13 @@ package gyro.google;
 
 import com.google.api.gax.core.BackgroundResource;
 import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.auth.http.HttpTransportFactory;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.compute.v1.NetworkClient;
 import com.google.cloud.compute.v1.NetworkSettings;
+import com.google.cloud.compute.v1.SubnetworkClient;
+import com.google.cloud.compute.v1.SubnetworkSettings;
+import com.google.cloud.http.HttpTransportOptions;
 import gyro.core.resource.Resource;
 
 import java.io.FileInputStream;
@@ -34,6 +38,8 @@ public abstract class GoogleResource extends Resource {
     private <T extends BackgroundResource> T getClient(String clientSettingName) {
         if (clientSettingName.equals("NetworkSettings")) {
             return (T) getClient(getCredentials(), NetworkSettings.newBuilder());
+        } else if (clientSettingName.equals("SubnetworkSettings")) {
+            return (T) getClient(getCredentials(), SubnetworkSettings.newBuilder());
         }
 
         return null;
@@ -44,7 +50,8 @@ public abstract class GoogleResource extends Resource {
             gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) resourceCredentials();
 
             return GoogleCredentials.fromStream(
-                new FileInputStream(credentials.getCredentialFilePath())
+                new FileInputStream(credentials.getCredentialFilePath()),
+                new HttpTransportOptions.DefaultHttpTransportFactory()
             ).createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -55,11 +62,41 @@ public abstract class GoogleResource extends Resource {
 
     private NetworkClient getClient(GoogleCredentials googleCredentials, NetworkSettings.Builder builder) {
         try {
+            String myEndpoint = NetworkSettings.getDefaultEndpoint();
+
             NetworkSettings networkSettings = builder
                 .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
+                .setTransportChannelProvider(
+                    NetworkSettings.defaultHttpJsonTransportProviderBuilder()
+                        .setEndpoint(myEndpoint)
+                        .build()
+                )
                 .build();
 
             return NetworkClient.create(networkSettings);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+
+    private SubnetworkClient getClient(GoogleCredentials googleCredentials, SubnetworkSettings.Builder builder) {
+        try {
+            String myEndpoint = NetworkSettings.getDefaultEndpoint();
+
+            SubnetworkSettings subnetworkSettings = builder
+                .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
+                .setTransportChannelProvider(
+                    NetworkSettings.defaultHttpJsonTransportProviderBuilder()
+                        .setEndpoint(myEndpoint)
+                        .build()
+                )
+                .build();
+
+            return SubnetworkClient.create(subnetworkSettings);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -4,15 +4,14 @@ import com.google.cloud.compute.v1.Network;
 import com.google.cloud.compute.v1.NetworkClient;
 import com.google.cloud.compute.v1.NetworkRoutingConfig;
 import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.PatchNetworkHttpRequest;
 import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
-import com.google.cloud.compute.v1.SubnetworkClient;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceDiffProperty;
 import gyro.core.resource.ResourceName;
 import gyro.google.GoogleResource;
 
+import java.util.Collections;
 import java.util.Set;
 
 @ResourceName("network")
@@ -102,11 +101,10 @@ public class NetworkResource extends GoogleResource {
                 .build()
         ).build();
 
-
         //primary option
-        /*networkClient.patchNetwork(ProjectGlobalNetworkName.of(getNetworkName(),getProjectId()),
-            network,
-            Collections.singletonList("routingConfig.routingMode"));*/
+        networkClient.patchNetwork(ProjectGlobalNetworkName.of(getNetworkName(),getProjectId()),
+            network1,
+            Collections.emptyList());
 
 
         //secondary option
