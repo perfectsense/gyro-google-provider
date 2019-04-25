@@ -7,6 +7,6 @@ plugin
 end
 
 google::credentials default
-    credential-file-path: "/Users/dbhattacharyya/Downloads/gyro-sandbox-google-cred.json"
-    project-id: "aerobic-lock-236714"
+    credential-file-path: ""
+    project-id: ""
 end

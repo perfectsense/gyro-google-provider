@@ -1,57 +1,43 @@
 package gyro.google;
 
-import com.google.api.gax.core.BackgroundResource;
-import com.google.api.gax.core.FixedCredentialsProvider;
-import com.google.auth.http.HttpTransportFactory;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.compute.v1.NetworkClient;
-import com.google.cloud.compute.v1.NetworkSettings;
-import com.google.cloud.compute.v1.SubnetworkClient;
-import com.google.cloud.compute.v1.SubnetworkSettings;
-import com.google.cloud.http.HttpTransportOptions;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.compute.Compute;
+import gyro.core.GyroException;
 import gyro.core.resource.Resource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public abstract class GoogleResource extends Resource {
     private String projectId;
-    private static Map<String, ? extends BackgroundResource> clientMap = new HashMap<>();
 
     @Override
     public Class resourceCredentialsClass() {
         return gyro.google.GoogleCredentials.class;
     }
 
-    protected <T extends BackgroundResource> T creatClient(Class<T> clientClass) {
-        String clientSettingName = clientClass.getSimpleName().replace("Client", "Settings");
-        if (!clientMap.containsKey(clientSettingName)) {
-            clientMap.put(clientSettingName, getClient(clientSettingName));
-        }
+    protected <T extends AbstractGoogleJsonClient> T creatClient(Class<T> clientClass) {
 
-        return (T) clientMap.get(clientSettingName);
-    }
-
-    private <T extends BackgroundResource> T getClient(String clientSettingName) {
-        if (clientSettingName.equals("NetworkSettings")) {
-            return (T) getClient(getCredentials(), NetworkSettings.newBuilder());
-        } else if (clientSettingName.equals("SubnetworkSettings")) {
-            return (T) getClient(getCredentials(), SubnetworkSettings.newBuilder());
+        if (clientClass.getSimpleName().equals("Compute")) {
+            return (T) getClient(getCredentials());
         }
 
         return null;
     }
 
-    private GoogleCredentials getCredentials() {
+    private GoogleCredential getCredentials() {
         try {
             gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) resourceCredentials();
 
-            return GoogleCredentials.fromStream(
-                new FileInputStream(credentials.getCredentialFilePath()),
-                new HttpTransportOptions.DefaultHttpTransportFactory()
+            return GoogleCredential.fromStream(
+                new FileInputStream(credentials.getCredentialFilePath())
             ).createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,48 +46,17 @@ public abstract class GoogleResource extends Resource {
         return null;
     }
 
-    private NetworkClient getClient(GoogleCredentials googleCredentials, NetworkSettings.Builder builder) {
+    private Compute getClient(GoogleCredential googleCredential) {
         try {
-            String myEndpoint = NetworkSettings.getDefaultEndpoint();
+            HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
-            NetworkSettings networkSettings = builder
-                .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
-                .setTransportChannelProvider(
-                    NetworkSettings.defaultHttpJsonTransportProviderBuilder()
-                        .setEndpoint(myEndpoint)
-                        .build()
-                )
+            return new Compute.Builder(httpTransport, jsonFactory, googleCredential)
+                .setApplicationName("gyro-google-provider")
                 .build();
-
-            return NetworkClient.create(networkSettings);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (GeneralSecurityException | IOException e) {
+            throw new GyroException("Unable to create Compute client");
         }
-
-        return null;
-    }
-
-
-
-    private SubnetworkClient getClient(GoogleCredentials googleCredentials, SubnetworkSettings.Builder builder) {
-        try {
-            String myEndpoint = NetworkSettings.getDefaultEndpoint();
-
-            SubnetworkSettings subnetworkSettings = builder
-                .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
-                .setTransportChannelProvider(
-                    NetworkSettings.defaultHttpJsonTransportProviderBuilder()
-                        .setEndpoint(myEndpoint)
-                        .build()
-                )
-                .build();
-
-            return SubnetworkClient.create(subnetworkSettings);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     protected String getProjectId() {

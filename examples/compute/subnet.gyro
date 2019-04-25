@@ -10,6 +10,6 @@ google::subnet subnet-example
     subnet-name: "subnet-example"
     description: "subnet-example-description"
     ip-cidr-range: "10.0.0.0/16"
-    network-id: $(google::network network-example-subnet | network-name)
+    network-name: $(google::network network-example-subnet | network-name)
     region: "us-east1"
 end
