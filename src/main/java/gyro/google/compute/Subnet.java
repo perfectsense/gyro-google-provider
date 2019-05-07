@@ -1,6 +1,7 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Subnetwork;
 import com.google.api.services.compute.model.SubnetworksSetPrivateIpGoogleAccessRequest;
 import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
@@ -32,7 +33,7 @@ import java.util.Set;
  *     end
  */
 @ResourceName("subnet")
-public class Subnet extends GoogleResource {
+public class Subnet extends ComputeResource {
     private String subnetName;
     private String description;
     private String ipCidrRange;
@@ -174,9 +175,15 @@ public class Subnet extends GoogleResource {
         subnetwork.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
 
         try {
-            client.subnetworks().insert(getProjectId(), getRegion(), subnetwork).execute();
+            Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
+            Operation operation = insert.execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
+
             refresh();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }

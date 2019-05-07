@@ -3,6 +3,7 @@ package gyro.google.compute;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
 import com.google.api.services.compute.model.NetworkRoutingConfig;
+import com.google.api.services.compute.model.Operation;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
@@ -29,7 +30,7 @@ import java.util.Set;
  *     end
  */
 @ResourceName("network")
-public class NetworkResource extends GoogleResource {
+public class NetworkResource extends ComputeResource {
     private String networkName;
     private String description;
     private Boolean globalDynamicRouting;
@@ -93,6 +94,7 @@ public class NetworkResource extends GoogleResource {
 
         try {
             Network network = client.networks().get(getProjectId(), getNetworkName()).execute();
+
             setNetworkId(network.getId().toString());
             setGlobalDynamicRouting(network.getRoutingConfig().getRoutingMode().equals("GLOBAL"));
             setDescription(network.getDescription());
@@ -117,21 +119,18 @@ public class NetworkResource extends GoogleResource {
         network.setRoutingConfig(networkRoutingConfig);
 
         try {
-            client.networks().insert(getProjectId(), network).execute();
+            Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
 
-            // Wait till its actually created.
-            // 503 Error occurs when creating resources like subnet depending on this.
-            // Need to find a better way if present.
-            try {
-                Thread.sleep(20000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            Operation operation = insert.execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
             }
-
-            refresh();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
+
+        refresh();
     }
 
     @Override
