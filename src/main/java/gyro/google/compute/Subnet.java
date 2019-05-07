@@ -8,7 +8,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceDiffProperty;
-import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceType;
 import gyro.core.resource.ResourceOutput;
 import gyro.google.GoogleResource;
 
@@ -31,7 +31,7 @@ import java.util.Set;
  *         region: "us-east1"
  *     end
  */
-@ResourceName("subnet")
+@ResourceType("subnet")
 public class Subnet extends GoogleResource {
     private String subnetName;
     private String description;

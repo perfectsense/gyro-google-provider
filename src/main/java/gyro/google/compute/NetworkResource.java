@@ -7,7 +7,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceDiffProperty;
-import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceType;
 import gyro.core.resource.ResourceOutput;
 import gyro.google.GoogleResource;
 
@@ -28,7 +28,7 @@ import java.util.Set;
  *         global-dynamic-routing: false
  *     end
  */
-@ResourceName("network")
+@ResourceType("network")
 public class NetworkResource extends GoogleResource {
     private String networkName;
     private String description;
