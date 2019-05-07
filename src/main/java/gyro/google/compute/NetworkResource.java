@@ -6,7 +6,7 @@ import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceDiffProperty;
+import gyro.core.resource.ResourceUpdatable;
 import gyro.core.resource.ResourceType;
 import gyro.core.resource.ResourceOutput;
 import gyro.google.GoogleResource;
@@ -62,7 +62,7 @@ public class NetworkResource extends GoogleResource {
     /**
      * Enable/Disable global dynamic routing. Defaults to disabled.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceUpdatable
     public Boolean getGlobalDynamicRouting() {
         if (globalDynamicRouting == null) {
             globalDynamicRouting = false;

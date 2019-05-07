@@ -7,7 +7,7 @@ import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceDiffProperty;
+import gyro.core.resource.ResourceUpdatable;
 import gyro.core.resource.ResourceType;
 import gyro.core.resource.ResourceOutput;
 import gyro.google.GoogleResource;
@@ -102,7 +102,7 @@ public class Subnet extends GoogleResource {
     /**
      * Enable/Disable flow logs. Defaults to disabled.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceUpdatable
     public Boolean getEnableFlowLogs() {
         if (enableFlowLogs == null) {
             enableFlowLogs = false;
@@ -118,7 +118,7 @@ public class Subnet extends GoogleResource {
     /**
      * Enable/Disable private ip google access. Defaults to disabled.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceUpdatable
     public Boolean getPrivateIpGoogleAccess() {
         if (privateIpGoogleAccess == null) {
             privateIpGoogleAccess = false;
