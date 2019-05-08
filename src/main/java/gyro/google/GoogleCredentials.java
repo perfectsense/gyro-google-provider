@@ -1,12 +1,12 @@
 package gyro.google;
 
-import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceType;
 import gyro.core.Credentials;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-@ResourceName("credentials")
+@ResourceType("credentials")
 public class GoogleCredentials extends Credentials {
 
     private String projectId;

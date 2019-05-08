@@ -18,11 +18,6 @@ import java.util.Collections;
 public abstract class GoogleResource extends Resource {
     private String projectId;
 
-    @Override
-    public Class resourceCredentialsClass() {
-        return gyro.google.GoogleCredentials.class;
-    }
-
     protected <T extends AbstractGoogleJsonClient> T creatClient(Class<T> clientClass) {
 
         if (clientClass.getSimpleName().equals("Compute")) {

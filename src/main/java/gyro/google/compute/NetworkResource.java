@@ -7,8 +7,8 @@ import com.google.api.services.compute.model.Operation;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceDiffProperty;
-import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceUpdatable;
+import gyro.core.resource.ResourceType;
 import gyro.core.resource.ResourceOutput;
 import gyro.google.GoogleResource;
 
@@ -29,7 +29,7 @@ import java.util.Set;
  *         global-dynamic-routing: false
  *     end
  */
-@ResourceName("network")
+@ResourceType("network")
 public class NetworkResource extends ComputeResource {
     private String networkName;
     private String description;
@@ -63,7 +63,7 @@ public class NetworkResource extends ComputeResource {
     /**
      * Enable/Disable global dynamic routing. Defaults to disabled.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceUpdatable
     public Boolean getGlobalDynamicRouting() {
         if (globalDynamicRouting == null) {
             globalDynamicRouting = false;
@@ -134,12 +134,12 @@ public class NetworkResource extends ComputeResource {
     }
 
     @Override
-    public void update(Resource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedFieldNames) {
         Compute client = creatClient(Compute.class);
 
         try {
             Network network = client.networks().get(getProjectId(), getNetworkName()).execute();
-            if (changedProperties.contains("global-dynamic-routing")) {
+            if (changedFieldNames.contains("global-dynamic-routing")) {
 
                 NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
                 networkRoutingConfig.setRoutingMode(getGlobalDynamicRouting() ? "GLOBAL" : "REGIONAL");
