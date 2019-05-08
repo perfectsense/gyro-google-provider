@@ -134,12 +134,12 @@ public class NetworkResource extends ComputeResource {
     }
 
     @Override
-    public void update(Resource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedFieldNames) {
         Compute client = creatClient(Compute.class);
 
         try {
             Network network = client.networks().get(getProjectId(), getNetworkName()).execute();
-            if (changedProperties.contains("global-dynamic-routing")) {
+            if (changedFieldNames.contains("global-dynamic-routing")) {
 
                 NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
                 networkRoutingConfig.setRoutingMode(getGlobalDynamicRouting() ? "GLOBAL" : "REGIONAL");

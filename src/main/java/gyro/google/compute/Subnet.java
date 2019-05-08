@@ -189,18 +189,18 @@ public class Subnet extends ComputeResource {
     }
 
     @Override
-    public void update(Resource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedFieldNames) {
         Compute client = creatClient(Compute.class);
 
         try {
 
-            if (changedProperties.contains("enable-flow-logs")) {
+            if (changedFieldNames.contains("enable-flow-logs")) {
                 Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getSubnetName()).execute();
                 subnetwork.setEnableFlowLogs(getEnableFlowLogs());
                 client.subnetworks().patch(getProjectId(), getRegion(), getSubnetName(), subnetwork).execute();
             }
 
-            if (changedProperties.contains("private-ip-google-access")) {
+            if (changedFieldNames.contains("private-ip-google-access")) {
                 SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
                 flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
                 client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getSubnetName(), flag).execute();
