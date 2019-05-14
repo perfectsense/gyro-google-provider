@@ -42,8 +42,8 @@ public class GoogleCredentials extends Credentials<GoogleCredential> {
 
     @Override
     public GoogleCredential findCredentials(boolean refresh, boolean extended) {
-        try {
-            return GoogleCredential.fromStream(getRelativeCredentialsPath())
+        try (InputStream input = getRelativeCredentialsPath()){
+            return GoogleCredential.fromStream(input)
                 .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
         } catch (Exception e) {
             e.printStackTrace();
