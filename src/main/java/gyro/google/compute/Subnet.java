@@ -8,8 +8,8 @@ import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceDiffProperty;
-import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceUpdatable;
+import gyro.core.resource.ResourceType;
 import gyro.core.resource.ResourceOutput;
 import gyro.google.GoogleResource;
 
@@ -32,7 +32,7 @@ import java.util.Set;
  *         region: "us-east1"
  *     end
  */
-@ResourceName("subnet")
+@ResourceType("subnet")
 public class Subnet extends ComputeResource {
     private String subnetName;
     private String description;
@@ -103,7 +103,7 @@ public class Subnet extends ComputeResource {
     /**
      * Enable/Disable flow logs. Defaults to disabled.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceUpdatable
     public Boolean getEnableFlowLogs() {
         if (enableFlowLogs == null) {
             enableFlowLogs = false;
@@ -119,7 +119,7 @@ public class Subnet extends ComputeResource {
     /**
      * Enable/Disable private ip google access. Defaults to disabled.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceUpdatable
     public Boolean getPrivateIpGoogleAccess() {
         if (privateIpGoogleAccess == null) {
             privateIpGoogleAccess = false;
@@ -189,18 +189,18 @@ public class Subnet extends ComputeResource {
     }
 
     @Override
-    public void update(Resource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedFieldNames) {
         Compute client = creatClient(Compute.class);
 
         try {
 
-            if (changedProperties.contains("enable-flow-logs")) {
+            if (changedFieldNames.contains("enable-flow-logs")) {
                 Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getSubnetName()).execute();
                 subnetwork.setEnableFlowLogs(getEnableFlowLogs());
                 client.subnetworks().patch(getProjectId(), getRegion(), getSubnetName(), subnetwork).execute();
             }
 
-            if (changedProperties.contains("private-ip-google-access")) {
+            if (changedFieldNames.contains("private-ip-google-access")) {
                 SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
                 flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
                 client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getSubnetName(), flag).execute();
