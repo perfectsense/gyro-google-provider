@@ -1,13 +1,14 @@
 package gyro.google;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import gyro.core.resource.ResourceType;
 import gyro.core.Credentials;
-import com.google.common.collect.ImmutableMap;
 
-import java.util.Map;
+import java.io.InputStream;
+import java.util.Collections;
 
 @ResourceType("credentials")
-public class GoogleCredentials extends Credentials {
+public class GoogleCredentials extends Credentials<GoogleCredential> {
 
     private String projectId;
 
@@ -35,15 +36,23 @@ public class GoogleCredentials extends Credentials {
     }
 
     @Override
-    public Map<String, String> findCredentials(boolean refresh) {
+    public GoogleCredential findCredentials(boolean refresh) {
         return findCredentials(refresh, true);
     }
 
     @Override
-    public Map<String, String> findCredentials(boolean refresh, boolean extended) {
-        ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
+    public GoogleCredential findCredentials(boolean refresh, boolean extended) {
+        try (InputStream input = getRelativeCredentialsPath()){
+            return GoogleCredential.fromStream(input)
+                .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        return mapBuilder.build();
+        return null;
     }
 
+    private InputStream getRelativeCredentialsPath() throws Exception {
+        return openInput(getCredentialFilePath());
+    }
 }

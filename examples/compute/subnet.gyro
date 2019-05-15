@@ -1,5 +1,3 @@
-@import ../init as _
-
 google::network network-example-subnet
     network-name: "vpc-example-subnet"
     description: "vpc-example-desc-subnet"

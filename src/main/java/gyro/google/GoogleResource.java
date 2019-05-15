@@ -21,7 +21,7 @@ public abstract class GoogleResource extends Resource {
     protected <T extends AbstractGoogleJsonClient> T creatClient(Class<T> clientClass) {
 
         if (clientClass.getSimpleName().equals("Compute")) {
-            return (T) getClient(getCredentials());
+            return (T) getClient();
         }
 
         return null;
@@ -41,12 +41,14 @@ public abstract class GoogleResource extends Resource {
         return null;
     }
 
-    private Compute getClient(GoogleCredential googleCredential) {
+    private Compute getClient() {
         try {
+            gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) resourceCredentials();
+
             HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
-            return new Compute.Builder(httpTransport, jsonFactory, googleCredential)
+            return new Compute.Builder(httpTransport, jsonFactory, credentials.findCredentials(true))
                 .setApplicationName("gyro-google-provider")
                 .build();
         } catch (GeneralSecurityException | IOException e) {
