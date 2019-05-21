@@ -7,10 +7,9 @@ import com.google.api.services.compute.model.Operation;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceUpdatable;
+import gyro.core.resource.Updatable;
 import gyro.core.resource.ResourceType;
-import gyro.core.resource.ResourceOutput;
-import gyro.google.GoogleResource;
+import gyro.core.resource.Output;
 
 import java.io.IOException;
 import java.util.Set;
@@ -63,7 +62,7 @@ public class NetworkResource extends ComputeResource {
     /**
      * Enable/Disable global dynamic routing. Defaults to disabled.
      */
-    @ResourceUpdatable
+    @Updatable
     public Boolean getGlobalDynamicRouting() {
         if (globalDynamicRouting == null) {
             globalDynamicRouting = false;
@@ -79,7 +78,7 @@ public class NetworkResource extends ComputeResource {
     /**
      * The Id of the network.
      */
-    @ResourceOutput
+    @Output
     public String getNetworkId() {
         return networkId;
     }
