@@ -6,11 +6,11 @@ import gyro.core.resource.Resource;
 public abstract class GoogleResource extends Resource {
 
     protected <T extends AbstractGoogleJsonClient> T creatClient(Class<T> clientClass) {
-        return ((GoogleCredentials) credentials()).createClient(clientClass);
+        return credentials(GoogleCredentials.class).createClient(clientClass);
     }
 
     protected String getProjectId() {
-        return ((GoogleCredentials) credentials()).getProjectId();
+        return credentials(GoogleCredentials.class).getProjectId();
     }
 
 }
