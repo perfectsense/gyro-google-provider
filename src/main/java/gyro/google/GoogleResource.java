@@ -29,7 +29,7 @@ public abstract class GoogleResource extends Resource {
 
     private GoogleCredential getCredentials() {
         try {
-            gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) resourceCredentials();
+            gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) credentials();
 
             return GoogleCredential.fromStream(
                 new FileInputStream(credentials.getCredentialFilePath())
@@ -43,7 +43,7 @@ public abstract class GoogleResource extends Resource {
 
     private Compute getClient() {
         try {
-            gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) resourceCredentials();
+            gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) credentials();
 
             HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
@@ -58,7 +58,7 @@ public abstract class GoogleResource extends Resource {
 
     protected String getProjectId() {
         if (projectId == null) {
-            gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) resourceCredentials();
+            gyro.google.GoogleCredentials credentials = (gyro.google.GoogleCredentials) credentials();
             projectId = credentials.getProjectId();
         }
 

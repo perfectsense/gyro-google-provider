@@ -3,8 +3,8 @@
  * ------------
  */
 @DocNamespace("google")
-@ResourceNamespace("google")
+@Namespace("google")
 package gyro.google;
 
+import gyro.core.Namespace;
 import gyro.core.resource.DocNamespace;
-import gyro.core.resource.ResourceNamespace;

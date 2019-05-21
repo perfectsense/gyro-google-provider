@@ -1,23 +1,16 @@
 package gyro.google;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import gyro.core.resource.ResourceType;
-import gyro.core.Credentials;
+import gyro.core.auth.Credentials;
 
 import java.io.InputStream;
 import java.util.Collections;
 
-@ResourceType("credentials")
 public class GoogleCredentials extends Credentials<GoogleCredential> {
 
     private String projectId;
 
     private String credentialFilePath;
-
-    @Override
-    public String getCloudName() {
-        return "google";
-    }
 
     public String getProjectId() {
         return projectId;
