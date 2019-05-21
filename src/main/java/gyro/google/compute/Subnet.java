@@ -9,7 +9,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
-import gyro.core.resource.ResourceType;
+import gyro.core.Type;
 import gyro.core.resource.Output;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ import java.util.Set;
  *         region: "us-east1"
  *     end
  */
-@ResourceType("subnet")
+@Type("subnet")
 public class Subnet extends ComputeResource {
     private String subnetName;
     private String description;
