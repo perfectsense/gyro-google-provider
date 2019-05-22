@@ -1,14 +1,9 @@
-HIGHLANDER: true
+@highlander
+@repository 'https://artifactory.psdops.com/public'
+@repository 'https://artifactory.psdops.com/gyro-snapshots'
+@plugin 'gyro:gyro-google-provider:0.15-SNAPSHOT'
 
-plugin
-    artifact: 'gyro:gyro-google-provider:0.14-SNAPSHOT'
-    repositories: [
-        'https://artifactory.psdops.com/public',
-        'https://artifactory.psdops.com/gyro-snapshots'
-    ]
-end
-
-google::credentials default
-    credential-file-path: ""
+@credentials 'google::credentials' {
+    credential-file-path: "",
     project-id: ""
-end
+}
