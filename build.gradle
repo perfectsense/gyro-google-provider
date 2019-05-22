@@ -11,7 +11,7 @@ if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'f
 }
 
 group = 'gyro'
-version = '0.14-SNAPSHOT'
+version = '0.15-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -36,13 +36,13 @@ configurations {
 }
 
 dependencies {
-    api 'gyro:gyro-core:0.14-SNAPSHOT'
+    api 'gyro:gyro-core:0.15-SNAPSHOT'
     implementation 'com.google.guava:guava:23.0'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
     
     implementation 'com.google.cloud:google-cloud-compute:0.87.0-alpha'
 
-    gyroDoclet "gyro:gyro-doclet:0.14-SNAPSHOT"
+    gyroDoclet "gyro:gyro-doclet:0.15-SNAPSHOT"
 }
 
 task referenceDocs(type: Javadoc) {
