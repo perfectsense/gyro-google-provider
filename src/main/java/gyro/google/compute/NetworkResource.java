@@ -6,6 +6,7 @@ import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.google.api.services.compute.model.Operation;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
+import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.Type;
@@ -106,7 +107,7 @@ public class NetworkResource extends ComputeResource {
     }
 
     @Override
-    public void create(State state) {
+    public void create(GyroUI ui, State state) {
         Compute client = creatClient(Compute.class);
 
         Network network = new Network();
@@ -134,7 +135,7 @@ public class NetworkResource extends ComputeResource {
     }
 
     @Override
-    public void update(State state, Resource current, Set<String> changedFieldNames) {
+    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
         Compute client = creatClient(Compute.class);
 
         try {
@@ -152,7 +153,7 @@ public class NetworkResource extends ComputeResource {
     }
 
     @Override
-    public void delete(State state) {
+    public void delete(GyroUI ui, State state) {
         Compute compute = creatClient(Compute.class);
 
         try {
