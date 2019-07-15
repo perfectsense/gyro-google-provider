@@ -11,6 +11,7 @@ import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.Type;
 import gyro.core.resource.Output;
+import gyro.core.scope.State;
 
 import java.io.IOException;
 import java.util.Set;
@@ -162,7 +163,7 @@ public class Subnet extends ComputeResource {
     }
 
     @Override
-    public void create() {
+    public void create(State state) {
         Compute client = creatClient(Compute.class);
 
         Subnetwork subnetwork = new Subnetwork();
@@ -188,7 +189,7 @@ public class Subnet extends ComputeResource {
     }
 
     @Override
-    public void update(Resource current, Set<String> changedFieldNames) {
+    public void update(State state, Resource current, Set<String> changedFieldNames) {
         Compute client = creatClient(Compute.class);
 
         try {
@@ -210,7 +211,7 @@ public class Subnet extends ComputeResource {
     }
 
     @Override
-    public void delete() {
+    public void delete(State state) {
         Compute client = creatClient(Compute.class);
 
         try {
