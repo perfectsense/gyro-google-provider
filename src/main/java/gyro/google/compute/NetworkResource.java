@@ -4,7 +4,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
 import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.google.api.services.compute.model.Operation;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
@@ -163,21 +162,4 @@ public class NetworkResource extends ComputeResource {
         }
     }
 
-    @Override
-    public String toDisplayString() {
-
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("network");
-
-        if (!ObjectUtils.isBlank(getNetworkName())) {
-            sb.append(" ( ").append(getNetworkName()).append(" )");
-        }
-
-        if (!ObjectUtils.isBlank(getNetworkId())) {
-            sb.append(" - ").append(getNetworkId());
-        }
-
-        return sb.toString();
-    }
 }

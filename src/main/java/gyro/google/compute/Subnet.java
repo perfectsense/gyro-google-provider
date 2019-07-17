@@ -5,7 +5,6 @@ import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Subnetwork;
 import com.google.api.services.compute.model.SubnetworksSetPrivateIpGoogleAccessRequest;
 import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
@@ -230,20 +229,4 @@ public class Subnet extends ComputeResource {
         }
     }
 
-    @Override
-    public String toDisplayString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("subnet");
-
-        if (!ObjectUtils.isBlank(getSubnetName())) {
-            sb.append(" ( ").append(getSubnetName()).append(" )");
-        }
-
-        if (!ObjectUtils.isBlank(getSubnetworkId())) {
-            sb.append(" - ").append(getSubnetworkId());
-        }
-
-        return sb.toString();
-    }
 }
