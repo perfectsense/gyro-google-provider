@@ -1,5 +1,13 @@
 google::network network-example
-    network-name: "vpc-example"
+    name: "vpc-example"
     description: "vpc-example-desc"
-    global-dynamic-routing: false
+    routing-mode: "Regional"
+end
+
+google::subnet subnet-example
+    name: "subnet-example"
+    description: "subnet-example-desc"
+    ip-cidr-range: "10.0.0.0/16"
+    network: $(google::network network-example)
+    region: "us-east1"
 end

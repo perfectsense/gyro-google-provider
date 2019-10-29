@@ -3,15 +3,19 @@ plugins {
     id 'maven-publish'
 }
 
+def releaseVersion = '0.99.1'
+def releaseBuild = false;
+
 if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'false') {
     defaultTasks 'build', 'publish'
 
+    releaseBuild = System.getenv('TRAVIS_BRANCH').startsWith("release/");
 } else {
     defaultTasks 'build', 'publishToMavenLocal'
 }
 
 group = 'gyro'
-version = '0.15-SNAPSHOT'
+version = releaseBuild ? releaseVersion : releaseVersion + '-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -36,19 +40,18 @@ configurations {
 }
 
 dependencies {
-    api 'gyro:gyro-core:0.15-SNAPSHOT'
+    api 'gyro:gyro-core:0.99.1-SNAPSHOT'
     implementation 'com.google.guava:guava:23.0'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
-    
-    implementation 'com.google.cloud:google-cloud-compute:0.87.0-alpha'
+    implementation 'com.google.cloud:google-cloud-compute:0.116.0-alpha'
 
-    gyroDoclet "gyro:gyro-doclet:0.15-SNAPSHOT"
+    gyroDoclet "gyro:gyro-doclet:0.99.0-SNAPSHOT"
 }
 
 task referenceDocs(type: Javadoc) {
     title = null // Prevents -doctitle and -windowtitle from being passed to GyroDoclet
     source = sourceSets.main.allJava
-    classpath = configurations.compile
+    classpath = configurations.runtimeClasspath
     options.doclet = "gyro.doclet.GyroDoclet"
     options.docletpath = configurations.gyroDoclet.files.asType(List)
 }
@@ -67,11 +70,11 @@ publishing {
                 password System.getenv('GRADLE_DEPLOY_PASSWORD')
             }
 
-            if (project.version.endsWith('-SNAPSHOT')) {
-                url 'https://artifactory.psdops.com/gyro-snapshots'
+            if (releaseBuild) {
+                url 'https://artifactory.psdops.com/gyro-releases'
 
             } else {
-                url 'https://artifactory.psdops.com/gyro-releases'
+                url 'https://artifactory.psdops.com/gyro-snapshots'
             }
         }
     }

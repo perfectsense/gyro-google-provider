@@ -1,0 +1,17 @@
+sudo: false
+
+if: type = push
+
+branches:
+  only:
+    - master
+    - /^release\/.*/
+
+language: java
+
+jdk:
+  - openjdk11
+
+install: true
+
+script: ./gradlew

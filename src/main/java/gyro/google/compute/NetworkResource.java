@@ -1,16 +1,21 @@
 package gyro.google.compute;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
 import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.resource.Id;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.Type;
 import gyro.core.resource.Output;
 import gyro.core.scope.State;
+import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
+import gyro.google.Copyable;
 
 import java.io.IOException;
 import java.util.Set;
@@ -24,29 +29,31 @@ import java.util.Set;
  * .. code-block:: gyro
  *
  *     google::network network-example
- *         network-name: "vpc-example"
+ *         name: "vpc-example"
  *         description: "vpc-example-desc"
- *         global-dynamic-routing: false
+ *         routing-mode: "GLOBAL"
  *     end
  */
 @Type("network")
-public class NetworkResource extends ComputeResource {
-    private String networkName;
+public class NetworkResource extends ComputeResource implements Copyable<Network> {
+    private String name;
     private String description;
-    private Boolean globalDynamicRouting;
+    private String routingMode;
 
     // Read-only
-    private String networkId;
+    private String id;
 
     /**
      * The name of the network. (Required)
      */
-    public String getNetworkName() {
-        return networkName;
+    @Id
+    @Required
+    public String getName() {
+        return name;
     }
 
-    public void setNetworkName(String networkName) {
-        this.networkName = networkName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -61,31 +68,37 @@ public class NetworkResource extends ComputeResource {
     }
 
     /**
-     * Enable/Disable global dynamic routing. Defaults to disabled.
+     * The routing mode for the network. Valid values are ``GLOBAL`` or ``REGIONAL``.
      */
+    @Required
+    @ValidStrings({"GLOBAL", "REGIONAL"})
     @Updatable
-    public Boolean getGlobalDynamicRouting() {
-        if (globalDynamicRouting == null) {
-            globalDynamicRouting = false;
-        }
-
-        return globalDynamicRouting;
+    public String getRoutingMode() {
+        return routingMode != null ? routingMode.toUpperCase() : null;
     }
 
-    public void setGlobalDynamicRouting(Boolean globalDynamicRouting) {
-        this.globalDynamicRouting = globalDynamicRouting;
+    public void setRoutingMode(String routingMode) {
+        this.routingMode = routingMode;
     }
 
     /**
      * The Id of the network.
      */
     @Output
-    public String getNetworkId() {
-        return networkId;
+    public String getId() {
+        return id;
     }
 
-    public void setNetworkId(String networkId) {
-        this.networkId = networkId;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public void copyFrom(Network network) {
+        setId(network.getId().toString());
+        setRoutingMode(network.getRoutingConfig().getRoutingMode());
+        setDescription(network.getDescription());
+        setName(network.getName());
     }
 
     @Override
@@ -93,16 +106,19 @@ public class NetworkResource extends ComputeResource {
         Compute client = creatClient(Compute.class);
 
         try {
-            Network network = client.networks().get(getProjectId(), getNetworkName()).execute();
+            Network network = client.networks().get(getProjectId(), getName()).execute();
+            copyFrom(network);
 
-            setNetworkId(network.getId().toString());
-            setGlobalDynamicRouting(network.getRoutingConfig().getRoutingMode().equals("GLOBAL"));
-            setDescription(network.getDescription());
+            return true;
+        } catch (GoogleJsonResponseException je) {
+            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+                return false;
+            } else {
+                throw new GyroException(je.getDetails().getMessage());
+            }
         } catch (IOException ex) {
-            return false;
+            throw new GyroException(ex.getMessage(), ex.getCause());
         }
-
-        return true;
     }
 
     @Override
@@ -110,27 +126,26 @@ public class NetworkResource extends ComputeResource {
         Compute client = creatClient(Compute.class);
 
         Network network = new Network();
-        network.setName(getNetworkName());
+        network.setName(getName());
         network.setDescription(getDescription());
         network.setAutoCreateSubnetworks(false);
 
         NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
-        networkRoutingConfig.setRoutingMode(getGlobalDynamicRouting() ? "GLOBAL" : "REGIONAL");
+        networkRoutingConfig.setRoutingMode(getRoutingMode());
         network.setRoutingConfig(networkRoutingConfig);
 
         try {
             Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
-
             Operation operation = insert.execute();
             Operation.Error error = waitForCompletion(client, operation);
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
             }
+
+            refresh();
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
-
-        refresh();
     }
 
     @Override
@@ -138,14 +153,14 @@ public class NetworkResource extends ComputeResource {
         Compute client = creatClient(Compute.class);
 
         try {
-            Network network = client.networks().get(getProjectId(), getNetworkName()).execute();
-            if (changedFieldNames.contains("global-dynamic-routing")) {
+            NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
+            networkRoutingConfig.setRoutingMode(getRoutingMode());
 
-                NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
-                networkRoutingConfig.setRoutingMode(getGlobalDynamicRouting() ? "GLOBAL" : "REGIONAL");
-                network.setRoutingConfig(networkRoutingConfig);
-                client.networks().patch(getProjectId(), getNetworkName(), network).execute();
-            }
+            Network network = client.networks().get(getProjectId(), getName()).execute();
+            network.setRoutingConfig(networkRoutingConfig);
+
+            client.networks().patch(getProjectId(), getName(), network).execute();
+            refresh();
         } catch (IOException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
@@ -156,10 +171,9 @@ public class NetworkResource extends ComputeResource {
         Compute compute = creatClient(Compute.class);
 
         try {
-            compute.networks().delete(getProjectId(), getNetworkName()).execute();
+            compute.networks().delete(getProjectId(), getName()).execute();
         } catch (IOException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
-
 }

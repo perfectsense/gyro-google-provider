@@ -1,5 +1,6 @@
 package gyro.google.compute;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Subnetwork;
@@ -12,6 +13,8 @@ import gyro.core.resource.Updatable;
 import gyro.core.Type;
 import gyro.core.resource.Output;
 import gyro.core.scope.State;
+import gyro.core.validation.Required;
+import gyro.google.Copyable;
 
 import java.io.IOException;
 import java.util.Set;
@@ -25,35 +28,36 @@ import java.util.Set;
  * .. code-block:: gyro
  *
  *     google::subnet subnet-example
- *         subnet-name: "subnet-example"
+ *         name: "subnet-example"
  *         description: "subnet-example-description"
  *         ip-cidr-range: "10.0.0.0/16"
- *         network-name: $(google::network network-example-subnet | network-name)
+ *         network: $(google::network network-example-subnet)
  *         region: "us-east1"
  *     end
  */
 @Type("subnet")
-public class Subnet extends ComputeResource {
-    private String subnetName;
+public class SubnetworkResource extends ComputeResource implements Copyable<Subnetwork> {
+    private String name;
     private String description;
     private String ipCidrRange;
-    private String networkName;
+    private NetworkResource network;
     private String region;
     private Boolean enableFlowLogs;
     private Boolean privateIpGoogleAccess;
 
     // Read-only
-    private String subnetworkId;
+    private String id;
 
     /**
      * The name of the subnet. (Required)
      */
-    public String getSubnetName() {
-        return subnetName;
+    @Required
+    public String getName() {
+        return name;
     }
 
-    public void setSubnetName(String subnetName) {
-        this.subnetName = subnetName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -70,6 +74,7 @@ public class Subnet extends ComputeResource {
     /**
      * The IPv4 network range for the subnet, in CIDR notation. (Required)
      */
+    @Required
     public String getIpCidrRange() {
         return ipCidrRange;
     }
@@ -79,19 +84,21 @@ public class Subnet extends ComputeResource {
     }
 
     /**
-     * The vpc network name under which the subnet will reside. (Required)
+     * The network to create this subnet in. (Required)
      */
-    public String getNetworkName() {
-        return networkName;
+    @Required
+    public NetworkResource getNetwork() {
+        return network;
     }
 
-    public void setNetworkName(String networkName) {
-        this.networkName = networkName;
+    public void setNetwork(NetworkResource network) {
+        this.network = network;
     }
 
     /**
-     * The region under which the subnet will reside. (Required)
+     * The region to create this subnet in. (Required)
      */
+    @Required
     public String getRegion() {
         return region;
     }
@@ -101,7 +108,7 @@ public class Subnet extends ComputeResource {
     }
 
     /**
-     * Enable/Disable flow logs. Defaults to disabled.
+     * When true, enables flow logs. Defaults to ``false``.
      */
     @Updatable
     public Boolean getEnableFlowLogs() {
@@ -117,7 +124,7 @@ public class Subnet extends ComputeResource {
     }
 
     /**
-     * Enable/Disable private ip google access. Defaults to disabled.
+     * When true, allows virtual machines in this subnet that only have private IPs to access Google APIs and services. See `Configuring Private Google Access <https://cloud.google.com/vpc/docs/configure-private-google-access>`_. Defaults to ``false``.
      */
     @Updatable
     public Boolean getPrivateIpGoogleAccess() {
@@ -136,12 +143,24 @@ public class Subnet extends ComputeResource {
      * The Id of the subnet.
      */
     @Output
-    public String getSubnetworkId() {
-        return subnetworkId;
+    public String getId() {
+        return id;
     }
 
-    public void setSubnetworkId(String subnetworkId) {
-        this.subnetworkId = subnetworkId;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public void copyFrom(Subnetwork subnetwork) {
+        setId(subnetwork.getId().toString());
+        setDescription(subnetwork.getDescription());
+        setIpCidrRange(subnetwork.getIpCidrRange());
+        setEnableFlowLogs(subnetwork.getEnableFlowLogs());
+        setPrivateIpGoogleAccess(subnetwork.getPrivateIpGoogleAccess());
+        setName(subnetwork.getName());
+        setNetwork(findById(NetworkResource.class, subnetwork.getNetwork().substring(subnetwork.getNetwork().lastIndexOf("/") + 1)));
+        setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
     }
 
     @Override
@@ -149,17 +168,19 @@ public class Subnet extends ComputeResource {
         Compute client = creatClient(Compute.class);
 
         try {
-            Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getSubnetName()).execute();
-            setSubnetworkId(subnetwork.getId().toString());
-            setDescription(subnetwork.getDescription());
-            setIpCidrRange(subnetwork.getIpCidrRange());
-            setEnableFlowLogs(subnetwork.getEnableFlowLogs());
-            setPrivateIpGoogleAccess(subnetwork.getPrivateIpGoogleAccess());
-        } catch (IOException ex) {
-            return false;
-        }
+            Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
+            copyFrom(subnetwork);
 
-        return true;
+            return true;
+        } catch (GoogleJsonResponseException je) {
+            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+                return false;
+            } else {
+                throw new GyroException(je.getDetails().getMessage());
+            }
+        } catch (IOException ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
     }
 
     @Override
@@ -167,8 +188,8 @@ public class Subnet extends ComputeResource {
         Compute client = creatClient(Compute.class);
 
         Subnetwork subnetwork = new Subnetwork();
-        subnetwork.setName(getSubnetName());
-        subnetwork.setNetwork(ProjectGlobalNetworkName.format(getNetworkName(), getProjectId()));
+        subnetwork.setName(getName());
+        subnetwork.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
         subnetwork.setDescription(getDescription());
         subnetwork.setIpCidrRange(getIpCidrRange());
         subnetwork.setEnableFlowLogs(getEnableFlowLogs());
@@ -193,17 +214,16 @@ public class Subnet extends ComputeResource {
         Compute client = creatClient(Compute.class);
 
         try {
-
             if (changedFieldNames.contains("enable-flow-logs")) {
-                Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getSubnetName()).execute();
+                Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
                 subnetwork.setEnableFlowLogs(getEnableFlowLogs());
-                client.subnetworks().patch(getProjectId(), getRegion(), getSubnetName(), subnetwork).execute();
+                client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
             }
 
             if (changedFieldNames.contains("private-ip-google-access")) {
                 SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
                 flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
-                client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getSubnetName(), flag).execute();
+                client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
             }
         } catch (IOException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
@@ -215,18 +235,14 @@ public class Subnet extends ComputeResource {
         Compute client = creatClient(Compute.class);
 
         try {
-            client.subnetworks().delete(getProjectId(), getRegion(), getSubnetName()).execute();
+            Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
 
-            // Wait till its actually deleted.
-            // Network doesn't get deleted just sits.
-            try {
-                Thread.sleep(20000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
-
 }
