@@ -108,7 +108,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * Enable/Disable flow logs. Defaults to ``false``.
+     * When true, enables flow logs. Defaults to ``false``.
      */
     @Updatable
     public Boolean getEnableFlowLogs() {
@@ -124,7 +124,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * Enable/Disable private IP google access. If enabled, allows virtual machines with only private IPs in this subnet to access other google services. See `Configuring Private Google Access <https://cloud.google.com/vpc/docs/configure-private-google-access>`_. Defaults to ``false``.
+     * When true, allows virtual machines with only private IPs in this subnet to access other google services. See `Configuring Private Google Access <https://cloud.google.com/vpc/docs/configure-private-google-access>`_. Defaults to ``false``.
      */
     @Updatable
     public Boolean getPrivateIpGoogleAccess() {
