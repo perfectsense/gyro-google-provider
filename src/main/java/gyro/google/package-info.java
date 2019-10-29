@@ -22,7 +22,7 @@
  * This provider expects credentials to be provided using a json file containing the
  * credentials of a service account. For more info refer `Service account creation <https://cloud.google.com/docs/authentication/getting-started>`_
  *
- * Use the credential file path in ``.gyro/init.gyro`` in your Gyro project along with
+ * Credentials can be defined in ``.gyro/init.gyro``. You will need to provide the path to your json credentials file along with
  * the project-ID that these credentials are for.
  *
  * .. code:: shell
