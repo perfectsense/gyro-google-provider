@@ -84,7 +84,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * The network under which the subnet will reside. (Required)
+     * The network to create this subnet in. (Required)
      */
     @Required
     public NetworkResource getNetwork() {
@@ -96,7 +96,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * The region under which the subnet will reside. (Required)
+     * The region to create this subnet in. (Required)
      */
     @Required
     public String getRegion() {
@@ -124,7 +124,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * Enable/Disable private ip google access. Defaults to ``false``.
+     * Enable/Disable private IP google access. If enabled, allows virtual machines with only private IPs in this subnet to access other google services. See `Configuring Private Google Access <https://cloud.google.com/vpc/docs/configure-private-google-access>`_. Defaults to ``false``.
      */
     @Updatable
     public Boolean getPrivateIpGoogleAccess() {
