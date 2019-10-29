@@ -5,8 +5,12 @@ import gyro.core.resource.Resource;
 
 public abstract class GoogleResource extends Resource {
 
+    protected static <T extends AbstractGoogleJsonClient> T creatClient(Class<T> clientClass, GoogleCredentials credentials) {
+        return credentials.createClient(clientClass);
+    }
+
     protected <T extends AbstractGoogleJsonClient> T creatClient(Class<T> clientClass) {
-        return credentials(GoogleCredentials.class).createClient(clientClass);
+        return creatClient(clientClass, credentials(GoogleCredentials.class));
     }
 
     protected String getProjectId() {
