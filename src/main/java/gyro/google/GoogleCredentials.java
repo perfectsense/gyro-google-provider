@@ -16,13 +16,13 @@
 
 package gyro.google;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.compute.Compute;
+import com.google.auth.http.HttpCredentialsAdapter;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.auth.Credentials;
@@ -57,17 +57,18 @@ public class GoogleCredentials extends Credentials {
         try {
             HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-            GoogleCredential googleCredential = null;
+
+            com.google.auth.oauth2.GoogleCredentials googleCredentials = null;
 
             try (GyroInputStream input = openInput(getCredentialFilePath())) {
-                googleCredential = GoogleCredential.fromStream(input)
+                googleCredentials = com.google.auth.oauth2.GoogleCredentials.fromStream(input)
                     .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
             } catch (Exception ex) {
                 throw new GyroException("Could not load credentials file.");
             }
 
             switch (clientClass.getSimpleName()) {
-                case "Compute": return (T) new Compute.Builder(httpTransport, jsonFactory, googleCredential)
+                case "Compute": return (T) new Compute.Builder(httpTransport, jsonFactory, new HttpCredentialsAdapter(googleCredentials))
                                 .setApplicationName("gyro-google-provider").build();
 
                 default: throw new GyroException(String.format("No client found for class %s", clientClass.getSimpleName()));
