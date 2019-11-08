@@ -1,0 +1,24 @@
+google::network network-example-firewall-rule
+    name: "vpc-example-firewall-rule"
+    description: "vpc-example-firewall-rule-desc"
+    routing-mode: "Regional"
+end
+
+    google::firewall-rule firewall-rule-example
+        name: "firewall-rule-example"
+        network: $(google::network network-example-firewall-rule)
+        description: "firewall-rule-example-desc"
+        direction: "ingress"
+        priority: 1001
+
+        rule-type: "allow"
+
+        rule
+            protocol: "tcp"
+            ports: ["95-96", "80-85"]
+        end
+
+        source-tags: [
+            "something"
+        ]
+    end
