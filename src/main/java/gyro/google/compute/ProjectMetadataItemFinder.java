@@ -66,23 +66,21 @@ public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.It
 
     @Override
     protected List<Metadata.Items> findGoogle(Compute client, Map<String, String> filters) {
-        Metadata.Items item;
-
         try {
-            item = client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems().stream()
+            Metadata.Items item = client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems().stream()
                 .filter(r -> filters.get("name").equals(r.getKey()))
                 .findFirst()
                 .orElse(null);
+
+            if (item != null) {
+                return Collections.singletonList(item);
+            } else {
+                return Collections.emptyList();
+            }
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (IOException ex) {
             throw new GyroException(ex);
-        }
-
-        if (item != null) {
-            return Collections.singletonList(item);
-        } else {
-            return Collections.emptyList();
         }
     }
 }

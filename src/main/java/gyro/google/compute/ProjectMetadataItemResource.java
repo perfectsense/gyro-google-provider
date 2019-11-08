@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -52,6 +51,9 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     private String key;
     private String value;
 
+    /**
+     * The key of the metadata item. (Required)
+     */
     @Required
     public String getKey() {
         return key;
@@ -61,6 +63,9 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
         this.key = key;
     }
 
+    /**
+     * The value of the metadata item.
+     */
     @Updatable
     public String getValue() {
         return value;
@@ -79,17 +84,20 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     @Override
     public boolean refresh() {
         Compute client = creatClient(Compute.class);
+
         Metadata metadata = getMetadata(client);
         Metadata.Items item = metadata.getItems()
             .stream()
             .filter(r -> getKey().equals(r.getKey()))
             .findFirst()
             .orElse(null);
+
         if (item != null) {
             copyFrom(item);
 
             return true;
         }
+
         return false;
     }
 
@@ -124,7 +132,6 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
             item.setValue(getValue());
             setMetadata(client, metadata);
         }
-
     }
 
     @Override
@@ -141,6 +148,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
         try {
             Compute.Projects.Get projectRequest = client.projects().get(getProjectId());
             Project project = projectRequest.execute();
+
             return project.getCommonInstanceMetadata();
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
