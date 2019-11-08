@@ -61,6 +61,7 @@ dependencies {
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
     implementation 'com.google.cloud:google-cloud-compute:0.116.0-alpha'
     implementation 'com.google.auth:google-auth-library-oauth2-http:0.18.0'
+    implementation 'com.google.cloud:google-cloud-storage:1.99.0'
 
     gyroDoclet "gyro:gyro-doclet:0.99.0-SNAPSHOT"
 }
