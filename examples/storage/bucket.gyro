@@ -1,7 +1,7 @@
-google::bucket test-bucket-3
-    name: 'kluman-bucket-testing-3'
+google::bucket bucket-1
+    name: 'example-one'
     location: 'us-central1'
     labels: {
-        'foo': 'loc_test99'
+        'foo': 'bar_1901'
     }
 end
