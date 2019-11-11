@@ -10,8 +10,10 @@ import gyro.core.resource.Id;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
+import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
 import java.io.IOException;
@@ -21,25 +23,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Creates a bucket within a specified region.
  *
- * Example
- * -------
+ * Examples
+ * --------
  *
  * ..code-block:: gyro
  *
  *   google::bucket bucket-1
- *     name: 'example-one'
- *     location: 'us-central1'
- *     labels: {
- *         'foo': 'bar_1900'
- *     }
+ *       name: 'example-one'
+ *       location: 'us-central1'
+ *       labels: {
+ *           'foo': 'bar_1900'
+ *       }
  *   end
  */
 @Type("bucket")
-public class BucketResource extends GoogleResource {
+public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     private static final String LABEL_REGEX = "[^a-z0-9_-]";
     private static final Pattern LABEL_PATTERN = Pattern.compile(LABEL_REGEX);
@@ -49,11 +52,13 @@ public class BucketResource extends GoogleResource {
     private String name;
     private Map<String, String> labels;
     private String location;
+    private List<CorsRule> corsRule;
 
     /**
      * A unique name for the Bucket conforming to Google bucket naming guidelines.
      */
     @Id
+    @Required
     public String getName() {
         return name;
     }
@@ -94,6 +99,20 @@ public class BucketResource extends GoogleResource {
         this.location = location;
     }
 
+    /**
+     * Configure the cross origin request policies (CORS) for the bucket.
+     * 
+     * @subresoure gyro.google.storage.BucketCors
+     */
+    @Updatable
+    public List<CorsRule> getCorsRule() {
+        return corsRule;
+    }
+
+    public void setCorsRule(List<CorsRule> corsRule) {
+        this.corsRule = corsRule;
+    }
+
     @Override
     public boolean refresh() {
         Storage storage = creatClient(Storage.class);
@@ -114,6 +133,10 @@ public class BucketResource extends GoogleResource {
         bucket.setName(getName());
         bucket.setLocation(getLocation());
 
+        if (getCorsRule() != null) {
+            bucket.setCors(getCorsRule().stream().map(CorsRule::toBucketCors).collect(Collectors.toList()));
+        }
+
         try {
             storage.buckets().insert(getProjectId(), bucket).execute();
         } catch (GoogleJsonResponseException e) {
@@ -130,6 +153,10 @@ public class BucketResource extends GoogleResource {
 
             bucket.setLabels(getLabels());
             bucket.setLocation(getLocation());
+
+            if (getCorsRule() != null) {
+                bucket.setCors(getCorsRule().stream().map(CorsRule::toBucketCors).collect(Collectors.toList()));
+            }
 
             storage.buckets().update(getName(), bucket).execute();
         } catch (GoogleJsonResponseException e) {
@@ -167,5 +194,16 @@ public class BucketResource extends GoogleResource {
         }
 
         return errors;
+    }
+
+    @Override
+    public void copyFrom(Bucket model) {
+        setName(model.getName());
+        setLabels(model.getLabels());
+        setLocation(model.getLocation());
+
+        if (model.getCors() != null) {
+            setCorsRule(model.getCors().stream().map(rule -> CorsRule.fromBucketCors(rule)).collect(Collectors.toList()));
+        }
     }
 }

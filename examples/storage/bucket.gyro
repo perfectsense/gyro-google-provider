@@ -4,4 +4,10 @@ google::bucket bucket-1
     labels: {
         'foo': 'bar_1901'
     }
+    cors-rule
+        'max-age-seconds': 3600
+        'method': ['GET', 'POST']
+        'origin': ['*']
+        'response-header': ['application-x-test']
+    end
 end
