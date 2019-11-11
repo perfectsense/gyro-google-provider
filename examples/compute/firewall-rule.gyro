@@ -4,21 +4,40 @@ google::network network-example-firewall-rule
     routing-mode: "Regional"
 end
 
-    google::firewall-rule firewall-rule-example
-        name: "firewall-rule-example"
-        network: $(google::network network-example-firewall-rule)
-        description: "firewall-rule-example-desc"
-        direction: "ingress"
-        priority: 1001
+google::firewall-rule firewall-rule-example-allow
+    name: "firewall-rule-example-allow"
+    network: $(google::network network-example-firewall-rule)
+    description: "firewall-rule-example-desc"
+    direction: "ingress"
+    priority: 1001
 
-        rule-type: "allow"
+    rule-type: "allow"
 
-        rule
-            protocol: "tcp"
-            ports: ["95-96", "80-85"]
-        end
-
-        source-tags: [
-            "something"
-        ]
+    rule
+        protocol: "tcp"
+        ports: ["95-96", "80-85"]
     end
+
+    source-tags: [
+        "something"
+    ]
+end
+
+google::firewall-rule firewall-rule-example-deny
+    name: "firewall-rule-example-deny"
+    network: $(google::network network-example-firewall-rule)
+    description: "firewall-rule-example-desc-update"
+    direction: "ingress"
+    priority: 1000
+
+    rule-type: "deny"
+
+    rule
+        protocol: "tcp"
+        ports: ["95-96", "80-85"]
+    end
+
+    source-tags: [
+        "something"
+    ]
+end
