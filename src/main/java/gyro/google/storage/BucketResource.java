@@ -131,6 +131,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
         Bucket bucket = new Bucket();
         bucket.setName(getName());
+        bucket.setLabels(getLabels());
         bucket.setLocation(getLocation());
 
         if (getCorsRule() != null) {
@@ -166,8 +167,12 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     @Override
     public void delete(GyroUI ui, State state) throws Exception {
-        Storage storage = creatClient(Storage.class);
-        storage.buckets().delete(getName()).execute();
+        try {
+            Storage storage = creatClient(Storage.class);
+            storage.buckets().delete(getName()).execute();
+        } catch (Exception e) {
+            throw new GyroException(String.format("Unable to delete Bucket:%s, Google error: %s", getName(), e.getMessage()));
+        }
     }
 
     @Override
