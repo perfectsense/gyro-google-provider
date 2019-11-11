@@ -2,25 +2,26 @@ package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 import java.util.List;
 
 /**
- * Configuration for setting of Cors configuration for assets within a Bucket.
+ * Configuration for setting of {@link Bucket.Cors} configuration for assets within a {@link Bucket}.
  *
  * Examples
  * --------
  *
  * ..code-block:: gyro
  *
- *   cors-rule
- *        'max-age-seconds': 3600
- *        'method': ['GET', 'POST']
- *        'origin': ['*']
- *        'response-header': ['application-x-test']
- *   end
+ *     cors-rule
+ *         max-age-seconds: 3600
+ *         method: ['GET', 'POST']
+ *         origin: ['*']
+ *         response-header: ['application-x-test']
+ *     end
  */
 public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
 
@@ -32,6 +33,7 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     /**
      * The value quantified in seconds to be returned in the "Access-Control-Max-Age" header.
      */
+    @Updatable
     public Integer getMaxAgeSeconds() {
         return maxAgeSeconds;
     }
@@ -44,6 +46,7 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
      * List of HTTP methods in which to include CORS response headers. Valid options are: "GET", "POST", ... in
      * addition to the "*" value for all methods.
      */
+    @Updatable
     @ValidStrings({"GET", "HEAD", "POST", "MATCH", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "*"})
     public List<String> getMethod() {
         return method;
@@ -56,6 +59,7 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     /**
      * List of Origins able to receive CORS response headers. The "*" value is also permitted for allowing any origin.
      */
+    @Updatable
     public List<String> getOrigin() {
         return origin;
     }
@@ -68,6 +72,7 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
      * List of HTTP headers other than the simple response headers giving permission for the user-agent to share across
      * domains.
      */
+    @Updatable
     public List<String> getResponseHeader() {
         return responseHeader;
     }
@@ -85,21 +90,19 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     * @return A native GCP Cors rule.
+     * @return A GCP {@link Bucket.Cors} instance.
      */
     public Bucket.Cors toBucketCors() {
-        Bucket.Cors cors = new Bucket.Cors();
-        cors.setMaxAgeSeconds(getMaxAgeSeconds());
-        cors.setMethod(getMethod());
-        cors.setOrigin(getOrigin());
-        cors.setResponseHeader(getResponseHeader());
-
-        return cors;
+        return new Bucket.Cors()
+                .setMaxAgeSeconds(getMaxAgeSeconds())
+                .setMethod(getMethod())
+                .setOrigin(getOrigin())
+                .setResponseHeader(getResponseHeader());
     }
 
     /**
      *  Creates a new Gyro CorsRule instance populated from the configuration coming from GCP.
-     *  
+     *
      * @param model The GCP Cors rule.
      * @return A Gyro CorsRule from the version coming from GCP.
      */

@@ -26,20 +26,39 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Creates a bucket within a specified region.
+ * Creates a {@link Bucket} within a specified region.
  *
- * Examples
- * --------
+ * Example
+ * -------
  *
  * ..code-block:: gyro
  *
- *   google::bucket bucket-1
- *       name: 'example-one'
- *       location: 'us-central1'
- *       labels: {
- *           'foo': 'bar_1900'
- *       }
- *   end
+ *    google::bucket bucket-1
+ *        name: 'example-one'
+ *        location: 'us-central1'
+ *        labels: {
+ *            'foo': 'bar_1900'
+ *        }
+ *    end
+ *
+ * Example
+ * -------
+ *
+ * ..code-block:: gyro
+ *
+ *     google::bucket bucket-1
+ *         name: 'example-one'
+ *         location: 'us-central1'
+ *         labels: {
+ *             foo: 'bar_1901'
+ *         }
+ *         cors-rule
+ *             max-age-seconds: 3600
+ *             method: ['GET', 'POST']
+ *             origin: ['*']
+ *             response-header: ['application-x-test']
+ *         end
+ *     end
  */
 @Type("bucket")
 public class BucketResource extends GoogleResource implements Copyable<Bucket> {
@@ -53,6 +72,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private Map<String, String> labels;
     private String location;
     private List<CorsRule> corsRule;
+    private BillingRule billingRule;
 
     /**
      * A unique name for the Bucket conforming to Google bucket naming guidelines.
@@ -101,7 +121,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     /**
      * Configure the cross origin request policies (CORS) for the bucket.
-     * 
+     *
      * @subresoure gyro.google.storage.BucketCors
      */
     @Updatable
@@ -111,6 +131,20 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     public void setCorsRule(List<CorsRule> corsRule) {
         this.corsRule = corsRule;
+    }
+
+    /**
+     * Configure the billing for the {@link Bucket}.
+     *
+     * @subresource gyro.google.storage.BillingRule
+     */
+    @Updatable
+    public BillingRule getBillingRule() {
+        return billingRule;
+    }
+
+    public void setBillingRule(BillingRule billingRule) {
+        this.billingRule = billingRule;
     }
 
     @Override
@@ -138,6 +172,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setCors(getCorsRule().stream().map(CorsRule::toBucketCors).collect(Collectors.toList()));
         }
 
+        if (getBillingRule() != null) {
+            bucket.setBilling(getBillingRule().toBucketBilling());
+        }
+
         try {
             storage.buckets().insert(getProjectId(), bucket).execute();
         } catch (GoogleJsonResponseException e) {
@@ -157,6 +195,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
             if (getCorsRule() != null) {
                 bucket.setCors(getCorsRule().stream().map(CorsRule::toBucketCors).collect(Collectors.toList()));
+            }
+
+            if (getBillingRule() != null) {
+                bucket.setBilling(getBillingRule().toBucketBilling());
             }
 
             storage.buckets().update(getName(), bucket).execute();
@@ -209,6 +251,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
         if (model.getCors() != null) {
             setCorsRule(model.getCors().stream().map(rule -> CorsRule.fromBucketCors(rule)).collect(Collectors.toList()));
+        }
+
+        if (model.getBilling() != null) {
+            setBillingRule(BillingRule.fromBucketBilling(model.getBilling()));
         }
     }
 }
