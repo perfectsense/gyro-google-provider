@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -72,6 +73,8 @@ import java.util.stream.Collectors;
  */
 @Type("firewall-rule")
 public class FirewallRuleResource extends ComputeResource implements Copyable<Firewall> {
+    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z]([-a-z0-9]*[a-z0-9])?");
+
     private String name;
     private NetworkResource network;
     private String description;
@@ -95,7 +98,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
     private enum ACTION_TYPE {PATCH, UPDATE, CREATE}
 
     /**
-     * The name of the firewall rule. (Required)
+     * The name of the firewall rule. Needs to follow Google firewall rule naming convention. (Required)
      */
     @Required
     @Id
@@ -456,6 +459,10 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
     @Override
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
+
+        if (!NAME_PATTERN.matcher(getName()).matches()) {
+            errors.add(new ValidationError(this, "name", "Invalid name format"));
+        }
 
         if (getDirection().equals("INGRESS")) {
             if (!getDestinationRanges().isEmpty()) {
