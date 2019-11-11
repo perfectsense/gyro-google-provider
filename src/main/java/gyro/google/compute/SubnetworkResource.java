@@ -214,12 +214,11 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         try {
             Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
             Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
 
             refresh();
+        } catch (GyroException ge) {
+            throw ge;
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
@@ -233,15 +232,19 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
             if (changedFieldNames.contains("enable-flow-logs")) {
                 Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
                 subnetwork.setEnableFlowLogs(getEnableFlowLogs());
-                client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
+                Operation operation = client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
+                waitForCompletion(client, operation);
             }
 
             if (changedFieldNames.contains("private-ip-google-access")) {
                 SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
                 flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
-                client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
+                Operation operation = client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
+                waitForCompletion(client, operation);
             }
-        } catch (IOException ex) {
+        } catch (GyroException ge) {
+            throw ge;
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -252,11 +255,9 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
         try {
             Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
-
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
+        } catch (GyroException ge) {
+            throw ge;
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }

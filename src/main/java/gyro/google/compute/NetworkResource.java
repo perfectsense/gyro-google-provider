@@ -153,12 +153,11 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         try {
             Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
             Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
 
             refresh();
+        } catch (GyroException ge) {
+            throw ge;
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
@@ -175,20 +174,27 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
             Network network = client.networks().get(getProjectId(), getName()).execute();
             network.setRoutingConfig(networkRoutingConfig);
 
-            client.networks().patch(getProjectId(), getName(), network).execute();
+            Operation operation = client.networks().patch(getProjectId(), getName(), network).execute();
+            waitForCompletion(client, operation);
+
             refresh();
-        } catch (IOException ex) {
+        } catch (GyroException ge) {
+            throw ge;
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
 
     @Override
     public void delete(GyroUI ui, State state) {
-        Compute compute = creatClient(Compute.class);
+        Compute client = creatClient(Compute.class);
 
         try {
-            compute.networks().delete(getProjectId(), getName()).execute();
-        } catch (IOException ex) {
+            Operation operation = client.networks().delete(getProjectId(), getName()).execute();
+            waitForCompletion(client, operation);
+        } catch (GyroException ge) {
+            throw ge;
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }

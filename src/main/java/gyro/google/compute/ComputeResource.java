@@ -19,15 +19,16 @@ package gyro.google.compute;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
+import gyro.core.GyroException;
 import gyro.google.GoogleResource;
 
 public abstract class ComputeResource extends GoogleResource {
 
-    public Operation.Error waitForCompletion(Compute compute, Operation operation) throws Exception {
-        return waitForCompletion(compute, operation, 60000);
+    public void waitForCompletion(Compute compute, Operation operation) throws Exception {
+        waitForCompletion(compute, operation, 60000);
     }
 
-    public Operation.Error waitForCompletion(Compute compute, Operation operation, long timeout) throws Exception {
+    public void waitForCompletion(Compute compute, Operation operation, long timeout) throws Exception {
         long start = System.currentTimeMillis();
         final long pollInterval = 1000;
 
@@ -55,14 +56,14 @@ public abstract class ComputeResource extends GoogleResource {
                 }
             }
         } catch (GoogleJsonResponseException ex) {
-            if (ex.getStatusCode() == 404) {
-                return null;
+            if (ex.getStatusCode() != 404) {
+                throw ex;
             }
-
-            throw ex;
         }
 
-        return operation == null ? null : operation.getError();
+        if (operation != null) {
+            throw new GyroException(operation.getError().toPrettyString());
+        }
     }
 
 }
