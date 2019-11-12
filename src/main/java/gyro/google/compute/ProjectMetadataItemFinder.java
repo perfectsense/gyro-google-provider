@@ -68,7 +68,7 @@ public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.It
     protected List<Metadata.Items> findGoogle(Compute client, Map<String, String> filters) {
         try {
             Metadata.Items item = client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems().stream()
-                .filter(r -> filters.get("name").equals(r.getKey()))
+                .filter(r -> filters.get("key").equals(r.getKey()))
                 .findFirst()
                 .orElse(null);
 

@@ -16,9 +16,6 @@
 
 package gyro.google.compute;
 
-import java.util.List;
-import java.util.Set;
-
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Metadata;
@@ -32,6 +29,9 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Creates a project-wide metadata item. Set project-wide SSH keys by creating an item with the key ``ssh-keys``.
@@ -166,7 +166,12 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
                 throw new GyroException(error.toPrettyString());
             }
         } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
+            String message = je.getDetails().getMessage();
+            if (message.contains("Metadata has duplicate keys")) {
+                throw new GyroException(String.format("Duplicate keys: %s", getKey()));
+            }
+
+            throw new GyroException(message);
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
