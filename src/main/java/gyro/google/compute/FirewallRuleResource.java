@@ -92,7 +92,11 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
     private String id;
     private String selfLink;
 
-    private enum ACTION_TYPE {PATCH, UPDATE, CREATE}
+    private enum ACTION_TYPE {
+        PATCH,
+        UPDATE,
+        CREATE
+    }
 
     /**
      * The name of the firewall rule. Needs to follow Google firewall rule naming convention. (Required)
