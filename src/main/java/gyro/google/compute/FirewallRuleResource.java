@@ -92,12 +92,6 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
     private String id;
     private String selfLink;
 
-    private enum ACTION_TYPE {
-        PATCH,
-        UPDATE,
-        CREATE
-    }
-
     /**
      * The name of the firewall rule. Needs to follow Google firewall rule naming convention. Must be 1-63 characters long consisting only of dash, lowercase letter, or digit. First character needs to be a letter and the last character can either be a letter or a digit. (Required)
      */
@@ -404,7 +398,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         Compute client = creatClient(Compute.class);
 
         try {
-            Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall(client, ACTION_TYPE.CREATE));
+            Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall());
             Operation operation = insert.execute();
             Operation.Error error = waitForCompletion(client, operation);
             if (error != null) {
@@ -427,15 +421,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         Operation.Error error;
 
         try {
-            // update
-            operation = client.firewalls().update(getProjectId(), getName(), toFirewall(client, ACTION_TYPE.UPDATE)).execute();
-            error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-            // patch
-            operation = client.firewalls().patch(getProjectId(), getName(), toFirewall(client, ACTION_TYPE.PATCH)).execute();
+            operation = client.firewalls().patch(getProjectId(), getName(), toFirewall()).execute();
             error = waitForCompletion(client, operation);
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
@@ -495,41 +481,28 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         return errors;
     }
 
-    /**
-     * Creates a Firewall object that is consumed by the create, update and patch api.
-     * Divides the construction of the firewall object based on actionType.
-     * Fields 'description', 'source ranges', 'source tags', 'target tags' and 'allowed' can only be updated using the update api.
-     * Fields 'destination ranges', 'disabled', 'priority', 'source service accounts', 'log config', 'target service account' and 'denied' can only be updated using the patch api.
-     *
-     * @param client The compute client
-     * @param actionType The type of action (CREATE, UPDATE or PATCH)
-     * @return Firewall object
-     */
-    private Firewall toFirewall(Compute client, ACTION_TYPE actionType) {
-        Firewall firewall = getFirewall(client, actionType);
+    private Firewall toFirewall() {
+        Firewall firewall = new Firewall();
 
-        if (actionType == ACTION_TYPE.UPDATE || actionType == ACTION_TYPE.CREATE) {
-            firewall.setDescription(getDescription());
-            firewall.setSourceRanges(!getSourceRanges().isEmpty() ? new ArrayList<>(getSourceRanges()) : null);
-            firewall.setSourceTags(!getSourceTags().isEmpty() ? new ArrayList<>(getSourceTags()) : null);
-            firewall.setTargetTags(!getTargetTags().isEmpty() ? new ArrayList<>(getTargetTags()) : null);
+        firewall.setName(getName());
+        firewall.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
+        firewall.setDirection(getDirection());
+        firewall.setDescription(getDescription());
+        firewall.setSourceRanges(!getSourceRanges().isEmpty() ? new ArrayList<>(getSourceRanges()) : null);
+        firewall.setSourceTags(!getSourceTags().isEmpty() ? new ArrayList<>(getSourceTags()) : null);
+        firewall.setTargetTags(!getTargetTags().isEmpty() ? new ArrayList<>(getTargetTags()) : null);
 
-            if (getRuleType().equals("ALLOW")) {
-                firewall.setAllowed(getRule().stream().map(FirewallAllowDenyRule::toAllowed).collect(Collectors.toList()));
-            }
-        }
+        firewall.setDestinationRanges(!getDestinationRanges().isEmpty() ? new ArrayList<>(getDestinationRanges()) : null);
+        firewall.setDisabled(getDisabled());
+        firewall.setPriority(getPriority());
+        firewall.setSourceServiceAccounts(!getSourceServiceAccounts().isEmpty() ? new ArrayList<>(getSourceServiceAccounts()) : null);
+        firewall.setLogConfig(new FirewallLogConfig().setEnable(getLogConfig()));
+        firewall.setTargetServiceAccounts(!getTargetServiceAccounts().isEmpty() ? new ArrayList<>(getTargetServiceAccounts()) : null);
 
-        if (actionType == ACTION_TYPE.PATCH || actionType == ACTION_TYPE.CREATE) {
-            firewall.setDestinationRanges(!getDestinationRanges().isEmpty() ? new ArrayList<>(getDestinationRanges()) : null);
-            firewall.setDisabled(getDisabled());
-            firewall.setPriority(getPriority());
-            firewall.setSourceServiceAccounts(!getSourceServiceAccounts().isEmpty() ? new ArrayList<>(getSourceServiceAccounts()) : null);
-            firewall.setLogConfig(new FirewallLogConfig().setEnable(getLogConfig()));
-            firewall.setTargetServiceAccounts(!getTargetServiceAccounts().isEmpty() ? new ArrayList<>(getTargetServiceAccounts()) : null);
-
-            if (getRuleType().equals("DENY")) {
-                firewall.setDenied(getRule().stream().map(FirewallAllowDenyRule::toDenied).collect(Collectors.toList()));
-            }
+        if (getRuleType().equals("ALLOW")) {
+            firewall.setAllowed(getRule().stream().map(FirewallAllowDenyRule::toAllowed).collect(Collectors.toList()));
+        } else if (getRuleType().equals("DENY")) {
+            firewall.setDenied(getRule().stream().map(FirewallAllowDenyRule::toDenied).collect(Collectors.toList()));
         }
 
         return firewall;
@@ -553,24 +526,6 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         } catch (IOException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
-
-        return firewall;
-    }
-
-    /**
-     * Gets the firewall object from the cloud if present.
-     * If action type is CREATE, initializes the firewall object with 'name', 'network' and 'direction'
-     *
-     * @param client The compute client
-     * @param actionType The type of action (CREATE, UPDATE or PATCH)
-     * @return Firewall object
-     */
-    private Firewall getFirewall(Compute client, ACTION_TYPE actionType) {
-        Firewall firewall = !actionType.equals(ACTION_TYPE.CREATE) ? getFirewall(client) : new Firewall();
-
-        firewall.setName(getName());
-        firewall.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
-        firewall.setDirection(getDirection());
 
         return firewall;
     }
