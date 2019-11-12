@@ -13,7 +13,7 @@ google::bucket bucket-1
         response-header: ['application-x-test']
     end
     billing
-        requestor-pays: true
+        requester-pays: true
     end
     iam-configuration
         bucket-policy-only

@@ -19,30 +19,30 @@ import gyro.google.Copyable;
  */
 public class Billing extends Diffable implements Copyable<Bucket.Billing> {
 
-    private Boolean requestorPays;
+    private Boolean requesterPays;
 
     /**
      * Enables ``true`` the requester pays setting for this bucket.
      */
     @Updatable
-    public Boolean getRequestorPays() {
-        return requestorPays;
+    public Boolean getRequesterPays() {
+        return requesterPays;
     }
 
-    public void setRequestorPays(Boolean requestorPays) {
-        this.requestorPays = requestorPays;
+    public void setRequesterPays(Boolean requesterPays) {
+        this.requesterPays = requesterPays;
     }
 
     @Override
     public void copyFrom(Bucket.Billing model) {
-        setRequestorPays(model.getRequesterPays());
+        setRequesterPays(model.getRequesterPays());
     }
 
     /**
      * @return This as a {@link Bucket.Billing} instance.
      */
     public Bucket.Billing toBucketBilling() {
-        return new Bucket.Billing().setRequesterPays(getRequestorPays());
+        return new Bucket.Billing().setRequesterPays(getRequesterPays());
     }
 
     /**
@@ -53,7 +53,7 @@ public class Billing extends Diffable implements Copyable<Bucket.Billing> {
      */
     public static Billing fromBucketBilling(Bucket.Billing model) {
         Billing billing = new Billing();
-        billing.setRequestorPays(model.getRequesterPays());
+        billing.setRequesterPays(model.getRequesterPays());
         return billing;
     }
 }
