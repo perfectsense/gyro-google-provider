@@ -2,28 +2,29 @@ package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * Configuration for setting adding {@link Bucket.Billing} configuration to a {@link Bucket}.
+ * Subresource for setting the {@link Bucket.Billing} configuration to a {@link Bucket}.
  *
  * Example
  * -------
  *
  * ..code-block:: gyro
  *
- *     billing-rule
+ *     billing
  *         requestor-pays: true
  *     end
  */
-public class BillingRule extends Diffable implements Copyable<Bucket.Billing> {
+public class BillingSubresource extends Diffable implements Copyable<Bucket.Billing> {
 
     private Boolean requestorPays;
 
     /**
-     * If true the requester pays is enabled for this bucket.
-     * @return
+     * Enables ``true`` the requester pays setting for this bucket.
      */
+    @Updatable
     public Boolean getRequestorPays() {
         return requestorPays;
     }
@@ -49,9 +50,9 @@ public class BillingRule extends Diffable implements Copyable<Bucket.Billing> {
      * @param model The Billing instance to convert.
      * @return New BillingRule populated by data from model.
      */
-    public static BillingRule fromBucketBilling(Bucket.Billing model) {
-        BillingRule billingRule = new BillingRule();
-        billingRule.setRequestorPays(model.getRequesterPays());
-        return billingRule;
+    public static BillingSubresource fromBucketBilling(Bucket.Billing model) {
+        BillingSubresource billingSubresource = new BillingSubresource();
+        billingSubresource.setRequestorPays(model.getRequesterPays());
+        return billingSubresource;
     }
 }

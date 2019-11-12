@@ -9,7 +9,7 @@ import gyro.google.Copyable;
 import java.util.List;
 
 /**
- * Configuration for setting of {@link Bucket.Cors} configuration for assets within a {@link Bucket}.
+ * Subresource for setting of {@link Bucket.Cors} configuration for assets within a {@link Bucket}.
  *
  * Examples
  * --------
@@ -43,8 +43,8 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     * List of HTTP methods in which to include CORS response headers. Valid options are: "GET", "POST", ... in
-     * addition to the "*" value for all methods.
+     * List of HTTP methods in which to include CORS response headers. Valid options are: ``GET``, ``POST``, ... in
+     * addition to the ``*`` value for all methods.
      */
     @Updatable
     @ValidStrings({"GET", "HEAD", "POST", "MATCH", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "*"})
@@ -57,7 +57,7 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     * List of Origins able to receive CORS response headers. The "*" value is also permitted for allowing any origin.
+     * List of Origins able to receive CORS response headers. The ``*`` value is also permitted for allowing any origin.
      */
     @Updatable
     public List<String> getOrigin() {
@@ -101,7 +101,7 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     *  Creates a new Gyro CorsRule instance populated from the configuration coming from GCP.
+     *  Creates a new Gyro {@link CorsRule} instance populated from the configuration coming from GCP.
      *
      * @param model The GCP Cors rule.
      * @return A Gyro CorsRule from the version coming from GCP.

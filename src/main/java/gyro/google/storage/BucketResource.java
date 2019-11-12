@@ -71,8 +71,12 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String name;
     private Map<String, String> labels;
     private String location;
-    private List<CorsRule> corsRule;
-    private BillingRule billingRule;
+    private List<Cors> cors;
+    private Billing billing;
+    private Boolean defaultEventBasedHold;
+    private Encryption encryption;
+    private String etag;
+    private IamConfiguration iamConfiguration;
 
     /**
      * A unique name for the Bucket conforming to Google bucket naming guidelines.
@@ -100,11 +104,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * The geographic region objects within the bucket will reside. Valid values are "northamerica-northeast1",
-     * "us-central1", "us-east1", "us-east4", "us-west1", "us-west2", "southamerica-east1", "europe-north1",
-     * "europe-west1", "europe-west2", "europe-west3", "europe-west4", "europe-west6", "asia-east1", "asia-east2",
-     * "asia-northeast1", "asia-northeast2", "asia-south1", "asia-southeast1", "australia-southeast1", "asia",
-     * "eu", "us", "eur4", "nam4", "us-central2"
+     * The geographic region objects within the bucket will reside. Valid values are ``northamerica-northeast1``,
+     * ``us-central1``, ``us-east1``, ``us-east4``, ``us-west1``, ``us-west2``, ``southamerica-east1``, ``europe-north1``,
+     * ``europe-west1``, ``europe-west2``, ``europe-west3``, ``europe-west4``, ``europe-west6``, ``asia-east1``, ``asia-east2``,
+     * ``asia-northeast1``, ``asia-northeast2``, ``asia-south1``, ``asia-southeast1``, ``australia-southeast1``, ``asia``,
+     * ``eu``, ``us``, ``eur4``, ``nam4``, ``us-central2``
      */
     @Updatable
     @ValidStrings({"northamerica-northeast1", "us-central1", "us-east1", "us-east4", "us-west1", "us-west2",
@@ -125,26 +129,77 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * @subresoure gyro.google.storage.BucketCors
      */
     @Updatable
-    public List<CorsRule> getCorsRule() {
-        return corsRule;
+    public List<Cors> getCors() {
+        return cors;
     }
 
-    public void setCorsRule(List<CorsRule> corsRule) {
-        this.corsRule = corsRule;
+    public void setCors(List<Cors> cors) {
+        this.cors = cors;
     }
 
     /**
      * Configure the billing for the {@link Bucket}.
      *
-     * @subresource gyro.google.storage.BillingRule
+     * @subresource gyro.google.storage.Billing
      */
     @Updatable
-    public BillingRule getBillingRule() {
-        return billingRule;
+    public Billing getBilling() {
+        return billing;
     }
 
-    public void setBillingRule(BillingRule billingRule) {
-        this.billingRule = billingRule;
+    public void setBilling(Billing billing) {
+        this.billing = billing;
+    }
+
+    /**
+     * When ``true`` automatically apply an GCP "eventBasedHold", or object hold, to new objects added to the bucket.
+     */
+    public Boolean getDefaultEventBasedHold() {
+        return defaultEventBasedHold;
+    }
+
+    public void setDefaultEventBasedHold(Boolean defaultEventBasedHold) {
+        this.defaultEventBasedHold = defaultEventBasedHold;
+    }
+
+    /**
+     * The buckets encryption configuration.
+     *
+     * @subresource gyro.google.storage.EncryptionRule
+     */
+    @Updatable
+    public Encryption getEncryption() {
+        return encryption;
+    }
+
+    public void setEncryption(Encryption encryption) {
+        this.encryption = encryption;
+    }
+
+    /**
+     * The HTTP 1.1 Entity tag for the bucket.
+     */
+    @Updatable
+    public String getEtag() {
+        return etag;
+    }
+
+    public void setEtag(String etag) {
+        this.etag = etag;
+    }
+
+    /**
+     * The bucket's IAM configuration.
+     *
+     * @subresource gyro.google.storage.IamConfiguration
+     */
+    @Updatable
+    public IamConfiguration getIamConfiguration() {
+        return iamConfiguration;
+    }
+
+    public void setIamConfiguration(IamConfiguration iamConfiguration) {
+        this.iamConfiguration = iamConfiguration;
     }
 
     @Override
@@ -167,13 +222,20 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setName(getName());
         bucket.setLabels(getLabels());
         bucket.setLocation(getLocation());
+        bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
+        bucket.setEtag(getEtag());
+        bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
 
-        if (getCorsRule() != null) {
-            bucket.setCors(getCorsRule().stream().map(CorsRule::toBucketCors).collect(Collectors.toList()));
+        if (getCors() != null) {
+            bucket.setCors(getCors().stream().map(Cors::toBucketCors).collect(Collectors.toList()));
         }
 
-        if (getBillingRule() != null) {
-            bucket.setBilling(getBillingRule().toBucketBilling());
+        if (getBilling() != null) {
+            bucket.setBilling(getBilling().toBucketBilling());
+        }
+
+        if (getEncryption() != null) {
+            bucket.setEncryption(getEncryption().toBucketEncryption());
         }
 
         try {
@@ -192,13 +254,20 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
             bucket.setLabels(getLabels());
             bucket.setLocation(getLocation());
+            bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
+            bucket.setEtag(getEtag());
+            bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
 
-            if (getCorsRule() != null) {
-                bucket.setCors(getCorsRule().stream().map(CorsRule::toBucketCors).collect(Collectors.toList()));
+            if (getCors() != null) {
+                bucket.setCors(getCors().stream().map(Cors::toBucketCors).collect(Collectors.toList()));
             }
 
-            if (getBillingRule() != null) {
-                bucket.setBilling(getBillingRule().toBucketBilling());
+            if (getBilling() != null) {
+                bucket.setBilling(getBilling().toBucketBilling());
+            }
+
+            if (getEncryption() != null) {
+                bucket.setEncryption(getEncryption().toBucketEncryption());
             }
 
             storage.buckets().update(getName(), bucket).execute();
@@ -248,13 +317,19 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setName(model.getName());
         setLabels(model.getLabels());
         setLocation(model.getLocation());
+        setEtag(model.getEtag());
+        setIamConfiguration(IamConfiguration.fromBucketIamConfiguration(model.getIamConfiguration()));
 
         if (model.getCors() != null) {
-            setCorsRule(model.getCors().stream().map(rule -> CorsRule.fromBucketCors(rule)).collect(Collectors.toList()));
+            setCors(model.getCors().stream().map(rule -> Cors.fromBucketCors(rule)).collect(Collectors.toList()));
         }
 
         if (model.getBilling() != null) {
-            setBillingRule(BillingRule.fromBucketBilling(model.getBilling()));
+            setBilling(Billing.fromBucketBilling(model.getBilling()));
+        }
+
+        if (model.getEncryption() != null) {
+            setEncryption(Encryption.fromBucketEncryption(model.getEncryption()));
         }
     }
 }

@@ -1,16 +1,28 @@
 google::bucket bucket-1
     name: 'example-one'
     location: 'us-central1'
+    default-event-based-hold: true
+    etag: '1234'
     labels: {
         foo: 'bar_1901'
     }
-    cors-rule
+    cors
         max-age-seconds: 3600
         method: ['GET', 'POST']
         origin: ['*']
         response-header: ['application-x-test']
     end
-    billing-rule
+    billing
         requestor-pays: true
+    end
+    iam-configuration
+        bucket-policy-only
+            enabled: true
+            locked-time: '2022-02-10T11:11:11.453Z'
+        end
+        uniform-bucket-level-access
+            enabled: false
+            locked-time: '2023-03-01T11:11:11.453Z'
+        end
     end
 end
