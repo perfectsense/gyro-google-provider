@@ -16,14 +16,14 @@ import java.util.List;
  *
  * ..code-block:: gyro
  *
- *     cors-rule
+ *     cors
  *         max-age-seconds: 3600
  *         method: ['GET', 'POST']
  *         origin: ['*']
  *         response-header: ['application-x-test']
  *     end
  */
-public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
+public class Cors extends Diffable implements Copyable<Bucket.Cors> {
 
     private Integer maxAgeSeconds;
     private List<String> method;
@@ -90,7 +90,7 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     * @return A GCP {@link Bucket.Cors} instance.
+     * @return This as a {@link Bucket.Cors} instance.
      */
     public Bucket.Cors toBucketCors() {
         return new Bucket.Cors()
@@ -101,18 +101,18 @@ public class CorsRule extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     *  Creates a new Gyro {@link CorsRule} instance populated from the configuration coming from GCP.
+     *  Creates a new Gyro {@link Cors} instance populated from the configuration coming from GCP.
      *
-     * @param model The GCP Cors rule.
-     * @return A Gyro CorsRule from the version coming from GCP.
+     * @param model The GCP {@link Bucket.Cors} instance.
+     * @return A new Cors instance converted from the ``model``.
      */
-    public static CorsRule fromBucketCors(Bucket.Cors model) {
-        CorsRule corsRule = new CorsRule();
-        corsRule.setMaxAgeSeconds(model.getMaxAgeSeconds());
-        corsRule.setMethod(model.getMethod());
-        corsRule.setOrigin(model.getOrigin());
-        corsRule.setResponseHeader(model.getResponseHeader());
+    public static Cors fromBucketCors(Bucket.Cors model) {
+        Cors cors = new Cors();
+        cors.setMaxAgeSeconds(model.getMaxAgeSeconds());
+        cors.setMethod(model.getMethod());
+        cors.setOrigin(model.getOrigin());
+        cors.setResponseHeader(model.getResponseHeader());
 
-        return corsRule;
+        return cors;
     }
 }
