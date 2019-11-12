@@ -508,7 +508,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
     private Firewall toFirewall(Compute client, ACTION_TYPE actionType) {
         Firewall firewall = getFirewall(client, actionType);
 
-        if (actionType.equals(ACTION_TYPE.UPDATE) || actionType.equals(ACTION_TYPE.CREATE)) {
+        if (actionType == ACTION_TYPE.UPDATE || actionType == ACTION_TYPE.CREATE) {
             firewall.setDescription(getDescription());
             firewall.setSourceRanges(!getSourceRanges().isEmpty() ? new ArrayList<>(getSourceRanges()) : null);
             firewall.setSourceTags(!getSourceTags().isEmpty() ? new ArrayList<>(getSourceTags()) : null);
@@ -519,7 +519,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
             }
         }
 
-        if (actionType.equals(ACTION_TYPE.PATCH) || actionType.equals(ACTION_TYPE.CREATE)) {
+        if (actionType == ACTION_TYPE.PATCH || actionType == ACTION_TYPE.CREATE) {
             firewall.setDestinationRanges(!getDestinationRanges().isEmpty() ? new ArrayList<>(getDestinationRanges()) : null);
             firewall.setDisabled(getDisabled());
             firewall.setPriority(getPriority());
