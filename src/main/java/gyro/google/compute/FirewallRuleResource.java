@@ -99,7 +99,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
     }
 
     /**
-     * The name of the firewall rule. Needs to follow Google firewall rule naming convention. (Required)
+     * The name of the firewall rule. Needs to follow Google firewall rule naming convention. Must be 1-63 characters long consisting only of dash, lowercase letter, or digit. First character needs to be a letter and the last character can either be a letter or a digit. (Required)
      */
     @Required
     @Id
