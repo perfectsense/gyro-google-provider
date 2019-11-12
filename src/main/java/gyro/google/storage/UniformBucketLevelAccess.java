@@ -1,6 +1,5 @@
 package gyro.google.storage;
 
-import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.model.Bucket;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
@@ -17,7 +16,6 @@ import gyro.google.Copyable;
  *     iam-configuration
  *         uniform-bucket-level-access
  *             enabled: true
- *             locked-time: '2023-03-01T11:11:11.453Z'
  *         end
  *     end
  *
@@ -40,9 +38,8 @@ public class UniformBucketLevelAccess extends Diffable implements Copyable<Bucke
     }
 
     /**
-     * Deadline date for changing ``enabled`` from ``true`` to ``false``. As a RFC-3339 format string.
+     * Deadline date for changing ``enabled`` from ``true`` to ``false``.
      */
-    @Updatable
     public String getLockedTime() {
         return lockedTime;
     }
@@ -61,9 +58,7 @@ public class UniformBucketLevelAccess extends Diffable implements Copyable<Bucke
     }
 
     public Bucket.IamConfiguration.UniformBucketLevelAccess toIamConfigurationUniformBucketLevelAccess() {
-        return new Bucket.IamConfiguration.UniformBucketLevelAccess()
-                .setEnabled(getEnabled())
-                .setLockedTime(getLockedTime() == null ? null : DateTime.parseRfc3339(getLockedTime()));
+        return new Bucket.IamConfiguration.UniformBucketLevelAccess().setEnabled(getEnabled());
     }
 
     public static UniformBucketLevelAccess fromIamConfigurationUniformBucketLevelAccess(Bucket.IamConfiguration.UniformBucketLevelAccess model) {
