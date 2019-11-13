@@ -38,6 +38,7 @@ import gyro.google.Copyable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -134,6 +135,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
      */
     @Required
     @ValidStrings({"ALLOW", "DENY"})
+    @Updatable
     public String getRuleType() {
         return ruleType != null ? ruleType.toUpperCase() : null;
     }
@@ -180,6 +182,7 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
      */
     @Required
     @ValidStrings({"INGRESS","EGRESS"})
+    @Updatable
     public String getDirection() {
         return direction != null ? direction.toUpperCase() : null;
     }
@@ -405,9 +408,9 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
                 throw new GyroException(error.toPrettyString());
             }
 
-            Firewall firewall = getFirewall(client);
-            setId(firewall.getId().toString());
-            setSelfLink(firewall.getSelfLink());
+            refresh();
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
@@ -427,6 +430,9 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
                 throw new GyroException(error.toPrettyString());
             }
 
+            refresh();
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
@@ -452,12 +458,8 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
                 errors.add(new ValidationError(this, "destination-ranges", "'destination-ranges' cannot be set when 'direction' set to 'INGRESS'"));
             }
 
-            if (!getTargetTags().isEmpty()) {
-                errors.add(new ValidationError(this, "target-tags", "'target-tags' cannot be set when 'direction' set to 'INGRESS'"));
-            }
-
-            if (!getTargetServiceAccounts().isEmpty()) {
-                errors.add(new ValidationError(this, "target-service-account", "'target-service-account' cannot be set when 'direction' set to 'INGRESS'"));
+            if (getSourceServiceAccounts().isEmpty() && getSourceTags().isEmpty() && getSourceRanges().isEmpty()) {
+                errors.add(new ValidationError(this, null, "At least one of 'source-service-account', 'source-tags' or 'source-ranges' is required when 'direction' set to 'INGRESS'"));
             }
 
         } else if (getDirection().equals("EGRESS")) {
@@ -470,12 +472,20 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
             }
 
             if (!getSourceServiceAccounts().isEmpty()) {
-                errors.add(new ValidationError(this, "source-service-account", "'source-service-account' cannot be set when 'direction' set to 'EGRESS'"));
+                errors.add(new ValidationError(this, "source-service-accounts", "'source-service-accounts' cannot be set when 'direction' set to 'EGRESS'"));
+            }
+
+            if (getDestinationRanges().isEmpty()) {
+                errors.add(new ValidationError(this, null, "'destination-ranges' is required when 'direction' set to 'EGRESS'"));
             }
         }
 
         if ((!getTargetTags().isEmpty() || !getSourceTags().isEmpty()) && !getTargetServiceAccounts().isEmpty()) {
             errors.add(new ValidationError(this, "target-service-accounts", "'target-service-accounts' cannot be set when 'target-tags' or 'source-tags' are set"));
+        }
+
+        if ((!getTargetTags().isEmpty() || !getSourceTags().isEmpty()) && !getSourceServiceAccounts().isEmpty()) {
+            errors.add(new ValidationError(this, "source-service-accounts", "'source-service-accounts' cannot be set when 'target-tags' or 'source-tags' are set"));
         }
 
         return errors;
@@ -488,21 +498,22 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         firewall.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
         firewall.setDirection(getDirection());
         firewall.setDescription(getDescription());
-        firewall.setSourceRanges(!getSourceRanges().isEmpty() ? new ArrayList<>(getSourceRanges()) : null);
-        firewall.setSourceTags(!getSourceTags().isEmpty() ? new ArrayList<>(getSourceTags()) : null);
-        firewall.setTargetTags(!getTargetTags().isEmpty() ? new ArrayList<>(getTargetTags()) : null);
-
-        firewall.setDestinationRanges(!getDestinationRanges().isEmpty() ? new ArrayList<>(getDestinationRanges()) : null);
         firewall.setDisabled(getDisabled());
         firewall.setPriority(getPriority());
-        firewall.setSourceServiceAccounts(!getSourceServiceAccounts().isEmpty() ? new ArrayList<>(getSourceServiceAccounts()) : null);
         firewall.setLogConfig(new FirewallLogConfig().setEnable(getLogConfig()));
-        firewall.setTargetServiceAccounts(!getTargetServiceAccounts().isEmpty() ? new ArrayList<>(getTargetServiceAccounts()) : null);
+        firewall.setDestinationRanges(!getDestinationRanges().isEmpty() ? new ArrayList<>(getDestinationRanges()) : Collections.emptyList());
+        firewall.setTargetTags(!getTargetTags().isEmpty() ? new ArrayList<>(getTargetTags()) : Collections.emptyList());
+        firewall.setTargetServiceAccounts(!getTargetServiceAccounts().isEmpty() ? new ArrayList<>(getTargetServiceAccounts()) : Collections.emptyList());
+        firewall.setSourceServiceAccounts(!getSourceServiceAccounts().isEmpty() ? new ArrayList<>(getSourceServiceAccounts()) : Collections.emptyList());
+        firewall.setSourceTags(!getSourceTags().isEmpty() ? new ArrayList<>(getSourceTags()) : Collections.emptyList());
+        firewall.setSourceRanges(!getSourceRanges().isEmpty() ? new ArrayList<>(getSourceRanges()) : Collections.emptyList());
 
         if (getRuleType().equals("ALLOW")) {
             firewall.setAllowed(getRule().stream().map(FirewallAllowDenyRule::toAllowed).collect(Collectors.toList()));
+            firewall.setDenied(Collections.emptyList());
         } else if (getRuleType().equals("DENY")) {
             firewall.setDenied(getRule().stream().map(FirewallAllowDenyRule::toDenied).collect(Collectors.toList()));
+            firewall.setAllowed(Collections.emptyList());
         }
 
         return firewall;
@@ -529,4 +540,6 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
 
         return firewall;
     }
+
+
 }
