@@ -52,7 +52,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     private String value;
 
     /**
-     * The key of the metadata item. (Required)
+     * The key of the metadata item. Allowed characters include letters, digits, ``-``, and ``_``. (Required)
      */
     @Required
     public String getKey() {
@@ -150,6 +150,8 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
             Project project = projectRequest.execute();
 
             return project.getCommonInstanceMetadata();
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
