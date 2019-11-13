@@ -7,7 +7,7 @@ google::bucket bucket-1
         foo: 'bar_1901'
     }
     cors
-        max-age-seconds: 3600
+        max-age-seconds: 3200
         method: ['GET', 'POST']
         origin: ['*']
         response-header: ['application-x-test']
@@ -18,6 +18,33 @@ google::bucket bucket-1
     iam-configuration
         uniform-bucket-level-access
             enabled: true
+        end
+    end
+    lifecycle
+        rule
+            action
+                type: 'Delete'
+            end
+            condition
+                age: 7
+           end
+        end
+        rule
+            action
+                type: 'Delete'
+            end
+            condition
+                num-newer-versions: 10
+            end
+          end
+        rule
+            action
+               type: 'Delete'
+            end
+            condition
+                is-live: true
+                age: 15
+            end
         end
     end
 end

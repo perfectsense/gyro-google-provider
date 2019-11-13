@@ -26,10 +26,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Creates a {@link Bucket} within a specified region.
+ * Creates a Bucket within a specified region.
  *
- * Example
- * -------
+ * Examples
+ * --------
  *
  * ..code-block:: gyro
  *
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  *        }
  *    end
  *
- * Example
+ * Example with CORS rule
  * -------
  *
  * ..code-block:: gyro
@@ -77,6 +77,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private Encryption encryption;
     private String etag;
     private IamConfiguration iamConfiguration;
+    private Lifecycle lifecycle;
 
     /**
      * A unique name for the Bucket conforming to Google bucket naming guidelines.
@@ -138,7 +139,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * Configure the billing for the {@link Bucket}.
+     * Configure the billing for the Bucket.
      *
      * @subresource gyro.google.storage.Billing
      */
@@ -202,6 +203,18 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         this.iamConfiguration = iamConfiguration;
     }
 
+    /**
+     * The bucket's lifecycle configuration
+     */
+    @Updatable
+    public Lifecycle getLifecycle() {
+        return lifecycle;
+    }
+
+    public void setLifecycle(Lifecycle lifecycle) {
+        this.lifecycle = lifecycle;
+    }
+
     @Override
     public boolean refresh() {
         Storage storage = creatClient(Storage.class);
@@ -225,6 +238,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
         bucket.setEtag(getEtag());
         bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+        bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
 
         if (getCors() != null) {
             bucket.setCors(getCors().stream().map(Cors::toBucketCors).collect(Collectors.toList()));
@@ -257,6 +271,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
             bucket.setEtag(getEtag());
             bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+            bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
 
             if (getCors() != null) {
                 bucket.setCors(getCors().stream().map(Cors::toBucketCors).collect(Collectors.toList()));
@@ -319,6 +334,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setLocation(model.getLocation());
         setEtag(model.getEtag());
         setIamConfiguration(IamConfiguration.fromBucketIamConfiguration(model.getIamConfiguration()));
+        setLifecycle(Lifecycle.fromGcpLifecycle(model.getLifecycle()));
 
         if (model.getCors() != null) {
             setCors(model.getCors().stream().map(rule -> Cors.fromBucketCors(rule)).collect(Collectors.toList()));
