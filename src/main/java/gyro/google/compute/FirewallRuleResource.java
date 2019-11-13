@@ -526,12 +526,6 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         return firewall;
     }
 
-    /**
-     * Gets the firewall object from the cloud if present
-     *
-     * @param client The compute client
-     * @return Firewall object
-     */
     private Firewall getFirewall(Compute client) {
         Firewall firewall = null;
 
