@@ -365,13 +365,13 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         getRule().clear();
         if (firewall.getAllowed() != null && !firewall.getAllowed().isEmpty()) {
             setRule(firewall.getAllowed().stream().map(rule -> {
-                FirewallAllowDenyRule allowedRule = new FirewallAllowDenyRule();
+                FirewallAllowDenyRule allowedRule = newSubresource(FirewallAllowDenyRule.class);
                 allowedRule.copyFrom(rule);
                 return allowedRule;
             }).collect(Collectors.toSet()));
         } else if (firewall.getDenied() != null && !firewall.getDenied().isEmpty()) {
             setRule(firewall.getDenied().stream().map(rule -> {
-                FirewallAllowDenyRule deniedRule = new FirewallAllowDenyRule();
+                FirewallAllowDenyRule deniedRule = newSubresource(FirewallAllowDenyRule.class);
                 deniedRule.copyFrom(rule);
                 return deniedRule;
             }).collect(Collectors.toSet()));
