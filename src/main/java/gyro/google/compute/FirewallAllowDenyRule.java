@@ -27,11 +27,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class FirewallAllowDenyRule extends Diffable {
-    private static final Pattern PORT_PATTERN = Pattern.compile("((?!(0))\\d+(-[1-9]\\d+)?)");
+    private static final Pattern PORT_PATTERN = Pattern.compile("(?<start>[1-9]\\d*)-?(?<end>[1-9]\\d*)?");
 
     private String protocol;
     private Set<String> ports;
@@ -115,12 +116,22 @@ public class FirewallAllowDenyRule extends Diffable {
         return errors;
     }
 
+    /**
+     * Checks if the given port string is valid or not.
+     * Valid ports are any positive numbers without leading zeroes, or a range specified with '-' with numbers on either side. The start number less that the end number and both numbers being positive without leading zeroes
+     * @param port The port string to check for validity
+     * @return true if valid false if invalid
+     */
     private boolean validatePort(String port) {
-        if (PORT_PATTERN.matcher(port).matches()) {
-            String[] split = port.split("-");
-            return split.length == 1 || (Integer.parseInt(split[0]) < Integer.parseInt(split[1]));
-        } else {
-            return false;
+        Matcher matcher = PORT_PATTERN.matcher(port);
+        if (matcher.matches()) {
+            Integer start = Integer.valueOf(matcher.group("start"));
+            Integer end = matcher.group("end") != null
+                ? Integer.parseInt(matcher.group("end")) : port.contains("-") ? -1 : 0;
+
+            return end == 0 || (start >= 0 && end >= 0 && start < end);
         }
+
+        return false;
     }
 }
