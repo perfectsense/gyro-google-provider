@@ -39,7 +39,7 @@ import java.util.Map;
  *    firewall-rule: $(external-query google::firewall-rule { name: 'firewall-rule-example'})
  */
 @Type("firewall-rule")
-public class FirewallRuleFinder extends GoogleFinder<Compute, Firewall, FirewallRuleResource> {
+public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallResource> {
     private String name;
 
     /**

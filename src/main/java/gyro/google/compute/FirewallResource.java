@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
  *     end
  */
 @Type("firewall-rule")
-public class FirewallRuleResource extends ComputeResource implements Copyable<Firewall> {
+public class FirewallResource extends ComputeResource implements Copyable<Firewall> {
     private String name;
     private NetworkResource network;
     private String description;
