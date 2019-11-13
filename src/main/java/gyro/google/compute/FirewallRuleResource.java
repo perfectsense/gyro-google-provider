@@ -443,8 +443,15 @@ public class FirewallRuleResource extends ComputeResource implements Copyable<Fi
         Compute client = creatClient(Compute.class);
 
         try {
-            client.firewalls().delete(getProjectId(), getName()).execute();
-        } catch (IOException ex) {
+            Operation operation = client.firewalls().delete(getProjectId(), getName()).execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
+
+        } catch (GoogleJsonResponseException je) {
+                throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
