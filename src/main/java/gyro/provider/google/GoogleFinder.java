@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google;
+package gyro.provider.google;
 
 import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
 import com.psddev.dari.util.TypeDefinition;

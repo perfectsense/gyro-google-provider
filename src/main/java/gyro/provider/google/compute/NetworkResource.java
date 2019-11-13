@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute;
+package gyro.provider.google.compute;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
@@ -31,7 +31,7 @@ import gyro.core.resource.Output;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
-import gyro.google.Copyable;
+import gyro.provider.google.Copyable;
 
 import java.io.IOException;
 import java.util.Set;

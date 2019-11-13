@@ -14,40 +14,36 @@
  * limitations under the License.
  */
 
-package gyro.google.compute;
+package gyro.provider.google.compute;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Subnetwork;
-import com.google.api.services.compute.model.SubnetworksScopedList;
+import com.google.api.services.compute.model.Network;
 import gyro.core.GyroException;
 import gyro.core.Type;
-import gyro.google.GoogleFinder;
+import gyro.provider.google.GoogleFinder;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * Query subnet.
+ * Query network.
  *
  * Example
  * -------
  *
  * .. code-block:: gyro
  *
- *    subnet: $(external-query google::subnet { name: 'subnet-example', region: 'us-east1'})
+ *    network: $(external-query google::network { name: 'network-example'})
  */
-@Type("subnet")
-public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, SubnetworkResource> {
+@Type("network")
+public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResource> {
     private String name;
-    private String region;
 
     /**
-     * The name of the subnet.
+     * The name of the network.
      */
     public String getName() {
         return name;
@@ -57,26 +53,10 @@ public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, Subnetwo
         this.name = name;
     }
 
-    /**
-     * The region of the subnet.
-     */
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
     @Override
-    protected List<Subnetwork> findAllGoogle(Compute client) {
+    protected List<Network> findAllGoogle(Compute client) {
         try {
-            return client.subnetworks()
-                .aggregatedList(getProjectId()).execute()
-                .getItems().values().stream()
-                .map(SubnetworksScopedList::getSubnetworks)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+            return client.networks().list(getProjectId()).execute().getItems();
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (IOException ex) {
@@ -85,11 +65,11 @@ public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, Subnetwo
     }
 
     @Override
-    protected List<Subnetwork> findGoogle(Compute client, Map<String, String> filters) {
-        Subnetwork subnetwork = null;
+    protected List<Network> findGoogle(Compute client, Map<String, String> filters) {
+        Network network = null;
 
         try {
-            subnetwork = client.subnetworks().get(getProjectId(), filters.get("region"), filters.get("name")).execute();
+            network = client.networks().get(getProjectId(), filters.get("name")).execute();
         } catch (GoogleJsonResponseException je) {
             if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
                 throw new GyroException(je.getDetails().getMessage());
@@ -98,8 +78,8 @@ public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, Subnetwo
             throw new GyroException(ex);
         }
 
-        if (subnetwork != null) {
-            return Collections.singletonList(subnetwork);
+        if (network != null) {
+            return Collections.singletonList(network);
         } else {
             return Collections.emptyList();
         }

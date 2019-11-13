@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package gyro.google.compute;
+package gyro.provider.google.compute;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
-import gyro.google.GoogleResource;
+import gyro.provider.google.GoogleResource;
 
 public abstract class ComputeResource extends GoogleResource {
 

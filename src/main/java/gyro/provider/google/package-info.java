@@ -71,7 +71,7 @@
  */
 @DocNamespace("google")
 @Namespace("google")
-package gyro.google;
+package gyro.provider.google;
 
 import gyro.core.Namespace;
 import gyro.core.resource.DocNamespace;
