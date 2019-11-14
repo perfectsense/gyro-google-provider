@@ -13,7 +13,7 @@ google::firewall-rule firewall-rule-example-allow
 
     rule-type: "allow"
 
-    rule
+    allowed
         protocol: "tcp"
         ports: ["95-96", "80-85"]
     end
@@ -32,7 +32,7 @@ google::firewall-rule firewall-rule-example-deny
 
     rule-type: "deny"
 
-    rule
+    denied
         protocol: "tcp"
         ports: ["95-96", "80-85"]
     end
