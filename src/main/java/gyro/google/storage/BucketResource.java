@@ -28,8 +28,12 @@ import java.util.stream.Collectors;
 /**
  * Creates a Bucket within a specified region.
  *
+ * ========
  * Examples
- * --------
+ * ========
+ *
+ * Basic Bucket
+ * ------------
  *
  * ..code-block:: gyro
  *
@@ -41,8 +45,8 @@ import java.util.stream.Collectors;
  *        }
  *    end
  *
- * Example with CORS rule
- * -------
+ * Adding CORS rule
+ * ----------------
  *
  * ..code-block:: gyro
  *
@@ -78,6 +82,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String etag;
     private BucketIamConfiguration iamConfiguration;
     private BucketLifecycle lifecycle;
+    private BucketLogging logging;
+    private BucketRetentionPolicy retentionPolicy;
+    private String storageClass;
+    private BucketVersioning versioning;
+    private BucketWebsite website;
 
     /**
      * A unique name for the Bucket conforming to Google bucket naming guidelines.
@@ -215,6 +224,69 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         this.lifecycle = lifecycle;
     }
 
+    /**
+     * The bucket's logging configuration.
+     */
+    @Updatable
+    public BucketLogging getLogging() {
+        return logging;
+    }
+
+    public void setLogging(BucketLogging logging) {
+        this.logging = logging;
+    }
+
+    /**
+     * Minimum age an object in the bucket must reach before it can be deleted or overwritten.
+     */
+    @Updatable
+    public BucketRetentionPolicy getRetentionPolicy() {
+        return retentionPolicy;
+    }
+
+    public void setRetentionPolicy(BucketRetentionPolicy retentionPolicy) {
+        this.retentionPolicy = retentionPolicy;
+    }
+
+    /**
+     * Bucket's default storage class used whenever no ``storageClass`` is specified for a newly-created object.
+     * Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI-REGIONAL``, ``REGIONAL`` and
+     * ``DURABLE_REDUCED_AVAILABILITY``. Defaults to ``STANDARD``.
+     */
+    @Updatable
+    @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", " MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
+    public String getStorageClass() {
+        return storageClass;
+    }
+
+    public void setStorageClass(String storageClass) {
+        this.storageClass = storageClass;
+    }
+
+    /**
+     * The bucket's versioning configuration.
+     */
+    @Updatable
+    public BucketVersioning getVersioning() {
+        return versioning;
+    }
+
+    public void setVersioning(BucketVersioning versioning) {
+        this.versioning = versioning;
+    }
+
+    /**
+     * The bucket's website configuration controlling how the service behaves when accessing bucket contents as a web site.
+     */
+    @Updatable
+    public BucketWebsite getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(BucketWebsite website) {
+        this.website = website;
+    }
+
     @Override
     public boolean refresh() {
         Storage storage = creatClient(Storage.class);
@@ -239,6 +311,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setEtag(getEtag());
         bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
         bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
+        bucket.setLogging(getLogging() == null ? null : getLogging().toGcpBucketLogging());
+        bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toGcpBucketRententionPolicy());
+        bucket.setStorageClass(getStorageClass());
+        bucket.setVersioning(getVersioning() == null ? null : getVersioning().toGcpBucketVersioning());
+        bucket.setWebsite(getWebsite() == null ? null : getWebsite().toGcpBucketWebsite());
 
         if (getCors() != null) {
             bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
@@ -255,7 +332,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         try {
             storage.buckets().insert(getProjectId(), bucket).execute();
         } catch (GoogleJsonResponseException e) {
-            throw new GyroException(String.format("Unable to create, Google error: %s", e.getMessage()));
+            throw new GyroException(e.getDetails().getMessage());
         }
     }
 
@@ -272,6 +349,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setEtag(getEtag());
             bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
             bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
+            bucket.setLogging(getLogging() == null ? null : getLogging().toGcpBucketLogging());
+            bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toGcpBucketRententionPolicy());
+            bucket.setStorageClass(getStorageClass());
+            bucket.setVersioning(getVersioning() == null ? null : getVersioning().toGcpBucketVersioning());
+            bucket.setWebsite(getWebsite() == null ? null : getWebsite().toGcpBucketWebsite());
 
             if (getCors() != null) {
                 bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
@@ -285,9 +367,15 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 bucket.setEncryption(getEncryption().toBucketEncryption());
             }
 
+            // Lock retention policy. This can not be undone and ALL assets must reach policy time to delete bucket.
+            if (changedFieldNames.contains("retention-policy")
+                    && Boolean.TRUE.equals(bucket.getRetentionPolicy().getIsLocked())) {
+                storage.buckets().lockRetentionPolicy(getName(), bucket.getMetageneration()).execute();
+            }
+
             storage.buckets().update(getName(), bucket).execute();
         } catch (GoogleJsonResponseException e) {
-            throw new GyroException(String.format("Unable to update, Google error: %s", e.getMessage()));
+            throw new GyroException(e.getDetails().getMessage());
         }
     }
 
@@ -296,8 +384,8 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         try {
             Storage storage = creatClient(Storage.class);
             storage.buckets().delete(getName()).execute();
-        } catch (Exception e) {
-            throw new GyroException(String.format("Unable to delete Bucket:%s, Google error: %s", getName(), e.getMessage()));
+        } catch (IOException e) {
+            throw new GyroException(String.format("Unable to delete Bucket: %s, Google error: %s", getName(), e.getMessage()));
         }
     }
 
@@ -335,6 +423,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setEtag(model.getEtag());
         setIamConfiguration(BucketIamConfiguration.fromBucketIamConfiguration(model.getIamConfiguration()));
         setLifecycle(BucketLifecycle.fromGcpLifecycle(model.getLifecycle()));
+        setLogging(BucketLogging.fromGcpBucketLogging(model.getLogging()));
+        setRetentionPolicy(BucketRetentionPolicy.fromGcpBucketRententionPolicy(model.getRetentionPolicy()));
+        setStorageClass(model.getStorageClass());
+        setVersioning(BucketVersioning.fromGcpBucketVersioning(model.getVersioning()));
+        setWebsite(BucketWebsite.fromGcpBucketWebsite(model.getWebsite()));
 
         if (model.getCors() != null) {
             setCors(model.getCors().stream().map(rule -> BucketCors.fromBucketCors(rule)).collect(Collectors.toList()));

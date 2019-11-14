@@ -3,6 +3,7 @@ google::bucket bucket-1
     location: 'us-central1'
     default-event-based-hold: true
     etag: '1234'
+    storage-class: 'NEARLINE'
     labels: {
         foo: 'bar_1901'
     }
@@ -13,7 +14,7 @@ google::bucket bucket-1
         response-header: ['application-x-test']
     end
     billing
-        requester-pays: true
+        requester-pays: false
     end
     iam-configuration
         uniform-bucket-level-access
@@ -46,5 +47,16 @@ google::bucket bucket-1
                 age: 15
             end
         end
+    end
+    logging
+        log-bucket: 'test-bucket'
+        log-object-prefix: 'gyro'
+    end
+    retention-policy
+        retention-period: 3300
+    end
+    website
+        main-page-suffix: 'index.html'
+        not-found-page: '404.jpg'
     end
 end
