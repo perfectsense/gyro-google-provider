@@ -18,7 +18,7 @@ import gyro.google.Copyable;
  *          type: 'Delete'
  *      end
  */
-public class LifecycleRuleAction extends Diffable implements Copyable<Action> {
+public class BucketLifecycleRuleAction extends Diffable implements Copyable<Action> {
 
     private String storageClass;
     private String type;
@@ -69,9 +69,9 @@ public class LifecycleRuleAction extends Diffable implements Copyable<Action> {
         return new Action().setStorageClass(getStorageClass()).setType(getType());
     }
 
-    public static LifecycleRuleAction fromGcpLifecycleRuleAction(Action model) {
+    public static BucketLifecycleRuleAction fromGcpLifecycleRuleAction(Action model) {
         if (model != null) {
-            LifecycleRuleAction action = new LifecycleRuleAction();
+            BucketLifecycleRuleAction action = new BucketLifecycleRuleAction();
             action.setStorageClass(model.getStorageClass());
             action.setType(model.getType());
             return action;

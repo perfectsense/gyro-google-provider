@@ -17,7 +17,7 @@ import gyro.google.Copyable;
  *         requestor-pays: true
  *     end
  */
-public class Billing extends Diffable implements Copyable<Bucket.Billing> {
+public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> {
 
     private Boolean requesterPays;
 
@@ -53,9 +53,9 @@ public class Billing extends Diffable implements Copyable<Bucket.Billing> {
     /**
      * Create a new Billing from a GCP Bucket Billing instance.
      */
-    public static Billing fromBucketBilling(Bucket.Billing model) {
-        Billing billing = new Billing();
-        billing.setRequesterPays(model.getRequesterPays());
-        return billing;
+    public static BucketBilling fromBucketBilling(Bucket.Billing model) {
+        BucketBilling bucketBilling = new BucketBilling();
+        bucketBilling.setRequesterPays(model.getRequesterPays());
+        return bucketBilling;
     }
 }

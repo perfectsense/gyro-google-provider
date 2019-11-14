@@ -21,7 +21,7 @@ import java.util.List;
  *          age: 15
  *      end
  */
-public class LifecycleRuleCondition extends Diffable implements Copyable<Condition> {
+public class BucketLifecycleRuleCondition extends Diffable implements Copyable<Condition> {
 
     private Integer age;
     private String createdBefore;
@@ -111,9 +111,9 @@ public class LifecycleRuleCondition extends Diffable implements Copyable<Conditi
                 .setNumNewerVersions(getNumNewerVersions());
     }
 
-    public static LifecycleRuleCondition fromGcpLifecycleRuleCondition(Condition model) {
+    public static BucketLifecycleRuleCondition fromGcpLifecycleRuleCondition(Condition model) {
         if (model != null) {
-            LifecycleRuleCondition condition = new LifecycleRuleCondition();
+            BucketLifecycleRuleCondition condition = new BucketLifecycleRuleCondition();
             condition.setAge(model.getAge());
             condition.setCreatedBefore(model.getCreatedBefore() == null ? null : model.getCreatedBefore().toStringRfc3339());
             condition.setIsLive(model.getIsLive());

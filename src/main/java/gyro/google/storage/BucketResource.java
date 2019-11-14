@@ -71,13 +71,13 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String name;
     private Map<String, String> labels;
     private String location;
-    private List<Cors> cors;
-    private Billing billing;
+    private List<BucketCors> cors;
+    private BucketBilling billing;
     private Boolean defaultEventBasedHold;
-    private Encryption encryption;
+    private BucketEncryption encryption;
     private String etag;
-    private IamConfiguration iamConfiguration;
-    private Lifecycle lifecycle;
+    private BucketIamConfiguration iamConfiguration;
+    private BucketLifecycle lifecycle;
 
     /**
      * A unique name for the Bucket conforming to Google bucket naming guidelines.
@@ -130,11 +130,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * @subresoure gyro.google.storage.BucketCors
      */
     @Updatable
-    public List<Cors> getCors() {
+    public List<BucketCors> getCors() {
         return cors;
     }
 
-    public void setCors(List<Cors> cors) {
+    public void setCors(List<BucketCors> cors) {
         this.cors = cors;
     }
 
@@ -144,11 +144,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * @subresource gyro.google.storage.Billing
      */
     @Updatable
-    public Billing getBilling() {
+    public BucketBilling getBilling() {
         return billing;
     }
 
-    public void setBilling(Billing billing) {
+    public void setBilling(BucketBilling billing) {
         this.billing = billing;
     }
 
@@ -169,11 +169,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * @subresource gyro.google.storage.EncryptionRule
      */
     @Updatable
-    public Encryption getEncryption() {
+    public BucketEncryption getEncryption() {
         return encryption;
     }
 
-    public void setEncryption(Encryption encryption) {
+    public void setEncryption(BucketEncryption encryption) {
         this.encryption = encryption;
     }
 
@@ -195,11 +195,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * @subresource gyro.google.storage.IamConfiguration
      */
     @Updatable
-    public IamConfiguration getIamConfiguration() {
+    public BucketIamConfiguration getIamConfiguration() {
         return iamConfiguration;
     }
 
-    public void setIamConfiguration(IamConfiguration iamConfiguration) {
+    public void setIamConfiguration(BucketIamConfiguration iamConfiguration) {
         this.iamConfiguration = iamConfiguration;
     }
 
@@ -207,11 +207,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * The bucket's lifecycle configuration
      */
     @Updatable
-    public Lifecycle getLifecycle() {
+    public BucketLifecycle getLifecycle() {
         return lifecycle;
     }
 
-    public void setLifecycle(Lifecycle lifecycle) {
+    public void setLifecycle(BucketLifecycle lifecycle) {
         this.lifecycle = lifecycle;
     }
 
@@ -241,7 +241,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
 
         if (getCors() != null) {
-            bucket.setCors(getCors().stream().map(Cors::toBucketCors).collect(Collectors.toList()));
+            bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
         }
 
         if (getBilling() != null) {
@@ -274,7 +274,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
 
             if (getCors() != null) {
-                bucket.setCors(getCors().stream().map(Cors::toBucketCors).collect(Collectors.toList()));
+                bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
             }
 
             if (getBilling() != null) {
@@ -333,19 +333,19 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setLabels(model.getLabels());
         setLocation(model.getLocation());
         setEtag(model.getEtag());
-        setIamConfiguration(IamConfiguration.fromBucketIamConfiguration(model.getIamConfiguration()));
-        setLifecycle(Lifecycle.fromGcpLifecycle(model.getLifecycle()));
+        setIamConfiguration(BucketIamConfiguration.fromBucketIamConfiguration(model.getIamConfiguration()));
+        setLifecycle(BucketLifecycle.fromGcpLifecycle(model.getLifecycle()));
 
         if (model.getCors() != null) {
-            setCors(model.getCors().stream().map(rule -> Cors.fromBucketCors(rule)).collect(Collectors.toList()));
+            setCors(model.getCors().stream().map(rule -> BucketCors.fromBucketCors(rule)).collect(Collectors.toList()));
         }
 
         if (model.getBilling() != null) {
-            setBilling(Billing.fromBucketBilling(model.getBilling()));
+            setBilling(BucketBilling.fromBucketBilling(model.getBilling()));
         }
 
         if (model.getEncryption() != null) {
-            setEncryption(Encryption.fromBucketEncryption(model.getEncryption()));
+            setEncryption(BucketEncryption.fromBucketEncryption(model.getEncryption()));
         }
     }
 }

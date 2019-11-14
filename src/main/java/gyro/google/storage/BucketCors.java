@@ -23,7 +23,7 @@ import java.util.List;
  *         response-header: ['application-x-test']
  *     end
  */
-public class Cors extends Diffable implements Copyable<Bucket.Cors> {
+public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
 
     private Integer maxAgeSeconds;
     private List<String> method;
@@ -103,8 +103,8 @@ public class Cors extends Diffable implements Copyable<Bucket.Cors> {
     /**
      *  Creates a new Gyro Cors instance populated from the configuration coming from GCP.
      */
-    public static Cors fromBucketCors(Bucket.Cors model) {
-        Cors cors = new Cors();
+    public static BucketCors fromBucketCors(Bucket.Cors model) {
+        BucketCors cors = new BucketCors();
         cors.setMaxAgeSeconds(model.getMaxAgeSeconds());
         cors.setMethod(model.getMethod());
         cors.setOrigin(model.getOrigin());

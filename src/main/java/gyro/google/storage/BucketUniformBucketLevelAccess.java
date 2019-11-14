@@ -20,7 +20,7 @@ import gyro.google.Copyable;
  *     end
  *
  */
-public class UniformBucketLevelAccess extends Diffable implements Copyable<Bucket.IamConfiguration.UniformBucketLevelAccess> {
+public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<Bucket.IamConfiguration.UniformBucketLevelAccess> {
 
     private Boolean enabled;
     private String lockedTime;
@@ -61,9 +61,9 @@ public class UniformBucketLevelAccess extends Diffable implements Copyable<Bucke
         return new Bucket.IamConfiguration.UniformBucketLevelAccess().setEnabled(getEnabled());
     }
 
-    public static UniformBucketLevelAccess fromIamConfigurationUniformBucketLevelAccess(Bucket.IamConfiguration.UniformBucketLevelAccess model) {
+    public static BucketUniformBucketLevelAccess fromIamConfigurationUniformBucketLevelAccess(Bucket.IamConfiguration.UniformBucketLevelAccess model) {
         if (model != null) {
-            UniformBucketLevelAccess policy = new UniformBucketLevelAccess();
+            BucketUniformBucketLevelAccess policy = new BucketUniformBucketLevelAccess();
             policy.setEnabled(model.getEnabled());
             policy.setLockedTime(model.getLockedTime() == null ? null : model.getLockedTime().toStringRfc3339());
             return policy;

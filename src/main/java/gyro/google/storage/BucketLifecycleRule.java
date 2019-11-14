@@ -23,21 +23,21 @@ import gyro.google.Copyable;
  *        end
  *    end
  */
-public class LifecycleRule extends Diffable implements Copyable<Rule> {
+public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
 
-    private LifecycleRuleAction action;
-    private LifecycleRuleCondition condition;
+    private BucketLifecycleRuleAction action;
+    private BucketLifecycleRuleCondition condition;
 
     /**
      * The action to take for the Rule.
      */
     @Required
     @Updatable
-    public LifecycleRuleAction getAction() {
+    public BucketLifecycleRuleAction getAction() {
         return action;
     }
 
-    public void setAction(LifecycleRuleAction action) {
+    public void setAction(BucketLifecycleRuleAction action) {
         this.action = action;
     }
 
@@ -46,11 +46,11 @@ public class LifecycleRule extends Diffable implements Copyable<Rule> {
      */
     @Required
     @Updatable
-    public LifecycleRuleCondition getCondition() {
+    public BucketLifecycleRuleCondition getCondition() {
         return condition;
     }
 
-    public void setCondition(LifecycleRuleCondition condition) {
+    public void setCondition(BucketLifecycleRuleCondition condition) {
         this.condition = condition;
     }
 
@@ -61,8 +61,8 @@ public class LifecycleRule extends Diffable implements Copyable<Rule> {
 
     @Override
     public void copyFrom(Rule model) {
-        setAction(LifecycleRuleAction.fromGcpLifecycleRuleAction(model.getAction()));
-        setCondition(LifecycleRuleCondition.fromGcpLifecycleRuleCondition(model.getCondition()));
+        setAction(BucketLifecycleRuleAction.fromGcpLifecycleRuleAction(model.getAction()));
+        setCondition(BucketLifecycleRuleCondition.fromGcpLifecycleRuleCondition(model.getCondition()));
     }
 
     public Rule toGcpLifecycleRule() {
@@ -71,11 +71,11 @@ public class LifecycleRule extends Diffable implements Copyable<Rule> {
                .setCondition(getCondition() == null ? null : getCondition().toGcpLifecycleRuleCondition());
     }
 
-    public static LifecycleRule fromGcpLifecycleRule(Rule model) {
+    public static BucketLifecycleRule fromGcpLifecycleRule(Rule model) {
         if (model != null) {
-            LifecycleRule rule = new LifecycleRule();
-            rule.setAction(LifecycleRuleAction.fromGcpLifecycleRuleAction(model.getAction()));
-            rule.setCondition(LifecycleRuleCondition.fromGcpLifecycleRuleCondition(model.getCondition()));
+            BucketLifecycleRule rule = new BucketLifecycleRule();
+            rule.setAction(BucketLifecycleRuleAction.fromGcpLifecycleRuleAction(model.getAction()));
+            rule.setCondition(BucketLifecycleRuleCondition.fromGcpLifecycleRuleCondition(model.getCondition()));
             return rule;
         }
         return null;

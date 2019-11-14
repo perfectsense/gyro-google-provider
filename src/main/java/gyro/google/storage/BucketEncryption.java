@@ -17,7 +17,7 @@ import gyro.google.Copyable;
  *         default-kms-key-name: 'saltMe4ever'
  *     end
  */
-public class Encryption extends Diffable implements Copyable<Bucket.Encryption> {
+public class BucketEncryption extends Diffable implements Copyable<Bucket.Encryption> {
 
     private String defaultKmsKeyName;
 
@@ -48,8 +48,8 @@ public class Encryption extends Diffable implements Copyable<Bucket.Encryption> 
     /**
      * Converts a Bucket.Encryption into a new Bucket object.
      */
-    public static Encryption fromBucketEncryption(Bucket.Encryption model) {
-       Encryption encryption = new Encryption();
+    public static BucketEncryption fromBucketEncryption(Bucket.Encryption model) {
+       BucketEncryption encryption = new BucketEncryption();
        encryption.setDefaultKmsKeyName(model.getDefaultKmsKeyName());
        return encryption;
     }

@@ -19,9 +19,9 @@ import gyro.google.Copyable;
  *         end
  *     end
  */
-public class IamConfiguration extends Diffable implements Copyable<Bucket.IamConfiguration> {
+public class BucketIamConfiguration extends Diffable implements Copyable<Bucket.IamConfiguration> {
 
-    private UniformBucketLevelAccess uniformBucketLevelAccess;
+    private BucketUniformBucketLevelAccess uniformBucketLevelAccess;
 
     /**
      * The bucket's uniform bucket-level access configuration.
@@ -29,11 +29,11 @@ public class IamConfiguration extends Diffable implements Copyable<Bucket.IamCon
      * @subresource gyro.google.storage.UniformBucketLevelAccess
      */
     @Updatable
-    public UniformBucketLevelAccess getUniformBucketLevelAccess() {
+    public BucketUniformBucketLevelAccess getUniformBucketLevelAccess() {
         return uniformBucketLevelAccess;
     }
 
-    public void setUniformBucketLevelAccess(UniformBucketLevelAccess uniformBucketLevelAccess) {
+    public void setUniformBucketLevelAccess(BucketUniformBucketLevelAccess uniformBucketLevelAccess) {
         this.uniformBucketLevelAccess = uniformBucketLevelAccess;
     }
 
@@ -44,7 +44,7 @@ public class IamConfiguration extends Diffable implements Copyable<Bucket.IamCon
 
     @Override
     public void copyFrom(Bucket.IamConfiguration model) {
-        setUniformBucketLevelAccess(UniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));
+        setUniformBucketLevelAccess(BucketUniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));
     }
 
     public Bucket.IamConfiguration toBucketIamConfiguration() {
@@ -52,10 +52,10 @@ public class IamConfiguration extends Diffable implements Copyable<Bucket.IamCon
                 .setUniformBucketLevelAccess(getUniformBucketLevelAccess() == null ? null : getUniformBucketLevelAccess().toIamConfigurationUniformBucketLevelAccess());
     }
 
-    public static IamConfiguration fromBucketIamConfiguration(Bucket.IamConfiguration model) {
+    public static BucketIamConfiguration fromBucketIamConfiguration(Bucket.IamConfiguration model) {
         if (model != null) {
-            IamConfiguration configuration = new IamConfiguration();
-            configuration.setUniformBucketLevelAccess(UniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));
+            BucketIamConfiguration configuration = new BucketIamConfiguration();
+            configuration.setUniformBucketLevelAccess(BucketUniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));
             return configuration;
         }
         return null;
