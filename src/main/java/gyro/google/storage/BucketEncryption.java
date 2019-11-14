@@ -41,16 +41,19 @@ public class BucketEncryption extends Diffable implements Copyable<Bucket.Encryp
     /**
      * This as a Bucket.Encryption instance.
      */
-    public Bucket.Encryption toBucketEncryption() {
+    public Bucket.Encryption toGcpBucketEncryption() {
        return new Bucket.Encryption().setDefaultKmsKeyName(getDefaultKmsKeyName());
     }
 
     /**
      * Converts a Bucket.Encryption into a new Bucket object.
      */
-    public static BucketEncryption fromBucketEncryption(Bucket.Encryption model) {
-       BucketEncryption encryption = new BucketEncryption();
-       encryption.setDefaultKmsKeyName(model.getDefaultKmsKeyName());
-       return encryption;
+    public static BucketEncryption fromGcpBucketEncryption(Bucket.Encryption model) {
+        if (model != null) {
+            BucketEncryption encryption = new BucketEncryption();
+            encryption.setDefaultKmsKeyName(model.getDefaultKmsKeyName());
+            return encryption;
+        }
+        return null;
     }
 }

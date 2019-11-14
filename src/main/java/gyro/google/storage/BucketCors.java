@@ -92,7 +92,7 @@ public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
     /**
      * This as a Bucket Cors instance.
      */
-    public Bucket.Cors toBucketCors() {
+    public Bucket.Cors toGcpBucketCors() {
         return new Bucket.Cors()
                 .setMaxAgeSeconds(getMaxAgeSeconds())
                 .setMethod(getMethod())
@@ -103,7 +103,7 @@ public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
     /**
      *  Creates a new Gyro Cors instance populated from the configuration coming from GCP.
      */
-    public static BucketCors fromBucketCors(Bucket.Cors model) {
+    public static BucketCors fromGcpBucketCors(Bucket.Cors model) {
         BucketCors cors = new BucketCors();
         cors.setMaxAgeSeconds(model.getMaxAgeSeconds());
         cors.setMethod(model.getMethod());

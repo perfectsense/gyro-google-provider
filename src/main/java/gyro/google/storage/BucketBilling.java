@@ -46,16 +46,19 @@ public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> 
     /**
      * This as a Bucket Billing instance.
      */
-    public Bucket.Billing toBucketBilling() {
+    public Bucket.Billing toGcpBucketBilling() {
         return new Bucket.Billing().setRequesterPays(getRequesterPays());
     }
 
     /**
      * Create a new Billing from a GCP Bucket Billing instance.
      */
-    public static BucketBilling fromBucketBilling(Bucket.Billing model) {
-        BucketBilling bucketBilling = new BucketBilling();
-        bucketBilling.setRequesterPays(model.getRequesterPays());
-        return bucketBilling;
+    public static BucketBilling fromGcpBucketBilling(Bucket.Billing model) {
+        if (model != null) {
+            BucketBilling bucketBilling = new BucketBilling();
+            bucketBilling.setRequesterPays(model.getRequesterPays());
+            return bucketBilling;
+        }
+        return null;
     }
 }

@@ -140,6 +140,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      */
     @Updatable
     public List<BucketCors> getCors() {
+        if (cors == null) {
+            return new ArrayList<>();
+        }
         return cors;
     }
 
@@ -309,25 +312,16 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setLocation(getLocation());
         bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
         bucket.setEtag(getEtag());
-        bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+        bucket.setCors(getCors().stream().map(BucketCors::toGcpBucketCors).collect(Collectors.toList()));
+        bucket.setBilling(getBilling() == null ? null : getBilling().toGcpBucketBilling());
+        bucket.setEncryption(getEncryption() == null ? null : getEncryption().toGcpBucketEncryption());
+        bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toGcpBucketIamConfiguration());
         bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
         bucket.setLogging(getLogging() == null ? null : getLogging().toGcpBucketLogging());
         bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toGcpBucketRententionPolicy());
         bucket.setStorageClass(getStorageClass());
         bucket.setVersioning(getVersioning() == null ? null : getVersioning().toGcpBucketVersioning());
         bucket.setWebsite(getWebsite() == null ? null : getWebsite().toGcpBucketWebsite());
-
-        if (getCors() != null) {
-            bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
-        }
-
-        if (getBilling() != null) {
-            bucket.setBilling(getBilling().toBucketBilling());
-        }
-
-        if (getEncryption() != null) {
-            bucket.setEncryption(getEncryption().toBucketEncryption());
-        }
 
         try {
             storage.buckets().insert(getProjectId(), bucket).execute();
@@ -347,25 +341,16 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setLocation(getLocation());
             bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
             bucket.setEtag(getEtag());
-            bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+            bucket.setCors(getCors().stream().map(BucketCors::toGcpBucketCors).collect(Collectors.toList()));
+            bucket.setBilling(getBilling() == null ? null : getBilling().toGcpBucketBilling());
+            bucket.setEncryption(getEncryption() == null ? null : getEncryption().toGcpBucketEncryption());
+            bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toGcpBucketIamConfiguration());
             bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toGcpLifecycle());
             bucket.setLogging(getLogging() == null ? null : getLogging().toGcpBucketLogging());
             bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toGcpBucketRententionPolicy());
             bucket.setStorageClass(getStorageClass());
             bucket.setVersioning(getVersioning() == null ? null : getVersioning().toGcpBucketVersioning());
             bucket.setWebsite(getWebsite() == null ? null : getWebsite().toGcpBucketWebsite());
-
-            if (getCors() != null) {
-                bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
-            }
-
-            if (getBilling() != null) {
-                bucket.setBilling(getBilling().toBucketBilling());
-            }
-
-            if (getEncryption() != null) {
-                bucket.setEncryption(getEncryption().toBucketEncryption());
-            }
 
             // Lock retention policy. This can not be undone and ALL assets must reach policy time to delete bucket.
             if (changedFieldNames.contains("retention-policy")
@@ -421,7 +406,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setLabels(model.getLabels());
         setLocation(model.getLocation());
         setEtag(model.getEtag());
-        setIamConfiguration(BucketIamConfiguration.fromBucketIamConfiguration(model.getIamConfiguration()));
+        setBilling(BucketBilling.fromGcpBucketBilling(model.getBilling()));
+        setEncryption(BucketEncryption.fromGcpBucketEncryption(model.getEncryption()));
+        setIamConfiguration(BucketIamConfiguration.fromGcpBucketIamConfiguration(model.getIamConfiguration()));
         setLifecycle(BucketLifecycle.fromGcpLifecycle(model.getLifecycle()));
         setLogging(BucketLogging.fromGcpBucketLogging(model.getLogging()));
         setRetentionPolicy(BucketRetentionPolicy.fromGcpBucketRententionPolicy(model.getRetentionPolicy()));
@@ -430,15 +417,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setWebsite(BucketWebsite.fromGcpBucketWebsite(model.getWebsite()));
 
         if (model.getCors() != null) {
-            setCors(model.getCors().stream().map(rule -> BucketCors.fromBucketCors(rule)).collect(Collectors.toList()));
-        }
-
-        if (model.getBilling() != null) {
-            setBilling(BucketBilling.fromBucketBilling(model.getBilling()));
-        }
-
-        if (model.getEncryption() != null) {
-            setEncryption(BucketEncryption.fromBucketEncryption(model.getEncryption()));
+            setCors(model.getCors().stream().map(rule -> BucketCors.fromGcpBucketCors(rule)).collect(Collectors.toList()));
         }
     }
 }
