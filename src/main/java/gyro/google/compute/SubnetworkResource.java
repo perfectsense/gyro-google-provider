@@ -16,6 +16,9 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
+import java.util.Set;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
@@ -24,16 +27,13 @@ import com.google.api.services.compute.model.SubnetworksSetPrivateIpGoogleAccess
 import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.resource.Resource;
-import gyro.core.resource.Updatable;
 import gyro.core.Type;
 import gyro.core.resource.Output;
+import gyro.core.resource.Resource;
+import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-
-import java.io.IOException;
-import java.util.Set;
 
 /**
  * Creates a subnet.
@@ -181,7 +181,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public boolean refresh() {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
@@ -201,7 +201,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void create(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Subnetwork subnetwork = new Subnetwork();
         subnetwork.setName(getName());
@@ -227,7 +227,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             if (changedFieldNames.contains("enable-flow-logs")) {
@@ -248,7 +248,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void delete(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();

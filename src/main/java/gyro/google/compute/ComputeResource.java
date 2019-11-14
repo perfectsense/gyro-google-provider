@@ -65,4 +65,7 @@ public abstract class ComputeResource extends GoogleResource {
         return operation == null ? null : operation.getError();
     }
 
+    protected Compute createComputeClient() {
+        return createClient(Compute.class);
+    }
 }
