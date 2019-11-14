@@ -119,7 +119,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public boolean refresh() {
-        Compute client = createComputeClient();
+        Compute client = createClient(Compute.class);
 
         try {
             Network network = client.networks().get(getProjectId(), getName()).execute();
@@ -139,7 +139,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void create(GyroUI ui, State state) {
-        Compute client = createComputeClient();
+        Compute client = createClient(Compute.class);
 
         Network network = new Network();
         network.setName(getName());
@@ -166,7 +166,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-        Compute client = createComputeClient();
+        Compute client = createClient(Compute.class);
 
         try {
             NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
@@ -184,7 +184,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void delete(GyroUI ui, State state) {
-        Compute compute = createComputeClient();
+        Compute compute = createClient(Compute.class);
 
         try {
             compute.networks().delete(getProjectId(), getName()).execute();
