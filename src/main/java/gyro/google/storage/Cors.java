@@ -9,7 +9,7 @@ import gyro.google.Copyable;
 import java.util.List;
 
 /**
- * Subresource for setting of {@link Bucket.Cors} configuration for assets within a {@link Bucket}.
+ * Subresource for setting of Bucket.Cors configuration for assets within a Bucket.
  *
  * Examples
  * --------
@@ -90,7 +90,7 @@ public class Cors extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     * @return This as a {@link Bucket.Cors} instance.
+     * This as a Bucket Cors instance.
      */
     public Bucket.Cors toBucketCors() {
         return new Bucket.Cors()
@@ -101,10 +101,7 @@ public class Cors extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     *  Creates a new Gyro {@link Cors} instance populated from the configuration coming from GCP.
-     *
-     * @param model The GCP {@link Bucket.Cors} instance.
-     * @return A new Cors instance converted from the ``model``.
+     *  Creates a new Gyro Cors instance populated from the configuration coming from GCP.
      */
     public static Cors fromBucketCors(Bucket.Cors model) {
         Cors cors = new Cors();

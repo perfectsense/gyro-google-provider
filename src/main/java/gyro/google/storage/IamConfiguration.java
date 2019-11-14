@@ -6,7 +6,7 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * Subresource for setting the {@link Bucket.IamConfiguration} configuration to a {@link Bucket}.
+ * Subresource for setting the Bucket IamConfiguration configuration to a Bucket.
  *
  * Example
  * -------
@@ -35,6 +35,11 @@ public class IamConfiguration extends Diffable implements Copyable<Bucket.IamCon
 
     public void setUniformBucketLevelAccess(UniformBucketLevelAccess uniformBucketLevelAccess) {
         this.uniformBucketLevelAccess = uniformBucketLevelAccess;
+    }
+
+    @Override
+    public String primaryKey() {
+        return getUniformBucketLevelAccess().primaryKey();
     }
 
     @Override

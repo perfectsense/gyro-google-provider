@@ -7,9 +7,7 @@ import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * The condition(s) under which the action will be taken.
@@ -93,33 +91,6 @@ public class LifecycleRuleCondition extends Diffable implements Copyable<Conditi
 
     public void setNumNewerVersions(Integer numNewerVersions) {
         this.numNewerVersions = numNewerVersions;
-    }
-
-    @Override
-    public String primaryKey() {
-        List<String> key = new ArrayList<>();
-
-        if (getAge() != null) {
-            key.add("age=" + getAge());
-        }
-
-        if (getCreatedBefore() != null) {
-            key.add("created-before=" + getCreatedBefore());
-        }
-
-        if (getIsLive() != null) {
-            key.add("is-live=" + getIsLive());
-        }
-
-        if (getMatchesStorageClass() != null) {
-            key.add("matches-storage-class=" + getMatchesStorageClass());
-        }
-
-        if (getNumNewerVersions() != null) {
-            key.add("num-newer-versions=" + getNumNewerVersions());
-        }
-
-        return key.stream().collect(Collectors.joining(", "));
     }
 
     @Override

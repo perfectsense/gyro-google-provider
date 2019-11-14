@@ -6,7 +6,7 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * Subresource for setting the {@link Bucket.Billing} configuration to a {@link Bucket}.
+ * Subresource for setting the Bucket Billing configuration to a Bucket.
  *
  * Example
  * -------
@@ -34,22 +34,24 @@ public class Billing extends Diffable implements Copyable<Bucket.Billing> {
     }
 
     @Override
+    public String primaryKey() {
+        return Boolean.toString("true".equals(getRequesterPays()));
+    }
+
+    @Override
     public void copyFrom(Bucket.Billing model) {
         setRequesterPays(model.getRequesterPays());
     }
 
     /**
-     * @return This as a {@link Bucket.Billing} instance.
+     * This as a Bucket Billing instance.
      */
     public Bucket.Billing toBucketBilling() {
         return new Bucket.Billing().setRequesterPays(getRequesterPays());
     }
 
     /**
-     * Create a new Billing from a GCP {@link Bucket.Billing} instance.
-     * 
-     * @param model The Billing instance to convert.
-     * @return New Billing instance populated by data from ``model``.
+     * Create a new Billing from a GCP Bucket Billing instance.
      */
     public static Billing fromBucketBilling(Bucket.Billing model) {
         Billing billing = new Billing();

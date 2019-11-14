@@ -6,7 +6,7 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * Subresource for setting the {@link Bucket.Encryption} configuration to a {@link Bucket}.
+ * Subresource for setting the Bucket.Encryption configuration to a Bucket.
  *
  * Example
  * -------
@@ -39,17 +39,14 @@ public class Encryption extends Diffable implements Copyable<Bucket.Encryption> 
     }
 
     /**
-     * @return This as a {@link Bucket.Encryption} instance.
+     * This as a Bucket.Encryption instance.
      */
     public Bucket.Encryption toBucketEncryption() {
        return new Bucket.Encryption().setDefaultKmsKeyName(getDefaultKmsKeyName());
     }
 
     /**
-     * Converts a {@link Bucket.Encryption} into a new Bucket object.
-     * 
-     * @param model Instance of a {@link Bucket.Encryption} object.
-     * @return A new Encryption object populated by data from ``model``.
+     * Converts a Bucket.Encryption into a new Bucket object.
      */
     public static Encryption fromBucketEncryption(Bucket.Encryption model) {
        Encryption encryption = new Encryption();

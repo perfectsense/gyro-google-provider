@@ -6,7 +6,7 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * Subresource for setting the {@link Bucket.IamConfiguration.UniformBucketLevelAccess} configuration to a {@link Bucket}.
+ * Subresource for setting the Bucket IamConfiguration UniformBucketLevelAccess configuration to a Bucket.
  *
  * Example
  * -------
