@@ -48,7 +48,7 @@ public abstract class GoogleFinder<C extends AbstractGoogleJsonClient, M, R exte
         Class<C> clientClass = (Class<C>) TypeDefinition.getInstance(getClass())
             .getInferredGenericTypeArgumentClass(GoogleFinder.class, 0);
 
-        return GoogleResource.creatClient(clientClass, credentials(GoogleCredentials.class));
+        return GoogleResource.createClient(clientClass, credentials(GoogleCredentials.class));
     }
 
     @SuppressWarnings("unchecked")
