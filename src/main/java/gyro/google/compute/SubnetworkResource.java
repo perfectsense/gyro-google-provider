@@ -181,7 +181,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public boolean refresh() {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
@@ -201,7 +201,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void create(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Subnetwork subnetwork = new Subnetwork();
         subnetwork.setName(getName());
@@ -227,7 +227,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             if (changedFieldNames.contains("enable-flow-logs")) {
@@ -248,7 +248,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void delete(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
