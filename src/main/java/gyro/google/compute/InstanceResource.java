@@ -16,9 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
