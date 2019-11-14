@@ -16,6 +16,9 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
+import java.util.Set;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
@@ -23,18 +26,15 @@ import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.Type;
 import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
-import gyro.core.Type;
-import gyro.core.resource.Output;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-
-import java.io.IOException;
-import java.util.Set;
 
 /**
  * Creates a network.
@@ -119,7 +119,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public boolean refresh() {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             Network network = client.networks().get(getProjectId(), getName()).execute();
@@ -139,7 +139,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void create(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Network network = new Network();
         network.setName(getName());
@@ -166,7 +166,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
@@ -184,7 +184,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void delete(GyroUI ui, State state) {
-        Compute compute = creatClient(Compute.class);
+        Compute compute = createComputeClient();
 
         try {
             compute.networks().delete(getProjectId(), getName()).execute();
