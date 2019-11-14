@@ -66,4 +66,7 @@ public abstract class ComputeResource extends GoogleResource {
         }
     }
 
+    protected Compute createComputeClient() {
+        return createClient(Compute.class);
+    }
 }
