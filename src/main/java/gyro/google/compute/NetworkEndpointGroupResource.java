@@ -40,6 +40,10 @@ import java.util.stream.Collectors;
  *         subnet: $(google::subnet subnet-example-network-endpoint-group)
  *         default-port: 80
  *         zone: "us-east1-b"
+ *
+ *         endpoint
+ *             instance: "instance-example"
+ *         end
  *     end
  */
 @Type("network-endpoint-group")
