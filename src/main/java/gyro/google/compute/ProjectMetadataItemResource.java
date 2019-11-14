@@ -29,7 +29,6 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-
 import java.util.List;
 import java.util.Set;
 
@@ -83,7 +82,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
 
     @Override
     public boolean refresh() {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Metadata metadata = getMetadata(client);
         Metadata.Items item = metadata.getItems()
@@ -103,7 +102,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
 
     @Override
     public void create(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Metadata.Items item = new Metadata.Items();
         item.setKey(getKey());
@@ -119,7 +118,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
 
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Metadata metadata = getMetadata(client);
         Metadata.Items item = metadata.getItems()
@@ -136,7 +135,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
 
     @Override
     public void delete(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Metadata metadata = getMetadata(client);
         metadata.getItems().removeIf(r -> getKey().equals(r.getKey()));
