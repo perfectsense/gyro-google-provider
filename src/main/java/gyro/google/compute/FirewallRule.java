@@ -16,8 +16,6 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.Firewall.Allowed;
-import com.google.api.services.compute.model.Firewall.Denied;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
@@ -31,7 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class FirewallAllowDenyRule extends Diffable {
+public class FirewallRule extends Diffable {
     private static final Pattern PORT_PATTERN = Pattern.compile("(?<start>[1-9]\\d*)-?(?<end>[1-9]\\d*)?");
 
     private String protocol;
@@ -68,34 +66,6 @@ public class FirewallAllowDenyRule extends Diffable {
     @Override
     public String primaryKey() {
         return getProtocol();
-    }
-
-    void copyFrom(Allowed allowed) {
-        setProtocol(allowed.getIPProtocol());
-        setPorts(allowed.getPorts() != null ? new HashSet<>(allowed.getPorts()) : null);
-    }
-
-    void copyFrom(Denied denied) {
-        setProtocol(denied.getIPProtocol());
-        setPorts(denied.getPorts() != null ? new HashSet<>(denied.getPorts()) : null);
-    }
-
-    Allowed toAllowed() {
-        Allowed allowed = new Allowed();
-        allowed.setIPProtocol(getProtocol());
-        if (!getPorts().isEmpty()) {
-            allowed.setPorts(new ArrayList<>(getPorts()));
-        }
-        return allowed;
-    }
-
-    Denied toDenied() {
-        Denied denied = new Denied();
-        denied.setIPProtocol(getProtocol());
-        if (!getPorts().isEmpty()) {
-            denied.setPorts(new ArrayList<>(getPorts()));
-        }
-        return denied;
     }
 
     @Override

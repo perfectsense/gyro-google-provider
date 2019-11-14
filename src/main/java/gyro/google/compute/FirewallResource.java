@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  *
  *         rule-type: "allow"
  *
- *         rule
+ *         allowed
  *             protocol: "tcp"
  *             ports: ["95-96", "80-85"]
  *         end
@@ -77,7 +77,8 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     private NetworkResource network;
     private String description;
     private String ruleType;
-    private Set<FirewallAllowDenyRule> rule;
+    private List<FirewallAllowed> allowed;
+    private List<FirewallDenied> denied;
     private Set<String> destinationRanges;
     private String direction;
     private Boolean disabled;
@@ -145,20 +146,39 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * A set of rules that the requests are going to get matched with. (Required)
+     *  A set of rules that allow requests to pass that get matched. Required if 'rule-type' set to ``ALLOW``.
+     *
+     * @subresource gyro.google.compute.FirewallAllowed
      */
-    @Required
     @Updatable
-    public Set<FirewallAllowDenyRule> getRule() {
-        if (rule == null) {
-            rule = new HashSet<>();
+    public List<FirewallAllowed> getAllowed() {
+        if (allowed == null) {
+            allowed = new ArrayList<>();
         }
 
-        return rule;
+        return allowed;
     }
 
-    public void setRule(Set<FirewallAllowDenyRule> rule) {
-        this.rule = rule;
+    public void setAllowed(List<FirewallAllowed> allowed) {
+        this.allowed = allowed;
+    }
+
+    /**
+     * A set of rules that deny requests to pass that get matched. Required if 'rule-type' set to ``DENY``.
+     *
+     * @subresource gyro.google.cloud.FirewallDenied
+     */
+    @Updatable
+    public List<FirewallDenied> getDenied() {
+        if (denied == null) {
+            denied = new ArrayList<>();
+        }
+
+        return denied;
+    }
+
+    public void setDenied(List<FirewallDenied> denied) {
+        this.denied = denied;
     }
 
     /**
@@ -362,19 +382,22 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         setTargetServiceAccounts(firewall.getTargetServiceAccounts() != null ? new HashSet<>(firewall.getTargetServiceAccounts()) : null);
         setTargetTags(firewall.getTargetTags() != null ? new HashSet<>(firewall.getTargetTags()) : null);
 
-        getRule().clear();
+        getAllowed().clear();
         if (firewall.getAllowed() != null && !firewall.getAllowed().isEmpty()) {
-            setRule(firewall.getAllowed().stream().map(rule -> {
-                FirewallAllowDenyRule allowedRule = newSubresource(FirewallAllowDenyRule.class);
-                allowedRule.copyFrom(rule);
-                return allowedRule;
-            }).collect(Collectors.toSet()));
-        } else if (firewall.getDenied() != null && !firewall.getDenied().isEmpty()) {
-            setRule(firewall.getDenied().stream().map(rule -> {
-                FirewallAllowDenyRule deniedRule = newSubresource(FirewallAllowDenyRule.class);
-                deniedRule.copyFrom(rule);
-                return deniedRule;
-            }).collect(Collectors.toSet()));
+            setAllowed(firewall.getAllowed().stream().map(rule -> {
+                FirewallAllowed allowed = newSubresource(FirewallAllowed.class);
+                allowed.copyFrom(rule);
+                return allowed;
+            }).collect(Collectors.toList()));
+        }
+
+        getDenied().clear();
+        if (firewall.getDenied() != null && !firewall.getDenied().isEmpty()){
+            setDenied(firewall.getDenied().stream().map(rule -> {
+                FirewallDenied denied = newSubresource(FirewallDenied.class);
+                denied.copyFrom(rule);
+                return denied;
+            }).collect(Collectors.toList()));
         }
 
         setId(firewall.getId().toString());
@@ -460,6 +483,24 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
 
+        if (getRuleType().equals("ALLOW")) {
+            if (getAllowed().isEmpty()) {
+                errors.add(new ValidationError(this, "allowed", "'allowed' needs to be set when 'rule-type' set to 'ALLOW'."));
+            }
+
+            if (!getDenied().isEmpty()) {
+                errors.add(new ValidationError(this, "denied", "'denied' cannot be set when 'rule-type' set to 'ALLOW'."));
+            }
+        } else if (getRuleType().equals("DENY")) {
+            if (getDenied().isEmpty()) {
+                errors.add(new ValidationError(this, "denied", "'denied' needs to be set when 'rule-type' set to 'DENY'."));
+            }
+
+            if (!getAllowed().isEmpty()) {
+                errors.add(new ValidationError(this, "allowed", "'allowed' cannot be set when 'rule-type' set to 'DENY'."));
+            }
+        }
+
         if (getDirection().equals("INGRESS")) {
             if (!getDestinationRanges().isEmpty()) {
                 errors.add(new ValidationError(this, "destination-ranges", "'destination-ranges' cannot be set when 'direction' set to 'INGRESS'"));
@@ -516,10 +557,10 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         firewall.setSourceRanges(!getSourceRanges().isEmpty() ? new ArrayList<>(getSourceRanges()) : Collections.emptyList());
 
         if (getRuleType().equals("ALLOW")) {
-            firewall.setAllowed(getRule().stream().map(FirewallAllowDenyRule::toAllowed).collect(Collectors.toList()));
+            firewall.setAllowed(getAllowed().stream().map(FirewallAllowed::toAllowed).collect(Collectors.toList()));
             firewall.setDenied(Collections.emptyList());
         } else if (getRuleType().equals("DENY")) {
-            firewall.setDenied(getRule().stream().map(FirewallAllowDenyRule::toDenied).collect(Collectors.toList()));
+            firewall.setDenied(getDenied().stream().map(FirewallDenied::toDenied).collect(Collectors.toList()));
             firewall.setAllowed(Collections.emptyList());
         }
 
@@ -541,6 +582,4 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
         return firewall;
     }
-
-
 }
