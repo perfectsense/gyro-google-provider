@@ -383,7 +383,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
     @Override
     public boolean refresh() {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Firewall firewall = getFirewall(client);
 
@@ -398,7 +398,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
     @Override
     public void create(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall());
@@ -418,7 +418,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         Operation operation;
         Operation.Error error;
@@ -440,7 +440,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
     @Override
     public void delete(GyroUI ui, State state) {
-        Compute client = creatClient(Compute.class);
+        Compute client = createComputeClient();
 
         try {
             Operation operation = client.firewalls().delete(getProjectId(), getName()).execute();
