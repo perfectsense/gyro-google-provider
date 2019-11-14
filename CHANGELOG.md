@@ -7,3 +7,4 @@ ISSUES FIXED:
 
 NEW FEATURES:
 
+* [15](https://github.com/perfectsense/gyro-google-provider/issues/15): Add Network Endpoint Group.
