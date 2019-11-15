@@ -71,7 +71,7 @@ public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallReso
         try {
             firewall = client.firewalls().get(getProjectId(), filters.get("name")).execute();
         } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() == 404) {
                 throw new GyroException(je.getDetails().getMessage());
             }
         } catch (IOException ex) {
