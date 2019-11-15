@@ -7,15 +7,6 @@ import gyro.google.Copyable;
 
 /**
  * Subresource for setting the Bucket.Encryption configuration to a Bucket.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- *
- *     encryption
- *         default-kms-key-name: 'saltMe4ever'
- *     end
  */
 public class BucketEncryption extends Diffable implements Copyable<Bucket.Encryption> {
 
@@ -41,14 +32,14 @@ public class BucketEncryption extends Diffable implements Copyable<Bucket.Encryp
     /**
      * This as a Bucket.Encryption instance.
      */
-    public Bucket.Encryption toGcpBucketEncryption() {
+    public Bucket.Encryption toBucketEncryption() {
        return new Bucket.Encryption().setDefaultKmsKeyName(getDefaultKmsKeyName());
     }
 
     /**
      * Converts a Bucket.Encryption into a new Bucket object.
      */
-    public static BucketEncryption fromGcpBucketEncryption(Bucket.Encryption model) {
+    public static BucketEncryption fromBucketEncryption(Bucket.Encryption model) {
         if (model != null) {
             BucketEncryption encryption = new BucketEncryption();
             encryption.setDefaultKmsKeyName(model.getDefaultKmsKeyName());

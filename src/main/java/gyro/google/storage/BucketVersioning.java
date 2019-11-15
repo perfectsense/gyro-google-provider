@@ -7,15 +7,6 @@ import gyro.google.Copyable;
 
 /**
  * The bucket's versioning configuration.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- * 
- *     versioning
- *         enabled: true
- *     end
  */
 public class BucketVersioning extends Diffable implements Copyable<Bucket.Versioning> {
 
@@ -38,11 +29,11 @@ public class BucketVersioning extends Diffable implements Copyable<Bucket.Versio
         setEnabled(model.getEnabled());
     }
 
-    public Bucket.Versioning toGcpBucketVersioning() {
+    public Bucket.Versioning toBucketVersioning() {
         return new Bucket.Versioning().setEnabled(getEnabled());
     }
 
-    public static BucketVersioning fromGcpBucketVersioning(Bucket.Versioning model) {
+    public static BucketVersioning fromBucketVersioning(Bucket.Versioning model) {
         if (model != null) {
             BucketVersioning versioning = new BucketVersioning();
             versioning.setEnabled(model.getEnabled());

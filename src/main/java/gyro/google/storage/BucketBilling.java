@@ -7,15 +7,6 @@ import gyro.google.Copyable;
 
 /**
  * Subresource for setting the Bucket Billing configuration to a Bucket.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- *
- *     billing
- *         requestor-pays: true
- *     end
  */
 public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> {
 
@@ -46,14 +37,14 @@ public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> 
     /**
      * This as a Bucket Billing instance.
      */
-    public Bucket.Billing toGcpBucketBilling() {
+    public Bucket.Billing toBucketBilling() {
         return new Bucket.Billing().setRequesterPays(getRequesterPays());
     }
 
     /**
      * Create a new Billing from a GCP Bucket Billing instance.
      */
-    public static BucketBilling fromGcpBucketBilling(Bucket.Billing model) {
+    public static BucketBilling fromBucketBilling(Bucket.Billing model) {
         if (model != null) {
             BucketBilling bucketBilling = new BucketBilling();
             bucketBilling.setRequesterPays(model.getRequesterPays());

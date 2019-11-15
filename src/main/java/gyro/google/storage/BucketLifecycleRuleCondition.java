@@ -11,15 +11,6 @@ import java.util.List;
 
 /**
  * The condition(s) under which the action will be taken.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- *
- *      condition
- *          age: 15
- *      end
  */
 public class BucketLifecycleRuleCondition extends Diffable implements Copyable<Condition> {
 
@@ -102,7 +93,7 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
         setNumNewerVersions(model.getNumNewerVersions());
     }
 
-    public Condition toGcpLifecycleRuleCondition() {
+    public Condition toLifecycleRuleCondition() {
         return new Condition()
                 .setAge(getAge())
                 .setCreatedBefore(getCreatedBefore() == null ? null : DateTime.parseRfc3339(getCreatedBefore()))
@@ -111,7 +102,7 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
                 .setNumNewerVersions(getNumNewerVersions());
     }
 
-    public static BucketLifecycleRuleCondition fromGcpLifecycleRuleCondition(Condition model) {
+    public static BucketLifecycleRuleCondition fromLifecycleRuleCondition(Condition model) {
         if (model != null) {
             BucketLifecycleRuleCondition condition = new BucketLifecycleRuleCondition();
             condition.setAge(model.getAge());

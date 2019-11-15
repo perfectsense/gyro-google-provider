@@ -7,18 +7,6 @@ import gyro.google.Copyable;
 
 /**
  * Subresource for setting the Bucket IamConfiguration UniformBucketLevelAccess configuration to a Bucket.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- *
- *     iam-configuration
- *         uniform-bucket-level-access
- *             enabled: true
- *         end
- *     end
- *
  */
 public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<Bucket.IamConfiguration.UniformBucketLevelAccess> {
 

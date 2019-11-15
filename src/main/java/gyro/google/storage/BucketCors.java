@@ -10,18 +10,6 @@ import java.util.List;
 
 /**
  * Subresource for setting of Bucket.Cors configuration for assets within a Bucket.
- *
- * Examples
- * --------
- *
- * ..code-block:: gyro
- *
- *     cors
- *         max-age-seconds: 3600
- *         method: ['GET', 'POST']
- *         origin: ['*']
- *         response-header: ['application-x-test']
- *     end
  */
 public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
 
@@ -92,7 +80,7 @@ public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
     /**
      * This as a Bucket Cors instance.
      */
-    public Bucket.Cors toGcpBucketCors() {
+    public Bucket.Cors toBucketCors() {
         return new Bucket.Cors()
                 .setMaxAgeSeconds(getMaxAgeSeconds())
                 .setMethod(getMethod())
@@ -103,7 +91,7 @@ public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
     /**
      *  Creates a new Gyro Cors instance populated from the configuration coming from GCP.
      */
-    public static BucketCors fromGcpBucketCors(Bucket.Cors model) {
+    public static BucketCors fromBucketCors(Bucket.Cors model) {
         BucketCors cors = new BucketCors();
         cors.setMaxAgeSeconds(model.getMaxAgeSeconds());
         cors.setMethod(model.getMethod());

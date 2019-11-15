@@ -8,15 +8,6 @@ import gyro.google.Copyable;
 
 /**
  * The action to take.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- *
- *      action
- *          type: 'Delete'
- *      end
  */
 public class BucketLifecycleRuleAction extends Diffable implements Copyable<Action> {
 
@@ -65,11 +56,11 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
          setType(model.getType());
     }
 
-    public Action toGcpLifecycleRuleAction() {
+    public Action toLifecycleRuleAction() {
         return new Action().setStorageClass(getStorageClass()).setType(getType());
     }
 
-    public static BucketLifecycleRuleAction fromGcpLifecycleRuleAction(Action model) {
+    public static BucketLifecycleRuleAction fromLifecycleRuleAction(Action model) {
         if (model != null) {
             BucketLifecycleRuleAction action = new BucketLifecycleRuleAction();
             action.setStorageClass(model.getStorageClass());

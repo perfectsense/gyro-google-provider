@@ -14,8 +14,7 @@ public class BucketWebsite extends Diffable implements Copyable<Bucket.Website> 
     private String notFoundPage;
 
     /**
-     * If the requested object path is missing the service will ensure the path has a trailing '/', append the
-     * suffix, and attempt to retrieve the resulting object.
+     * If the requested object path is missing the service will ensure the path has a trailing '/', append the suffix, and attempt to retrieve the resulting object.
      */
     @Updatable
     public String getMainPageSuffix() {
@@ -27,8 +26,7 @@ public class BucketWebsite extends Diffable implements Copyable<Bucket.Website> 
     }
 
     /**
-     * If the requested object path is missing, and any mainPageSuffix object is missing, if applicable, the service
-     * will return the named object from this bucket as the content
+     * If the requested object path is missing, and any mainPageSuffix object is missing, if applicable, the service will return the named object from this bucket as the content
      */
     @Updatable
     public String getNotFoundPage() {
@@ -45,11 +43,11 @@ public class BucketWebsite extends Diffable implements Copyable<Bucket.Website> 
         setNotFoundPage(model.getNotFoundPage());
     }
 
-    public Bucket.Website toGcpBucketWebsite() {
+    public Bucket.Website toBucketWebsite() {
         return new Bucket.Website().setMainPageSuffix(getMainPageSuffix()).setNotFoundPage(getNotFoundPage());
     }
 
-    public static BucketWebsite fromGcpBucketWebsite(Bucket.Website model) {
+    public static BucketWebsite fromBucketWebsite(Bucket.Website model) {
         if (model != null) {
             BucketWebsite website = new BucketWebsite();
             website.setMainPageSuffix(model.getMainPageSuffix());

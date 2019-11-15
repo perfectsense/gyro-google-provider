@@ -7,17 +7,6 @@ import gyro.google.Copyable;
 
 /**
  * Subresource for setting the Bucket IamConfiguration configuration to a Bucket.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- *
- *     iam-configuration
- *         uniform-bucket-level-access
- *             enabled: false
- *         end
- *     end
  */
 public class BucketIamConfiguration extends Diffable implements Copyable<Bucket.IamConfiguration> {
 
@@ -26,7 +15,7 @@ public class BucketIamConfiguration extends Diffable implements Copyable<Bucket.
     /**
      * The bucket's uniform bucket-level access configuration.
      *
-     * @subresource gyro.google.storage.UniformBucketLevelAccess
+     * @subresource gyro.google.storage.BucketUniformBucketLevelAccess
      */
     @Updatable
     public BucketUniformBucketLevelAccess getUniformBucketLevelAccess() {
@@ -47,12 +36,12 @@ public class BucketIamConfiguration extends Diffable implements Copyable<Bucket.
         setUniformBucketLevelAccess(BucketUniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));
     }
 
-    public Bucket.IamConfiguration toGcpBucketIamConfiguration() {
+    public Bucket.IamConfiguration toBucketIamConfiguration() {
         return new Bucket.IamConfiguration()
                 .setUniformBucketLevelAccess(getUniformBucketLevelAccess() == null ? null : getUniformBucketLevelAccess().toIamConfigurationUniformBucketLevelAccess());
     }
 
-    public static BucketIamConfiguration fromGcpBucketIamConfiguration(Bucket.IamConfiguration model) {
+    public static BucketIamConfiguration fromBucketIamConfiguration(Bucket.IamConfiguration model) {
         if (model != null) {
             BucketIamConfiguration configuration = new BucketIamConfiguration();
             configuration.setUniformBucketLevelAccess(BucketUniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));

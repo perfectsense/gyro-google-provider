@@ -6,18 +6,7 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * The bucket's logging configuration setting the destination bucket and optional name prefix
- * for the current bucket's logs.
- *
- * Example
- * -------
- *
- * ..code-block:: gyro
- * 
- *     logging
- *         log-bucket: 'test-bucket'
- *         log-object-prefix: 'gyro'
- *     end
+ * The bucket's logging configuration setting the destination bucket and optional name prefix for the current bucket's logs.
  */
 public class BucketLogging extends Diffable implements Copyable<Bucket.Logging> {
 
@@ -54,13 +43,13 @@ public class BucketLogging extends Diffable implements Copyable<Bucket.Logging> 
         setLogObjectPrefix(model.getLogObjectPrefix());
     }
 
-    public Bucket.Logging toGcpBucketLogging() {
+    public Bucket.Logging toBucketLogging() {
         return new Bucket.Logging()
                 .setLogBucket(getLogBucket())
                 .setLogObjectPrefix(getLogObjectPrefix());
     }
 
-    public static BucketLogging fromGcpBucketLogging(Bucket.Logging model) {
+    public static BucketLogging fromBucketLogging(Bucket.Logging model) {
         if (model != null) {
             BucketLogging logging = new BucketLogging();
             logging.setLogBucket(model.getLogBucket());

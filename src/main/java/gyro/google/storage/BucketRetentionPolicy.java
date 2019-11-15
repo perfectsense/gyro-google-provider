@@ -10,15 +10,6 @@ import gyro.google.Copyable;
 
 /**
  * Defines the minimum age an object in the bucket must reach before it can be deleted or overwritten.
- *
- * Example
- * -------
- * 
- * ..code-block:: gyro
- *
- *     retention-policy
- *         retention-period: 3600
- *     end
  */
 public class BucketRetentionPolicy extends Diffable implements Copyable<Bucket.RetentionPolicy> {
 
@@ -51,8 +42,7 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Bucket.R
     }
 
     /**
-     * The duration in seconds that objects need to be retained. Must be greater than ``0`` and less than
-     * ``3,155,760,000`` (100 years).
+     * The duration in seconds that objects need to be retained. Must be greater than ``0`` and less than ``3,155,760,000`` (100 years).
      */
     @Updatable
     @Max(3155759999D)
@@ -72,13 +62,13 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Bucket.R
         setRetentionPeriod(model.getRetentionPeriod());
     }
 
-    public Bucket.RetentionPolicy toGcpBucketRententionPolicy() {
+    public Bucket.RetentionPolicy toBucketRententionPolicy() {
         return new Bucket.RetentionPolicy()
                 .setIsLocked(getIsLocked())
                 .setRetentionPeriod(getRetentionPeriod());
     }
 
-    public static BucketRetentionPolicy fromGcpBucketRententionPolicy(Bucket.RetentionPolicy model) {
+    public static BucketRetentionPolicy fromBucketRententionPolicy(Bucket.RetentionPolicy model) {
         if (model != null) {
             BucketRetentionPolicy policy = new BucketRetentionPolicy();
             policy.setEffectiveTime(model.getEffectiveTime() == null ? null : model.getEffectiveTime().toStringRfc3339());
