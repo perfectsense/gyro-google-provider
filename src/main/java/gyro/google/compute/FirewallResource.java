@@ -573,7 +573,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         try {
             firewall = client.firewalls().get(getProjectId(), getName()).execute();
         } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() != 404) {
                 throw new GyroException(je.getDetails().getMessage());
             }
         } catch (IOException ex) {
