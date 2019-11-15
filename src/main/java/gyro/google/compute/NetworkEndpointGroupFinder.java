@@ -99,7 +99,7 @@ public class NetworkEndpointGroupFinder extends GoogleFinder<Compute, NetworkEnd
         try {
             networkEndpointGroup = client.networkEndpointGroups().get(getProjectId(), filters.get("zone"), filters.get("name")).execute();
         } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() != 404) {
                 throw new GyroException(je.getDetails().getMessage());
             }
         } catch (IOException ex) {

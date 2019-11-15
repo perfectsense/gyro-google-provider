@@ -243,7 +243,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
 
             return true;
         } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() == 404) {
                 return false;
             } else {
                 throw new GyroException(je.getDetails().getMessage());
