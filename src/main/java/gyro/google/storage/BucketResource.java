@@ -72,6 +72,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private static final String NAME_REGEX = "[^\\.a-z0-9_-]";
     private static final Pattern NAME_PATTERN = Pattern.compile(NAME_REGEX);
 
+    private List<BucketAccessControlConfiguration> acl;
     private String name;
     private Map<String, String> labels;
     private String location;
@@ -87,6 +88,21 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String storageClass;
     private BucketVersioning versioning;
     private BucketWebsite website;
+
+    /**
+     * Access controls on the bucket.
+     */
+    @Updatable
+    public List<BucketAccessControlConfiguration> getAcl() {
+        if (acl == null) {
+            return new ArrayList<>();
+        }
+        return acl;
+    }
+
+    public void setAcl(List<BucketAccessControlConfiguration> acl) {
+        this.acl = acl;
+    }
 
     /**
      * A unique name for the Bucket conforming to Google bucket naming guidelines.
@@ -307,6 +323,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         Storage storage = creatClient(Storage.class);
 
         Bucket bucket = new Bucket();
+        bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
         bucket.setName(getName());
         bucket.setLabels(getLabels());
         bucket.setLocation(getLocation());
@@ -336,7 +353,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
         try {
             Bucket bucket = storage.buckets().get(getName()).execute();
-
+            bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
             bucket.setLabels(getLabels());
             bucket.setLocation(getLocation());
             bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
@@ -415,6 +432,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setStorageClass(model.getStorageClass());
         setVersioning(BucketVersioning.fromGcpBucketVersioning(model.getVersioning()));
         setWebsite(BucketWebsite.fromGcpBucketWebsite(model.getWebsite()));
+
+        if (model.getAcl() != null) {
+            setAcl(model.getAcl().stream().map(acl -> BucketAccessControlConfiguration.fromBucketAccessControl(acl)).collect(Collectors.toList()));
+        }
 
         if (model.getCors() != null) {
             setCors(model.getCors().stream().map(rule -> BucketCors.fromGcpBucketCors(rule)).collect(Collectors.toList()));

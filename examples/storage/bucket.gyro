@@ -7,6 +7,21 @@ google::bucket bucket-1
     labels: {
         foo: 'bar_1901'
     }
+    acl
+        bucket: 'example-one'
+        entity: 'domain-brightspot.com'
+        role: 'OWNER'
+    end
+    acl
+        bucket: 'example-one'
+        entity: 'domain-brightspot.com'
+        role: 'READER'
+    end
+    acl
+        bucket: 'example-one'
+        entity: 'domain-brightspot.com'
+        role: 'WRITER'
+    end
     cors
         max-age-seconds: 3200
         method: ['GET', 'POST']
@@ -18,7 +33,7 @@ google::bucket bucket-1
     end
     iam-configuration
         uniform-bucket-level-access
-            enabled: true
+            enabled: false
         end
     end
     lifecycle
