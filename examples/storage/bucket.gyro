@@ -2,7 +2,6 @@ google::bucket bucket-1
     name: 'example-one'
     location: 'us-central1'
     default-event-based-hold: true
-    etag: '1234'
     storage-class: 'NEARLINE'
     labels: {
         foo: 'bar_1901'
