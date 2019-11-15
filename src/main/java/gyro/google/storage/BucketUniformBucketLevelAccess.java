@@ -1,14 +1,15 @@
 package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Bucket.IamConfiguration.UniformBucketLevelAccess;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * Subresource for setting the Bucket IamConfiguration UniformBucketLevelAccess configuration to a Bucket.
+ * UniformBucketLevelAccess configuration for a Bucket.
  */
-public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<Bucket.IamConfiguration.UniformBucketLevelAccess> {
+public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<UniformBucketLevelAccess> {
 
     private Boolean enabled;
     private String lockedTime;
@@ -37,25 +38,17 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
     }
 
     @Override
-    public void copyFrom(Bucket.IamConfiguration.UniformBucketLevelAccess model) {
-        setEnabled(model.getEnabled());
-
-        if (model.getLockedTime() != null) {
-            setLockedTime(model.getLockedTime().toStringRfc3339());
-        }
-    }
-
-    public Bucket.IamConfiguration.UniformBucketLevelAccess toIamConfigurationUniformBucketLevelAccess() {
-        return new Bucket.IamConfiguration.UniformBucketLevelAccess().setEnabled(getEnabled());
-    }
-
-    public static BucketUniformBucketLevelAccess fromIamConfigurationUniformBucketLevelAccess(Bucket.IamConfiguration.UniformBucketLevelAccess model) {
+    public void copyFrom(UniformBucketLevelAccess model) {
         if (model != null) {
-            BucketUniformBucketLevelAccess policy = new BucketUniformBucketLevelAccess();
-            policy.setEnabled(model.getEnabled());
-            policy.setLockedTime(model.getLockedTime() == null ? null : model.getLockedTime().toStringRfc3339());
-            return policy;
+            setEnabled(model.getEnabled());
+
+            if (model.getLockedTime() != null) {
+                setLockedTime(model.getLockedTime().toStringRfc3339());
+            }
         }
-        return null;
+    }
+
+    public UniformBucketLevelAccess toIamConfigurationUniformBucketLevelAccess() {
+        return new Bucket.IamConfiguration.UniformBucketLevelAccess().setEnabled(getEnabled());
     }
 }

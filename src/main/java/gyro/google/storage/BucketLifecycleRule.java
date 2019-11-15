@@ -51,23 +51,20 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
 
     @Override
     public void copyFrom(Rule model) {
-        setAction(BucketLifecycleRuleAction.fromLifecycleRuleAction(model.getAction()));
-        setCondition(BucketLifecycleRuleCondition.fromLifecycleRuleCondition(model.getCondition()));
+        if (model != null) {
+            BucketLifecycleRuleAction bucketLifecycleRuleAction = newSubresource(BucketLifecycleRuleAction.class);
+            bucketLifecycleRuleAction.copyFrom(model.getAction());
+            setAction(bucketLifecycleRuleAction);
+
+            BucketLifecycleRuleCondition bucketLifecycleRuleCondition = newSubresource(BucketLifecycleRuleCondition.class);
+            bucketLifecycleRuleCondition.copyFrom(model.getCondition());
+            setCondition(bucketLifecycleRuleCondition);
+        }
     }
 
     public Rule toLifecycleRule() {
         return new Rule()
                .setAction(getAction() == null ? null : getAction().toLifecycleRuleAction())
                .setCondition(getCondition() == null ? null : getCondition().toLifecycleRuleCondition());
-    }
-
-    public static BucketLifecycleRule fromLifecycleRule(Rule model) {
-        if (model != null) {
-            BucketLifecycleRule rule = new BucketLifecycleRule();
-            rule.setAction(BucketLifecycleRuleAction.fromLifecycleRuleAction(model.getAction()));
-            rule.setCondition(BucketLifecycleRuleCondition.fromLifecycleRuleCondition(model.getCondition()));
-            return rule;
-        }
-        return null;
     }
 }

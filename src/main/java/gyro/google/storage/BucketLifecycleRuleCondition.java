@@ -45,8 +45,7 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     }
 
     /**
-     * Only for versioned objects. When ``true`` this condition matches live objects; When ``false`` it matches
-     * archived objects.
+     * Only for versioned objects. When ``true`` this condition matches live objects; When ``false`` it matches archived objects.
      */
     @Updatable
     public Boolean getIsLive() {
@@ -58,8 +57,7 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     }
 
     /**
-     * Matches objects having any of the storage classes specified. Valid values are ``STANDARD``, ``NEARLINE``,
-     * ``COLDLINE``, ``MULTI_REGIONAL``, ``REGIONAL``, and ``DURABLE_REDUCED_AVAILABILITY``.
+     * Matches objects having any of the storage classes specified. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI_REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``.
      */
     @Updatable
     @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", "MULTI_REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
@@ -72,8 +70,7 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     }
 
     /**
-     * Only for versioned objects. If the value is ``N``, the condition is met when there are at least ``N`` versions,
-     * including the live version, newer than this version of the object.
+     * Only for versioned objects. If the value is ``N``, the condition is met when there are at least ``N`` versions, including the live version, newer than this version of the object.
      */
     @Updatable
     public Integer getNumNewerVersions() {
@@ -86,11 +83,13 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
 
     @Override
     public void copyFrom(Condition model) {
-        setAge(model.getAge());
-        setCreatedBefore(model.getCreatedBefore() == null ? null : model.getCreatedBefore().toStringRfc3339());
-        setIsLive(model.getIsLive());
-        setMatchesStorageClass(model.getMatchesStorageClass());
-        setNumNewerVersions(model.getNumNewerVersions());
+        if (model != null) {
+            setAge(model.getAge());
+            setCreatedBefore(model.getCreatedBefore() == null ? null : model.getCreatedBefore().toStringRfc3339());
+            setIsLive(model.getIsLive());
+            setMatchesStorageClass(model.getMatchesStorageClass());
+            setNumNewerVersions(model.getNumNewerVersions());
+        }
     }
 
     public Condition toLifecycleRuleCondition() {
@@ -100,18 +99,5 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
                 .setIsLive(getIsLive())
                 .setMatchesStorageClass(getMatchesStorageClass())
                 .setNumNewerVersions(getNumNewerVersions());
-    }
-
-    public static BucketLifecycleRuleCondition fromLifecycleRuleCondition(Condition model) {
-        if (model != null) {
-            BucketLifecycleRuleCondition condition = new BucketLifecycleRuleCondition();
-            condition.setAge(model.getAge());
-            condition.setCreatedBefore(model.getCreatedBefore() == null ? null : model.getCreatedBefore().toStringRfc3339());
-            condition.setIsLive(model.getIsLive());
-            condition.setMatchesStorageClass(model.getMatchesStorageClass());
-            condition.setNumNewerVersions(model.getNumNewerVersions());
-            return condition;
-        }
-        return null;
     }
 }

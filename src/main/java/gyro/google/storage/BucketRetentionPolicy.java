@@ -57,25 +57,16 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Bucket.R
 
     @Override
     public void copyFrom(Bucket.RetentionPolicy model) {
-        setEffectiveTime(model.getEffectiveTime() == null ? null : model.getEffectiveTime().toStringRfc3339());
-        setIsLocked(model.getIsLocked());
-        setRetentionPeriod(model.getRetentionPeriod());
+        if (model != null) {
+            setEffectiveTime(model.getEffectiveTime() == null ? null : model.getEffectiveTime().toStringRfc3339());
+            setIsLocked(model.getIsLocked());
+            setRetentionPeriod(model.getRetentionPeriod());
+        }
     }
 
     public Bucket.RetentionPolicy toBucketRententionPolicy() {
         return new Bucket.RetentionPolicy()
                 .setIsLocked(getIsLocked())
                 .setRetentionPeriod(getRetentionPeriod());
-    }
-
-    public static BucketRetentionPolicy fromBucketRententionPolicy(Bucket.RetentionPolicy model) {
-        if (model != null) {
-            BucketRetentionPolicy policy = new BucketRetentionPolicy();
-            policy.setEffectiveTime(model.getEffectiveTime() == null ? null : model.getEffectiveTime().toStringRfc3339());
-            policy.setIsLocked(model.getIsLocked());
-            policy.setRetentionPeriod(model.getRetentionPeriod());
-            return policy;
-        }
-        return null;
     }
 }

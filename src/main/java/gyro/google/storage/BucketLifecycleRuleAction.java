@@ -27,7 +27,7 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
     }
 
     /**
-     * Type of the action to take on condition. Valid types are ``Delete`` and ``SetStorageClass``.
+     * Type of the action to take on condition. Valid types are ``Delete`` or ``SetStorageClass``.
      */
     @Updatable
     @ValidStrings({"Delete", "SetStorageClass"})
@@ -40,33 +40,14 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
     }
 
     @Override
-    public String primaryKey() {
-        StringBuilder key = new StringBuilder(getType());
-
-        if ("SetStorageClass".equals(getStorageClass())) {
-            key.append(" [").append(getStorageClass()).append("]");
-        }
-
-        return key.toString();
-    }
-
-    @Override
     public void copyFrom(Action model) {
-         setStorageClass(model.getStorageClass());
-         setType(model.getType());
+        if (model != null) {
+            setStorageClass(model.getStorageClass());
+            setType(model.getType());
+        }
     }
 
     public Action toLifecycleRuleAction() {
         return new Action().setStorageClass(getStorageClass()).setType(getType());
-    }
-
-    public static BucketLifecycleRuleAction fromLifecycleRuleAction(Action model) {
-        if (model != null) {
-            BucketLifecycleRuleAction action = new BucketLifecycleRuleAction();
-            action.setStorageClass(model.getStorageClass());
-            action.setType(model.getType());
-            return action;
-        }
-        return null;
     }
 }

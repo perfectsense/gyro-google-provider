@@ -13,7 +13,7 @@ public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> 
     private Boolean requesterPays;
 
     /**
-     * Enables ``true`` the requester pays setting for this bucket.
+     * When ``true`` the requester pays setting for this bucket.
      */
     @Updatable
     public Boolean getRequesterPays() {
@@ -31,25 +31,12 @@ public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> 
 
     @Override
     public void copyFrom(Bucket.Billing model) {
-        setRequesterPays(model.getRequesterPays());
+        if (model != null) {
+            setRequesterPays(model.getRequesterPays());
+        }
     }
 
-    /**
-     * This as a Bucket Billing instance.
-     */
     public Bucket.Billing toBucketBilling() {
         return new Bucket.Billing().setRequesterPays(getRequesterPays());
-    }
-
-    /**
-     * Create a new Billing from a GCP Bucket Billing instance.
-     */
-    public static BucketBilling fromBucketBilling(Bucket.Billing model) {
-        if (model != null) {
-            BucketBilling bucketBilling = new BucketBilling();
-            bucketBilling.setRequesterPays(model.getRequesterPays());
-            return bucketBilling;
-        }
-        return null;
     }
 }

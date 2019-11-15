@@ -13,7 +13,7 @@ public class BucketVersioning extends Diffable implements Copyable<Bucket.Versio
     private Boolean enabled;
 
     /**
-     * When true versioning is enabled for this bucket.
+     * When ``true`` versioning is enabled for this bucket.
      */
     @Updatable
     public Boolean getEnabled() {
@@ -26,19 +26,12 @@ public class BucketVersioning extends Diffable implements Copyable<Bucket.Versio
 
     @Override
     public void copyFrom(Bucket.Versioning model) {
-        setEnabled(model.getEnabled());
+        if (model != null) {
+            setEnabled(model.getEnabled());
+        }
     }
 
     public Bucket.Versioning toBucketVersioning() {
         return new Bucket.Versioning().setEnabled(getEnabled());
-    }
-
-    public static BucketVersioning fromBucketVersioning(Bucket.Versioning model) {
-        if (model != null) {
-            BucketVersioning versioning = new BucketVersioning();
-            versioning.setEnabled(model.getEnabled());
-            return versioning;
-        }
-        return null;
     }
 }

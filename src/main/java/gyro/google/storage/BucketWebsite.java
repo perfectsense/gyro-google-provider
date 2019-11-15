@@ -6,7 +6,7 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
- * The bucket's website configuration controlling how the service behaves when accessing bucket contents as a web site.
+ * Configuration controlling how the service behaves when accessing bucket contents as a web site.
  */
 public class BucketWebsite extends Diffable implements Copyable<Bucket.Website> {
 
@@ -39,21 +39,13 @@ public class BucketWebsite extends Diffable implements Copyable<Bucket.Website> 
 
     @Override
     public void copyFrom(Bucket.Website model) {
-        setMainPageSuffix(model.getMainPageSuffix());
-        setNotFoundPage(model.getNotFoundPage());
+        if (model != null) {
+            setMainPageSuffix(model.getMainPageSuffix());
+            setNotFoundPage(model.getNotFoundPage());
+        }
     }
 
     public Bucket.Website toBucketWebsite() {
         return new Bucket.Website().setMainPageSuffix(getMainPageSuffix()).setNotFoundPage(getNotFoundPage());
-    }
-
-    public static BucketWebsite fromBucketWebsite(Bucket.Website model) {
-        if (model != null) {
-            BucketWebsite website = new BucketWebsite();
-            website.setMainPageSuffix(model.getMainPageSuffix());
-            website.setNotFoundPage(model.getNotFoundPage());
-            return website;
-        }
-        return null;
     }
 }

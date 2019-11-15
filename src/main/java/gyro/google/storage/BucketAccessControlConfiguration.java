@@ -115,12 +115,17 @@ public class BucketAccessControlConfiguration extends Diffable implements Copyab
 
     @Override
     public void copyFrom(BucketAccessControl model) {
-        setBucket(model.getBucket());
-        setDomain(model.getDomain());
-        setEmail(model.getEmail());
-        setEntity(model.getEntity());
-        setEntityId(model.getEntityId());
-        setProjectTeam(model.getProjectTeam() == null ? null : BucketAccessControlProjectTeam.fromBucketAccessControlProjectTeam(model.getProjectTeam()));
+        if (model != null) {
+            setBucket(model.getBucket());
+            setDomain(model.getDomain());
+            setEmail(model.getEmail());
+            setEntity(model.getEntity());
+            setEntityId(model.getEntityId());
+
+            BucketAccessControlProjectTeam bucketAccessControlProjectTeam = newSubresource(BucketAccessControlProjectTeam.class);
+            bucketAccessControlProjectTeam.copyFrom(model.getProjectTeam());
+            setProjectTeam(getProjectTeam());
+        }
     }
 
     public BucketAccessControl toBucketAccessControl() {
@@ -132,20 +137,6 @@ public class BucketAccessControlConfiguration extends Diffable implements Copyab
                 .setEntityId(getEntityId())
                 .setProjectTeam(getProjectTeam() == null ? null : getProjectTeam().toBucketAccessControlProjectTeam())
                 .setRole(getRole());
-    }
-
-    public static BucketAccessControlConfiguration fromBucketAccessControl(BucketAccessControl model) {
-        if (model != null) {
-            BucketAccessControlConfiguration configuration = new BucketAccessControlConfiguration();
-            configuration.setBucket(model.getBucket());
-            configuration.setDomain(model.getDomain());
-            configuration.setEmail(model.getEmail());
-            configuration.setEntity(model.getEntity());
-            configuration.setEntityId(model.getEntityId());
-            configuration.setProjectTeam(model.getProjectTeam() == null ? null : BucketAccessControlProjectTeam.fromBucketAccessControlProjectTeam(model.getProjectTeam()));
-            return configuration;
-        }
-        return null;
     }
 
     @Override

@@ -39,23 +39,15 @@ public class BucketLogging extends Diffable implements Copyable<Bucket.Logging> 
 
     @Override
     public void copyFrom(Bucket.Logging model) {
-        setLogBucket(model.getLogBucket());
-        setLogObjectPrefix(model.getLogObjectPrefix());
+        if (model != null) {
+            setLogBucket(model.getLogBucket());
+            setLogObjectPrefix(model.getLogObjectPrefix());
+        }
     }
 
     public Bucket.Logging toBucketLogging() {
         return new Bucket.Logging()
                 .setLogBucket(getLogBucket())
                 .setLogObjectPrefix(getLogObjectPrefix());
-    }
-
-    public static BucketLogging fromBucketLogging(Bucket.Logging model) {
-        if (model != null) {
-            BucketLogging logging = new BucketLogging();
-            logging.setLogBucket(model.getLogBucket());
-            logging.setLogObjectPrefix(model.getLogObjectPrefix());
-            return logging;
-        }
-        return null;
     }
 }

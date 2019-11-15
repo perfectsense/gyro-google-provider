@@ -1,6 +1,7 @@
 package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Bucket.Lifecycle;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * The Buckets lifecycle configuration.
  */
-public class BucketLifecycle extends Diffable implements Copyable<Bucket.Lifecycle> {
+public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
 
     private List<BucketLifecycleRule> rule;
 
@@ -35,7 +36,16 @@ public class BucketLifecycle extends Diffable implements Copyable<Bucket.Lifecyc
 
     @Override
     public void copyFrom(Bucket.Lifecycle model) {
-        setRule(model.getRule() == null ? null : model.getRule().stream().map(r -> BucketLifecycleRule.fromLifecycleRule(r)).collect(Collectors.toList()));
+        if (model != null && model.getRule() != null) {
+            setRule(model.getRule().stream()
+                    .map(r -> {
+                        BucketLifecycleRule bucketLifecycleRule = newSubresource(BucketLifecycleRule.class);
+                        bucketLifecycleRule.copyFrom(r);
+                        return bucketLifecycleRule;
+                    })
+                    .collect(Collectors.toList())
+            );
+        }
     }
 
     @Override
@@ -43,18 +53,9 @@ public class BucketLifecycle extends Diffable implements Copyable<Bucket.Lifecyc
         return "lifecycle with " + getRule().size() + " rules";
     }
 
-    public Bucket.Lifecycle toLifecycle() {
+    public Lifecycle toLifecycle() {
         return new Bucket.Lifecycle()
                 .setRule(getRule() == null ? null : getRule().stream().map(BucketLifecycleRule::toLifecycleRule)
                         .collect(Collectors.toList()));
-    }
-
-    public static BucketLifecycle fromLifecycle(Bucket.Lifecycle model) {
-        if (model != null) {
-            BucketLifecycle lifecycle = new BucketLifecycle();
-            lifecycle.setRule(model.getRule() == null ? null : model.getRule().stream().map(r -> BucketLifecycleRule.fromLifecycleRule(r)).collect(Collectors.toList()));
-            return lifecycle;
-        }
-        return null;
     }
 }

@@ -27,7 +27,7 @@ public class BucketAccessControlProjectTeam extends Diffable implements Copyable
     }
 
     /**
-     * The team. Valid values are: ``editors``, ``owners``, ``viewers``
+     * The team. Valid values are ``editors``, ``owners`` or ``viewers``
      */
     @Updatable
     @ValidStrings({"editors", "owners", "viewers"})
@@ -41,21 +41,13 @@ public class BucketAccessControlProjectTeam extends Diffable implements Copyable
 
     @Override
     public void copyFrom(BucketAccessControl.ProjectTeam model) {
-        setProjectNumber(model.getProjectNumber());
-        setTeam(model.getTeam());
+        if (model != null) {
+            setProjectNumber(model.getProjectNumber());
+            setTeam(model.getTeam());
+        }
     }
 
     public BucketAccessControl.ProjectTeam toBucketAccessControlProjectTeam() {
         return new BucketAccessControl.ProjectTeam().setProjectNumber(getProjectNumber()).setTeam(getTeam());
-    }
-
-    public static BucketAccessControlProjectTeam fromBucketAccessControlProjectTeam(BucketAccessControl.ProjectTeam model) {
-        if (model != null) {
-            BucketAccessControlProjectTeam projectTeam = new BucketAccessControlProjectTeam();
-            projectTeam.setProjectNumber(model.getProjectNumber());
-            projectTeam.setTeam(model.getTeam());
-            return projectTeam;
-        }
-        return null;
     }
 }

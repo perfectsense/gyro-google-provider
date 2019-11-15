@@ -33,20 +33,15 @@ public class BucketIamConfiguration extends Diffable implements Copyable<Bucket.
 
     @Override
     public void copyFrom(Bucket.IamConfiguration model) {
-        setUniformBucketLevelAccess(BucketUniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));
+        if (model != null) {
+            BucketUniformBucketLevelAccess bucketUniformBucketLevelAccess = newSubresource(BucketUniformBucketLevelAccess.class);
+            bucketUniformBucketLevelAccess.copyFrom(model.getUniformBucketLevelAccess());
+            setUniformBucketLevelAccess(bucketUniformBucketLevelAccess);
+        }
     }
 
     public Bucket.IamConfiguration toBucketIamConfiguration() {
         return new Bucket.IamConfiguration()
                 .setUniformBucketLevelAccess(getUniformBucketLevelAccess() == null ? null : getUniformBucketLevelAccess().toIamConfigurationUniformBucketLevelAccess());
-    }
-
-    public static BucketIamConfiguration fromBucketIamConfiguration(Bucket.IamConfiguration model) {
-        if (model != null) {
-            BucketIamConfiguration configuration = new BucketIamConfiguration();
-            configuration.setUniformBucketLevelAccess(BucketUniformBucketLevelAccess.fromIamConfigurationUniformBucketLevelAccess(model.getUniformBucketLevelAccess()));
-            return configuration;
-        }
-        return null;
     }
 }

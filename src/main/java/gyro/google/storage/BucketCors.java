@@ -1,6 +1,6 @@
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Bucket.Cors;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Subresource for setting of Bucket.Cors configuration for assets within a Bucket.
  */
-public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
+public class BucketCors extends Diffable implements Copyable<Cors> {
 
     private Integer maxAgeSeconds;
     private List<String> method;
@@ -31,8 +31,7 @@ public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     * List of HTTP methods in which to include CORS response headers. Valid options are: ``GET``, ``POST``, ... in
-     * addition to the ``*`` value for all methods.
+     * List of HTTP methods in which to include CORS response headers. Valid values are ``GET``, ``POST`` or the ``*`` value for all methods.
      */
     @Updatable
     @ValidStrings({"GET", "HEAD", "POST", "MATCH", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "*"})
@@ -57,8 +56,7 @@ public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     /**
-     * List of HTTP headers other than the simple response headers giving permission for the user-agent to share across
-     * domains.
+     * List of HTTP headers other than the simple response headers giving permission for the user-agent to share across domains.
      */
     @Updatable
     public List<String> getResponseHeader() {
@@ -70,34 +68,20 @@ public class BucketCors extends Diffable implements Copyable<Bucket.Cors> {
     }
 
     @Override
-    public void copyFrom(Bucket.Cors model) {
-        setMaxAgeSeconds(model.getMaxAgeSeconds());
-        setMethod(model.getMethod());
-        setOrigin(model.getOrigin());
-        setResponseHeader(model.getResponseHeader());
+    public void copyFrom(Cors model) {
+        if (model != null) {
+            setMaxAgeSeconds(model.getMaxAgeSeconds());
+            setMethod(model.getMethod());
+            setOrigin(model.getOrigin());
+            setResponseHeader(model.getResponseHeader());
+        }
     }
 
-    /**
-     * This as a Bucket Cors instance.
-     */
-    public Bucket.Cors toBucketCors() {
-        return new Bucket.Cors()
+    public Cors toBucketCors() {
+        return new Cors()
                 .setMaxAgeSeconds(getMaxAgeSeconds())
                 .setMethod(getMethod())
                 .setOrigin(getOrigin())
                 .setResponseHeader(getResponseHeader());
-    }
-
-    /**
-     *  Creates a new Gyro Cors instance populated from the configuration coming from GCP.
-     */
-    public static BucketCors fromBucketCors(Bucket.Cors model) {
-        BucketCors cors = new BucketCors();
-        cors.setMaxAgeSeconds(model.getMaxAgeSeconds());
-        cors.setMethod(model.getMethod());
-        cors.setOrigin(model.getOrigin());
-        cors.setResponseHeader(model.getResponseHeader());
-
-        return cors;
     }
 }

@@ -255,7 +255,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * Bucket's default storage class used whenever no ``storageClass`` is specified for a newly-created object. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI-REGIONAL``, ``REGIONAL`` and ``DURABLE_REDUCED_AVAILABILITY``. Defaults to ``STANDARD``.
+     * Bucket's default storage class used whenever no ``storageClass`` is specified for a newly-created object. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI-REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``. Defaults to ``STANDARD``.
      */
     @Updatable
     @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", " MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
@@ -409,22 +409,60 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setName(model.getName());
         setLabels(model.getLabels());
         setLocation(model.getLocation());
-        setBilling(BucketBilling.fromBucketBilling(model.getBilling()));
-        setEncryption(BucketEncryption.fromBucketEncryption(model.getEncryption()));
-        setIamConfiguration(BucketIamConfiguration.fromBucketIamConfiguration(model.getIamConfiguration()));
-        setLifecycle(BucketLifecycle.fromLifecycle(model.getLifecycle()));
-        setLogging(BucketLogging.fromBucketLogging(model.getLogging()));
-        setRetentionPolicy(BucketRetentionPolicy.fromBucketRententionPolicy(model.getRetentionPolicy()));
         setStorageClass(model.getStorageClass());
-        setVersioning(BucketVersioning.fromBucketVersioning(model.getVersioning()));
-        setWebsite(BucketWebsite.fromBucketWebsite(model.getWebsite()));
+
+        BucketBilling bucketBilling = newSubresource(BucketBilling.class);
+        bucketBilling.copyFrom(model.getBilling());
+        setBilling(bucketBilling);
+
+        BucketEncryption bucketEncryption = newSubresource(BucketEncryption.class);
+        bucketEncryption.copyFrom(model.getEncryption());
+        setEncryption(bucketEncryption);
+
+        BucketIamConfiguration bucketIamConfiguration = newSubresource(BucketIamConfiguration.class);
+        bucketIamConfiguration.copyFrom(model.getIamConfiguration());
+        setIamConfiguration(bucketIamConfiguration);
+
+        BucketLifecycle bucketLifecycle = newSubresource(BucketLifecycle.class);
+        bucketLifecycle.copyFrom(model.getLifecycle());
+        setLifecycle(bucketLifecycle);
+
+        BucketLogging bucketLogging = newSubresource(BucketLogging.class);
+        bucketLogging.copyFrom(model.getLogging());
+        setLogging(bucketLogging);
+
+        BucketRetentionPolicy policy = newSubresource(BucketRetentionPolicy.class);
+        policy.copyFrom(model.getRetentionPolicy());
+        setRetentionPolicy(policy);
+
+        BucketVersioning bucketVersioning = newSubresource(BucketVersioning.class);
+        bucketVersioning.copyFrom(model.getVersioning());
+        setVersioning(bucketVersioning);
+
+        BucketWebsite bucketWebsite = newSubresource(BucketWebsite.class);
+        bucketWebsite.copyFrom(model.getWebsite());
+        setWebsite(bucketWebsite);
 
         if (model.getAcl() != null) {
-            setAcl(model.getAcl().stream().map(acl -> BucketAccessControlConfiguration.fromBucketAccessControl(acl)).collect(Collectors.toList()));
+            setAcl(model.getAcl().stream()
+                    .map(acl -> {
+                        BucketAccessControlConfiguration configuration = newSubresource(BucketAccessControlConfiguration.class);
+                        configuration.copyFrom(acl);
+                        return configuration;
+                    })
+                    .collect(Collectors.toList())
+            );
         }
 
         if (model.getCors() != null) {
-            setCors(model.getCors().stream().map(rule -> BucketCors.fromBucketCors(rule)).collect(Collectors.toList()));
+            setCors(model.getCors().stream()
+                    .map(cor -> {
+                        BucketCors bucketCors = newSubresource(BucketCors.class);
+                        bucketCors.copyFrom(cor);
+                        return bucketCors;
+                    })
+                    .collect(Collectors.toList())
+            );
         }
     }
 }
