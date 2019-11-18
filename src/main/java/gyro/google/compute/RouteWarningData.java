@@ -50,6 +50,11 @@ public class RouteWarningData extends Diffable implements Copyable<Data> {
     }
 
     @Override
+    public String primaryKey() {
+        return getKey();
+    }
+
+    @Override
     public void copyFrom(Data data) {
         setKey(data.getKey());
         setValue(data.getValue());

@@ -70,6 +70,11 @@ public class RouteWarning extends Diffable implements Copyable<Route.Warnings> {
     }
 
     @Override
+    public String primaryKey() {
+        return getCode();
+    }
+
+    @Override
     public void copyFrom(Route.Warnings warnings) {
         setMessage(warnings.getMessage());
         setCode(warnings.getCode());
