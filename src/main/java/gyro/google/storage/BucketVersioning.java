@@ -1,6 +1,6 @@
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Bucket.Versioning;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
@@ -8,7 +8,7 @@ import gyro.google.Copyable;
 /**
  * The bucket's versioning configuration.
  */
-public class BucketVersioning extends Diffable implements Copyable<Bucket.Versioning> {
+public class BucketVersioning extends Diffable implements Copyable<Versioning> {
 
     private Boolean enabled;
 
@@ -25,13 +25,13 @@ public class BucketVersioning extends Diffable implements Copyable<Bucket.Versio
     }
 
     @Override
-    public void copyFrom(Bucket.Versioning model) {
+    public void copyFrom(Versioning model) {
         if (model != null) {
             setEnabled(model.getEnabled());
         }
     }
 
-    public Bucket.Versioning toBucketVersioning() {
-        return new Bucket.Versioning().setEnabled(getEnabled());
+    public Versioning toBucketVersioning() {
+        return new Versioning().setEnabled(getEnabled());
     }
 }

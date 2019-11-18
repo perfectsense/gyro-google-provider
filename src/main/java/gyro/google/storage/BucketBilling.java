@@ -1,6 +1,6 @@
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Bucket.Billing;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
@@ -8,7 +8,7 @@ import gyro.google.Copyable;
 /**
  * Subresource for setting the Bucket Billing configuration to a Bucket.
  */
-public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> {
+public class BucketBilling extends Diffable implements Copyable<Billing> {
 
     private Boolean requesterPays;
 
@@ -30,13 +30,13 @@ public class BucketBilling extends Diffable implements Copyable<Bucket.Billing> 
     }
 
     @Override
-    public void copyFrom(Bucket.Billing model) {
+    public void copyFrom(Billing model) {
         if (model != null) {
             setRequesterPays(model.getRequesterPays());
         }
     }
 
-    public Bucket.Billing toBucketBilling() {
-        return new Bucket.Billing().setRequesterPays(getRequesterPays());
+    public Billing toBucketBilling() {
+        return new Billing().setRequesterPays(getRequesterPays());
     }
 }

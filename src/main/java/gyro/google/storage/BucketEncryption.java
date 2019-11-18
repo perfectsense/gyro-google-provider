@@ -1,6 +1,6 @@
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Bucket.Encryption;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
@@ -8,7 +8,7 @@ import gyro.google.Copyable;
 /**
  * Subresource for setting the Bucket.Encryption configuration to a Bucket.
  */
-public class BucketEncryption extends Diffable implements Copyable<Bucket.Encryption> {
+public class BucketEncryption extends Diffable implements Copyable<Encryption> {
 
     private String defaultKmsKeyName;
 
@@ -25,13 +25,13 @@ public class BucketEncryption extends Diffable implements Copyable<Bucket.Encryp
     }
 
     @Override
-    public void copyFrom(Bucket.Encryption model) {
+    public void copyFrom(Encryption model) {
         if (model != null) {
             setDefaultKmsKeyName(model.getDefaultKmsKeyName());
         }
     }
 
-    public Bucket.Encryption toBucketEncryption() {
-       return new Bucket.Encryption().setDefaultKmsKeyName(getDefaultKmsKeyName());
+    public Encryption toBucketEncryption() {
+       return new Encryption().setDefaultKmsKeyName(getDefaultKmsKeyName());
     }
 }

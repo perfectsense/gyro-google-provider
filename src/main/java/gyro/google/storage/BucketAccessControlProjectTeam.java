@@ -1,6 +1,6 @@
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.BucketAccessControl;
+import com.google.api.services.storage.model.BucketAccessControl.ProjectTeam;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
@@ -9,7 +9,7 @@ import gyro.google.Copyable;
 /**
  * The project team associated with the entity.
  */
-public class BucketAccessControlProjectTeam extends Diffable implements Copyable<BucketAccessControl.ProjectTeam> {
+public class BucketAccessControlProjectTeam extends Diffable implements Copyable<ProjectTeam> {
 
     private String projectNumber;
     private String team;
@@ -40,14 +40,14 @@ public class BucketAccessControlProjectTeam extends Diffable implements Copyable
     }
 
     @Override
-    public void copyFrom(BucketAccessControl.ProjectTeam model) {
+    public void copyFrom(ProjectTeam model) {
         if (model != null) {
             setProjectNumber(model.getProjectNumber());
             setTeam(model.getTeam());
         }
     }
 
-    public BucketAccessControl.ProjectTeam toBucketAccessControlProjectTeam() {
-        return new BucketAccessControl.ProjectTeam().setProjectNumber(getProjectNumber()).setTeam(getTeam());
+    public ProjectTeam toBucketAccessControlProjectTeam() {
+        return new ProjectTeam().setProjectNumber(getProjectNumber()).setTeam(getTeam());
     }
 }

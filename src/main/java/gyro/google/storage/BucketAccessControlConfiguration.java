@@ -65,7 +65,7 @@ public class BucketAccessControlConfiguration extends Diffable implements Copyab
     }
 
     /**
-     * The entity holding the permission, in one of the following forms: "user-*userId*", "user-*email*", "group-*groupId*", "group-*email*", "domain-*domain*", "project-*team-projectId*", "allUsers", "allAuthenticatedUsers".
+     * The entity holding the permission, in one of the following forms "user-*userId*", "user-*email*", "group-*groupId*", "group-*email*", "domain-*domain*", "project-*team-projectId*", "allUsers", or "allAuthenticatedUsers".
      */
     @Updatable
     public String getEntity() {
@@ -101,7 +101,7 @@ public class BucketAccessControlConfiguration extends Diffable implements Copyab
     }
 
     /**
-     * The access permission for the entity. Valid values are: ``OWNER``, ``READER``, ``WRITER``
+     * The access permission for the entity. Valid values are ``OWNER``, ``READER``, or ``WRITER``
      */
     @Updatable
     @ValidStrings({"OWNER", "READER", "WRITER"})

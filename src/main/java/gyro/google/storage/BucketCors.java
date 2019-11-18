@@ -31,7 +31,7 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
     }
 
     /**
-     * List of HTTP methods in which to include CORS response headers. Valid values are ``GET``, ``POST`` or the ``*`` value for all methods.
+     * List of HTTP methods in which to include CORS response headers. Valid values are ``GET``, ``POST`` or ``*`` for all methods.
      */
     @Updatable
     @ValidStrings({"GET", "HEAD", "POST", "MATCH", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "*"})

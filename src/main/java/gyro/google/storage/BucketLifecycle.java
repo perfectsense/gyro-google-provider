@@ -1,6 +1,5 @@
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.Bucket.Lifecycle;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
@@ -35,7 +34,7 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
     }
 
     @Override
-    public void copyFrom(Bucket.Lifecycle model) {
+    public void copyFrom(Lifecycle model) {
         if (model != null && model.getRule() != null) {
             setRule(model.getRule().stream()
                     .map(r -> {
@@ -54,7 +53,7 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
     }
 
     public Lifecycle toLifecycle() {
-        return new Bucket.Lifecycle()
+        return new Lifecycle()
                 .setRule(getRule() == null ? null : getRule().stream().map(BucketLifecycleRule::toLifecycleRule)
                         .collect(Collectors.toList()));
     }

@@ -1,6 +1,6 @@
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Bucket.RetentionPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -11,7 +11,7 @@ import gyro.google.Copyable;
 /**
  * Defines the minimum age an object in the bucket must reach before it can be deleted or overwritten.
  */
-public class BucketRetentionPolicy extends Diffable implements Copyable<Bucket.RetentionPolicy> {
+public class BucketRetentionPolicy extends Diffable implements Copyable<RetentionPolicy> {
 
     private String effectiveTime;
     private Boolean isLocked;
@@ -56,7 +56,7 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Bucket.R
     }
 
     @Override
-    public void copyFrom(Bucket.RetentionPolicy model) {
+    public void copyFrom(RetentionPolicy model) {
         if (model != null) {
             setEffectiveTime(model.getEffectiveTime() == null ? null : model.getEffectiveTime().toStringRfc3339());
             setIsLocked(model.getIsLocked());
@@ -64,8 +64,8 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Bucket.R
         }
     }
 
-    public Bucket.RetentionPolicy toBucketRententionPolicy() {
-        return new Bucket.RetentionPolicy()
+    public RetentionPolicy toBucketRententionPolicy() {
+        return new RetentionPolicy()
                 .setIsLocked(getIsLocked())
                 .setRetentionPeriod(getRetentionPeriod());
     }
