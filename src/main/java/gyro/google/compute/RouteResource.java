@@ -244,7 +244,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         setNetwork(findById(NetworkResource.class, route.getNetwork()));
         setNetwork(findById(NetworkResource.class, route.getNetwork().substring(route.getNetwork().lastIndexOf("/") + 1)));
         setPriority(route.getPriority());
-        setTags(new HashSet<>(route.getTags()));
+        setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
         setWarnings(route.getWarnings() != null ? route.getWarnings().stream().map(warning -> {
             RouteWarning routeWarning = newSubresource(RouteWarning.class);
             routeWarning.copyFrom(warning);
