@@ -258,7 +258,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * Bucket's default storage class used whenever no ``storageClass`` is specified for a newly-created object. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI-REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``. Defaults to ``STANDARD``.
      */
     @Updatable
-    @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", " MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
+    @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", "MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
     public String getStorageClass() {
         return storageClass;
     }
