@@ -6,7 +6,6 @@ import com.google.api.services.compute.model.Address;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Output;
 import gyro.core.scope.State;
 
 import java.io.IOException;
@@ -33,7 +32,6 @@ public class GlobalAddressResource extends AbstractAddressResource {
     /**
      * IP version that will be used by this address. Valid values are ``IPV4`` or ``IPV6``. Defaults to ``IPV4``.
      */
-    @Output
     public String getIpVersion() {
         return ipVersion;
     }

@@ -37,7 +37,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
      */
     @Id
     @Required
-    @Output
     public String getName() {
         return name;
     }
@@ -49,7 +48,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     /**
      * An optional description of the address.
      */
-    @Output
     public String getDescription() {
         return description;
     }
@@ -61,7 +59,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     /**
      * An optional static IP address to set.
      */
-    @Output
     public String getAddress() {
         return address;
     }
@@ -73,7 +70,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     /**
      * The prefix length if the resource reprensents an IP range.
      */
-    @Output
     public Integer getPrefixLength() {
         return prefixLength;
     }
@@ -85,7 +81,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     /**
      * Type of address to reserve. Valid values are "INTERNAL" or "EXTERNAL". Defaults to "EXTERNAL".
      */
-    @Output
     @ValidStrings({"EXTERNAL", "INTERNAL"})
     public String getAddressType() {
         return addressType;
@@ -98,7 +93,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     /**
      * Purpose for this resource. Valid values are ``GCE_ENDPOINT``, ``DNS_RESOLVER``, ``VPC_PEERING`` or ``NAT_AUTO``.
      */
-    @Output
     @ValidStrings({"GCE_ENDPOINT", "DNS_RESOLVER", "VPC_PEERING", "NAT_AUTO"})
     public String getPurpose() {
         return purpose;
@@ -111,7 +105,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     /**
      * URL of the subnetwork in which to reserve the address. If an IP address is specified, it must be within the subnetwork's IP range. This field can only be used with ``INTERNAL`` type with a ``GCE_ENDPOINT`` or ``DNS_RESOLVER`` purpose.
      */
-    @Output
     public String getSubnetwork() {
         return subnetwork;
     }
