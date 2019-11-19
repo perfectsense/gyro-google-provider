@@ -16,6 +16,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Adds a regional internal IP address that comes from either a primary or secondary IP range of a subnet in a VPC network. Regional external IP addresses can be assigned to GCP VM instances, Cloud VPN gateways, regional external forwarding rules for network load balancers (in either Standard or Premium Tier), and regional external forwarding rules for HTTP(S), SSL Proxy, and TCP Proxy load balancers in Standard Tier.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     google::address address_1
+ *         name: 'test-one'
+ *         region: 'us-west2'
+ *         description: 'test static IP address'
+ *         network-tier: 'STANDARD'
+ *     end
+ */
 @Type("address")
 public class AddressResource extends AbstractAddressResource {
 

@@ -11,6 +11,20 @@ import gyro.core.scope.State;
 
 import java.io.IOException;
 
+/**
+ * Global external IP addresses are IPv4 or IPv6 addresses. They can only be assigned to global forwarding rules for HTTP(S), SSL Proxy, or TCP Proxy load balancers in Premium Tier.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     google::global-address global_address_1
+ *         name: 'test-global-one'
+ *         description: 'test global static IP address'
+ *         ip-version: 'IPV6'
+ *     end
+ */
 @Type("global-address")
 public class GlobalAddressResource extends AbstractAddressResource {
 
