@@ -18,6 +18,13 @@ google::firewall-rule firewall-rule-example-allow
         ports: ["95-96", "80-85"]
     end
 
+    denied
+        protocol: "tcp"
+        ports: ["95-96", "80-85"]
+    end
+
+    source-service-accounts: ["service-account-url"]
+
     source-tags: [
         "something"
     ]
