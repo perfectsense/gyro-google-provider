@@ -1,0 +1,12 @@
+google::address address_1
+    name: 'test-one'
+    region: 'us-west2'
+    description: 'test static IP address'
+    network-tier: 'STANDARD'
+end
+
+google::global-address global_address_1
+    name: 'test-global-one'
+    description: 'test global static IP address'
+    ip-version: 'IPV6'
+end
