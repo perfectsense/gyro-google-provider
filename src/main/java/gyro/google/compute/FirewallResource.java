@@ -30,6 +30,7 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Range;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -151,6 +152,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * @subresource gyro.google.compute.FirewallAllowed
      */
     @Updatable
+    @ConflictsWith("denied")
     public List<FirewallAllowed> getAllowed() {
         if (allowed == null) {
             allowed = new ArrayList<>();
@@ -169,6 +171,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * @subresource gyro.google.cloud.FirewallDenied
      */
     @Updatable
+    @ConflictsWith("allowed")
     public List<FirewallDenied> getDenied() {
         if (denied == null) {
             denied = new ArrayList<>();
@@ -264,6 +267,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * A set of service accounts that the incoming requests are going to be matched with only if it originated from instances of the accounts specified.  Can only be set when 'direction' set to 'INGRESS'. Only one of 'source-service-account' or 'source-tags' can be set.
      */
     @Updatable
+    @ConflictsWith({"source-tags", "target-tags"})
     public Set<String> getSourceServiceAccounts() {
         if (sourceServiceAccounts == null) {
             sourceServiceAccounts = new HashSet<>();
@@ -313,6 +317,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * A set of service accounts that the outgoing requests are going to be matched with only if it is targeted from instances of the accounts specified. Can only be set when 'direction' set to 'EGRESS'. Only one of 'target-service-account' or 'target-tags' can be set.
      */
     @Updatable
+    @ConflictsWith({"target-tags", "source-tags"})
     public Set<String> getTargetServiceAccounts() {
         if (targetServiceAccounts == null) {
             targetServiceAccounts = new HashSet<>();
@@ -483,22 +488,12 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
 
-        if (getRuleType().equals("ALLOW")) {
-            if (getAllowed().isEmpty()) {
-                errors.add(new ValidationError(this, "allowed", "'allowed' needs to be set when 'rule-type' set to 'ALLOW'."));
-            }
+        if (getRuleType().equals("ALLOW") && getAllowed().isEmpty()) {
+            errors.add(new ValidationError(this, "allowed", "'allowed' needs to be set when 'rule-type' set to 'ALLOW'."));
+        }
 
-            if (!getDenied().isEmpty()) {
-                errors.add(new ValidationError(this, "denied", "'denied' cannot be set when 'rule-type' set to 'ALLOW'."));
-            }
-        } else if (getRuleType().equals("DENY")) {
-            if (getDenied().isEmpty()) {
-                errors.add(new ValidationError(this, "denied", "'denied' needs to be set when 'rule-type' set to 'DENY'."));
-            }
-
-            if (!getAllowed().isEmpty()) {
-                errors.add(new ValidationError(this, "allowed", "'allowed' cannot be set when 'rule-type' set to 'DENY'."));
-            }
+        if (getRuleType().equals("DENY") && getDenied().isEmpty()) {
+            errors.add(new ValidationError(this, "denied", "'denied' needs to be set when 'rule-type' set to 'DENY'."));
         }
 
         if (getDirection().equals("INGRESS")) {
@@ -526,14 +521,6 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
             if (getDestinationRanges().isEmpty()) {
                 errors.add(new ValidationError(this, null, "'destination-ranges' is required when 'direction' set to 'EGRESS'"));
             }
-        }
-
-        if ((!getTargetTags().isEmpty() || !getSourceTags().isEmpty()) && !getTargetServiceAccounts().isEmpty()) {
-            errors.add(new ValidationError(this, "target-service-accounts", "'target-service-accounts' cannot be set when 'target-tags' or 'source-tags' are set"));
-        }
-
-        if ((!getTargetTags().isEmpty() || !getSourceTags().isEmpty()) && !getSourceServiceAccounts().isEmpty()) {
-            errors.add(new ValidationError(this, "source-service-accounts", "'source-service-accounts' cannot be set when 'target-tags' or 'source-tags' are set"));
         }
 
         return errors;
