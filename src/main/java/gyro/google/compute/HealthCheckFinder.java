@@ -36,9 +36,9 @@ import java.util.Map;
  *
  * .. code-block:: gyro
  *
- *    healthcheck: $(external-query google::healthcheck { name: 'healthcheck-example'})
+ *    compute-healthcheck: $(external-query google::healthcheck { name: 'healthcheck-example'})
  */
-@Type("healthcheck")
+@Type("compute-healthcheck")
 public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, HealthCheckResource> {
     private String name;
 

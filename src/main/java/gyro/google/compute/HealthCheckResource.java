@@ -43,7 +43,7 @@ import java.util.Set;
  *
  * .. code-block:: gyro
  *
- *     google::healthcheck healthcheck-example
+ *     google::compute-healthcheck healthcheck-example
  *         check-interval-sec: 30
  *         description: "The description goes here."
  *         healthy-threshold: 8
@@ -61,7 +61,7 @@ import java.util.Set;
  *         end
  *     end
  */
-@Type("healthcheck")
+@Type("compute-healthcheck")
 public class HealthCheckResource extends ComputeResource implements Copyable<HealthCheck> {
     private Integer checkIntervalSec;
     private String description;
