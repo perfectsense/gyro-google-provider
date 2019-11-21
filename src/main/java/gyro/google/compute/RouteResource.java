@@ -32,7 +32,6 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -271,7 +270,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
             } else {
                 throw new GyroException(je.getDetails().getMessage());
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }

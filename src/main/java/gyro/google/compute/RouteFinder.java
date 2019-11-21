@@ -59,8 +59,8 @@ public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
             return client.routes().list(getProjectId()).execute().getItems();
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
 
@@ -74,8 +74,8 @@ public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
             if (je.getDetails().getCode() != 404) {
                 throw new GyroException(je.getDetails().getMessage());
             }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
         }
 
         if (route != null) {
