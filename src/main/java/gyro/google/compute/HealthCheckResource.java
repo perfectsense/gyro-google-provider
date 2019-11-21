@@ -247,21 +247,31 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         setType(healthCheck.getType());
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
-        HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
-        httpHealthCheck.copyFrom(healthCheck);
-        setHttpHealthCheck(httpHealthCheck);
-        HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
-        httpsHealthCheck.copyFrom(healthCheck);
-        setHttpsHealthCheck(httpsHealthCheck);
-        HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
-        http2HealthCheck.copyFrom(healthCheck);
-        setHttp2HealthCheck(http2HealthCheck);
-        HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
-        sslHealthCheck.copyFrom(healthCheck);
-        setSslHealthCheck(sslHealthCheck);
-        HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
-        tcpHealthCheck.copyFrom(healthCheck);
-        setTcpHealthCheck(tcpHealthCheck);
+        if (getHttpHealthCheck() != null) {
+            HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
+            httpHealthCheck.copyFrom(healthCheck);
+            setHttpHealthCheck(httpHealthCheck);
+        }
+        if (getHttpsHealthCheck() != null) {
+            HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
+            httpsHealthCheck.copyFrom(healthCheck);
+            setHttpsHealthCheck(httpsHealthCheck);
+        }
+        if (getHttp2HealthCheck() != null) {
+            HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
+            http2HealthCheck.copyFrom(healthCheck);
+            setHttp2HealthCheck(http2HealthCheck);
+        }
+        if (getSslHealthCheck() != null) {
+            HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
+            sslHealthCheck.copyFrom(healthCheck);
+            setSslHealthCheck(sslHealthCheck);
+        }
+        if (getTcpHealthCheck() != null) {
+            HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
+            tcpHealthCheck.copyFrom(healthCheck);
+            setTcpHealthCheck(tcpHealthCheck);
+        }
     }
 
     @Override

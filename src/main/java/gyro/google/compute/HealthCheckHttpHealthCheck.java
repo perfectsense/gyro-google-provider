@@ -22,14 +22,19 @@ import com.google.api.services.compute.model.HTTPHealthCheck;
 public class HealthCheckHttpHealthCheck extends AbstractHealthCheck {
 
     @Override
+    public String primaryKey() {
+        return "HttpHealthCheck";
+    }
+
+    @Override
     public void copyFrom(HealthCheck model) {
         if (model != null) {
-            setPort(model.getHttpsHealthCheck().getPort());
-            setPortSpecification(model.getHttpsHealthCheck().getPortSpecification());
-            setHost(model.getHttpsHealthCheck().getHost());
-            setResponse(model.getHttpsHealthCheck().getResponse());
-            setRequestPath(model.getHttpsHealthCheck().getRequestPath());
-            setProxyHeader(model.getHttpsHealthCheck().getProxyHeader());
+            setPort(model.getHttpHealthCheck().getPort());
+            setPortSpecification(model.getHttpHealthCheck().getPortSpecification());
+            setHost(model.getHttpHealthCheck().getHost());
+            setResponse(model.getHttpHealthCheck().getResponse());
+            setRequestPath(model.getHttpHealthCheck().getRequestPath());
+            setProxyHeader(model.getHttpHealthCheck().getProxyHeader());
         }
     }
 
