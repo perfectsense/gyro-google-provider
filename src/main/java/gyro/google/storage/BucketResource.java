@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  * Example
  * -------
  *
-* ..code-block:: gyro
+ * ..code-block:: gyro
  *
  *      google::bucket bucket-1
  *          name: 'example-one'
@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
  *          end
  *
  *          iam-configuration
-*               uniform-bucket-level-access
+ *              uniform-bucket-level-access
  *                  enabled: false
  *              end
  *          end
@@ -104,7 +104,7 @@ import java.util.stream.Collectors;
  *                  condition
  *                      num-newer-versions: 10
  *                  end
-*               end
+ *              end
  *
  *              rule
  *                  action
@@ -433,8 +433,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
             bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
 
-            storage.buckets().insert(getProjectId(), bucket).execute();
-            refresh();
+            copyFrom(storage.buckets().insert(getProjectId(), bucket).execute());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
@@ -503,8 +502,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 bucket.setWebsite(getWebsite() != null ? getWebsite().toBucketWebsite() : null);
             }
 
-            storage.buckets().patch(getName(), bucket).execute();
-            refresh();
+            copyFrom(storage.buckets().patch(getName(), bucket).execute());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
