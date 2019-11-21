@@ -31,10 +31,9 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck {
         if (model != null) {
             setPort(model.getTcpHealthCheck().getPort());
             setPortSpecification(model.getTcpHealthCheck().getPortSpecification());
-            //setHost(model.getTcpHealthCheck().getHost());
-            setResponse(model.getTcpHealthCheck().getResponse());
-            //setRequestPath(model.getTcpHealthCheck().getRequestPath());
             setProxyHeader(model.getTcpHealthCheck().getProxyHeader());
+            setResponse(model.getTcpHealthCheck().getResponse());
+            setRequestPath(model.getTcpHealthCheck().getRequest());
         }
     }
 
@@ -42,7 +41,8 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck {
         return new TCPHealthCheck()
                 .setPort(getPort())
                 .setPortSpecification(getPortSpecification())
+                .setProxyHeader(getProxyHeader())
                 .setResponse(getResponse())
-                .setProxyHeader(getProxyHeader());
+                .setRequest(getRequestPath());
     }
 }

@@ -18,8 +18,24 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.HTTPHealthCheck;
+import gyro.core.resource.Updatable;
 
 public class HealthCheckHttpHealthCheck extends AbstractHealthCheck {
+    private String host;
+
+    /**
+     * The value of the host header in the HTTPS health check request. If left empty (default value),
+     * the IP on behalf of which this health check is performed will be used.
+     */
+    @Updatable
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
 
     @Override
     public String primaryKey() {
@@ -29,22 +45,22 @@ public class HealthCheckHttpHealthCheck extends AbstractHealthCheck {
     @Override
     public void copyFrom(HealthCheck model) {
         if (model != null) {
+            setHost(model.getHttpHealthCheck().getHost());
             setPort(model.getHttpHealthCheck().getPort());
             setPortSpecification(model.getHttpHealthCheck().getPortSpecification());
-            setHost(model.getHttpHealthCheck().getHost());
+            setProxyHeader(model.getHttpHealthCheck().getProxyHeader());
             setResponse(model.getHttpHealthCheck().getResponse());
             setRequestPath(model.getHttpHealthCheck().getRequestPath());
-            setProxyHeader(model.getHttpHealthCheck().getProxyHeader());
         }
     }
 
     public HTTPHealthCheck toHttpHealthCheck() {
         return new HTTPHealthCheck()
+                .setHost(getHost())
                 .setPort(getPort())
                 .setPortSpecification(getPortSpecification())
-                .setHost(getHost())
-                .setRequestPath(getRequestPath())
                 .setProxyHeader(getProxyHeader())
-                .setResponse(getResponse());
+                .setResponse(getResponse())
+                .setRequestPath(getRequestPath());
     }
 }

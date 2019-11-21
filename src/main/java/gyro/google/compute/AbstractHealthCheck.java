@@ -23,25 +23,11 @@ import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public abstract class AbstractHealthCheck extends Diffable implements Copyable<HealthCheck> {
-    private String host;
     private Integer port;
     private String portSpecification;
     private String proxyHeader;
-    private String requestPath;
     private String response;
-
-    /**
-     * The value of the host header in the HTTPS health check request. If left empty (default value),
-     * the IP on behalf of which this health check is performed will be used.
-    */
-    @Updatable
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
+    private String requestPath;
 
     /**
      * The port for the domain name and/or ip address to monitor for the health check.
@@ -83,18 +69,6 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     }
 
     /**
-     * The request path of the HTTPS health check request. The default value is /.
-     */
-    @Updatable
-    public String getRequestPath() {
-        return requestPath;
-    }
-
-    public void setRequestPath(String requestPath) {
-        this.requestPath = requestPath;
-    }
-
-    /**
      * The string to match anywhere in the first 1024 bytes of the response body. If left empty (the default value),
      * the status code determines health. The response data can only be ASCII.
      */
@@ -106,4 +80,17 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     public void setResponse(String response) {
         this.response = response;
     }
+
+    /**
+     * The request path of the HTTPS health check request. The default value is /.
+     */
+    @Updatable
+    public String getRequestPath() {
+        return requestPath;
+    }
+
+    public void setRequestPath(String requestPath) {
+        this.requestPath = requestPath;
+    }
+
 }
