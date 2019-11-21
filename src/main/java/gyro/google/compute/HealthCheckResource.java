@@ -51,6 +51,7 @@ import java.util.Set;
  *         timeout-sec: 29
  *         type: "HTTPS"
  *         unhealthy-threshold: 6
+ *
  *         https-health-check
  *             host: "myapp.example.com"
  *             port: 440
@@ -339,7 +340,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck() == null ? null : getHttp2HealthCheck().toHttp2HealthCheck());
             healthCheck.setSslHealthCheck(getSslHealthCheck() == null ? null : getSslHealthCheck().toSslHealthCheck());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck() == null ? null : getTcpHealthCheck().toTcpHealthCheck());
-            client.healthChecks().update(getProjectId(), getName(), healthCheck).execute();
+            client.healthChecks().patch(getProjectId(), getName(), healthCheck).execute();
         } catch (IOException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
