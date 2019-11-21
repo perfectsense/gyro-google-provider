@@ -23,7 +23,6 @@ import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
