@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.google.compute;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -62,9 +78,15 @@ public class AddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         try {
             Address address = compute.addresses().get(getProjectId(), getRegion(), getName()).execute();
-            return (address != null);
+            if (address == null) {
+                return false;
+            }
+
+            copyFrom(address);
+
+            return true;
         } catch (IOException e) {
-            return false;
+            throw new GyroException(String.format("Encountered GCP error '%s'", e.getMessage()));
         }
     }
 
@@ -79,14 +101,13 @@ public class AddressResource extends AbstractAddressResource {
         address.setNetworkTier(getNetworkTier());
         address.setAddressType(getAddressType());
         address.setPurpose(getPurpose());
-        address.setSubnetwork(getSubnetwork());
-        address.setNetwork(getNetwork());
+//        address.setSubnetwork(getSubnetwork() == null ? null : getSubnetwork().getSelfLink());
+//        address.setNetwork(getNetwork() == null ? null : getNetwork().getSelfLink());
 
         try {
             waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());
+            refresh();
 
-            Address savedAddress = compute.addresses().get(getProjectId(), getRegion(), getName()).execute();
-            setAddress(savedAddress.getAddress());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.Address;
@@ -23,14 +39,28 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     private static final int SLEEP_TIMEOUT = 900;
     private static final int WAIT_TIMEOUT = 5000;
 
+    private String id;
     private String name;
     private String description;
     private String address;
     private Integer prefixLength;
     private String addressType;
     private String purpose;
-    private String subnetwork;
-    private String network;
+    private SubnetworkResource subnetwork;
+    private NetworkResource network;
+    private String status;
+    private String selfLink;
+
+    /**
+     * Internal GCP id. (Read Only)
+     */
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     /**
      * Name of the resource. [Required] See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements.
@@ -103,28 +133,49 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * URL of the subnetwork in which to reserve the address. If an IP address is specified, it must be within the subnetwork's IP range. This field can only be used with ``INTERNAL`` type with a ``GCE_ENDPOINT`` or ``DNS_RESOLVER`` purpose.
+     * URL of the subnetwork in which to reserve the address. If an IP address is specified, it must be wihin the subnetwork's IP range. This field can only be used with ``INTERNAL`` type with a ``GCE_ENDPOINT`` or ``DNS_RESOLVER`` purpose.
      */
-    public String getSubnetwork() {
+    public SubnetworkResource getSubnetwork() {
         return subnetwork;
     }
 
-    public void setSubnetwork(String subnetwork) {
+    public void setSubnetwork(SubnetworkResource subnetwork) {
         this.subnetwork = subnetwork;
     }
 
     /**
      * The URL of the network in which to reserve the address. This field can only be used with ``INTERNAL`` type with the ``VPC_PEERING`` purpose.
      */
-    @Output
-    public String getNetwork() {
+    public NetworkResource getNetwork() {
         return network;
     }
 
-    public void setNetwork(String network) {
+    public void setNetwork(NetworkResource network) {
         this.network = network;
     }
 
+    /**
+     * The status of the address. Values are ``RESERVING``, ``RESERVED``, or ``IN_USE``.
+     */
+    @Output
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    /**
+     * GCP server-defined URL for the address. (Read Only)
+     */
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
 
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
@@ -138,8 +189,9 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         setPrefixLength(model.getPrefixLength());
         setAddressType(model.getAddressType());
         setPurpose(model.getPurpose());
-        setSubnetwork(model.getSubnetwork());
-        setNetwork(model.getNetwork());
+        setSubnetwork(model.getSubnetwork() == null ? null : findById(SubnetworkResource.class, model.getSubnetwork().substring(model.getSubnetwork().lastIndexOf('/') + 1)));
+        setNetwork(model.getNetwork() == null ? null : findById(NetworkResource.class, model.getNetwork().substring(model.getNetwork().lastIndexOf('/') + 1)));
+        setStatus(model.getStatus());
     }
 
     @Override

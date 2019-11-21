@@ -2,7 +2,17 @@ google::address address_1
     name: 'test-one'
     region: 'us-west2'
     description: 'test static IP address'
-    network-tier: 'STANDARD'
+    address-type: 'INTERNAL'
+    purpose: 'GCE_ENDPOINT'
+end
+
+google::address address_2
+    name: 'test-two'
+    region: 'us-east1'
+    description: 'test static IP address'
+    address-type: 'INTERNAL'
+    purpose: 'GCE_ENDPOINT'
+    subnetwork: $(google::subnet 'subnet-example')
 end
 
 google::global-address global_address_1

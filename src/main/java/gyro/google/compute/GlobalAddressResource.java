@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.google.compute;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -62,14 +78,13 @@ public class GlobalAddressResource extends AbstractAddressResource {
         address.setIpVersion(getIpVersion());
         address.setAddressType(getAddressType());
         address.setPurpose(getPurpose());
-        address.setSubnetwork(getSubnetwork());
-        address.setNetwork(getNetwork());
+//        address.setSubnetwork(getSubnetwork() == null ? null : getSubnetwork().getSelfLink());
+//        address.setNetwork(getNetwork() == null ? null : getNetwork().getSelfLink());
 
         try {
             waitForCompletion(compute, compute.globalAddresses().insert(getProjectId(), address).execute());
+            refresh();
 
-            Address savedAddress = compute.globalAddresses().get(getProjectId(), getName()).execute();
-            setAddress(savedAddress.getAddress());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
