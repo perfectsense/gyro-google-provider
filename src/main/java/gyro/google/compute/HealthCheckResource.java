@@ -236,7 +236,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The type of health check. Valid values are: ``TCP, SSL, HTTP, HTTPS or HTTP2``. If not specified, the default is ``TCP``. (Required)
+     * The type of health check. Valid values are: ``TCP``, ``SSL``, ``HTTP``, ``HTTPS`` or ``HTTP2``. If not specified, the default is ``TCP``. (Required)
      */
     @Required
     @Updatable
