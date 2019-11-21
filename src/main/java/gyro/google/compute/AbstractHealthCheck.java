@@ -24,6 +24,7 @@ import gyro.google.Copyable;
 
 public abstract class AbstractHealthCheck extends Diffable implements Copyable<HealthCheck> {
     private Integer port;
+    private String portName;
     private String portSpecification;
     private String proxyHeader;
     private String response;
@@ -39,6 +40,17 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
 
     public void setPort(Integer port) {
         this.port = port;
+    }
+
+    /**
+     * Port name as defined in InstanceGroup#NamedPort#name. If both port and portName are defined, port takes precedence.
+     */
+    public String getPortName() {
+        return portName;
+    }
+
+    public void setPortName(String portName) {
+        this.portName = portName;
     }
 
     /**
@@ -92,5 +104,4 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     public void setRequestPath(String requestPath) {
         this.requestPath = requestPath;
     }
-
 }

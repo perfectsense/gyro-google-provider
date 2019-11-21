@@ -30,6 +30,7 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck {
     public void copyFrom(HealthCheck model) {
         if (model != null) {
             setPort(model.getTcpHealthCheck().getPort());
+            setPortName(model.getTcpHealthCheck().getPortName());
             setPortSpecification(model.getTcpHealthCheck().getPortSpecification());
             setProxyHeader(model.getTcpHealthCheck().getProxyHeader());
             setResponse(model.getTcpHealthCheck().getResponse());
@@ -40,6 +41,7 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck {
     public TCPHealthCheck toTcpHealthCheck() {
         return new TCPHealthCheck()
                 .setPort(getPort())
+                .setPortName(getPortName())
                 .setPortSpecification(getPortSpecification())
                 .setProxyHeader(getProxyHeader())
                 .setResponse(getResponse())

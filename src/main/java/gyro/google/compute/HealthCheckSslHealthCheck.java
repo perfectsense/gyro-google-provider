@@ -30,6 +30,7 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck {
     public void copyFrom(HealthCheck model) {
         if (model != null) {
             setPort(model.getSslHealthCheck().getPort());
+            setPortName(model.getSslHealthCheck().getPortName());
             setPortSpecification(model.getSslHealthCheck().getPortSpecification());
             setProxyHeader(model.getSslHealthCheck().getProxyHeader());
             setResponse(model.getSslHealthCheck().getResponse());
@@ -40,6 +41,7 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck {
     public SSLHealthCheck toSslHealthCheck() {
         return new SSLHealthCheck()
                 .setPort(getPort())
+                .setPortName(getPortName())
                 .setPortSpecification(getPortSpecification())
                 .setProxyHeader(getProxyHeader())
                 .setResponse(getResponse())

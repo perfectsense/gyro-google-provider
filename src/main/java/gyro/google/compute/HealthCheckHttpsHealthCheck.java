@@ -47,6 +47,7 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck {
         if (model != null) {
             setHost(model.getHttpsHealthCheck().getHost());
             setPort(model.getHttpsHealthCheck().getPort());
+            setPortName(model.getHttpsHealthCheck().getPortName());
             setPortSpecification(model.getHttpsHealthCheck().getPortSpecification());
             setProxyHeader(model.getHttpsHealthCheck().getProxyHeader());
             setResponse(model.getHttpsHealthCheck().getResponse());
@@ -58,6 +59,7 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck {
         return new HTTPSHealthCheck()
                 .setHost(getHost())
                 .setPort(getPort())
+                .setPortName(getPortName())
                 .setPortSpecification(getPortSpecification())
                 .setProxyHeader(getProxyHeader())
                 .setResponse(getResponse())

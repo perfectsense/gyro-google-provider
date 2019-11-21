@@ -55,7 +55,8 @@ import java.util.Set;
  *         https-health-check
  *             host: "myapp.example.com"
  *             port: 440
- *             port-specification: "USE_FIXED_PORT"
+ *             port-name: "port123"
+ *             port-specification: "USE_NAMED_PORT"
  *             proxy-header: "PROXY_V1"
  *             request-path: "/myapp"
  *             response: "okay"

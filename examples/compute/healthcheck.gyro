@@ -2,15 +2,15 @@ google::compute-healthcheck healthcheck-example
     check-interval-sec: 30
     description: "The description goes here."
     healthy-threshold: 8
-    name: "foo2"
+    name: "foo4"
     timeout-sec: 29
     type: "HTTP2"
     unhealthy-threshold: 6
 
     http2-health-check
         host: "myapp.example.com"
-        port: 440
-        port-specification: "USE_FIXED_PORT"
+        port-name: "port123"
+        port-specification: "USE_NAMED_PORT"
         proxy-header: "PROXY_V1"
         request-path: "/myapp"
         response: "okay"
