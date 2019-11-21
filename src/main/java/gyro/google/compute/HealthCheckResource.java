@@ -111,6 +111,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     private HealthCheckTcpHealthCheck tcpHealthCheck;
     private Integer healthyThreshold;
     private String name;
+    private String selfLink;
     private Integer timeoutSec;
     private String type;
     private Integer unhealthyThreshold;
@@ -272,6 +273,17 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         this.healthyThreshold = healthyThreshold;
     }
 
+    /**
+     * The server-defined URL for the health check. (Output Only)
+     */
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
     @Override
     public void copyFrom(HealthCheck healthCheck) {
         setName(healthCheck.getName());
@@ -281,6 +293,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         setType(healthCheck.getType());
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
+        setSelfLink(healthCheck.getSelfLink());
         if (healthCheck.getHttpHealthCheck() != null) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
             httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());

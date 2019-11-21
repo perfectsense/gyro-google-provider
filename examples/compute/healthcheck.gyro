@@ -1,4 +1,4 @@
-google::compute-healthcheck healthcheck-example
+google::compute-health-check health-check-example
     check-interval-sec: 30
     description: "The description goes here."
     healthy-threshold: 8
