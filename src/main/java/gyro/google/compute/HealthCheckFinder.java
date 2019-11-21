@@ -21,6 +21,7 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.HealthCheck;
 import gyro.core.GyroException;
 import gyro.core.Type;
+import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
 
 import java.io.IOException;
@@ -36,15 +37,16 @@ import java.util.Map;
  *
  * .. code-block:: gyro
  *
- *    compute-healthcheck: $(external-query google::healthcheck { name: 'healthcheck-example'})
+ *    compute-health-check: $(external-query google::health-check { name: 'health-check-example' })
  */
-@Type("compute-healthcheck")
+@Type("compute-health-check")
 public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, HealthCheckResource> {
     private String name;
 
     /**
-     * The name of the health check.
+     * The name of the health check. (Required)
      */
+    @Required
     public String getName() {
         return name;
     }

@@ -35,35 +35,72 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * Creates a health check in the Global scope.
- * Note: Regional scopes are not currently supported in the v1 API.
+ * Creates a health check resource.
+ * Health checks are scoped Globally by default.
+ * Note: Regional scopes are not yet supported in the V1 API.
  *
- * Example
- * -------
+ * ========
+ * Examples
+ * ========
+ *
+ * Basic Http Health Check
+ * -----------------------
  *
  * .. code-block:: gyro
  *
- *     google::compute-healthcheck healthcheck-example
- *         check-interval-sec: 30
- *         description: "The description goes here."
- *         healthy-threshold: 8
- *         name: "foo"
- *         timeout-sec: 29
- *         type: "HTTPS"
- *         unhealthy-threshold: 6
+ *      google::compute-health-check health-check-example
+ *          name: "http-basic"
+ *          type: "HTTP"
  *
- *         https-health-check
- *             host: "myapp.example.com"
- *             port: 440
- *             port-name: "port123"
- *             port-specification: "USE_NAMED_PORT"
- *             proxy-header: "PROXY_V1"
- *             request-path: "/myapp"
- *             response: "okay"
- *         end
- *     end
+ *          http-health-check
+ *          end
+ *      end
+ *
+ * Advanced TCP Health Check
+ * -------------------------
+ *
+ * .. code-block:: gyro
+ *
+ *      google::compute-health-check health-check-example
+ *          check-interval-sec: 30
+ *          description: "The description goes here."
+ *          healthy-threshold: 8
+ *          name: "tcp-advanced"
+ *          timeout-sec: 29
+ *          type: "TCP"
+ *          unhealthy-threshold: 6
+ *
+ *          tcp-health-check
+ *              proxy-header: "PROXY_V1"
+ *              request-path: "/myapp"
+ *              response: "okay"
+ *          end
+ *      end
+ *
+ * Advanced TCP Health Check with Custom Port Name
+ * -----------------------------------------------
+ *
+ * .. code-block:: gyro
+ *
+ *      google::compute-health-check health-check-example
+ *          check-interval-sec: 30
+ *          description: "The description goes here."
+ *          healthy-threshold: 8
+ *          name: "tcp-advanced"
+ *          timeout-sec: 29
+ *          type: "TCP"
+ *          unhealthy-threshold: 6
+ *
+ *          tcp-health-check
+ *              port: 501
+ *              port-name: "custom-port"
+ *              proxy-header: "PROXY_V1"
+ *              request-path: "/myapp"
+ *              response: "okay"
+ *          end
+ *      end
  */
-@Type("compute-healthcheck")
+@Type("compute-health-check")
 public class HealthCheckResource extends ComputeResource implements Copyable<HealthCheck> {
     private Integer checkIntervalSec;
     private String description;
@@ -79,10 +116,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     private Integer unhealthyThreshold;
 
     /**
-     * Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long,
-     * and comply with RFC1035. Specifically, the name must be 1-63 characters long and match the regular expression
-     * [a-z]([-a-z0-9]*[a-z0-9])? which means the first character must be a lowercase letter, and all following
-     * characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash. (Required)
+     * The name of the health check. The name must be 1-63 characters long. See `RFC1035 <https://www.ietf.org/rfc/rfc1035.txt/>`_. (Required)
      */
     @Id
     @Required
@@ -95,7 +129,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * An optional description of the health check.
+     * The description of the health check.
      */
     @Updatable
     public String getDescription() {
@@ -107,7 +141,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * How often (in seconds) to send a health check. The default value is 5 seconds.
+     * The time (in seconds) for how often to send a health check. The default value is 5 seconds.
      */
     @Updatable
     public Integer getCheckIntervalSec() {
@@ -119,9 +153,9 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The HTTP Health Check.
+     * The HTTP Health Check type.
      *
-     *  @subresource gyro.google.compute.HealthCheckHttpHealthCheck
+     * @subresource gyro.google.compute.HealthCheckHttpHealthCheck
      */
     @Updatable
     public HealthCheckHttpHealthCheck getHttpHealthCheck() {
@@ -133,9 +167,9 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The HTTPS Health Check.
+     * The HTTPS Health Check type.
      *
-     *  @subresource gyro.google.compute.HealthCheckHttpsHealthCheck
+     * @subresource gyro.google.compute.HealthCheckHttpsHealthCheck
      */
     @Updatable
     public HealthCheckHttpsHealthCheck getHttpsHealthCheck() {
@@ -147,9 +181,9 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The HTTP2 Health Check.
+     * The HTTP2 Health Check type.
      *
-     *  @subresource gyro.google.compute.HealthCheckHttp2HealthCheck
+     * @subresource gyro.google.compute.HealthCheckHttp2HealthCheck
      */
     @Updatable
     public HealthCheckHttp2HealthCheck getHttp2HealthCheck() {
@@ -161,9 +195,9 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The SSL Health Check.
+     * The SSL Health Check type.
      *
-     *  @subresource gyro.google.compute.HealthCheckSslHealthCheck
+     * @subresource gyro.google.compute.HealthCheckSslHealthCheck
      */
     @Updatable
     public HealthCheckSslHealthCheck getSslHealthCheck() {
@@ -175,9 +209,9 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The TCP Health Check.
+     * The TCP Health Check type.
      *
-     *  @subresource gyro.google.compute.HealthCheckTcpHealthCheck
+     * @subresource gyro.google.compute.HealthCheckTcpHealthCheck
      */
     @Updatable
     public HealthCheckTcpHealthCheck getTcpHealthCheck() {
@@ -189,8 +223,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * How long (in seconds) to wait before claiming failure. The default value is 5 seconds.
-     * It is invalid for timeoutSec to have greater value than checkIntervalSec.
+     * The time (in seconds) to wait before claiming failure. The default value is 5 seconds.
      */
     @Updatable
     public Integer getTimeoutSec() {
@@ -202,8 +235,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * Specifies the type of the healthCheck, either TCP, SSL, HTTP, HTTPS or HTTP2. If not specified, the default is TCP.
-     * Exactly one of the protocol-specific health check field must be specified, which must match type field. (Required)
+     * The type of health check. Valid values are: ``TCP, SSL, HTTP, HTTPS or HTTP2``. If not specified, the default is ``TCP``. (Required)
      */
     @Required
     @Updatable
@@ -217,7 +249,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * A so-far healthy instance will be marked unhealthy after this many consecutive failures. The default value is 2.
+     * The number of consecutive failures before marking unhealthy. The default value is 2.
      */
     @Updatable
     public Integer getUnhealthyThreshold() {
@@ -229,7 +261,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * A so-far unhealthy instance will be marked healthy after this many consecutive successes. The default value is 2.
+     * The number of consecutive successes before marking healthy. The default value is 2.
      */
     @Updatable
     public Integer getHealthyThreshold() {
@@ -249,29 +281,29 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         setType(healthCheck.getType());
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
-        if (getHttpHealthCheck() != null) {
+        if (healthCheck.getHttpHealthCheck() != null) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
-            httpHealthCheck.copyFrom(healthCheck);
+            httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
             setHttpHealthCheck(httpHealthCheck);
         }
-        if (getHttpsHealthCheck() != null) {
+        if (healthCheck.getHttpsHealthCheck() != null) {
             HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
-            httpsHealthCheck.copyFrom(healthCheck);
+            httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
             setHttpsHealthCheck(httpsHealthCheck);
         }
-        if (getHttp2HealthCheck() != null) {
+        if (healthCheck.getHttp2HealthCheck() != null) {
             HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
-            http2HealthCheck.copyFrom(healthCheck);
+            http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
             setHttp2HealthCheck(http2HealthCheck);
         }
-        if (getSslHealthCheck() != null) {
+        if (healthCheck.getSslHealthCheck() != null) {
             HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
-            sslHealthCheck.copyFrom(healthCheck);
+            sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
             setSslHealthCheck(sslHealthCheck);
         }
-        if (getTcpHealthCheck() != null) {
+        if (healthCheck.getTcpHealthCheck() != null) {
             HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
-            tcpHealthCheck.copyFrom(healthCheck);
+            tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
             setTcpHealthCheck(tcpHealthCheck);
         }
     }

@@ -17,15 +17,14 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.HTTPSHealthCheck;
-import com.google.api.services.compute.model.HealthCheck;
 import gyro.core.resource.Updatable;
+import gyro.google.Copyable;
 
-public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck {
+public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck implements Copyable<HTTPSHealthCheck> {
     private String host;
 
     /**
-     * The value of the host header in the HTTPS health check request. If left empty (default value),
-     * the IP on behalf of which this health check is performed will be used.
+     * The value of the host header in the health check request.
      */
     @Updatable
     public String getHost() {
@@ -36,22 +35,21 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck {
         this.host = host;
     }
 
-
     @Override
     public String primaryKey() {
         return "HttpsHealthCheck";
     }
 
     @Override
-    public void copyFrom(HealthCheck model) {
+    public void copyFrom(HTTPSHealthCheck model) {
         if (model != null) {
-            setHost(model.getHttpsHealthCheck().getHost());
-            setPort(model.getHttpsHealthCheck().getPort());
-            setPortName(model.getHttpsHealthCheck().getPortName());
-            setPortSpecification(model.getHttpsHealthCheck().getPortSpecification());
-            setProxyHeader(model.getHttpsHealthCheck().getProxyHeader());
-            setResponse(model.getHttpsHealthCheck().getResponse());
-            setRequestPath(model.getHttpsHealthCheck().getRequestPath());
+            setHost(model.getHost());
+            setPort(model.getPort());
+            setPortName(model.getPortName());
+            setPortSpecification(model.getPortSpecification());
+            setProxyHeader(model.getProxyHeader());
+            setResponse(model.getResponse());
+            setRequestPath(model.getRequestPath());
         }
     }
 

@@ -18,8 +18,9 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.TCPHealthCheck;
+import gyro.google.Copyable;
 
-public class HealthCheckTcpHealthCheck extends AbstractHealthCheck {
+public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Copyable<TCPHealthCheck> {
 
     @Override
     public String primaryKey() {
@@ -27,14 +28,14 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck {
     }
 
     @Override
-    public void copyFrom(HealthCheck model) {
+    public void copyFrom(TCPHealthCheck model) {
         if (model != null) {
-            setPort(model.getTcpHealthCheck().getPort());
-            setPortName(model.getTcpHealthCheck().getPortName());
-            setPortSpecification(model.getTcpHealthCheck().getPortSpecification());
-            setProxyHeader(model.getTcpHealthCheck().getProxyHeader());
-            setResponse(model.getTcpHealthCheck().getResponse());
-            setRequestPath(model.getTcpHealthCheck().getRequest());
+            setPort(model.getPort());
+            setPortName(model.getPortName());
+            setPortSpecification(model.getPortSpecification());
+            setProxyHeader(model.getProxyHeader());
+            setResponse(model.getResponse());
+            setRequestPath(model.getRequest());
         }
     }
 

@@ -16,10 +16,10 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.SSLHealthCheck;
+import gyro.google.Copyable;
 
-public class HealthCheckSslHealthCheck extends AbstractHealthCheck {
+public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Copyable<SSLHealthCheck> {
 
     @Override
     public String primaryKey() {
@@ -27,14 +27,14 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck {
     }
 
     @Override
-    public void copyFrom(HealthCheck model) {
+    public void copyFrom(SSLHealthCheck model) {
         if (model != null) {
-            setPort(model.getSslHealthCheck().getPort());
-            setPortName(model.getSslHealthCheck().getPortName());
-            setPortSpecification(model.getSslHealthCheck().getPortSpecification());
-            setProxyHeader(model.getSslHealthCheck().getProxyHeader());
-            setResponse(model.getSslHealthCheck().getResponse());
-            setRequestPath(model.getSslHealthCheck().getRequest());
+            setPort(model.getPort());
+            setPortName(model.getPortName());
+            setPortSpecification(model.getPortSpecification());
+            setProxyHeader(model.getProxyHeader());
+            setResponse(model.getResponse());
+            setRequestPath(model.getRequest());
         }
     }
 

@@ -16,13 +16,11 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.HealthCheck;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
-import gyro.google.Copyable;
 
-public abstract class AbstractHealthCheck extends Diffable implements Copyable<HealthCheck> {
+public abstract class AbstractHealthCheck extends Diffable {
     private Integer port;
     private String portName;
     private String portSpecification;
@@ -43,8 +41,9 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     }
 
     /**
-     * Port name as defined in InstanceGroup#NamedPort#name. If both port and portName are defined, port takes precedence.
+     * The port name. If both port and portName are defined, port takes precedence.
      */
+    @Updatable
     public String getPortName() {
         return portName;
     }
@@ -54,7 +53,7 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     }
 
     /**
-     * Specifies how port is selected for health checking.
+     * The port specification determines how the port is selected for health checking.
      */
     @Updatable
     @ValidStrings({"USE_FIXED_PORT", "USE_NAMED_PORT", "USE_SERVING_PORT"})
@@ -67,8 +66,7 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     }
 
     /**
-     * Specifies the type of proxy header to append before sending data to the backend, either NONE or PROXY_V1.
-     * The default is NONE.
+     * The proxy header to append before sending data to the backend. Valid values are: ``NONE`` or ``PROXY_V1``. The default is ``NONE``.
      */
     @Updatable
     @ValidStrings({"NONE", "PROXY_V1"})
@@ -81,8 +79,7 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     }
 
     /**
-     * The string to match anywhere in the first 1024 bytes of the response body. If left empty (the default value),
-     * the status code determines health. The response data can only be ASCII.
+     * The string to match in the response body. If left empty the status code determines health. The default value is empty.
      */
     @Updatable
     public String getResponse() {
@@ -94,7 +91,7 @@ public abstract class AbstractHealthCheck extends Diffable implements Copyable<H
     }
 
     /**
-     * The request path of the HTTPS health check request. The default value is /.
+     * The request path of the health check request. The default value is /.
      */
     @Updatable
     public String getRequestPath() {
