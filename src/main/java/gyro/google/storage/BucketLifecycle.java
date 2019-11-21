@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket.Lifecycle;
@@ -24,8 +40,9 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
     @Updatable
     public List<BucketLifecycleRule> getRule() {
         if (rule == null) {
-            return new ArrayList<>();
+            rule = new ArrayList<>();
         }
+
         return rule;
     }
 
@@ -49,7 +66,7 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
 
     @Override
     public String primaryKey() {
-        return "lifecycle with " + getRule().size() + " rules";
+        return String.format("lifecycle with %s rules", getRule().size());
     }
 
     public Lifecycle toLifecycle() {

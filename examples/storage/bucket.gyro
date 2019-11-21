@@ -2,39 +2,44 @@ google::bucket bucket-1
     name: 'example-one'
     location: 'us-central1'
     default-event-based-hold: true
-    storage-class: 'NEARLINE'
+    storage-class: 'STANDARD'
+
     labels: {
         foo: 'bar_1901'
     }
+
     acl
-        bucket: 'example-one'
         entity: 'domain-brightspot.com'
         role: 'OWNER'
     end
+
     acl
-        bucket: 'example-one'
         entity: 'domain-brightspot.com'
         role: 'READER'
     end
+
     acl
-        bucket: 'example-one'
         entity: 'domain-brightspot.com'
         role: 'WRITER'
     end
+
     cors
         max-age-seconds: 3200
         method: ['GET', 'POST']
         origin: ['*']
         response-header: ['application-x-test']
     end
+
     billing
         requester-pays: false
     end
+
     iam-configuration
         uniform-bucket-level-access
             enabled: false
         end
     end
+
     lifecycle
         rule
             action
@@ -44,31 +49,38 @@ google::bucket bucket-1
                 age: 7
            end
         end
+
         rule
             action
                 type: 'Delete'
             end
+
             condition
                 num-newer-versions: 10
             end
           end
+
         rule
             action
                type: 'Delete'
             end
+
             condition
                 is-live: true
                 age: 15
             end
         end
     end
+
     logging
         log-bucket: 'test-bucket'
         log-object-prefix: 'gyro'
     end
+
     retention-policy
         retention-period: 3300
     end
+
     website
         main-page-suffix: 'index.html'
         not-found-page: '404.jpg'

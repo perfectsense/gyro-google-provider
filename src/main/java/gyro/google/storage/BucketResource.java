@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.google.storage;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -28,50 +44,102 @@ import java.util.stream.Collectors;
 /**
  * Creates a Bucket within a specified region.
  *
- * ========
- * Examples
- * ========
+ * Example
+ * -------
  *
- * Basic Bucket
- * ------------
+* ..code-block:: gyro
  *
- * ..code-block:: gyro
+ *      google::bucket bucket-1
+ *          name: 'example-one'
+ *          location: 'us-central1'
+ *          default-event-based-hold: true
+ *          storage-class: 'NEARLINE'
  *
- *    google::bucket bucket-1
- *        name: 'example-one'
- *        location: 'us-central1'
- *        labels: {
- *            'foo': 'bar_1900'
- *        }
- *    end
+ *          labels: {
+ *              foo: 'bar_1901'
+ *          }
  *
- * Adding CORS rule
- * ----------------
+ *          acl
+ *              entity: 'domain-brightspot.com'
+ *              role: 'OWNER'
+ *          end
  *
- * ..code-block:: gyro
+ *          acl
+ *              entity: 'domain-brightspot.com'
+ *              role: 'READER'
+ *          end
  *
- *     google::bucket bucket-1
- *         name: 'example-one'
- *         location: 'us-central1'
- *         labels: {
- *             foo: 'bar_1901'
- *         }
- *         cors-rule
- *             max-age-seconds: 3600
- *             method: ['GET', 'POST']
- *             origin: ['*']
- *             response-header: ['application-x-test']
- *         end
- *     end
+ *          cors
+ *              max-age-seconds: 3200
+ *              method: ['GET', 'POST']
+ *              origin: ['*']
+ *              response-header: ['application-x-test']
+ *          end
+ *
+ *          billing
+ *              requester-pays: false
+ *          end
+ *
+ *          iam-configuration
+*               uniform-bucket-level-access
+ *                  enabled: false
+ *              end
+ *          end
+ *
+ *          lifecycle
+ *              rule
+ *                  action
+ *                      type: 'Delete'
+ *                  end
+ *                  condition
+ *                      age: 7
+ *                  end
+ *              end
+ *
+ *              rule
+ *                  action
+ *                      type: 'Delete'
+ *                  end
+ *
+ *                  condition
+ *                      num-newer-versions: 10
+ *                  end
+*               end
+ *
+ *              rule
+ *                  action
+ *                      type: 'Delete'
+ *                  end
+ *
+ *                  condition
+ *                      is-live: true
+ *                      age: 15
+ *                  end
+ *              end
+ *          end
+ *
+ *          logging
+ *              log-bucket: 'test-bucket'
+ *              log-object-prefix: 'gyro'
+ *          end
+ *
+ *          retention-policy
+ *              retention-period: 3300
+ *          end
+ *
+ *          website
+ *              main-page-suffix: 'index.html'
+ *              not-found-page: '404.jpg'
+ *          end
+ *      end
  */
 @Type("bucket")
 public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     private static final String LABEL_REGEX = "[^a-z0-9_-]";
     private static final Pattern LABEL_PATTERN = Pattern.compile(LABEL_REGEX);
-    private static final String NAME_REGEX = "[^\\.a-z0-9_-]";
-    private static final Pattern NAME_PATTERN = Pattern.compile(NAME_REGEX);
 
+    private String id;
     private List<BucketAccessControlConfiguration> acl;
     private String name;
     private Map<String, String> labels;
@@ -87,6 +155,18 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String storageClass;
     private BucketVersioning versioning;
     private BucketWebsite website;
+    private String selfLink;
+
+    /**
+     * The generated ID for the bucket. (Read Only)
+     */
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     /**
      * Access controls on the bucket. See `Bucket Access Controls <https://cloud.google.com/storage/docs/json_api/v1/bucketAccessControls/>`_.
@@ -131,11 +211,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * The geographic region objects within the bucket will reside. See `Bucket locations <https://cloud.google.com/storage/docs/locations/>`_.
+     * The geographic region objects within the bucket will reside. Default is ``US``. See `Bucket locations <https://cloud.google.com/storage/docs/locations/>`_.
      */
     @Updatable
     public String getLocation() {
-        return location;
+        return location != null ? location.toUpperCase() : null;
     }
 
     public void setLocation(String location) {
@@ -260,7 +340,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Updatable
     @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", "MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
     public String getStorageClass() {
-        return storageClass;
+        return storageClass != null ? storageClass.toUpperCase() : null;
     }
 
     public void setStorageClass(String storageClass) {
@@ -295,53 +375,50 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         this.website = website;
     }
 
+    /**
+     * The generated URI of this bucket. (Read Only)
+     */
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+    
     @Override
     public boolean refresh() {
-        Storage storage = creatClient(Storage.class);
+        Storage storage = createClient(Storage.class);
 
         try {
             Bucket bucket = storage.buckets().get(getName()).execute();
-            return (bucket != null);
+
+            if (bucket == null) {
+                return false;
+            }
+
+            copyFrom(bucket);
+
+            return true;
+        } catch (GoogleJsonResponseException e) {
+            if (e.getDetails().getCode() == 404) {
+                return false;
+            } else {
+                throw new GyroException(e.getDetails().getMessage());
+            }
         } catch (IOException e) {
-            return false;
+            throw new GyroException(e.getMessage());
         }
     }
 
     @Override
     public void create(GyroUI ui, State state) throws Exception {
-        Storage storage = creatClient(Storage.class);
-
-        Bucket bucket = new Bucket();
-        bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
-        bucket.setName(getName());
-        bucket.setLabels(getLabels());
-        bucket.setLocation(getLocation());
-        bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
-        bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
-        bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
-        bucket.setEncryption(getEncryption() == null ? null : getEncryption().toBucketEncryption());
-        bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
-        bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
-        bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
-        bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
-        bucket.setStorageClass(getStorageClass());
-        bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
-        bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
+        Storage storage = createClient(Storage.class);
 
         try {
-            storage.buckets().insert(getProjectId(), bucket).execute();
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        }
-    }
-
-    @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Storage storage = creatClient(Storage.class);
-
-        try {
-            Bucket bucket = storage.buckets().get(getName()).execute();
+            Bucket bucket = new Bucket();
             bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
+            bucket.setName(getName());
             bucket.setLabels(getLabels());
             bucket.setLocation(getLocation());
             bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
@@ -356,13 +433,78 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
             bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
 
-            // Lock retention policy. This can not be undone and ALL assets must reach policy time to delete bucket.
-            if (changedFieldNames.contains("retention-policy")
-                    && Boolean.TRUE.equals(bucket.getRetentionPolicy().getIsLocked())) {
-                storage.buckets().lockRetentionPolicy(getName(), bucket.getMetageneration()).execute();
+            storage.buckets().insert(getProjectId(), bucket).execute();
+            refresh();
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
+        }
+    }
+
+    @Override
+    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        Storage storage = createClient(Storage.class);
+
+        try {
+            Bucket bucket = new Bucket();
+
+            if (changedFieldNames.contains("acl")) {
+                bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
             }
 
-            storage.buckets().update(getName(), bucket).execute();
+            if (changedFieldNames.contains("labels")) {
+                bucket.setLabels(getLabels());
+            }
+
+            if (changedFieldNames.contains("location")) {
+                bucket.setLocation(getLocation());
+            }
+
+            if (changedFieldNames.contains("defaultEventBasedHold")) {
+                bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
+            }
+
+            if (changedFieldNames.contains("cors")) {
+                bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
+            }
+
+            if (changedFieldNames.contains("billing")) {
+                bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
+            }
+
+            if (changedFieldNames.contains("encryption")) {
+                bucket.setEncryption(getEncryption() == null ? null : getEncryption().toBucketEncryption());
+            }
+
+            if (changedFieldNames.contains("iamConfiguration")) {
+                bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+            }
+
+            if (changedFieldNames.contains("lifecycle")) {
+                bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
+            }
+
+            if (changedFieldNames.contains("logging")) {
+                bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
+            }
+
+            if (changedFieldNames.contains("retentionPolicy")) {
+                bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
+            }
+
+            if (changedFieldNames.contains("storageClass")) {
+                bucket.setStorageClass(getStorageClass());
+            }
+
+            if (changedFieldNames.contains("versioning")) {
+                bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
+            }
+
+            if (changedFieldNames.contains("website")) {
+                bucket.setWebsite(getWebsite() != null ? getWebsite().toBucketWebsite() : null);
+            }
+
+            storage.buckets().patch(getName(), bucket).execute();
+            refresh();
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
@@ -371,20 +513,16 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Override
     public void delete(GyroUI ui, State state) throws Exception {
         try {
-            Storage storage = creatClient(Storage.class);
+            Storage storage = createClient(Storage.class);
             storage.buckets().delete(getName()).execute();
         } catch (IOException e) {
-            throw new GyroException(String.format("Unable to delete Bucket: %s, Google error: %s", getName(), e.getMessage()));
+            throw new GyroException(e.getMessage());
         }
     }
 
     @Override
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
-
-        if (getName() != null && NAME_PATTERN.matcher(getName()).find()) {
-            errors.add(new ValidationError(this, "name", "Invalid name format."));
-        }
 
         if (getLabels() != null) {
             for (Map.Entry<String, String> entry : getLabels().entrySet()) {
@@ -396,7 +534,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                     errors.add(new ValidationError(
                             this,
                             "labels",
-                            String.format("Invalid key/value => '%s:%s'", key, value)));
+                            String.format("Invalid key/value => '%s:%s'. Keys and values must be less than 64 characters " +
+                                    "and contain only lowercase letters, numeric characters, international characters, " +
+                                    "underscores, and dashes. Keys must start with letter or international character and " +
+                                    "must not be empty.", key, value)));
                 }
             }
         }
@@ -406,42 +547,60 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     @Override
     public void copyFrom(Bucket model) {
+        setId(model.getId());
         setName(model.getName());
         setLabels(model.getLabels());
         setLocation(model.getLocation());
         setStorageClass(model.getStorageClass());
+        setSelfLink(model.getSelfLink());
 
-        BucketBilling bucketBilling = newSubresource(BucketBilling.class);
-        bucketBilling.copyFrom(model.getBilling());
-        setBilling(bucketBilling);
+        if (model.getBilling() != null) {
+            BucketBilling bucketBilling = newSubresource(BucketBilling.class);
+            bucketBilling.copyFrom(model.getBilling());
+            setBilling(bucketBilling);
+        }
 
-        BucketEncryption bucketEncryption = newSubresource(BucketEncryption.class);
-        bucketEncryption.copyFrom(model.getEncryption());
-        setEncryption(bucketEncryption);
+        if (model.getEncryption() != null) {
+            BucketEncryption bucketEncryption = newSubresource(BucketEncryption.class);
+            bucketEncryption.copyFrom(model.getEncryption());
+            setEncryption(bucketEncryption);
+        }
 
-        BucketIamConfiguration bucketIamConfiguration = newSubresource(BucketIamConfiguration.class);
-        bucketIamConfiguration.copyFrom(model.getIamConfiguration());
-        setIamConfiguration(bucketIamConfiguration);
+        if (model.getIamConfiguration() != null) {
+            BucketIamConfiguration bucketIamConfiguration = newSubresource(BucketIamConfiguration.class);
+            bucketIamConfiguration.copyFrom(model.getIamConfiguration());
+            setIamConfiguration(bucketIamConfiguration);
+        }
 
-        BucketLifecycle bucketLifecycle = newSubresource(BucketLifecycle.class);
-        bucketLifecycle.copyFrom(model.getLifecycle());
-        setLifecycle(bucketLifecycle);
+        if (model.getLifecycle() != null) {
+            BucketLifecycle bucketLifecycle = newSubresource(BucketLifecycle.class);
+            bucketLifecycle.copyFrom(model.getLifecycle());
+            setLifecycle(bucketLifecycle);
+        }
 
-        BucketLogging bucketLogging = newSubresource(BucketLogging.class);
-        bucketLogging.copyFrom(model.getLogging());
-        setLogging(bucketLogging);
+        if (model.getLogging() != null) {
+            BucketLogging bucketLogging = newSubresource(BucketLogging.class);
+            bucketLogging.copyFrom(model.getLogging());
+            setLogging(bucketLogging);
+        }
 
-        BucketRetentionPolicy policy = newSubresource(BucketRetentionPolicy.class);
-        policy.copyFrom(model.getRetentionPolicy());
-        setRetentionPolicy(policy);
+        if (model.getRetentionPolicy() != null) {
+            BucketRetentionPolicy policy = newSubresource(BucketRetentionPolicy.class);
+            policy.copyFrom(model.getRetentionPolicy());
+            setRetentionPolicy(policy);
+        }
 
-        BucketVersioning bucketVersioning = newSubresource(BucketVersioning.class);
-        bucketVersioning.copyFrom(model.getVersioning());
-        setVersioning(bucketVersioning);
+        if (model.getVersioning() != null) {
+            BucketVersioning bucketVersioning = newSubresource(BucketVersioning.class);
+            bucketVersioning.copyFrom(model.getVersioning());
+            setVersioning(bucketVersioning);
+        }
 
-        BucketWebsite bucketWebsite = newSubresource(BucketWebsite.class);
-        bucketWebsite.copyFrom(model.getWebsite());
-        setWebsite(bucketWebsite);
+        if (model.getWebsite() != null) {
+            BucketWebsite bucketWebsite = newSubresource(BucketWebsite.class);
+            bucketWebsite.copyFrom(model.getWebsite());
+            setWebsite(bucketWebsite);
+        }
 
         if (model.getAcl() != null) {
             setAcl(model.getAcl().stream()
