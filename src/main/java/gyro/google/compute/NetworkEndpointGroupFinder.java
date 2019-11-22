@@ -26,6 +26,7 @@ import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -73,18 +74,21 @@ public class NetworkEndpointGroupFinder extends GoogleFinder<Compute, NetworkEnd
     @Override
     protected List<NetworkEndpointGroup> findAllGoogle(Compute client) {
         try {
-            NetworkEndpointGroupAggregatedList list = client.networkEndpointGroups().aggregatedList(getProjectId()).execute();
-            if (list.size() > 0 ) {
-                return client.networkEndpointGroups()
-                    .aggregatedList(getProjectId()).execute()
-                    .getItems().values().stream()
+            List<NetworkEndpointGroup> networkEndpointGroups = new ArrayList<>();
+            NetworkEndpointGroupAggregatedList networkEndpointGroupList;
+            String nextPageToken = null;
+
+            do {
+                networkEndpointGroupList = client.networkEndpointGroups().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
+                networkEndpointGroups.addAll(networkEndpointGroupList.getItems().values().stream()
                     .map(NetworkEndpointGroupsScopedList::getNetworkEndpointGroups)
                     .filter(Objects::nonNull)
                     .flatMap(Collection::stream)
-                    .collect(Collectors.toList());
-            } else {
-                return Collections.emptyList();
-            }
+                    .collect(Collectors.toList()));
+                nextPageToken = networkEndpointGroupList.getNextPageToken();
+            } while(nextPageToken != null);
+
+            return networkEndpointGroups;
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (IOException ex) {
