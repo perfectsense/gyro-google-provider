@@ -19,11 +19,13 @@ package gyro.google.compute;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Firewall;
+import com.google.api.services.compute.model.FirewallList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +58,17 @@ public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallReso
     @Override
     protected List<Firewall> findAllGoogle(Compute client) {
         try {
-            return client.firewalls().list(getProjectId()).execute().getItems();
+            List<Firewall> firewalls = new ArrayList<>();
+            FirewallList firewallList;
+            String nextPageToken = null;
+
+            do {
+                firewallList = client.firewalls().list(getProjectId()).setPageToken(nextPageToken).execute();
+                firewalls.addAll(firewallList.getItems());
+                nextPageToken = firewallList.getNextPageToken();
+            } while (nextPageToken != null);
+
+            return firewalls;
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (IOException ex) {
