@@ -19,10 +19,12 @@ package gyro.google.compute;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Route;
+import com.google.api.services.compute.model.RouteList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,17 @@ public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
     @Override
     protected List<Route> findAllGoogle(Compute client) {
         try {
-            return client.routes().list(getProjectId()).execute().getItems();
+            List<Route> routes = new ArrayList<>();
+            RouteList routeList;
+            String nextPageToken = null;
+
+            do {
+                routeList = client.routes().list(getProjectId()).setPageToken(nextPageToken).execute();
+                routes.addAll(routeList.getItems());
+                nextPageToken = routeList.getNextPageToken();
+            } while (nextPageToken != null);
+
+            return routes;
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
