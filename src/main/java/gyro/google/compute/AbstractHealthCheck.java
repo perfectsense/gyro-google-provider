@@ -53,7 +53,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The port specification determines how the port is selected for health checking.
+     * The port specification determines how the port is selected for health checking. Valid values are ``USE_FIXED_PORT``, ``USE_NAMED_PORT`` or ``USE_SERVING_PORT``.
      */
     @Updatable
     @ValidStrings({"USE_FIXED_PORT", "USE_NAMED_PORT", "USE_SERVING_PORT"})
@@ -66,7 +66,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The proxy header to append before sending data to the backend. Valid values are: ``NONE`` or ``PROXY_V1``. The default is ``NONE``.
+     * The proxy header to append before sending data to the backend. Valid values are ``NONE`` or ``PROXY_V1``.
      */
     @Updatable
     @ValidStrings({"NONE", "PROXY_V1"})
@@ -79,7 +79,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The string to match in the response body. If left empty the status code determines health. The default value is empty.
+     * The string to match in the response body. If left empty the status code determines health.
      */
     @Updatable
     public String getResponse() {
@@ -91,7 +91,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The request path of the health check request. The default value is /.
+     * The request path of the health check request.
      */
     @Updatable
     public String getRequestPath() {

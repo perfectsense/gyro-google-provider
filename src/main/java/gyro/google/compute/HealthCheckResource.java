@@ -24,9 +24,11 @@ import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -117,10 +119,11 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     private Integer unhealthyThreshold;
 
     /**
-     * The name of the health check. The name must be 1-63 characters long. See `RFC1035 <https://www.ietf.org/rfc/rfc1035.txt/>`_. (Required)
+     * The name of the health check. (Required)
      */
     @Id
     @Required
+    @Regex("(?:(?:[-a-z0-9]{1,63}\\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))")
     public String getName() {
         return name;
     }
@@ -142,7 +145,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The time (in seconds) for how often to send a health check. The default value is 5 seconds.
+     * The time (in seconds) for how often to send a health check.
      */
     @Updatable
     public Integer getCheckIntervalSec() {
@@ -154,7 +157,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The HTTP Health Check type.
+     * The http Health Check type.
      *
      * @subresource gyro.google.compute.HealthCheckHttpHealthCheck
      */
@@ -168,7 +171,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The HTTPS Health Check type.
+     * The https Health Check type.
      *
      * @subresource gyro.google.compute.HealthCheckHttpsHealthCheck
      */
@@ -182,7 +185,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The HTTP2 Health Check type.
+     * The http2 Health Check type.
      *
      * @subresource gyro.google.compute.HealthCheckHttp2HealthCheck
      */
@@ -196,7 +199,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The SSL Health Check type.
+     * The ssl Health Check type.
      *
      * @subresource gyro.google.compute.HealthCheckSslHealthCheck
      */
@@ -210,7 +213,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The TCP Health Check type.
+     * The tcp Health Check type.
      *
      * @subresource gyro.google.compute.HealthCheckTcpHealthCheck
      */
@@ -224,7 +227,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The time (in seconds) to wait before claiming failure. The default value is 5 seconds.
+     * The time (in seconds) to wait before claiming failure.
      */
     @Updatable
     public Integer getTimeoutSec() {
@@ -250,7 +253,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The number of consecutive failures before marking unhealthy. The default value is 2.
+     * The number of consecutive failures before marking unhealthy.
      */
     @Updatable
     public Integer getUnhealthyThreshold() {
@@ -262,7 +265,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The number of consecutive successes before marking healthy. The default value is 2.
+     * The number of consecutive successes before marking healthy.
      */
     @Updatable
     public Integer getHealthyThreshold() {
@@ -274,8 +277,9 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The server-defined URL for the health check. (Output Only)
+     * The server-defined URL for the health check.
      */
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -294,26 +298,31 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
         setSelfLink(healthCheck.getSelfLink());
+
         if (healthCheck.getHttpHealthCheck() != null) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
             httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
             setHttpHealthCheck(httpHealthCheck);
         }
+
         if (healthCheck.getHttpsHealthCheck() != null) {
             HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
             httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
             setHttpsHealthCheck(httpsHealthCheck);
         }
+
         if (healthCheck.getHttp2HealthCheck() != null) {
             HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
             http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
             setHttp2HealthCheck(http2HealthCheck);
         }
+
         if (healthCheck.getSslHealthCheck() != null) {
             HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
             sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
             setSslHealthCheck(sslHealthCheck);
         }
+
         if (healthCheck.getTcpHealthCheck() != null) {
             HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
             tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
@@ -329,7 +338,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
             copyFrom(healthCheck);
             return true;
         } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() == 404) {
                 return false;
             } else {
                 throw new GyroException(je.getDetails().getMessage());
@@ -386,7 +395,12 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck() == null ? null : getHttp2HealthCheck().toHttp2HealthCheck());
             healthCheck.setSslHealthCheck(getSslHealthCheck() == null ? null : getSslHealthCheck().toSslHealthCheck());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck() == null ? null : getTcpHealthCheck().toTcpHealthCheck());
-            client.healthChecks().patch(getProjectId(), getName(), healthCheck).execute();
+
+            Operation operation = client.healthChecks().patch(getProjectId(), getName(), healthCheck).execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
         } catch (IOException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }

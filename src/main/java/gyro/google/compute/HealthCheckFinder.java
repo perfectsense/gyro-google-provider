@@ -44,9 +44,8 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
     private String name;
 
     /**
-     * The name of the health check. (Required)
+     * The name of the health check.
      */
-    @Required
     public String getName() {
         return name;
     }
@@ -73,7 +72,7 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
         try {
             healthcheck = client.healthChecks().get(getProjectId(), filters.get("name")).execute();
         } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() != 404) {
                 throw new GyroException(je.getDetails().getMessage());
             }
         } catch (IOException ex) {
