@@ -19,11 +19,13 @@ package gyro.google.compute;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
+import com.google.api.services.compute.model.NetworkList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +58,17 @@ public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResourc
     @Override
     protected List<Network> findAllGoogle(Compute client) {
         try {
-            return client.networks().list(getProjectId()).execute().getItems();
+            List<Network> networks = new ArrayList<>();
+            NetworkList networkList;
+            String nextPageToken = null;
+            
+            do {
+                networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
+                networks.addAll(networkList.getItems());
+                nextPageToken = networkList.getNextPageToken();
+            } while (nextPageToken != null);
+
+            return networks;
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (IOException ex) {
