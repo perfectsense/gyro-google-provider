@@ -16,9 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
-import java.util.Set;
-
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
@@ -28,12 +25,16 @@ import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
+
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * Creates a subnet.
@@ -63,10 +64,12 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the subnet. (Required)
      */
+    @Id
     @Required
     public String getName() {
         return name;
@@ -167,6 +170,18 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         this.id = id;
     }
 
+    /**
+     * The fully qualified url for the subnet.
+     */
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
     @Override
     public void copyFrom(Subnetwork subnetwork) {
         setId(subnetwork.getId().toString());
@@ -177,6 +192,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         setName(subnetwork.getName());
         setNetwork(findById(NetworkResource.class, subnetwork.getNetwork().substring(subnetwork.getNetwork().lastIndexOf("/") + 1)));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
+        setSelfLink(subnetwork.getSelfLink());
     }
 
     @Override
@@ -241,6 +257,8 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
                 flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
                 client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
             }
+
+            refresh();
         } catch (IOException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }

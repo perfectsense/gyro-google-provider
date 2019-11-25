@@ -62,9 +62,16 @@ public class GlobalAddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         try {
             Address address = compute.globalAddresses().get(getProjectId(), getName()).execute();
-            return (address != null);
+
+            if (address == null) {
+                return false;
+            }
+
+            copyFrom(address);
+
+            return true;
         } catch (IOException e) {
-            return false;
+            throw new GyroException(e.getMessage(), e.getCause());
         }
     }
 
@@ -78,8 +85,8 @@ public class GlobalAddressResource extends AbstractAddressResource {
         address.setIpVersion(getIpVersion());
         address.setAddressType(getAddressType());
         address.setPurpose(getPurpose());
-//        address.setSubnetwork(getSubnetwork() == null ? null : getSubnetwork().getSelfLink());
-//        address.setNetwork(getNetwork() == null ? null : getNetwork().getSelfLink());
+        address.setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null);
+        address.setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
 
         try {
             waitForCompletion(compute, compute.globalAddresses().insert(getProjectId(), address).execute());
@@ -96,7 +103,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
         try {
             compute.globalAddresses().delete(getProjectId(), getName()).execute();
         } catch (IOException e) {
-            throw new GyroException(String.format("Unable to delete Address: %s, Google error: %s", getName(), e.getMessage()));
+            throw new GyroException(e.getMessage(), e.getCause());
         }
     }
 

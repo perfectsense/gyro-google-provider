@@ -36,8 +36,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
 
     protected static final String NAME_REGEX = "[a-z]([-a-z0-9]*[a-z0-9])?.";
     protected static final Pattern NAME_PATTERN = Pattern.compile(NAME_REGEX);
-    private static final int SLEEP_TIMEOUT = 900;
-    private static final int WAIT_TIMEOUT = 5000;
 
     private String id;
     private String name;
@@ -192,6 +190,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         setSubnetwork(model.getSubnetwork() == null ? null : findById(SubnetworkResource.class, model.getSubnetwork().substring(model.getSubnetwork().lastIndexOf('/') + 1)));
         setNetwork(model.getNetwork() == null ? null : findById(NetworkResource.class, model.getNetwork().substring(model.getNetwork().lastIndexOf('/') + 1)));
         setStatus(model.getStatus());
+        setSelfLink(model.getSelfLink());
     }
 
     @Override

@@ -16,9 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
-import java.util.Set;
-
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
@@ -35,6 +32,9 @@ import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
+
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * Creates a network.
@@ -58,6 +58,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the network. (Required)
@@ -107,6 +108,18 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * The fully qualified url for the subnet.
+     */
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
     }
 
     @Override

@@ -70,6 +70,10 @@ public class AddressResource extends AbstractAddressResource {
     }
 
     public void setRegion(String region) {
+        if ((region != null) && region.startsWith("http")) {
+            String[] paths = region.split("/");
+            region = paths[paths.length - 1];
+        }
         this.region = region;
     }
 
@@ -78,6 +82,7 @@ public class AddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         try {
             Address address = compute.addresses().get(getProjectId(), getRegion(), getName()).execute();
+
             if (address == null) {
                 return false;
             }
@@ -86,7 +91,7 @@ public class AddressResource extends AbstractAddressResource {
 
             return true;
         } catch (IOException e) {
-            throw new GyroException(String.format("Encountered GCP error '%s'", e.getMessage()));
+            throw new GyroException(e.getMessage(), e.getCause());
         }
     }
 
@@ -101,15 +106,15 @@ public class AddressResource extends AbstractAddressResource {
         address.setNetworkTier(getNetworkTier());
         address.setAddressType(getAddressType());
         address.setPurpose(getPurpose());
-//        address.setSubnetwork(getSubnetwork() == null ? null : getSubnetwork().getSelfLink());
-//        address.setNetwork(getNetwork() == null ? null : getNetwork().getSelfLink());
+        address.setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null);
+        address.setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
 
         try {
             waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());
             refresh();
 
         } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
+            throw new GyroException(e.getMessage(), e.getCause());
         }
     }
 
@@ -119,7 +124,7 @@ public class AddressResource extends AbstractAddressResource {
         try {
             compute.addresses().delete(getProjectId(), getRegion(), getName()).execute();
         } catch (IOException e) {
-            throw new GyroException(String.format("Unable to delete Address: %s, Google error: %s", getName(), e.getMessage()));
+            throw new GyroException(e.getMessage(), e.getCause());
         }
     }
 
