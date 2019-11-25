@@ -66,7 +66,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     private Set<String> tags;
     private String nextHopGateway;
     private String nextHopVpnTunnel;
-    private InstanceResource nextHopInstance;
+    private String nextHopInstance;
     private String nextHopIp;
 
     // Read-only
@@ -174,13 +174,13 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     }
 
     /**
-     * The instance that handles matching routed packets.
+     * The fully qualified url of an instance that handles matching routed packets.
      */
-    public InstanceResource getNextHopInstance() {
+    public String getNextHopInstance() {
         return nextHopInstance;
     }
 
-    public void setNextHopInstance(InstanceResource nextHopInstance) {
+    public void setNextHopInstance(String nextHopInstance) {
         this.nextHopInstance = nextHopInstance;
     }
 
@@ -251,7 +251,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         }).collect(Collectors.toList()) : null);
         setNextHopGateway(route.getNextHopGateway());
         setNextHopVpnTunnel(route.getNextHopVpnTunnel());
-        setNextHopInstance(route.getNextHopInstance() != null ? findById(InstanceResource.class, route.getNextHopInstance().substring(route.getNextHopInstance().lastIndexOf("/") + 1)) : null);
+        setNextHopInstance(route.getNextHopInstance());
         setNextHopIp(route.getNextHopIp());
     }
 
@@ -286,7 +286,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         route.setDestRange(getDestRange());
         route.setNextHopGateway(getNextHopGateway());
         route.setNextHopVpnTunnel(getNextHopVpnTunnel());
-        route.setNextHopInstance(getNextHopInstance() != null ? getNextHopInstance().getSelfLink() : null);
+        route.setNextHopInstance(getNextHopInstance());
         route.setNextHopIp(getNextHopIp());
         route.setPriority(getPriority());
         route.setTags(new ArrayList<>(getTags()));
