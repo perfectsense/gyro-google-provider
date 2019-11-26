@@ -20,6 +20,8 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Disk;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.RegionDisksAddResourcePoliciesRequest;
+import com.google.api.services.compute.model.RegionDisksRemoveResourcePoliciesRequest;
 import com.google.api.services.compute.model.RegionDisksResizeRequest;
 import com.google.api.services.compute.model.RegionSetLabelsRequest;
 import gyro.core.GyroException;
@@ -28,10 +30,12 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Creates a regional disk.
@@ -75,13 +79,29 @@ public class RegionDiskResource extends AbstractDiskResource {
     }
 
     public void setReplicaZones(List<String> replicaZones) {
-        this.replicaZones = replicaZones;
+        this.replicaZones = replicaZones != null
+            ? replicaZones.stream().map(zone -> ComputeUtils.toZoneUrl(getProjectId(), zone)).collect(Collectors.toList())
+            : null;
+    }
+
+    @Override
+    public void setResourcePolicies(List<String> resourcePolicies) {
+        super.setResourcePolicies(resourcePolicies != null
+            ? resourcePolicies.stream().map(p -> ComputeUtils.toResourcePolicyUrl(getProjectId(), p, getRegion())).collect(Collectors.toList())
+            : null);
+    }
+
+    @Override
+    public void setType(String type) {
+        super.setType(type != null ? ComputeUtils.toRegionDiskTypeUrl(getProjectId(), type, getRegion()) : null);
     }
 
     @Override
     public void copyMore(Disk disk) {
         setRegion(disk.getRegion().substring(disk.getRegion().lastIndexOf("/") + 1));
         setReplicaZones(disk.getReplicaZones());
+        setType(disk.getType());
+        setResourcePolicies(disk.getResourcePolicies());
     }
 
     @Override
@@ -103,6 +123,20 @@ public class RegionDiskResource extends AbstractDiskResource {
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
+    }
+
+    @Override
+    public List<ValidationError> validateMore() {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (getReplicaZones().size() != 2) {
+            errors.add(new ValidationError(
+                this,
+                "replica-zones",
+                "Disk requires exactly two replica zones."));
+        }
+
+        return errors;
     }
 
     @Override
@@ -141,7 +175,7 @@ public class RegionDiskResource extends AbstractDiskResource {
         Compute client = createComputeClient();
 
         if (changedFieldNames.contains("size-gb")) {
-            saveSizeGb(client);
+            saveSizeGb(client, (RegionDiskResource) current);
         }
 
         if (changedFieldNames.contains("labels")) {
@@ -155,7 +189,11 @@ public class RegionDiskResource extends AbstractDiskResource {
         refresh();
     }
 
-    private void saveSizeGb(Compute client) {
+    private void saveSizeGb(Compute client, RegionDiskResource oldRegionDiskResource) {
+        if (getSizeGb() < oldRegionDiskResource.getSizeGb()) {
+            throw new GyroException("Size of the disk cannot be decreased once set.");
+        }
+
         try {
             RegionDisksResizeRequest resizeRequest = new RegionDisksResizeRequest();
             resizeRequest.setSizeGb(getSizeGb());
@@ -177,5 +215,25 @@ public class RegionDiskResource extends AbstractDiskResource {
     }
 
     private void saveResourcePolicies(Compute client, RegionDiskResource oldRegionDiskResource) {
+        try {
+            if (!oldRegionDiskResource.getResourcePolicies().isEmpty()) {
+                RegionDisksRemoveResourcePoliciesRequest removeResourcePoliciesRequest = new RegionDisksRemoveResourcePoliciesRequest();
+                removeResourcePoliciesRequest.setResourcePolicies(oldRegionDiskResource.getResourcePolicies());
+                Operation operation = client.regionDisks()
+                    .removeResourcePolicies(getProjectId(), getRegion(), getName(), removeResourcePoliciesRequest).execute();
+                Operation.Error error = waitForCompletion(client, operation);
+                if (error != null) {
+                    throw new GyroException(error.toPrettyString());
+                }
+            }
+
+            if (!getResourcePolicies().isEmpty()) {
+                RegionDisksAddResourcePoliciesRequest addResourcePoliciesRequest = new RegionDisksAddResourcePoliciesRequest();
+                addResourcePoliciesRequest.setResourcePolicies(getResourcePolicies());
+                client.regionDisks().addResourcePolicies(getProjectId(), getRegion(), getName(), addResourcePoliciesRequest).execute();
+            }
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
     }
 }

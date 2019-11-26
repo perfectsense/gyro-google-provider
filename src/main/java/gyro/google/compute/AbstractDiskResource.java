@@ -27,6 +27,7 @@ import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidNumbers;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,7 +92,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The source snapshot used to create the disk.
+     * The source snapshot used to create the disk. Valid forms are ``https://www.googleapis.com/compute/v1/projects/project/global/snapshots/snapshot``, ``projects/project-name/global/snapshots/snapshot-name``, ``global/snapshots/snapshot-name``, or ``snapshot-name``. See `Source Snapshot <https://cloud.google.com/compute/docs/reference/rest/v1/disks#Disk.FIELDS.source_snapshot>`_.
      */
     @ConflictsWith("source-image")
     public String getSourceSnapshot() {
@@ -99,7 +100,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     public void setSourceSnapshot(String sourceSnapshot) {
-        this.sourceSnapshot = sourceSnapshot;
+        this.sourceSnapshot = sourceSnapshot != null ? ComputeUtils.toSourceSnapshotUrl(getProjectId(), sourceSnapshot) : null;
     }
 
     /**
@@ -256,10 +257,8 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         setDescription(disk.getDescription());
         setSizeGb(disk.getSizeGb());
         setSourceSnapshot(disk.getSourceSnapshot());
-        setType(disk.getType());
         setLabels(disk.getLabels());
         setPhysicalBlockSizeBytes(disk.getPhysicalBlockSizeBytes());
-        setResourcePolicies(disk.getResourcePolicies());
         setStatus(disk.getStatus());
         setSourceSnapshotId(disk.getSourceSnapshotId());
         setSelfLink(disk.getSelfLink());
@@ -304,5 +303,21 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
 
     public abstract void doCreate(GyroUI ui, State state, Disk disk);
 
+    @Override
+    public List<ValidationError> validate() {
+        List<ValidationError> errors = new ArrayList<>();
 
+        if (getResourcePolicies().size() > 1) {
+            errors.add(new ValidationError(
+                this,
+                "resource-policies",
+                "Attaching more than one resource policy is not supported."));
+        }
+
+        errors.addAll(validateMore());
+
+        return errors;
+    }
+
+    public abstract List<ValidationError> validateMore();
 }

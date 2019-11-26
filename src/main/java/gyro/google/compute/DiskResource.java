@@ -19,6 +19,8 @@ package gyro.google.compute;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Disk;
+import com.google.api.services.compute.model.DisksAddResourcePoliciesRequest;
+import com.google.api.services.compute.model.DisksRemoveResourcePoliciesRequest;
 import com.google.api.services.compute.model.DisksResizeRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.ZoneSetLabelsRequest;
@@ -30,8 +32,12 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Creates a zonal disk.
@@ -68,7 +74,7 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     /**
-     * The source image used to create this disk.
+     * The source image used to create this disk. Valid forms are ``https://www.googleapis.com/compute/v1/projects/project-name/global/images/image-name``, ``projects/project-name/global/images/family/family-name``, ``projects/project-name/global/images/image-name``, ``global/images/image-name``, ``global/images/family/family-name``, or ``image-name``. See `Source Image <https://cloud.google.com/compute/docs/reference/rest/v1/disks#Disk.FIELDS.source_image>`_.
      */
     @ConflictsWith("source-snapshot")
     public String getSourceImage() {
@@ -76,7 +82,7 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     public void setSourceImage(String sourceImage) {
-        this.sourceImage = sourceImage;
+        this.sourceImage = sourceImage != null ? ComputeUtils.toSourceImageUrl(getProjectId(), sourceImage) : null;
     }
 
     /**
@@ -106,10 +112,26 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     @Override
+    public void setResourcePolicies(List<String> resourcePolicies) {
+        super.setResourcePolicies(resourcePolicies != null
+            ? resourcePolicies.stream()
+                .map(policy -> ComputeUtils.toResourcePolicyUrl(getProjectId(), policy, getZone().substring(0, getZone().lastIndexOf("-"))))
+                .collect(Collectors.toList())
+            : null);
+    }
+
+    @Override
+    public void setType(String type) {
+        super.setType(type != null ? ComputeUtils.toZoneDiskTypeUrl(getProjectId(), type, getZone()) : null);
+    }
+
+    @Override
     public void copyMore(Disk disk) {
         setZone(disk.getZone().substring(disk.getZone().lastIndexOf("/") + 1));
         setSourceImage(disk.getSourceImage());
         setSourceImageId(disk.getSourceImageId());
+        setType(disk.getType());
+        setResourcePolicies(disk.getResourcePolicies());
 
         if (disk.getSourceImageEncryptionKey() != null) {
             EncryptionKey sourceImageEncryption = newSubresource(EncryptionKey.class);
@@ -138,6 +160,11 @@ public class DiskResource extends AbstractDiskResource {
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
+    }
+
+    @Override
+    public List<ValidationError> validateMore() {
+        return new ArrayList<>();
     }
 
     @Override
@@ -176,7 +203,7 @@ public class DiskResource extends AbstractDiskResource {
         Compute client = createComputeClient();
 
         if (changedFieldNames.contains("size-gb")) {
-            saveSizeGb(client);
+            saveSizeGb(client, (RegionDiskResource) current);
         }
 
         if (changedFieldNames.contains("labels")) {
@@ -190,7 +217,11 @@ public class DiskResource extends AbstractDiskResource {
         refresh();
     }
 
-    private void saveSizeGb(Compute client) {
+    private void saveSizeGb(Compute client, RegionDiskResource oldRegionDiskResource) {
+        if (getSizeGb() < oldRegionDiskResource.getSizeGb()) {
+            throw new GyroException("Size of the disk cannot be decreased once set.");
+        }
+
         try {
             DisksResizeRequest resizeRequest = new DisksResizeRequest();
             resizeRequest.setSizeGb(getSizeGb());
@@ -212,5 +243,25 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     private void saveResourcePolicies(Compute client, RegionDiskResource oldRegionDiskResource) {
+        try {
+            if (!oldRegionDiskResource.getResourcePolicies().isEmpty()) {
+                DisksRemoveResourcePoliciesRequest removeResourcePoliciesRequest = new DisksRemoveResourcePoliciesRequest();
+                removeResourcePoliciesRequest.setResourcePolicies(oldRegionDiskResource.getResourcePolicies());
+                Operation operation = client.disks()
+                    .removeResourcePolicies(getProjectId(), getZone(), getName(), removeResourcePoliciesRequest).execute();
+                Operation.Error error = waitForCompletion(client, operation);
+                if (error != null) {
+                    throw new GyroException(error.toPrettyString());
+                }
+            }
+
+            if (!getResourcePolicies().isEmpty()) {
+                DisksAddResourcePoliciesRequest addResourcePoliciesRequest = new DisksAddResourcePoliciesRequest();
+                addResourcePoliciesRequest.setResourcePolicies(getResourcePolicies());
+                client.disks().addResourcePolicies(getProjectId(), getZone(), getName(), addResourcePoliciesRequest).execute();
+            }
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
     }
 }
