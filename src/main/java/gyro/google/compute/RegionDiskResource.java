@@ -48,6 +48,35 @@ import java.util.stream.Collectors;
  *     google::compute-region-disk region-disk-example
  *         name: "region-disk-example"
  *         description: "region-disk-example-desc"
+ *         region: "us-central1"
+ *         replica-zones: [
+ *             "us-central1-c",
+ *             "us-central1-a"
+ *         ]
+ *         size-gb: 32
+ *         type: "pd-ssd"
+ *         labels: {
+ *             label-key: 'label-value'
+ *         }
+ *         physical-block-size-bytes: 16384
+ *         resource-policies: [
+ *             "projects/project-name/regions/us-central1/resourcePolicies/schedule-name"
+ *         ]
+ *     end
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-region-disk region-disk-snapshot-example
+ *         name: "region-disk-snapshot-example"
+ *         region: "us-central1"
+ *         replica-zones: [
+ *             "us-central1-c",
+ *             "us-central1-a"
+ *         ]
+ *         snapshot: "global/snapshots/snapshot-name"
+ *         source-snapshot-encryption-key
+ *         kms-key-name: "my-kms-key-name"
+ *         end
  *     end
  */
 @Type("compute-region-disk")

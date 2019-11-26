@@ -50,6 +50,27 @@ import java.util.stream.Collectors;
  *     google::compute-disk disk-example
  *         name: "disk-example"
  *         description: "disk-example-desc"
+ *         zone: "us-central1-a"
+ *         size-gb: 32
+ *         type: "pd-standard"
+ *         labels: {
+ *             label-key: 'label-value'
+ *         }
+ *         physical-block-size-bytes: 4096
+ *         resource-policies: [
+ *             "projects/project-name/regions/us-central1/resourcePolicies/schedule-name"
+ *         ]
+ *     end
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-disk disk-image-example
+ *         name: "disk-image-example"
+ *         zone: "us-central1-a"
+ *         image: "projects/debian-cloud/global/images/family/debian-9"
+ *         source-image-encryption-key
+ *             raw-key: "my-256-bit-raw-key"
+ *         end
  *     end
  */
 @Type("compute-disk")
