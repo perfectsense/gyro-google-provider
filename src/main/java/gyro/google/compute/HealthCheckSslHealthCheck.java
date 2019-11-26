@@ -27,6 +27,11 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Co
     }
 
     @Override
+    protected String getType() {
+        return "SSL";
+    }
+
+    @Override
     public void copyFrom(SSLHealthCheck model) {
         if (model != null) {
             setPort(model.getPort());

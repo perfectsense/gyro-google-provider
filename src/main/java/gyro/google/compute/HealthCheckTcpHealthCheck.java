@@ -28,6 +28,11 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
     }
 
     @Override
+    protected String getType() {
+        return "TCP";
+    }
+
+    @Override
     public void copyFrom(TCPHealthCheck model) {
         if (model != null) {
             setPort(model.getPort());

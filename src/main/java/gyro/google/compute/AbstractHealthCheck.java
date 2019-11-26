@@ -101,4 +101,6 @@ public abstract class AbstractHealthCheck extends Diffable {
     public void setRequestPath(String requestPath) {
         this.requestPath = requestPath;
     }
+
+    protected abstract String getType();
 }

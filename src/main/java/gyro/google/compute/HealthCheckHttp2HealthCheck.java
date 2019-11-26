@@ -41,6 +41,11 @@ public class HealthCheckHttp2HealthCheck extends AbstractHealthCheck implements 
     }
 
     @Override
+    protected String getType() {
+        return "HTTP2";
+    }
+
+    @Override
     public void copyFrom(HTTP2HealthCheck model) {
         if (model != null) {
             setHost(model.getHost());

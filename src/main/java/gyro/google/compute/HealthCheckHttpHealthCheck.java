@@ -41,6 +41,11 @@ public class HealthCheckHttpHealthCheck extends AbstractHealthCheck implements C
     }
 
     @Override
+    protected String getType() {
+        return "HTTP";
+    }
+
+    @Override
     public void copyFrom(HTTPHealthCheck model) {
         if (model != null) {
             setHost(model.getHost());

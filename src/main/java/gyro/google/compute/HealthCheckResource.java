@@ -357,27 +357,27 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         healthCheck.setHealthyThreshold(getHealthyThreshold());
 
         if (getHttpHealthCheck() != null) {
-            healthCheck.setType("HTTP");
+            healthCheck.setType(getHttpHealthCheck().getType());
             healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
         }
 
         if (getHttpsHealthCheck() != null) {
-            healthCheck.setType("HTTPS");
+            healthCheck.setType(getHttpsHealthCheck().getType());
             healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
         }
 
         if (getHttp2HealthCheck() != null) {
-            healthCheck.setType("HTTP2");
+            healthCheck.setType(getHttp2HealthCheck().getType());
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
         }
 
         if (getSslHealthCheck() != null) {
-            healthCheck.setType("SSL");
+            healthCheck.setType(getSslHealthCheck().getType());
             healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
         }
 
         if (getTcpHealthCheck() != null) {
-            healthCheck.setType("TCP");
+            healthCheck.setType(getTcpHealthCheck().getType());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
         }
 
@@ -428,27 +428,27 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
             healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
 
             if (getHttpHealthCheck() != null) {
-                healthCheck.setType("HTTP");
+                healthCheck.setType(getHttpHealthCheck().getType());
                 healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
             }
 
             if (getHttpsHealthCheck() != null) {
-                healthCheck.setType("HTTPS");
+                healthCheck.setType(getHttpsHealthCheck().getType());
                 healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
             }
 
             if (getHttp2HealthCheck() != null) {
-                healthCheck.setType("HTTP2");
+                healthCheck.setType(getHttp2HealthCheck().getType());
                 healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
             }
 
             if (getSslHealthCheck() != null) {
-                healthCheck.setType("SSL");
+                healthCheck.setType(getSslHealthCheck().getType());
                 healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
             }
 
             if (getTcpHealthCheck() != null) {
-                healthCheck.setType("TCP");
+                healthCheck.setType(getTcpHealthCheck().getType());
                 healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
             }
 
