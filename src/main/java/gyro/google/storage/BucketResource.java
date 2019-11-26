@@ -17,6 +17,7 @@
 package gyro.google.storage;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.util.Data;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
 import gyro.core.GyroException;
@@ -33,10 +34,7 @@ import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -217,6 +215,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      */
     @Updatable
     public Map<String, String> getLabels() {
+        if (labels == null) {
+            labels = new HashMap<>();
+        }
         return labels;
     }
 
@@ -464,12 +465,17 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Storage storage = createClient(Storage.class);
+        BucketResource currentResource = (BucketResource) current;
 
         try {
             Bucket bucket = new Bucket();
 
             if (changedFieldNames.contains("labels")) {
-                bucket.setLabels(getLabels());
+                // To remove an entry you must pass the key with a Data.NULL_STRING value.
+                Map<String, String> updateLabels = new HashMap<>();
+                currentResource.getLabels().forEach((key, value) -> updateLabels.put(key, Data.NULL_STRING));
+                updateLabels.putAll(getLabels());
+                bucket.setLabels(updateLabels);
             }
 
             if (changedFieldNames.contains("location")) {

@@ -66,6 +66,10 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
 
     @Override
     public String primaryKey() {
+        if (getRule() == null) {
+            return "0";
+        }
+
         return String.format("lifecycle with %s rules", getRule().size());
     }
 

@@ -12,7 +12,8 @@ google::bucket bucket-1
     storage-class: 'STANDARD'
 
     labels: {
-        foo: 'bar_1901'
+        foo: 'bar_1900',
+        bar: 'foo_1800'
     }
 
     cors
