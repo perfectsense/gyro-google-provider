@@ -16,6 +16,9 @@
 
 package gyro.google.compute;
 
+import java.util.List;
+import java.util.Set;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Metadata;
@@ -29,8 +32,6 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Creates a project-wide metadata item. Set project-wide SSH keys by creating an item with the key ``ssh-keys``.
@@ -47,6 +48,7 @@ import java.util.Set;
  */
 @Type("project-metadata-item")
 public class ProjectMetadataItemResource extends ComputeResource implements Copyable<Metadata.Items> {
+
     private String key;
     private String value;
 

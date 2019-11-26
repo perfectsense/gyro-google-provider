@@ -16,15 +16,6 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Subnetwork;
-import com.google.api.services.compute.model.SubnetworkAggregatedList;
-import com.google.api.services.compute.model.SubnetworksScopedList;
-import gyro.core.GyroException;
-import gyro.core.Type;
-import gyro.google.GoogleFinder;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +24,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Subnetwork;
+import com.google.api.services.compute.model.SubnetworkAggregatedList;
+import com.google.api.services.compute.model.SubnetworksScopedList;
+import gyro.core.GyroException;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
 
 /**
  * Query subnet.
@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
  */
 @Type("subnet")
 public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, SubnetworkResource> {
+
     private String name;
     private String region;
 
@@ -79,7 +80,10 @@ public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, Subnetwo
             String nextPageToken = null;
 
             do {
-                subnetworkList = client.subnetworks().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
+                subnetworkList = client.subnetworks()
+                    .aggregatedList(getProjectId())
+                    .setPageToken(nextPageToken)
+                    .execute();
                 subnetworks.addAll(subnetworkList.getItems().values().stream()
                     .map(SubnetworksScopedList::getSubnetworks)
                     .filter(Objects::nonNull)

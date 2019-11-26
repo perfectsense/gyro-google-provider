@@ -16,17 +16,19 @@
 
 package gyro.google;
 
-import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
-import com.psddev.dari.util.TypeDefinition;
-import gyro.core.finder.Finder;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
+import com.psddev.dari.util.TypeDefinition;
+import gyro.core.finder.Finder;
+
 public abstract class GoogleFinder<C extends AbstractGoogleJsonClient, M, R extends GoogleResource> extends Finder<R> {
+
     protected abstract List<M> findAllGoogle(C client);
+
     protected abstract List<M> findGoogle(C client, Map<String, String> filters);
 
     @Override
