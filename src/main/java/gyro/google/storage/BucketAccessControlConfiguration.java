@@ -62,7 +62,7 @@ public class BucketAccessControlConfiguration extends Diffable implements Copyab
     }
 
     /**
-     * The entity holding the permission, in one of the following forms "user-*userId*", "user-*email*", "group-*groupId*", "group-*email*", "domain-*domain*", "project-*team-projectId*", "allUsers", or "allAuthenticatedUsers".
+     * The entity holding the permission, in one of the following forms ``user-<userId>``, ``user-<email>``, ``group-<groupId>``, ``group-<email>``, ``domain-<domain>``, ``project-<team-projectId>``, ``allUsers``, or ``allAuthenticatedUsers``.
      */
     @Regex(ENTITY_REGEX)
     @Updatable
@@ -104,7 +104,7 @@ public class BucketAccessControlConfiguration extends Diffable implements Copyab
     @Updatable
     @ValidStrings({"OWNER", "READER", "WRITER"})
     public String getRole() {
-        return role != null ? role.toUpperCase() : null;
+        return role;
     }
 
     public void setRole(String role) {

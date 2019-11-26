@@ -18,15 +18,37 @@ package gyro.google.storage;
 
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Buckets;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Query for a bucket.
+ *
+ * ========
+ * Examples
+ * ========
+ *
+ * **All buckets**
+ *
+ * .. code-block:: gyro
+ *
+ *    buckets: $(external-query google::bucket)
+ *
+ *
+ * **Bucket named "example-one"**
+ *
+ * .. code-block:: gyro
+ *
+ *    bucket: $(external-query google::bucket { name: 'example-one' })
+ */
 @Type("bucket")
 public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> {
     private String name;
@@ -44,11 +66,23 @@ public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> 
 
     @Override
     protected List<Bucket> findAllGoogle(Storage client) {
+        List<Bucket> buckets = new ArrayList<>();
+        String pageToken;
+
         try {
-            return client.buckets().list(getProjectId()).execute().getItems();
+            do {
+                Buckets results = client.buckets().list(getProjectId()).execute();
+                pageToken = results.getNextPageToken();
+
+                if (results.getItems() != null) {
+                    buckets.addAll(results.getItems());
+                }
+            } while (pageToken != null);
         } catch (IOException e) {
             throw new GyroException(e);
         }
+
+        return buckets;
     }
 
     @Override

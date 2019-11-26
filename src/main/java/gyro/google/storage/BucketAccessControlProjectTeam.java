@@ -48,7 +48,7 @@ public class BucketAccessControlProjectTeam extends Diffable implements Copyable
     @Updatable
     @ValidStrings({"editors", "owners", "viewers"})
     public String getTeam() {
-        return team != null ? team.toLowerCase() : null;
+        return team;
     }
 
     public void setTeam(String team) {

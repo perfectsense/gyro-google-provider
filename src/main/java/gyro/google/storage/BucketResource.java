@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  * Example
  * -------
  *
- * ..code-block:: gyro
+ * .. code-block:: gyro
  *
  *      google::bucket bucket-1
  *          name: 'example-one'
@@ -119,7 +119,7 @@ import java.util.stream.Collectors;
  *          end
  *
  *          logging
- *              log-bucket: 'test-bucket'
+ *              log-bucket: $(google::bucket logs)
  *              log-object-prefix: 'gyro'
  *          end
  *
@@ -160,6 +160,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     /**
      * The generated ID for the bucket. (Read Only)
      */
+    @Id
     public String getId() {
         return id;
     }
@@ -215,7 +216,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      */
     @Updatable
     public String getLocation() {
-        return location != null ? location.toUpperCase() : null;
+        return location;
     }
 
     public void setLocation(String location) {
@@ -340,7 +341,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Updatable
     @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", "MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
     public String getStorageClass() {
-        return storageClass != null ? storageClass.toUpperCase() : null;
+        return storageClass;
     }
 
     public void setStorageClass(String storageClass) {
@@ -445,7 +446,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
         try {
             Bucket bucket = new Bucket();
-
             if (changedFieldNames.contains("acl")) {
                 bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
             }
@@ -458,7 +458,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 bucket.setLocation(getLocation());
             }
 
-            if (changedFieldNames.contains("defaultEventBasedHold")) {
+            if (changedFieldNames.contains("default-event-based-hold")) {
                 bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
             }
 
@@ -474,7 +474,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 bucket.setEncryption(getEncryption() == null ? null : getEncryption().toBucketEncryption());
             }
 
-            if (changedFieldNames.contains("iamConfiguration")) {
+            if (changedFieldNames.contains("iam-configuration")) {
                 bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
             }
 
@@ -486,11 +486,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
             }
 
-            if (changedFieldNames.contains("retentionPolicy")) {
+            if (changedFieldNames.contains("retention-policy")) {
                 bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
             }
 
-            if (changedFieldNames.contains("storageClass")) {
+            if (changedFieldNames.contains("storage-class")) {
                 bucket.setStorageClass(getStorageClass());
             }
 

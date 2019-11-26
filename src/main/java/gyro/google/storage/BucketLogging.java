@@ -26,18 +26,18 @@ import gyro.google.Copyable;
  */
 public class BucketLogging extends Diffable implements Copyable<Logging> {
 
-    private String logBucket;
+    private BucketResource logBucket;
     private String logObjectPrefix;
 
     /**
      * A prefix for log object names.
      */
     @Updatable
-    public String getLogBucket() {
+    public BucketResource getLogBucket() {
         return logBucket;
     }
 
-    public void setLogBucket(String logBucket) {
+    public void setLogBucket(BucketResource logBucket) {
         this.logBucket = logBucket;
     }
 
@@ -55,13 +55,13 @@ public class BucketLogging extends Diffable implements Copyable<Logging> {
 
     @Override
     public void copyFrom(Logging model) {
-        setLogBucket(model.getLogBucket());
+        setLogBucket(model.getLogBucket() != null ? findById(BucketResource.class, model.getLogBucket()) : null);
         setLogObjectPrefix(model.getLogObjectPrefix());
     }
 
     public Logging toBucketLogging() {
         return new Logging()
-                .setLogBucket(getLogBucket())
+                .setLogBucket(getLogBucket() != null ? getLogBucket().getName() : null)
                 .setLogObjectPrefix(getLogObjectPrefix());
     }
 }

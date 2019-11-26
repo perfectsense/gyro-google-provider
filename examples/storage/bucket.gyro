@@ -1,3 +1,8 @@
+google::bucket logs
+    name: 'example-logging'
+    location: 'us-central1'
+end
+
 google::bucket bucket-1
     name: 'example-one'
     location: 'us-central1'
@@ -73,12 +78,12 @@ google::bucket bucket-1
     end
 
     logging
-        log-bucket: 'test-bucket'
+        log-bucket: $(google::bucket logs)
         log-object-prefix: 'gyro'
     end
 
     retention-policy
-        retention-period: 3300
+        retention-period: 3200
     end
 
     website
