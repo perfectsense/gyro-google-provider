@@ -61,7 +61,9 @@ public class BucketAccessControlProjectTeam extends Diffable implements Copyable
         setTeam(model.getTeam());
     }
 
-    public ProjectTeam toBucketAccessControlProjectTeam() {
-        return new ProjectTeam().setProjectNumber(getProjectNumber()).setTeam(getTeam());
+    public ProjectTeam copyTo() {
+        return new ProjectTeam()
+                .setProjectNumber(getProjectNumber())
+                .setTeam(getTeam());
     }
 }

@@ -52,22 +52,13 @@ import java.util.stream.Collectors;
  *      google::bucket bucket-1
  *          name: 'example-one'
  *          location: 'us-central1'
+ *          predefined-acl: 'publicRead'
  *          default-event-based-hold: true
  *          storage-class: 'NEARLINE'
  *
  *          labels: {
  *              foo: 'bar_1901'
  *          }
- *
- *          acl
- *              entity: 'domain-brightspot.com'
- *              role: 'OWNER'
- *          end
- *
- *          acl
- *              entity: 'domain-brightspot.com'
- *              role: 'READER'
- *          end
  *
  *          cors
  *              max-age-seconds: 3200
@@ -143,7 +134,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String predefinedDefaultObjectAcl;
     private String userProject;
     private String id;
-    private List<BucketAccessControlConfiguration> acl;
     private String name;
     private Map<String, String> labels;
     private String location;
@@ -161,7 +151,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String selfLink;
 
     /**
-     *  Sets predefined access controls to the bucket. Valid values are ``authenticatedRead``, ``private``, ``projectPrivate``, ``publicRead`` and ``publicReadWrite``.
+     *  Sets predefined access controls to the bucket. Valid values are ``authenticatedRead``, ``private``, ``projectPrivate``, ``publicRead`` and ``publicReadWrite``. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
      */
     @Updatable
     @ValidStrings({"authenticatedRead", "private", "projectPrivate", "publicRead", "publicReadWrite"})
@@ -174,7 +164,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * Set predefined default object access controls to the bucket. Valid values are ``authenticatedRead``, ``bucketOwnerFullControl``, ``bucketOwnerRead``, ``private``, ``projectPrivate`` and ``publicRead``.
+     * Set predefined default object access controls to the bucket. Valid values are ``authenticatedRead``, ``bucketOwnerFullControl``, ``bucketOwnerRead``, ``private``, ``projectPrivate`` and ``publicRead``. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
      */
     @ValidStrings({"authenticatedRead", "bucketOwnerFullControl", "bucketOwnerRead", "private", "projectPrivate", "publicRead"})
     @Updatable
@@ -188,8 +178,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     /**
      * The project to be billed for this request.
-     *
-     * TODO: Should this be a reference to a ProjectResource when created? https://cloud.google.com/compute/docs/reference/rest/v1/projects
      */
     @Updatable
     public String getUserProject() {
@@ -201,7 +189,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * The generated ID for the bucket. (Read Only)
+     * The generated ID for the bucket. Read Only
      */
     public String getId() {
         return id;
@@ -209,23 +197,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    /**
-     * Access controls on the bucket. See `Bucket Access Controls <https://cloud.google.com/storage/docs/json_api/v1/bucketAccessControls/>`_.
-     *
-     * @subresource gyro.google.storage.BucketAccessControlConfiguration
-     */
-    @Updatable
-    public List<BucketAccessControlConfiguration> getAcl() {
-        if (acl == null) {
-            return new ArrayList<>();
-        }
-        return acl;
-    }
-
-    public void setAcl(List<BucketAccessControlConfiguration> acl) {
-        this.acl = acl;
     }
 
     /**
@@ -463,7 +434,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
         try {
             Bucket bucket = new Bucket();
-            bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
             bucket.setName(getName());
             bucket.setLabels(getLabels());
             bucket.setLocation(getLocation());
@@ -497,9 +467,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
         try {
             Bucket bucket = new Bucket();
-            if (changedFieldNames.contains("acl")) {
-                bucket.setAcl(getAcl() == null ? null : getAcl().stream().map(BucketAccessControlConfiguration::toBucketAccessControl).collect(Collectors.toList()));
-            }
 
             if (changedFieldNames.contains("labels")) {
                 bucket.setLabels(getLabels());
@@ -560,6 +527,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                     .setUserProject(getUserProject())
                     .setProjection("full")
                     .execute());
+            
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
@@ -589,10 +557,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                     errors.add(new ValidationError(
                             this,
                             "labels",
-                            String.format("Invalid key/value => '%s:%s'. Keys and values must be less than 64 characters " +
-                                    "and contain only lowercase letters, numeric characters, international characters, " +
-                                    "underscores, and dashes. Keys must start with letter or international character and " +
-                                    "must not be empty.", key, value)));
+                            String.format("Invalid key/value => '%s:%s'. Keys and values must be less than 64 characters "
+                                   + "and contain only lowercase letters, numeric characters, international characters, "
+                                   + "underscores, and dashes. Keys must start with letter or international character and "
+                                   + "must not be empty.", key, value)));
                 }
             }
         }
@@ -655,17 +623,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             BucketWebsite bucketWebsite = newSubresource(BucketWebsite.class);
             bucketWebsite.copyFrom(model.getWebsite());
             setWebsite(bucketWebsite);
-        }
-
-        if (model.getAcl() != null) {
-            setAcl(model.getAcl().stream()
-                    .map(acl -> {
-                        BucketAccessControlConfiguration configuration = newSubresource(BucketAccessControlConfiguration.class);
-                        configuration.copyFrom(acl);
-                        return configuration;
-                    })
-                    .collect(Collectors.toList())
-            );
         }
 
         if (model.getCors() != null) {

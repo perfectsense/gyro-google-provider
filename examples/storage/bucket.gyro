@@ -6,22 +6,14 @@ end
 google::bucket bucket-1
     name: 'example-one'
     location: 'US-CENTRAL1'
+    predefined-acl: 'publicRead'
+    predefined-default-object-acl: 'bucketOwnerFullControl'
     default-event-based-hold: true
     storage-class: 'STANDARD'
 
     labels: {
         foo: 'bar_1901'
     }
-
-    acl
-        entity: 'domain-brightspot.com'
-        role: 'OWNER'
-    end
-
-    acl
-        entity: 'domain-sample.com'
-        role: 'READER'
-    end
 
     cors
         max-age-seconds: 3200

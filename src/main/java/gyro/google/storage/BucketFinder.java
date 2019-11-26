@@ -51,6 +51,7 @@ import java.util.Map;
  */
 @Type("bucket")
 public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> {
+
     private String name;
 
     /**
