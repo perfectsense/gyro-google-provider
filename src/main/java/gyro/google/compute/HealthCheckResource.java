@@ -17,9 +17,9 @@
 package gyro.google.compute;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HealthCheck;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.*;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -30,7 +30,6 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
-import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 import java.io.IOException;
@@ -55,6 +54,7 @@ import java.util.Set;
  *          type: "HTTP"
  *
  *          http-health-check
+ *              request-path: "/myapp"
  *          end
  *      end
  *
@@ -239,11 +239,8 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     }
 
     /**
-     * The type of health check. Valid values are: ``TCP``, ``SSL``, ``HTTP``, ``HTTPS`` or ``HTTP2``. If not specified, the default is ``TCP``. (Required)
+     * The type of health check. Valid values are: ``TCP``, ``SSL``, ``HTTP``, ``HTTPS`` or ``HTTP2``.
      */
-    @Required
-    @Updatable
-    @ValidStrings({"HTTP", "HTTPS", "HTTP2", "SSL", "TCP"})
     public String getType() {
         return type;
     }
@@ -294,10 +291,10 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         setDescription(healthCheck.getDescription());
         setCheckIntervalSec(healthCheck.getCheckIntervalSec());
         setTimeoutSec(healthCheck.getTimeoutSec());
-        setType(healthCheck.getType());
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
         setSelfLink(healthCheck.getSelfLink());
+        setType(healthCheck.getType());
 
         if (healthCheck.getHttpHealthCheck() != null) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
@@ -356,14 +353,33 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
         healthCheck.setDescription(getDescription());
         healthCheck.setCheckIntervalSec(getCheckIntervalSec());
         healthCheck.setTimeoutSec(getTimeoutSec());
-        healthCheck.setType(getType());
         healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         healthCheck.setHealthyThreshold(getHealthyThreshold());
-        healthCheck.setHttpHealthCheck(getHttpHealthCheck() == null ? null : getHttpHealthCheck().toHttpHealthCheck());
-        healthCheck.setHttpsHealthCheck(getHttpsHealthCheck() == null ? null : getHttpsHealthCheck().toHttpsHealthCheck());
-        healthCheck.setHttp2HealthCheck(getHttp2HealthCheck() == null ? null : getHttp2HealthCheck().toHttp2HealthCheck());
-        healthCheck.setSslHealthCheck(getSslHealthCheck() == null ? null : getSslHealthCheck().toSslHealthCheck());
-        healthCheck.setTcpHealthCheck(getTcpHealthCheck() == null ? null : getTcpHealthCheck().toTcpHealthCheck());
+
+        if (getHttpHealthCheck() != null) {
+            healthCheck.setType("HTTP");
+            healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
+        }
+
+        if (getHttpsHealthCheck() != null) {
+            healthCheck.setType("HTTPS");
+            healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
+        }
+
+        if (getHttp2HealthCheck() != null) {
+            healthCheck.setType("HTTP2");
+            healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
+        }
+
+        if (getSslHealthCheck() != null) {
+            healthCheck.setType("SSL");
+            healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
+        }
+
+        if (getTcpHealthCheck() != null) {
+            healthCheck.setType("TCP");
+            healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
+        }
 
         try {
             Compute.HealthChecks.Insert insert = client.healthChecks().insert(getProjectId(), healthCheck);
@@ -382,26 +398,66 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
     @Override
     public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
+
         try {
-            HealthCheck healthCheck = client.healthChecks().get(getProjectId(), getName()).execute();
-            healthCheck.setDescription(getDescription());
-            healthCheck.setCheckIntervalSec(getCheckIntervalSec());
-            healthCheck.setTimeoutSec(getTimeoutSec());
-            healthCheck.setType(getType());
-            healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
-            healthCheck.setHealthyThreshold(getHealthyThreshold());
-            healthCheck.setHttpHealthCheck(getHttpHealthCheck() == null ? null : getHttpHealthCheck().toHttpHealthCheck());
-            healthCheck.setHttpsHealthCheck(getHttpsHealthCheck() == null ? null : getHttpsHealthCheck().toHttpsHealthCheck());
-            healthCheck.setHttp2HealthCheck(getHttp2HealthCheck() == null ? null : getHttp2HealthCheck().toHttp2HealthCheck());
-            healthCheck.setSslHealthCheck(getSslHealthCheck() == null ? null : getSslHealthCheck().toSslHealthCheck());
-            healthCheck.setTcpHealthCheck(getTcpHealthCheck() == null ? null : getTcpHealthCheck().toTcpHealthCheck());
+            HealthCheck healthCheck = new HealthCheck();
+            if (changedFieldNames.contains("check-interval-sec")) {
+                healthCheck.setCheckIntervalSec(getCheckIntervalSec());
+            }
+
+            if (changedFieldNames.contains("description")) {
+                healthCheck.setDescription(getDescription());
+            }
+
+            if (changedFieldNames.contains("healthy-threshold")) {
+                healthCheck.setHealthyThreshold(getHealthyThreshold());
+            }
+
+            if (changedFieldNames.contains("timeout-sec")) {
+                healthCheck.setTimeoutSec(getTimeoutSec());
+            }
+
+            if (changedFieldNames.contains("unhealthy-threshold")) {
+                healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
+            }
+
+            healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
+            healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
+            healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
+            healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
+            healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
+
+            if (getHttpHealthCheck() != null) {
+                healthCheck.setType("HTTP");
+                healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
+            }
+
+            if (getHttpsHealthCheck() != null) {
+                healthCheck.setType("HTTPS");
+                healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
+            }
+
+            if (getHttp2HealthCheck() != null) {
+                healthCheck.setType("HTTP2");
+                healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
+            }
+
+            if (getSslHealthCheck() != null) {
+                healthCheck.setType("SSL");
+                healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
+            }
+
+            if (getTcpHealthCheck() != null) {
+                healthCheck.setType("TCP");
+                healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
+            }
 
             Operation operation = client.healthChecks().patch(getProjectId(), getName(), healthCheck).execute();
             Operation.Error error = waitForCompletion(client, operation);
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
             }
-        } catch (IOException ex) {
+        } catch (GoogleJsonResponseException ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -412,7 +468,7 @@ public class HealthCheckResource extends ComputeResource implements Copyable<Hea
             Compute client = createComputeClient();
             HealthCheck healthCheck = client.healthChecks().get(getProjectId(), getName()).execute();
             client.healthChecks().delete(getProjectId(), healthCheck.getName()).execute();
-        } catch (IOException e) {
+        } catch (GoogleJsonResponseException e) {
             throw new GyroException(String.format("Unable to delete Health Check: %s, Google error: %s", getName(), e.getMessage()));
         }
     }
