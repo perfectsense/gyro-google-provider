@@ -1,11 +1,11 @@
 google::bucket logs
     name: 'example-logging'
-    location: 'us-central1'
+    location: 'US-CENTRAL1'
 end
 
 google::bucket bucket-1
     name: 'example-one'
-    location: 'us-central1'
+    location: 'US-CENTRAL1'
     default-event-based-hold: true
     storage-class: 'STANDARD'
 
@@ -19,13 +19,8 @@ google::bucket bucket-1
     end
 
     acl
-        entity: 'domain-brightspot.com'
+        entity: 'domain-sample.com'
         role: 'READER'
-    end
-
-    acl
-        entity: 'domain-brightspot.com'
-        role: 'WRITER'
     end
 
     cors

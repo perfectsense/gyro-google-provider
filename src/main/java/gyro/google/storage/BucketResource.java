@@ -139,6 +139,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private static final String LABEL_REGEX = "[^a-z0-9_-]";
     private static final Pattern LABEL_PATTERN = Pattern.compile(LABEL_REGEX);
 
+    private String predefinedAcl;
+    private String predefinedDefaultObjectAcl;
+    private String userProject;
     private String id;
     private List<BucketAccessControlConfiguration> acl;
     private String name;
@@ -158,9 +161,48 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String selfLink;
 
     /**
+     *  Sets predefined access controls to the bucket. Valid values are ``authenticatedRead``, ``private``, ``projectPrivate``, ``publicRead`` and ``publicReadWrite``.
+     */
+    @Updatable
+    @ValidStrings({"authenticatedRead", "private", "projectPrivate", "publicRead", "publicReadWrite"})
+    public String getPredefinedAcl() {
+        return predefinedAcl;
+    }
+
+    public void setPredefinedAcl(String predefinedAcl) {
+        this.predefinedAcl = predefinedAcl;
+    }
+
+    /**
+     * Set predefined default object access controls to the bucket. Valid values are ``authenticatedRead``, ``bucketOwnerFullControl``, ``bucketOwnerRead``, ``private``, ``projectPrivate`` and ``publicRead``.
+     */
+    @ValidStrings({"authenticatedRead", "bucketOwnerFullControl", "bucketOwnerRead", "private", "projectPrivate", "publicRead"})
+    @Updatable
+    public String getPredefinedDefaultObjectAcl() {
+        return predefinedDefaultObjectAcl;
+    }
+
+    public void setPredefinedDefaultObjectAcl(String predefinedDefaultObjectAcl) {
+        this.predefinedDefaultObjectAcl = predefinedDefaultObjectAcl;
+    }
+
+    /**
+     * The project to be billed for this request.
+     *
+     * TODO: Should this be a reference to a ProjectResource when created? https://cloud.google.com/compute/docs/reference/rest/v1/projects
+     */
+    @Updatable
+    public String getUserProject() {
+        return userProject;
+    }
+
+    public void setUserProject(String userProject) {
+        this.userProject = userProject;
+    }
+
+    /**
      * The generated ID for the bucket. (Read Only)
      */
-    @Id
     public String getId() {
         return id;
     }
@@ -392,7 +434,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         Storage storage = createClient(Storage.class);
 
         try {
-            Bucket bucket = storage.buckets().get(getName()).execute();
+            Bucket bucket = storage.buckets()
+                    .get(getName())
+                    .setProjection("full")
+                    .execute();
 
             if (bucket == null) {
                 return false;
@@ -434,7 +479,13 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
             bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
 
-            copyFrom(storage.buckets().insert(getProjectId(), bucket).execute());
+            copyFrom(storage.buckets()
+                    .insert(getProjectId(), bucket)
+                    .setPredefinedAcl(getPredefinedAcl())
+                    .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
+                    .setUserProject(getUserProject())
+                    .setProjection("full")
+                    .execute());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
@@ -502,7 +553,13 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 bucket.setWebsite(getWebsite() != null ? getWebsite().toBucketWebsite() : null);
             }
 
-            copyFrom(storage.buckets().patch(getName(), bucket).execute());
+            copyFrom(storage.buckets()
+                    .patch(getName(), bucket)
+                    .setPredefinedAcl(getPredefinedAcl())
+                    .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
+                    .setUserProject(getUserProject())
+                    .setProjection("full")
+                    .execute());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
