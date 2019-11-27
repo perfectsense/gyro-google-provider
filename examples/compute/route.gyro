@@ -12,7 +12,7 @@ google::subnet subnet-example-route
     region: "us-east1"
 end
 
-google::route route-example
+google::compute-route route-example
     name: "route-example"
     description: "route-example-description"
     network: $(google::network network-example-route)

@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  *
  * .. code-block:: gyro
  *
- *     google::route route-example
+ *     google::compute-route route-example
  *         name: "route-example"
  *         description: "route-example-description"
  *         network: $(google::network network-example-route)
@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  *         dest-range: "0.0.0.0/0"
  *     end
  */
-@Type("route")
+@Type("compute-route")
 public class RouteResource extends ComputeResource implements Copyable<Route> {
     private String name;
     private String description;

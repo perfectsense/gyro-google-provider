@@ -37,9 +37,9 @@ import java.util.Map;
  *
  * .. code-block:: gyro
  *
- *    route: $(external-query google::route { name: 'route-example'})
+ *    route: $(external-query google::compute-route { name: 'route-example'})
  */
-@Type("route")
+@Type("compute-route")
 public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
     private String name;
 
