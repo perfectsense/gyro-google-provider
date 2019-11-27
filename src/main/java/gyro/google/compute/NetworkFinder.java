@@ -16,6 +16,12 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
@@ -23,12 +29,6 @@ import com.google.api.services.compute.model.NetworkList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Query network.
@@ -38,10 +38,11 @@ import java.util.Map;
  *
  * .. code-block:: gyro
  *
- *    network: $(external-query google::network { name: 'network-example'})
+ *    network: $(external-query google::compute-network { name: 'network-example'})
  */
-@Type("network")
+@Type("compute-network")
 public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResource> {
+
     private String name;
 
     /**
@@ -61,7 +62,7 @@ public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResourc
             List<Network> networks = new ArrayList<>();
             NetworkList networkList;
             String nextPageToken = null;
-            
+
             do {
                 networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
                 networks.addAll(networkList.getItems());

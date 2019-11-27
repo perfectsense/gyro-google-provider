@@ -44,20 +44,22 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *     google::network network-example
+ *     google::compute-network network-example
  *         name: "vpc-example"
  *         description: "vpc-example-desc"
  *         routing-mode: "GLOBAL"
  *     end
  */
-@Type("network")
+@Type("compute-network")
 public class NetworkResource extends ComputeResource implements Copyable<Network> {
+
     private String name;
     private String description;
     private String routingMode;
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the network. (Required)
@@ -87,7 +89,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
      * The routing mode for the network. Valid values are ``GLOBAL`` or ``REGIONAL``.
      */
     @Required
-    @ValidStrings({"GLOBAL", "REGIONAL"})
+    @ValidStrings({ "GLOBAL", "REGIONAL" })
     @Updatable
     public String getRoutingMode() {
         return routingMode != null ? routingMode.toUpperCase() : null;
@@ -109,12 +111,22 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         this.id = id;
     }
 
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
     @Override
     public void copyFrom(Network network) {
         setId(network.getId().toString());
         setRoutingMode(network.getRoutingConfig().getRoutingMode());
         setDescription(network.getDescription());
         setName(network.getName());
+        setSelfLink(network.getSelfLink());
     }
 
     @Override
