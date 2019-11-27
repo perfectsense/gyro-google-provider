@@ -72,7 +72,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     // Read-only
     private String id;
     private String selfLink;
-    private List<RouteWarning> warnings;
 
     /**
      * The name of the route. (Required)
@@ -219,20 +218,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         this.selfLink = selfLink;
     }
 
-    /**
-     * A list of warnings in case of misconstructions.
-     *
-     * @subresource gyro.google.compute.RouteWarning
-     */
-    @Output
-    public List<RouteWarning> getWarnings() {
-        return warnings;
-    }
-
-    public void setWarnings(List<RouteWarning> warnings) {
-        this.warnings = warnings;
-    }
-
     @Override
     public void copyFrom(Route route) {
         setName(route.getName());
@@ -244,11 +229,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         setNetwork(findById(NetworkResource.class, route.getNetwork().substring(route.getNetwork().lastIndexOf("/") + 1)));
         setPriority(route.getPriority());
         setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
-        setWarnings(route.getWarnings() != null ? route.getWarnings().stream().map(warning -> {
-            RouteWarning routeWarning = newSubresource(RouteWarning.class);
-            routeWarning.copyFrom(warning);
-            return routeWarning;
-        }).collect(Collectors.toList()) : null);
         setNextHopGateway(route.getNextHopGateway());
         setNextHopVpnTunnel(route.getNextHopVpnTunnel());
         setNextHopInstance(route.getNextHopInstance());
@@ -297,6 +277,13 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
             }
+
+            route = client.routes().get(getProjectId(), getName()).execute();
+            if (route.getWarnings() != null && !route.getWarnings().isEmpty()) {
+                // show warning
+                route.getWarnings().stream().map(Route.Warnings::getMessage).collect(Collectors.joining("\n"));
+            }
+
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
