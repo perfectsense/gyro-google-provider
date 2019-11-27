@@ -46,9 +46,7 @@ public class ManagedZoneFinder extends GoogleFinder<Dns, ManagedZone, ManagedZon
     private String name;
 
     /**
-     * User assigned name for this resource. Must be unique within the project. The name must be 1-63 characters long,
-     * must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes.
-     * The value may be ``null``.
+     * User assigned name for the managed zone. The value may be ``null``.
      */
     public String getName() {
         return name;

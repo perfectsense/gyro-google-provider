@@ -66,32 +66,24 @@ public class ResourceRecordSetResource extends GoogleResource
 
     private ManagedZoneResource managedZone;
 
-    /**
-     * For example, www.example.com. The value may be ``null``.
-     */
     private String name;
 
-    /**
-     * As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples. The value may be ``null``.
-     */
     private List<String> rrdatas;
 
-    /**
-     * As defined in RFC 4034 (section 3.2). The value may be ``null``.
-     */
     private List<String> signatureRrdatas;
 
-    /**
-     * Number of seconds that this ResourceRecordSet can be cached by resolvers. The value may be ``null``.
-     */
     private Integer ttl;
 
     /**
-     * The identifier of a supported record type. See the list of Supported DNS record types.
-     * The value may be ``null``.
+     * The identifier of a supported record type. See the list of Supported DNS record types. The value may be ``null``.
      */
     private String type;
 
+    /**
+     * The managed zone this resource should be bound to.
+     *
+     * @resource gyro.google.dns.ManagedZoneResource
+     */
     @Required
     public ManagedZoneResource getManagedZone() {
         return managedZone;
@@ -101,6 +93,9 @@ public class ResourceRecordSetResource extends GoogleResource
         this.managedZone = managedZone;
     }
 
+    /**
+     * For example, www.example.com. The value may be ``null``.
+     */
     @Updatable
     public String getName() {
         return name;
@@ -110,6 +105,9 @@ public class ResourceRecordSetResource extends GoogleResource
         this.name = name;
     }
 
+    /**
+     * As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples. The value may be ``null``.
+     */
     @Updatable
     public List<String> getRrdatas() {
         return rrdatas;
@@ -119,6 +117,9 @@ public class ResourceRecordSetResource extends GoogleResource
         this.rrdatas = rrdatas;
     }
 
+    /**
+     * As defined in RFC 4034 (section 3.2). The value may be ``null``.
+     */
     @Updatable
     public List<String> getSignatureRrdatas() {
         return signatureRrdatas;
@@ -128,6 +129,9 @@ public class ResourceRecordSetResource extends GoogleResource
         this.signatureRrdatas = signatureRrdatas;
     }
 
+    /**
+     * Number of seconds that this ResourceRecordSet can be cached by resolvers. The value may be ``null``.
+     */
     @Updatable
     public Integer getTtl() {
         return ttl;

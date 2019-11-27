@@ -33,8 +33,9 @@ public class ZoneForwardingConfig extends Diffable
     private List<ZoneForwardingConfigNameServerTarget> targetNameServer;
 
     /**
-     * List of target name servers to forward to. Cloud DNS will select the best available name server
-     * if more than one target is given. The value may be ``null``.
+     * List of target name servers to forward to. Cloud DNS will select the best available name server if more than one target is given. The value may be ``null``.
+     *
+     * @subresource gyro.google.dns.ZoneForwardingConfigNameServerTarget
      */
     public List<ZoneForwardingConfigNameServerTarget> getTargetNameServer() {
         return targetNameServer;

@@ -46,8 +46,7 @@ public class ResourceRecordSetFinder extends GoogleFinder<Dns, ResourceRecordSet
     private String name;
 
     /**
-     * User assigned name for this resource. Must be unique within the project. The name must be 1-63 characters long,
-     * must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes.
+     * User assigned name for the managed zone.
      */
     public String getName() {
         return name;

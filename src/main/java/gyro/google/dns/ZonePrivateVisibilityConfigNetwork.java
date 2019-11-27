@@ -33,6 +33,8 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
 
     /**
      * The VPC network to bind to. The value may be ``null``.
+     *
+     * @resource gyro.google.compute.NetworkResource
      */
     @Required
     public NetworkResource getNetwork() {

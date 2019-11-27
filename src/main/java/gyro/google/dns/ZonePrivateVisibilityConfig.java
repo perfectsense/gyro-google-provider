@@ -35,6 +35,8 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
 
     /**
      * The list of VPC networks that can see this zone. The value may be ``null``.
+     *
+     * @subresource gyro.google.dns.ZonePrivateVisibilityConfigNetwork
      */
     @Required
     public List<ZonePrivateVisibilityConfigNetwork> getNetwork() {
