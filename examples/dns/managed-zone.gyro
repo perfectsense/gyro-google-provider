@@ -1,0 +1,21 @@
+google::dns-managed-zone managed-zone-example-private
+    name: "managed-zone-example-private"
+    description: "Private Managed Zone Example"
+    dns-name: "private.example.com."
+    visibility: "private"
+
+    private-visibility-config
+        network
+            network: $(google::compute-network network-example)
+        end
+    end
+end
+
+google::dns-managed-zone managed-zone-example-public
+    name: "managed-zone-example-public"
+    description: "Public Managed Zone Example"
+    dns-name: "p.example.com."
+    dnssec-config
+        state: "on"
+    end
+end
