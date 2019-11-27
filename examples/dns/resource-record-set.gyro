@@ -1,0 +1,15 @@
+google::dns-resource-record-set managed-zone-example-public-www-cname
+    managed-zone: $(google::dns-managed-zone managed-zone-example-public)
+
+    name: "www.p.example.com."
+    type: "CNAME"
+    rrdatas: [ "fe.p.example.com." ]
+end
+
+google::dns-resource-record-set managed-zone-example-public-fe-a
+    managed-zone: $(google::dns-managed-zone managed-zone-example-public)
+
+    name: "fe.p.example.com."
+    type: "A"
+    rrdatas: [ "192.168.1.156", "192.168.1.158" ]
+end
