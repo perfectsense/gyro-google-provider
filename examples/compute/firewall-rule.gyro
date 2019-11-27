@@ -4,7 +4,7 @@ google::network network-example-firewall-rule
     routing-mode: "Regional"
 end
 
-google::firewall-rule firewall-rule-example-allow
+google::compute-firewall-rule firewall-rule-example-allow
     name: "firewall-rule-example-allow"
     network: $(google::network network-example-firewall-rule)
     description: "firewall-rule-example-desc"
@@ -23,7 +23,7 @@ google::firewall-rule firewall-rule-example-allow
     ]
 end
 
-google::firewall-rule firewall-rule-example-deny
+google::compute-firewall-rule firewall-rule-example-deny
     name: "firewall-rule-example-deny"
     network: $(google::network network-example-firewall-rule)
     description: "firewall-rule-example-desc-update"

@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  *
  * .. code-block:: gyro
  *
- *     google::firewall-rule firewall-rule-example
+ *     google::compute-firewall-rule firewall-rule-example
  *         name: "firewall-rule-example"
  *         network: $(google::network network-example-firewall-rule)
  *         description: "firewall-rule-example-desc"
@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
  *         ]
  *     end
  */
-@Type("firewall-rule")
+@Type("compute-firewall-rule")
 public class FirewallResource extends ComputeResource implements Copyable<Firewall> {
     private String name;
     private NetworkResource network;

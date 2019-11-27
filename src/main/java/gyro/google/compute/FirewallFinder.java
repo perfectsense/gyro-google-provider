@@ -38,9 +38,9 @@ import java.util.Map;
  *
  * .. code-block:: gyro
  *
- *    firewall-rule: $(external-query google::firewall-rule { name: 'firewall-rule-example'})
+ *    firewall-rule: $(external-query google::compute-firewall-rule { name: 'firewall-rule-example'})
  */
-@Type("firewall-rule")
+@Type("compute-firewall-rule")
 public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallResource> {
     private String name;
 
