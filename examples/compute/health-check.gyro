@@ -1,16 +1,13 @@
-google::compute-health-check health-check-example
+google::compute-regional-health-check health-check-example
     check-interval-sec: 30
     description: "The description goes here."
     healthy-threshold: 8
-    name: "foo4"
+    name: "ssl-hc1"
     timeout-sec: 29
-    type: "HTTP2"
     unhealthy-threshold: 6
+    region: "us-east1"
 
-    http2-health-check
-        host: "myapp.example.com"
-        port-name: "port123"
-        port-specification: "USE_NAMED_PORT"
+    ssl-health-check
         proxy-header: "PROXY_V1"
         request-path: "/myapp"
         response: "okay"

@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.TCPHealthCheck;
 import gyro.google.Copyable;
 
@@ -46,11 +45,11 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
 
     public TCPHealthCheck toTcpHealthCheck() {
         return new TCPHealthCheck()
-                .setPort(getPort())
-                .setPortName(getPortName())
-                .setPortSpecification(getPortSpecification())
-                .setProxyHeader(getProxyHeader())
-                .setResponse(getResponse())
-                .setRequest(getRequestPath());
+            .setPort(getPort())
+            .setPortName(getPortName())
+            .setPortSpecification(getPortSpecification())
+            .setProxyHeader(getProxyHeader())
+            .setResponse(getResponse())
+            .setRequest(getRequestPath());
     }
 }

@@ -16,32 +16,53 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HealthCheck;
-import gyro.core.GyroException;
-import gyro.core.Type;
-import gyro.core.validation.Required;
-import gyro.google.GoogleFinder;
-
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.HealthCheck;
+import com.google.api.services.compute.model.HealthCheckList;
+import gyro.core.GyroException;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
+
 /**
- * Query health check.
+ * Query for health checks.
  *
- * Example
+ * ========
+ * Examples
+ * ========
+ *
+ * Example find all global health checks for project.
  * -------
  *
  * .. code-block:: gyro
  *
- *    compute-health-check: $(external-query google::compute-health-check { name: 'health-check-example' })
+ *    compute-health-check: $(external-query google::compute-health-check)
+ *
+ * Example find the global health check on name equal to 'health-check-example'..
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     compute-health-check: $(external-query google::compute-health-check { name: "health-check-example" })
+ *
+ * Example find all the health checks for the region 'us-east1'.
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     compute-health-check: $(external-query google::compute-health-check { region: "us-east1" })
+ *
  */
 @Type("compute-health-check")
 public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, HealthCheckResource> {
+
     private String name;
+    private String region;
 
     /**
      * The name of the health check.
@@ -54,10 +75,29 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
         this.name = name;
     }
 
+    /**
+     * The name of the region for this request. Not applicable to global health checks..
+     */
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
     @Override
     protected List<HealthCheck> findAllGoogle(Compute client) {
         try {
-            return client.healthChecks().list(getProjectId()).execute().getItems();
+            List<HealthCheck> healthChecks = new ArrayList<>();
+            HealthCheckList healthCheckList;
+            String nextPageToken = null;
+            do {
+                healthCheckList = client.healthChecks().list(getProjectId()).setPageToken(nextPageToken).execute();
+                healthChecks.addAll(healthCheckList.getItems());
+                nextPageToken = healthCheckList.getNextPageToken();
+            } while (nextPageToken != null);
+            return healthChecks;
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (IOException ex) {
@@ -67,22 +107,44 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
 
     @Override
     protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) {
-        HealthCheck healthcheck = null;
-
         try {
-            healthcheck = client.healthChecks().get(getProjectId(), filters.get("name")).execute();
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() != 404) {
-                throw new GyroException(je.getDetails().getMessage());
+            List<HealthCheck> healthChecks = new ArrayList<>();
+            HealthCheckList healthCheckList;
+            String nextPageToken = null;
+
+            if (filters.containsKey("region")) {
+                do {
+                    healthCheckList = client.regionHealthChecks()
+                        .list(getProjectId(), filters.get("region"))
+                        .setPageToken(nextPageToken)
+                        .execute();
+
+                    if (healthCheckList != null && healthCheckList.getItems() != null) {
+                        nextPageToken = healthCheckList.getNextPageToken();
+                        healthChecks.addAll(healthCheckList.getItems());
+                    } else {
+                        break;
+                    }
+                } while (nextPageToken != null);
+            } else {
+                if (filters.containsKey("name")) {
+                    healthChecks.add(client.healthChecks()
+                        .get(getProjectId(), filters.get("name"))
+                        .execute());
+                } else {
+                    return findAllGoogle(client);
+                }
+            }
+
+            return healthChecks;
+        } catch (GoogleJsonResponseException e) {
+            if (e.getDetails().getCode() == 404) {
+                return new ArrayList<>();
+            } else {
+                throw new GyroException(e.getDetails().getMessage());
             }
         } catch (IOException ex) {
             throw new GyroException(ex);
-        }
-
-        if (healthcheck != null) {
-            return Collections.singletonList(healthcheck);
-        } else {
-            return Collections.emptyList();
         }
     }
 }
