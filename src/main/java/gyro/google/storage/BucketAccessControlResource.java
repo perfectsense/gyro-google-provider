@@ -78,6 +78,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     /**
      * The associated Bucket.
      */
+    @Required
     public BucketResource getBucket() {
         return bucket;
     }
