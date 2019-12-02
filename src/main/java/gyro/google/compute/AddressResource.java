@@ -25,11 +25,8 @@ import gyro.core.Type;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
-import gyro.core.validation.ValidationError;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Adds a regional internal IP address that comes from either a primary or secondary IP range of a subnet in a VPC network. Regional external IP addresses can be assigned to GCP VM instances, Cloud VPN gateways, regional external forwarding rules for network load balancers (in either Standard or Premium Tier), and regional external forwarding rules for HTTP(S), SSL Proxy, and TCP Proxy load balancers in Standard Tier.
@@ -90,6 +87,9 @@ public class AddressResource extends AbstractAddressResource {
             copyFrom(address);
 
             return true;
+
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
         } catch (IOException e) {
             throw new GyroException(e.getMessage(), e.getCause());
         }
@@ -98,16 +98,9 @@ public class AddressResource extends AbstractAddressResource {
     @Override
     public void create(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
-        Address address = new Address();
-        address.setRegion(getRegion());
-        address.setName(getName());
-        address.setAddress(getAddress());
-        address.setPrefixLength(getPrefixLength());
-        address.setNetworkTier(getNetworkTier());
-        address.setAddressType(getAddressType());
-        address.setPurpose(getPurpose());
-        address.setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null);
-        address.setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
+        Address address = copyTo()
+                .setRegion(getRegion())
+                .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
 
         try {
             waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());
@@ -123,20 +116,12 @@ public class AddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         try {
             compute.addresses().delete(getProjectId(), getRegion(), getName()).execute();
+
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
         } catch (IOException e) {
             throw new GyroException(e.getMessage(), e.getCause());
         }
-    }
-
-    @Override
-    public List<ValidationError> validate() {
-        List<ValidationError> errors = new ArrayList<>();
-
-        if ((getName() != null) && NAME_PATTERN.matcher(getName()).matches() && (getName().length() > 63)) {
-            errors.add(new ValidationError(this, "name", "Does not adhere to naming standards."));
-        }
-
-        return errors;
     }
 
     @Override

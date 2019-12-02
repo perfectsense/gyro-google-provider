@@ -70,6 +70,9 @@ public class GlobalAddressResource extends AbstractAddressResource {
             copyFrom(address);
 
             return true;
+
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
         } catch (IOException e) {
             throw new GyroException(e.getMessage(), e.getCause());
         }
@@ -78,15 +81,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
     @Override
     public void create(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
-        Address address = new Address();
-        address.setName(getName());
-        address.setAddress(getAddress());
-        address.setPrefixLength(getPrefixLength());
-        address.setIpVersion(getIpVersion());
-        address.setAddressType(getAddressType());
-        address.setPurpose(getPurpose());
-        address.setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null);
-        address.setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
+        Address address = copyTo().setIpVersion(getIpVersion());
 
         try {
             waitForCompletion(compute, compute.globalAddresses().insert(getProjectId(), address).execute());
@@ -102,6 +97,9 @@ public class GlobalAddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         try {
             compute.globalAddresses().delete(getProjectId(), getName()).execute();
+
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
         } catch (IOException e) {
             throw new GyroException(e.getMessage(), e.getCause());
         }

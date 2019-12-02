@@ -22,20 +22,14 @@ import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
+import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
-import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public abstract class AbstractAddressResource extends ComputeResource implements Copyable<Address> {
-
-    protected static final String NAME_REGEX = "[a-z]([-a-z0-9]*[a-z0-9])?.";
-    protected static final Pattern NAME_PATTERN = Pattern.compile(NAME_REGEX);
 
     private String id;
     private String name;
@@ -50,8 +44,9 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     private String selfLink;
 
     /**
-     * Internal GCP id. (Read Only)
+     * Internal Google id.
      */
+    @Output
     public String getId() {
         return id;
     }
@@ -61,9 +56,10 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * Name of the resource. [Required] See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements.
+     * Name for the resource. See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements.
      */
     @Id
+    @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
     @Required
     public String getName() {
         return name;
@@ -153,7 +149,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * The status of the address. Values are ``RESERVING``, ``RESERVED``, or ``IN_USE``.
+     * The status of the address. Values are ``RESERVING``, ``RESERVED`` or ``IN_USE``.
      */
     @Output
     public String getStatus() {
@@ -165,8 +161,9 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * GCP server-defined URL for the address. (Read Only)
+     * GCP server-defined URL for the address.
      */
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -183,6 +180,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     @Override
     public void copyFrom(Address model) {
         setName(model.getName());
+        setDescription(model.getDescription());
         setAddress(model.getAddress());
         setPrefixLength(model.getPrefixLength());
         setAddressType(model.getAddressType());
@@ -193,15 +191,16 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         setSelfLink(model.getSelfLink());
     }
 
-    @Override
-    public List<ValidationError> validate() {
-        List<ValidationError> errors = new ArrayList<>();
-
-        if ((getName() != null) && NAME_PATTERN.matcher(getName()).matches() && (getName().length() > 63)) {
-            errors.add(new ValidationError(this, "name", "Does not adhere to naming standards."));
-        }
-
-        return errors;
+    public Address copyTo() {
+        return new Address()
+                .setName(getName())
+                .setDescription(getDescription())
+                .setAddress(getAddress())
+                .setPrefixLength(getPrefixLength())
+                .setAddressType(getAddressType())
+                .setPurpose(getPurpose())
+                .setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null)
+                .setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
     }
 }
 

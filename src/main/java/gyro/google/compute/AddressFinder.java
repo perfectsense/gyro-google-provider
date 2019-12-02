@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
 import com.google.api.services.compute.model.AddressAggregatedList;
@@ -121,6 +122,8 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
 
             return addresses;
 
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
         } catch (IOException e) {
             throw new GyroException(e.getMessage());
         }
@@ -153,6 +156,12 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
 
             return addresses;
 
+        } catch (GoogleJsonResponseException e) {
+            if (e.getDetails().getCode() == 404) {
+                return new ArrayList<>();
+            } else {
+                throw new GyroException(e.getDetails().getMessage());
+            }
         } catch (IOException e) {
             throw new GyroException(e.getMessage());
         }
