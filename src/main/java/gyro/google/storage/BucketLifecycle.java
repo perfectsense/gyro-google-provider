@@ -71,7 +71,8 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
 
     public Lifecycle toLifecycle() {
         return new Lifecycle()
-                .setRule(getRule() == null ? null : getRule().stream().map(BucketLifecycleRule::toLifecycleRule)
+                .setRule(getRule().stream()
+                        .map(BucketLifecycleRule::toLifecycleRule)
                         .collect(Collectors.toList()));
     }
 }
