@@ -16,6 +16,7 @@
 
 package gyro.google.storage;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.Buckets;
@@ -79,6 +80,8 @@ public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> 
                     buckets.addAll(results.getItems());
                 }
             } while (pageToken != null);
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
         } catch (IOException e) {
             throw new GyroException(e);
         }
@@ -96,6 +99,12 @@ public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> 
                     return Collections.singletonList(bucket);
                 }
 
+            } catch (GoogleJsonResponseException e) {
+                if (e.getDetails().getCode() == 404) {
+                    return new ArrayList<>();
+                } else {
+                    throw new GyroException(e.getDetails().getMessage());
+                }
             } catch (IOException e) {
                 throw new GyroException(e);
             }

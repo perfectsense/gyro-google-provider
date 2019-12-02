@@ -24,6 +24,7 @@ import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -187,8 +188,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * The generated ID for the bucket. Read Only
+     * The generated ID for the bucket.
      */
+    @Output
     public String getId() {
         return id;
     }
@@ -226,7 +228,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * The geographic region objects within the bucket will reside. Default is ``US``. See `Bucket locations <https://cloud.google.com/storage/docs/locations/>`_.
+     * The geographic region objects within the bucket will reside. See `Bucket locations <https://cloud.google.com/storage/docs/locations/>`_.
      */
     @Updatable
     public String getLocation() {
@@ -391,8 +393,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * The generated URI of this bucket. (Read Only)
+     * The generated URI of this bucket.
      */
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -544,6 +547,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         try {
             Storage storage = createClient(Storage.class);
             storage.buckets().delete(getName()).execute();
+
+        } catch (GoogleJsonResponseException e) {
+            throw new GyroException(e.getDetails().getMessage());
         } catch (IOException e) {
             throw new GyroException(e.getMessage());
         }

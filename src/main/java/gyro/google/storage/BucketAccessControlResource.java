@@ -183,7 +183,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     }
 
     /**
-     * The project team associated with the entity.
+     * The project team configuration associated with the entity.
      */
     public BucketAccessControlProjectTeam getProjectTeam() {
         return projectTeam;

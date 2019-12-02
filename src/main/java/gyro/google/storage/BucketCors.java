@@ -35,7 +35,7 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
     private List<String> responseHeader;
 
     /**
-     * The value quantified in seconds to be returned in the "Access-Control-Max-Age" header.
+     * The value quantified in seconds to be returned in the ``Access-Control-Max-Age`` header.
      */
     @Updatable
     public Integer getMaxAgeSeconds() {

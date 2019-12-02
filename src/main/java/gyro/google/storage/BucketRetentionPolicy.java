@@ -19,6 +19,7 @@ package gyro.google.storage;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.model.Bucket.RetentionPolicy;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;
 import gyro.google.Copyable;
@@ -32,8 +33,9 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Retentio
     private Long retentionPeriod;
 
     /**
-     * GCP-determined value that indicates the time from which policy was enforced and effective. (Read Only)
+     * GCP-determined value that indicates the time from which policy was enforced and effective.
      */
+    @Output
     public String getEffectiveTime() {
         return effectiveTime;
     }

@@ -43,7 +43,7 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
     }
 
     /**
-     * Deadline date for changing ``enabled`` from ``true`` to ``false``.
+     * The deadline date after which ``enabled`` becomes ``false``.
      */
     public String getLockedTime() {
         return lockedTime;

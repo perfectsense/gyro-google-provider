@@ -31,7 +31,7 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
     private String type;
 
     /**
-     * Target storage class. If the ``action`` is ``SetStorageClass`` it is required.
+     * Target storage class. Required when ``action`` is set to ``SetStorageClass``.
      */
     @Updatable
     public String getStorageClass() {
