@@ -491,27 +491,27 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             }
 
             if (changedFieldNames.contains("billing")) {
-                bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
+                bucket.setBilling(getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
             }
 
             if (changedFieldNames.contains("encryption")) {
-                bucket.setEncryption(getEncryption() == null ? null : getEncryption().toBucketEncryption());
+                bucket.setEncryption(getEncryption() == null ? Data.nullOf(Bucket.Encryption.class) : getEncryption().toBucketEncryption());
             }
 
             if (changedFieldNames.contains("iam-configuration")) {
-                bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+                bucket.setIamConfiguration(getIamConfiguration() == null ? Data.nullOf(Bucket.IamConfiguration.class) : getIamConfiguration().toBucketIamConfiguration());
             }
 
             if (changedFieldNames.contains("lifecycle")) {
-                bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
+                bucket.setLifecycle(getLifecycle() == null ? Data.nullOf(Bucket.Lifecycle.class) : getLifecycle().toLifecycle());
             }
 
             if (changedFieldNames.contains("logging")) {
-                bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
+                bucket.setLogging(getLogging() == null ? Data.nullOf(Bucket.Logging.class) : getLogging().toBucketLogging());
             }
 
             if (changedFieldNames.contains("retention-policy")) {
-                bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
+                bucket.setRetentionPolicy(getRetentionPolicy() == null ? Data.nullOf(Bucket.RetentionPolicy.class) : getRetentionPolicy().toBucketRententionPolicy());
             }
 
             if (changedFieldNames.contains("storage-class")) {
@@ -519,11 +519,11 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             }
 
             if (changedFieldNames.contains("versioning")) {
-                bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
+                bucket.setVersioning(getVersioning() == null ? Data.nullOf(Bucket.Versioning.class) : getVersioning().toBucketVersioning());
             }
 
             if (changedFieldNames.contains("website")) {
-                bucket.setWebsite(getWebsite() != null ? getWebsite().toBucketWebsite() : null);
+                bucket.setWebsite(getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
             }
 
             copyFrom(storage.buckets()
@@ -533,7 +533,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                     .setUserProject(getUserProject())
                     .setProjection("full")
                     .execute());
-            
+
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
