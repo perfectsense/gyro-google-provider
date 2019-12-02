@@ -92,7 +92,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * The prefix length if the resource reprensents an IP range.
+     * The prefix length if the resource represents an IP range.
      */
     public Integer getPrefixLength() {
         return prefixLength;
