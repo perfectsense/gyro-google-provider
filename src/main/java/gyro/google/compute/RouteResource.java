@@ -67,7 +67,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     private Set<String> tags;
     private String nextHopGateway;
     private String nextHopVpnTunnel;
-    private String nextHopInstance;
     private String nextHopIp;
 
     // Read-only
@@ -174,17 +173,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     }
 
     /**
-     * The fully qualified url of an instance that handles matching routed packets.
-     */
-    public String getNextHopInstance() {
-        return nextHopInstance;
-    }
-
-    public void setNextHopInstance(String nextHopInstance) {
-        this.nextHopInstance = nextHopInstance;
-    }
-
-    /**
      * The network ip address of an instance that handles matching routed packets.
      */
     public String getNextHopIp() {
@@ -232,7 +220,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
         setNextHopGateway(route.getNextHopGateway());
         setNextHopVpnTunnel(route.getNextHopVpnTunnel());
-        setNextHopInstance(route.getNextHopInstance());
         setNextHopIp(route.getNextHopIp());
     }
 
@@ -267,7 +254,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         route.setDestRange(getDestRange());
         route.setNextHopGateway(getNextHopGateway());
         route.setNextHopVpnTunnel(getNextHopVpnTunnel());
-        route.setNextHopInstance(getNextHopInstance());
         route.setNextHopIp(getNextHopIp());
         route.setPriority(getPriority());
         route.setTags(new ArrayList<>(getTags()));
@@ -320,14 +306,14 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
 
-        long count = Stream.of(getNextHopGateway(), getNextHopIp(), getNextHopVpnTunnel(), getNextHopInstance())
+        long count = Stream.of(getNextHopGateway(), getNextHopIp(), getNextHopVpnTunnel())
             .filter(Objects::nonNull)
             .count();
 
         if (count == 0) {
-            errors.add(new ValidationError(this, null, "One of 'next-hop-gateway', 'next-hop-ip', 'next-hop-vpn-tunnel' or 'next-hop-instance' is required."));
+            errors.add(new ValidationError(this, null, "One of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' is required."));
         } else if (count > 1) {
-            errors.add(new ValidationError(this, null, "Only one of 'next-hop-gateway', 'next-hop-ip', 'next-hop-vpn-tunnel' or 'next-hop-instance' can be set."));
+            errors.add(new ValidationError(this, null, "Only one of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' can be set."));
         }
 
         return errors;
