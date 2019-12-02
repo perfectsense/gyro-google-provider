@@ -16,10 +16,8 @@
 
 package gyro.google.storage;
 
-import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.model.Bucket.RetentionPolicy;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;
 import gyro.google.Copyable;
@@ -29,20 +27,7 @@ import gyro.google.Copyable;
  */
 public class BucketRetentionPolicy extends Diffable implements Copyable<RetentionPolicy> {
 
-    private String effectiveTime;
     private Long retentionPeriod;
-
-    /**
-     * GCP-determined value that indicates the time from which policy was enforced and effective.
-     */
-    @Output
-    public String getEffectiveTime() {
-        return effectiveTime;
-    }
-
-    public void setEffectiveTime(String effectiveTime) {
-        this.effectiveTime = effectiveTime;
-    }
 
     /**
      * The duration in seconds that objects need to be retained. Must be greater than ``0`` and less than ``3,155,760,000`` (100 years).
@@ -63,8 +48,6 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Retentio
     }
 
     public RetentionPolicy toBucketRententionPolicy() {
-        return new RetentionPolicy()
-                .setEffectiveTime(getEffectiveTime() == null ? null : DateTime.parseRfc3339(getEffectiveTime()))
-                .setRetentionPeriod(getRetentionPeriod());
+        return new RetentionPolicy().setRetentionPeriod(getRetentionPeriod());
     }
 }
