@@ -284,6 +284,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
         setEmail(model.getEmail());
         setEntityId(model.getEntityId());
 
+        setProjectTeam(null);
         if (model.getProjectTeam() != null) {
             BucketAccessControlProjectTeam projectTeam = newSubresource(BucketAccessControlProjectTeam.class);
             projectTeam.copyFrom(model.getProjectTeam());

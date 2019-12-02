@@ -589,54 +589,63 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         setStorageClass(model.getStorageClass());
         setSelfLink(model.getSelfLink());
 
+        setBilling(null);
         if (model.getBilling() != null) {
             BucketBilling bucketBilling = newSubresource(BucketBilling.class);
             bucketBilling.copyFrom(model.getBilling());
             setBilling(bucketBilling);
         }
 
+        setEncryption(null);
         if (model.getEncryption() != null) {
             BucketEncryption bucketEncryption = newSubresource(BucketEncryption.class);
             bucketEncryption.copyFrom(model.getEncryption());
             setEncryption(bucketEncryption);
         }
 
+        setIamConfiguration(null);
         if (model.getIamConfiguration() != null) {
             BucketIamConfiguration bucketIamConfiguration = newSubresource(BucketIamConfiguration.class);
             bucketIamConfiguration.copyFrom(model.getIamConfiguration());
             setIamConfiguration(bucketIamConfiguration);
         }
 
+        setLifecycle(null);
         if (model.getLifecycle() != null) {
             BucketLifecycle bucketLifecycle = newSubresource(BucketLifecycle.class);
             bucketLifecycle.copyFrom(model.getLifecycle());
             setLifecycle(bucketLifecycle);
         }
 
+        setLogging(null);
         if (model.getLogging() != null) {
             BucketLogging bucketLogging = newSubresource(BucketLogging.class);
             bucketLogging.copyFrom(model.getLogging());
             setLogging(bucketLogging);
         }
 
+        setRetentionPolicy(null);
         if (model.getRetentionPolicy() != null) {
             BucketRetentionPolicy policy = newSubresource(BucketRetentionPolicy.class);
             policy.copyFrom(model.getRetentionPolicy());
             setRetentionPolicy(policy);
         }
 
+        setVersioning(null);
         if (model.getVersioning() != null) {
             BucketVersioning bucketVersioning = newSubresource(BucketVersioning.class);
             bucketVersioning.copyFrom(model.getVersioning());
             setVersioning(bucketVersioning);
         }
 
+        setWebsite(null);
         if (model.getWebsite() != null) {
             BucketWebsite bucketWebsite = newSubresource(BucketWebsite.class);
             bucketWebsite.copyFrom(model.getWebsite());
             setWebsite(bucketWebsite);
         }
 
+        getCors().clear();
         if (model.getCors() != null) {
             setCors(model.getCors().stream()
                     .map(cor -> {
