@@ -24,7 +24,6 @@ import com.google.api.services.compute.model.DisksScopedList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -93,8 +92,8 @@ public class DiskFinder extends GoogleFinder<Compute, Disk, DiskResource> {
             return disks;
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
 
@@ -108,13 +107,13 @@ public class DiskFinder extends GoogleFinder<Compute, Disk, DiskResource> {
                     .orElse(new ArrayList<>());
             }
         } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() != 404) {
                 throw new GyroException(je.getDetails().getMessage());
             }
 
             return Collections.emptyList();
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
 }

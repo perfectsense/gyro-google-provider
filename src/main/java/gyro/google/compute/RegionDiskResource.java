@@ -31,7 +31,6 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -126,46 +125,13 @@ public class RegionDiskResource extends AbstractDiskResource {
     }
 
     @Override
-    public void copyMore(Disk disk) {
+    public void copyFrom(Disk disk) {
+        super.copyFrom(disk);
+
         setRegion(disk.getRegion().substring(disk.getRegion().lastIndexOf("/") + 1));
         setReplicaZones(disk.getReplicaZones());
         setType(disk.getType());
         setResourcePolicies(disk.getResourcePolicies());
-    }
-
-    @Override
-    public void doCreate(GyroUI ui, State state, Disk disk) {
-        Compute client = createComputeClient();
-
-        disk.setRegion(getRegion());
-        disk.setReplicaZones(getReplicaZones());
-
-        try {
-            Compute.RegionDisks.Insert insert = client.regionDisks().insert(getProjectId(), getRegion(), disk);
-            Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-            refresh();
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
-    }
-
-    @Override
-    public List<ValidationError> validateMore() {
-        List<ValidationError> errors = new ArrayList<>();
-
-        if (getReplicaZones().size() != 2) {
-            errors.add(new ValidationError(
-                this,
-                "replica-zones",
-                "Disk requires exactly two replica zones."));
-        }
-
-        return errors;
     }
 
     @Override
@@ -178,14 +144,52 @@ public class RegionDiskResource extends AbstractDiskResource {
 
             return true;
         } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() != 404) {
                 return false;
             } else {
                 throw new GyroException(je.getDetails().getMessage());
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
+    }
+
+    @Override
+    public void create(GyroUI ui, State state) {
+        Compute client = createComputeClient();
+
+        Disk disk = toDisk();
+        disk.setRegion(getRegion());
+        disk.setReplicaZones(getReplicaZones());
+
+        try {
+            Compute.RegionDisks.Insert insert = client.regionDisks().insert(getProjectId(), getRegion(), disk);
+            Operation operation = insert.execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
+
+            refresh();
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+    @Override
+    public List<ValidationError> validate() {
+        List<ValidationError> errors = super.validate();
+
+        if (getReplicaZones().size() != 2) {
+            errors.add(new ValidationError(
+                this,
+                "replica-zones",
+                "Disk requires exactly two replica zones."));
+        }
+
+        return errors;
     }
 
     @Override
@@ -194,7 +198,9 @@ public class RegionDiskResource extends AbstractDiskResource {
 
         try {
             compute.regionDisks().delete(getProjectId(), getRegion(), getName()).execute();
-        } catch (IOException ex) {
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -227,7 +233,9 @@ public class RegionDiskResource extends AbstractDiskResource {
             RegionDisksResizeRequest resizeRequest = new RegionDisksResizeRequest();
             resizeRequest.setSizeGb(getSizeGb());
             client.regionDisks().resize(getProjectId(), getRegion(), getName(), resizeRequest).execute();
-        } catch (IOException ex) {
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -238,7 +246,9 @@ public class RegionDiskResource extends AbstractDiskResource {
             labelsRequest.setLabels(getLabels());
             labelsRequest.setLabelFingerprint(getLabelFingerprint());
             client.regionDisks().setLabels(getProjectId(), getRegion(), getName(), labelsRequest).execute();
-        } catch (IOException ex) {
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -261,6 +271,8 @@ public class RegionDiskResource extends AbstractDiskResource {
                 addResourcePoliciesRequest.setResourcePolicies(getResourcePolicies());
                 client.regionDisks().addResourcePolicies(getProjectId(), getRegion(), getName(), addResourcePoliciesRequest).execute();
             }
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }

@@ -32,9 +32,6 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
-import gyro.core.validation.ValidationError;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -147,7 +144,9 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     @Override
-    public void copyMore(Disk disk) {
+    public void copyFrom(Disk disk) {
+        super.copyFrom(disk);
+
         setZone(disk.getZone().substring(disk.getZone().lastIndexOf("/") + 1));
         setSourceImage(disk.getSourceImage());
         setSourceImageId(disk.getSourceImageId());
@@ -162,9 +161,32 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     @Override
-    public void doCreate(GyroUI ui, State state, Disk disk) {
+    public boolean refresh() {
         Compute client = createComputeClient();
 
+        try {
+            Disk disk = client.disks().get(getProjectId(), getZone(), getName()).execute();
+            copyFrom(disk);
+
+            return true;
+        } catch (GoogleJsonResponseException je) {
+            if (je.getDetails().getCode() == 404) {
+                return false;
+            } else {
+                throw new GyroException(je.getDetails().getMessage());
+            }
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+
+
+    @Override
+    public void create(GyroUI ui, State state) {
+        Compute client = createComputeClient();
+
+        Disk disk = toDisk();
         disk.setZone(getZone());
         disk.setSourceImage(getSourceImage());
         disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null ? getSourceImageEncryptionKey().toCustomerEncryptionKey() : null);
@@ -178,32 +200,9 @@ public class DiskResource extends AbstractDiskResource {
             }
 
             refresh();
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
-    }
-
-    @Override
-    public List<ValidationError> validateMore() {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public boolean refresh() {
-        Compute client = createComputeClient();
-
-        try {
-            Disk disk = client.disks().get(getProjectId(), getZone(), getName()).execute();
-            copyFrom(disk);
-
-            return true;
         } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -214,7 +213,9 @@ public class DiskResource extends AbstractDiskResource {
 
         try {
             compute.disks().delete(getProjectId(), getZone(), getName()).execute();
-        } catch (IOException ex) {
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -247,7 +248,9 @@ public class DiskResource extends AbstractDiskResource {
             DisksResizeRequest resizeRequest = new DisksResizeRequest();
             resizeRequest.setSizeGb(getSizeGb());
             client.disks().resize(getProjectId(), getZone(), getName(), resizeRequest).execute();
-        } catch (IOException ex) {
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -258,7 +261,9 @@ public class DiskResource extends AbstractDiskResource {
             labelsRequest.setLabels(getLabels());
             labelsRequest.setLabelFingerprint(getLabelFingerprint());
             client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
-        } catch (IOException ex) {
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
+        } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
@@ -281,6 +286,8 @@ public class DiskResource extends AbstractDiskResource {
                 addResourcePoliciesRequest.setResourcePolicies(getResourcePolicies());
                 client.disks().addResourcePolicies(getProjectId(), getZone(), getName(), addResourcePoliciesRequest).execute();
             }
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }

@@ -17,11 +17,9 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.Disk;
-import gyro.core.GyroUI;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
-import gyro.core.scope.State;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
@@ -276,14 +274,9 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
             sourceSnapshotEncryption.copyFrom(disk.getSourceSnapshotEncryptionKey());
             setSourceSnapshotEncryptionKey(sourceSnapshotEncryption);
         }
-
-        copyMore(disk);
     }
 
-    public abstract void copyMore(Disk disk);
-
-    @Override
-    public void create(GyroUI ui, State state) {
+    Disk toDisk() {
         Disk disk = new Disk();
         disk.setName(getName());
         disk.setDescription(getDescription());
@@ -298,10 +291,8 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
             ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
             : null);
 
-        doCreate(ui, state, disk);
+        return disk;
     }
-
-    public abstract void doCreate(GyroUI ui, State state, Disk disk);
 
     @Override
     public List<ValidationError> validate() {
@@ -314,10 +305,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
                 "Attaching more than one resource policy is not supported."));
         }
 
-        errors.addAll(validateMore());
-
         return errors;
     }
-
-    public abstract List<ValidationError> validateMore();
 }
