@@ -131,8 +131,6 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
                     healthChecks.add(client.healthChecks()
                         .get(getProjectId(), filters.get("name"))
                         .execute());
-                } else {
-                    return findAllGoogle(client);
                 }
             }
 

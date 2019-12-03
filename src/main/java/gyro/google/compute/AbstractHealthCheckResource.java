@@ -266,6 +266,7 @@ public class AbstractHealthCheckResource extends ComputeResource implements Copy
         try {
             HealthCheck healthCheck = client.healthChecks().get(getProjectId(), getName()).execute();
             copyFrom(healthCheck);
+
             return true;
         } catch (GoogleJsonResponseException je) {
             if (je.getDetails().getCode() == 404) {
