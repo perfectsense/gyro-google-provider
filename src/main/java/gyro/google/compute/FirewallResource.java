@@ -152,6 +152,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * @subresource gyro.google.compute.FirewallAllowed
      */
     @Updatable
+    @Required(when = "rule-type", equals = "ALLOW")
     @ConflictsWith("denied")
     public List<FirewallAllowed> getAllowed() {
         if (allowed == null) {
@@ -171,6 +172,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * @subresource gyro.google.cloud.FirewallDenied
      */
     @Updatable
+    @Required(when = "rule-type", equals = "DENY")
     @ConflictsWith("allowed")
     public List<FirewallDenied> getDenied() {
         if (denied == null) {
@@ -188,6 +190,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * A set of destination IP in cidr form that the firewall rule applies to. Can only be set when 'direction' set to 'EGRESS'.
      */
     @Updatable
+    @Required(when = "direction", equals = "EGRESS")
     public Set<String> getDestinationRanges() {
         if (destinationRanges == null) {
             destinationRanges = new HashSet<>();
@@ -251,6 +254,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * A set of source IP in cidr form that the firewall rule applies to. Can only be set when 'direction' set to 'INGRESS'.
      */
     @Updatable
+    @Required(when = "direction", equals = "INGRESS", constraint = Required.RequiredConstraint.AT_LEAST_ONE)
     public Set<String> getSourceRanges() {
         if (sourceRanges == null) {
             sourceRanges = new HashSet<>();
@@ -267,6 +271,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * A set of service accounts that the incoming requests are going to be matched with only if it originated from instances of the accounts specified.  Can only be set when 'direction' set to 'INGRESS'. Only one of 'source-service-account' or 'source-tags' can be set.
      */
     @Updatable
+    @Required(when = "direction", equals = "INGRESS", constraint = Required.RequiredConstraint.AT_LEAST_ONE)
     @ConflictsWith({"source-tags", "target-tags"})
     public Set<String> getSourceServiceAccounts() {
         if (sourceServiceAccounts == null) {
@@ -284,6 +289,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
      * A set of tags that the incoming requests are going to be matched with only if it originated from instances whose primary network interface has the same tags. Can only be set when 'direction' set to 'INGRESS'. Only one of 'source-service-account' or 'source-tags' can be set.
      */
     @Updatable
+    @Required(when = "direction", equals = "INGRESS", constraint = Required.RequiredConstraint.AT_LEAST_ONE)
     public Set<String> getSourceTags() {
         if (sourceTags == null) {
             sourceTags = new HashSet<>();
@@ -482,48 +488,6 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
-    }
-
-    @Override
-    public List<ValidationError> validate() {
-        List<ValidationError> errors = new ArrayList<>();
-
-        if (getRuleType().equals("ALLOW") && getAllowed().isEmpty()) {
-            errors.add(new ValidationError(this, "allowed", "'allowed' needs to be set when 'rule-type' set to 'ALLOW'."));
-        }
-
-        if (getRuleType().equals("DENY") && getDenied().isEmpty()) {
-            errors.add(new ValidationError(this, "denied", "'denied' needs to be set when 'rule-type' set to 'DENY'."));
-        }
-
-        if (getDirection().equals("INGRESS")) {
-            if (!getDestinationRanges().isEmpty()) {
-                errors.add(new ValidationError(this, "destination-ranges", "'destination-ranges' cannot be set when 'direction' set to 'INGRESS'"));
-            }
-
-            if (getSourceServiceAccounts().isEmpty() && getSourceTags().isEmpty() && getSourceRanges().isEmpty()) {
-                errors.add(new ValidationError(this, null, "At least one of 'source-service-account', 'source-tags' or 'source-ranges' is required when 'direction' set to 'INGRESS'"));
-            }
-
-        } else if (getDirection().equals("EGRESS")) {
-            if (!getSourceRanges().isEmpty()) {
-                errors.add(new ValidationError(this, "source-ranges", "'source-ranges' cannot be set when 'direction' set to 'EGRESS'"));
-            }
-
-            if (!getSourceTags().isEmpty()) {
-                errors.add(new ValidationError(this, "source-tags", "'source-tags' cannot be set when 'direction' set to 'EGRESS'"));
-            }
-
-            if (!getSourceServiceAccounts().isEmpty()) {
-                errors.add(new ValidationError(this, "source-service-accounts", "'source-service-accounts' cannot be set when 'direction' set to 'EGRESS'"));
-            }
-
-            if (getDestinationRanges().isEmpty()) {
-                errors.add(new ValidationError(this, null, "'destination-ranges' is required when 'direction' set to 'EGRESS'"));
-            }
-        }
-
-        return errors;
     }
 
     private Firewall toFirewall() {
