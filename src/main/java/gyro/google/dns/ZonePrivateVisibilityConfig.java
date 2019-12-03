@@ -50,6 +50,7 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
     @Override
     public void copyFrom(ManagedZonePrivateVisibilityConfig model) {
         List<ManagedZonePrivateVisibilityConfigNetwork> networks = model.getNetworks();
+
         if (networks != null && !networks.isEmpty()) {
             setNetwork(networks
                 .stream()

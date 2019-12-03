@@ -17,7 +17,6 @@
 package gyro.google.dns;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +44,6 @@ import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
-import gyro.google.Requestable;
 
 /**
  * Creates a Managed Zone.
@@ -78,7 +76,7 @@ import gyro.google.Requestable;
  *     end
  */
 @Type("dns-managed-zone")
-public class ManagedZoneResource extends GoogleResource implements Copyable<ManagedZone>, Requestable<ManagedZone> {
+public class ManagedZoneResource extends GoogleResource implements Copyable<ManagedZone> {
 
     private String creationTime;
 
@@ -395,17 +393,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
             }
         }
         return errors;
-    }
-
-    @Override
-    public ManagedZone copyTo() {
-        ManagedZone managedZone = createManagedZone();
-        managedZone.setCreationTime(getCreationTime());
-        managedZone.setId(new BigInteger(getId()));
-        managedZone.setLabels(getLabels());
-        managedZone.setNameServerSet(getNameServerSet());
-        managedZone.setNameServers(getNameServers());
-        return managedZone;
     }
 
     private boolean refreshFrom(ManagedZone managedZone) {
