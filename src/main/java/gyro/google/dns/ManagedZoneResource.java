@@ -144,7 +144,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      * @subresource gyro.google.dns.ZoneDnsSecConfig
      */
     @ConflictsWith({ "forwarding-config", "private-visibility-config" })
-    // TODO: xxx
+    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public ZoneDnsSecConfig getDnssecConfig() {
         return dnssecConfig;
@@ -160,7 +160,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      * @subresource gyro.google.dns.ZoneForwardingConfig
      */
     @ConflictsWith("dnssec-config")
-    // TODO: xxx
+    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public ZoneForwardingConfig getForwardingConfig() {
         return forwardingConfig;
@@ -235,7 +235,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      * @subresource gyro.google.dns.ZonePrivateVisibilityConfig
      */
     @ConflictsWith("dnssec-config")
-    // TODO: xxx
+    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public ZonePrivateVisibilityConfig getPrivateVisibilityConfig() {
         return privateVisibilityConfig;
