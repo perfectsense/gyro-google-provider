@@ -1,0 +1,7 @@
+google::dns-policy dns-policy-example
+    name: "dns-policy-example"
+    description: "DNS Policy Example"
+    network
+        network: $(google::compute-network network-example)
+    end
+end
