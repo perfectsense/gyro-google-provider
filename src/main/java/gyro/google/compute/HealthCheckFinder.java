@@ -112,6 +112,22 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
             HealthCheckList healthCheckList;
             String nextPageToken = null;
 
+            if (filters.containsKey("region") && filters.containsKey("name")) {
+                healthChecks.add(client.regionHealthChecks()
+                    .get(getProjectId(), filters.get("region"), filters.get("name"))
+                    .execute());
+
+                return healthChecks;
+            }
+
+            if (filters.containsKey("name")) {
+                healthChecks.add(client.healthChecks()
+                    .get(getProjectId(), filters.get("name"))
+                    .execute());
+
+                return healthChecks;
+            }
+
             if (filters.containsKey("region")) {
                 do {
                     healthCheckList = client.regionHealthChecks()
@@ -126,15 +142,9 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
                         break;
                     }
                 } while (nextPageToken != null);
-            } else {
-                if (filters.containsKey("name")) {
-                    healthChecks.add(client.healthChecks()
-                        .get(getProjectId(), filters.get("name"))
-                        .execute());
-                }
-            }
 
-            return healthChecks;
+                return healthChecks;
+            }
         } catch (GoogleJsonResponseException e) {
             if (e.getDetails().getCode() == 404) {
                 return new ArrayList<>();
