@@ -18,34 +18,33 @@ package gyro.google.compute;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Network;
-import com.google.api.services.compute.model.NetworkList;
+import com.google.api.services.compute.model.Route;
+import com.google.api.services.compute.model.RouteList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Query network.
+ * Query route.
  *
  * Example
  * -------
  *
  * .. code-block:: gyro
  *
- *    network: $(external-query google::network { name: 'network-example'})
+ *    route: $(external-query google::compute-route { name: 'route-example'})
  */
-@Type("network")
-public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResource> {
+@Type("compute-route")
+public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
     private String name;
 
     /**
-     * The name of the network.
+     * The name of the route.
      */
     public String getName() {
         return name;
@@ -56,42 +55,42 @@ public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResourc
     }
 
     @Override
-    protected List<Network> findAllGoogle(Compute client) {
+    protected List<Route> findAllGoogle(Compute client) {
         try {
-            List<Network> networks = new ArrayList<>();
-            NetworkList networkList;
+            List<Route> routes = new ArrayList<>();
+            RouteList routeList;
             String nextPageToken = null;
-            
+
             do {
-                networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
-                networks.addAll(networkList.getItems());
-                nextPageToken = networkList.getNextPageToken();
+                routeList = client.routes().list(getProjectId()).setPageToken(nextPageToken).execute();
+                routes.addAll(routeList.getItems());
+                nextPageToken = routeList.getNextPageToken();
             } while (nextPageToken != null);
 
-            return networks;
+            return routes;
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
 
     @Override
-    protected List<Network> findGoogle(Compute client, Map<String, String> filters) {
-        Network network = null;
+    protected List<Route> findGoogle(Compute client, Map<String, String> filters) {
+        Route route = null;
 
         try {
-            network = client.networks().get(getProjectId(), filters.get("name")).execute();
+            route = client.routes().get(getProjectId(), filters.get("name")).execute();
         } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
+            if (je.getDetails().getCode() != 404) {
                 throw new GyroException(je.getDetails().getMessage());
             }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
         }
 
-        if (network != null) {
-            return Collections.singletonList(network);
+        if (route != null) {
+            return Collections.singletonList(route);
         } else {
             return Collections.emptyList();
         }
