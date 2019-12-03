@@ -225,7 +225,7 @@ public class DiskResource extends AbstractDiskResource {
         Compute client = createComputeClient();
 
         if (changedFieldNames.contains("size-gb")) {
-            saveSizeGb(client, (RegionDiskResource) current);
+            saveSizeGb(client, (DiskResource) current);
         }
 
         if (changedFieldNames.contains("labels")) {
@@ -233,14 +233,14 @@ public class DiskResource extends AbstractDiskResource {
         }
 
         if (changedFieldNames.contains("resource-policies")) {
-            saveResourcePolicies(client, (RegionDiskResource) current);
+            saveResourcePolicies(client, (DiskResource) current);
         }
 
         refresh();
     }
 
-    private void saveSizeGb(Compute client, RegionDiskResource oldRegionDiskResource) {
-        if (getSizeGb() < oldRegionDiskResource.getSizeGb()) {
+    private void saveSizeGb(Compute client, DiskResource oldDiskResource) {
+        if (getSizeGb() < oldDiskResource.getSizeGb()) {
             throw new GyroException("Size of the disk cannot be decreased once set.");
         }
 
@@ -268,11 +268,11 @@ public class DiskResource extends AbstractDiskResource {
         }
     }
 
-    private void saveResourcePolicies(Compute client, RegionDiskResource oldRegionDiskResource) {
+    private void saveResourcePolicies(Compute client, DiskResource oldDiskResource) {
         try {
-            if (!oldRegionDiskResource.getResourcePolicies().isEmpty()) {
+            if (!oldDiskResource.getResourcePolicies().isEmpty()) {
                 DisksRemoveResourcePoliciesRequest removeResourcePoliciesRequest = new DisksRemoveResourcePoliciesRequest();
-                removeResourcePoliciesRequest.setResourcePolicies(oldRegionDiskResource.getResourcePolicies());
+                removeResourcePoliciesRequest.setResourcePolicies(oldDiskResource.getResourcePolicies());
                 Operation operation = client.disks()
                     .removeResourcePolicies(getProjectId(), getZone(), getName(), removeResourcePoliciesRequest).execute();
                 Operation.Error error = waitForCompletion(client, operation);
