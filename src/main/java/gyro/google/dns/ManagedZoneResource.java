@@ -200,7 +200,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      * User assigned name for this resource. Must be unique within the project. The name must be 1-63 characters long, must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes. The value may be ``null``.
      */
     @Required
-    @Updatable
     public String getName() {
         return name;
     }
@@ -319,8 +318,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
                 managedZone.setLabels(Data.nullOf(HashMap.class));
                 patch(ui, managedZone, false);
                 managedZone.setLabels(getLabels());
-            } else if (changedFieldName.equals("name")) {
-                managedZone.setName(getName());
             } else if (changedFieldName.equals("private-visibility-config")) {
                 ZonePrivateVisibilityConfig privateVisibilityConfig = getPrivateVisibilityConfig();
 
