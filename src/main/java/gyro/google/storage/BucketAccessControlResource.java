@@ -22,7 +22,7 @@ import com.google.api.services.storage.model.BucketAccessControl;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -130,6 +130,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     /**
      * The domain associated with the entity.
      */
+    @Output
     public String getDomain() {
         return domain;
     }
@@ -141,7 +142,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     /**
      * Unique ID for the resource.
      */
-    @Id
+    @Output
     public String getId() {
         return id;
     }
@@ -153,6 +154,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     /**
      * The link to this access-control entry.
      */
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -160,10 +162,11 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     public void setSelfLink(String selfLink) {
         this.selfLink = selfLink;
     }
-    
+
     /**
      * The email address associated with the entity.
      */
+    @Output
     public String getEmail() {
         return email;
     }
@@ -175,6 +178,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     /**
      * The ID for the entity.
      */
+    @Output
     public String getEntityId() {
         return entityId;
     }
@@ -232,7 +236,9 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
         acl.setRole(getRole());
 
         try {
-            copyFrom(storage.bucketAccessControls().insert(getBucket().getName(), acl).execute());
+            copyFrom(storage.bucketAccessControls().insert(getBucket().getName(), acl)
+                    .setUserProject(getUserProject())
+                    .execute());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         } catch (Exception e) {
@@ -258,7 +264,9 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
         }
 
         try {
-            copyFrom(storage.bucketAccessControls().patch(getBucket().getName(), getEntity(), acl).execute());
+            copyFrom(storage.bucketAccessControls().patch(getBucket().getName(), getEntity(), acl)
+                    .setUserProject(getUserProject())
+                    .execute());
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(e.getDetails().getMessage());
         }
