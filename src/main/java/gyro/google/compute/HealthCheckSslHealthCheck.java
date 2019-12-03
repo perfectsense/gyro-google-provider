@@ -22,11 +22,6 @@ import gyro.google.Copyable;
 public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Copyable<SSLHealthCheck> {
 
     @Override
-    public String primaryKey() {
-        return "SslHealthCheck";
-    }
-
-    @Override
     protected String getType() {
         return "SSL";
     }
@@ -45,11 +40,11 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Co
 
     public SSLHealthCheck toSslHealthCheck() {
         return new SSLHealthCheck()
-                .setPort(getPort())
-                .setPortName(getPortName())
-                .setPortSpecification(getPortSpecification())
-                .setProxyHeader(getProxyHeader())
-                .setResponse(getResponse())
-                .setRequest(getRequestPath());
+            .setPort(getPort())
+            .setPortName(getPortName())
+            .setPortSpecification(getPortSpecification())
+            .setProxyHeader(getProxyHeader())
+            .setResponse(getResponse())
+            .setRequest(getRequestPath());
     }
 }

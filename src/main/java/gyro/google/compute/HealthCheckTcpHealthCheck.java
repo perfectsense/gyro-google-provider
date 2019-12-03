@@ -22,11 +22,6 @@ import gyro.google.Copyable;
 public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Copyable<TCPHealthCheck> {
 
     @Override
-    public String primaryKey() {
-        return "TcpHealthCheck";
-    }
-
-    @Override
     protected String getType() {
         return "TCP";
     }
