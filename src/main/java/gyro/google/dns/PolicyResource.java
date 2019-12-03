@@ -229,9 +229,9 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                 policy.setAlternativeNameServerConfig(alternativeNameServerConfig == null
                     ? Data.nullOf(PolicyAlternativeNameServerConfig.class)
                     : alternativeNameServerConfig.copyTo());
-            } else if (changedFieldName.equals("enable-in-bound-forwarding")) {
+            } else if (changedFieldName.equals("enable-inbound-forwarding")) {
                 policy.setEnableInboundForwarding(getEnableInboundForwarding());
-            } else if (changedFieldName.equals("enable-in-bound-logging")) {
+            } else if (changedFieldName.equals("enable-logging")) {
                 policy.setEnableLogging(getEnableLogging());
             } else if (changedFieldName.equals("network")) {
                 List<DnsPolicyNetwork> networks = getNetwork();
