@@ -21,13 +21,14 @@ import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 
 public abstract class AbstractHealthCheck extends Diffable {
+
     private Integer port;
     private String portName;
     private String portSpecification;
     private String proxyHeader;
     private String response;
     private String requestPath;
-
+    
     /**
      * The port for the domain name and/or ip address to monitor for the health check.
      */
@@ -56,7 +57,7 @@ public abstract class AbstractHealthCheck extends Diffable {
      * The port specification determines how the port is selected for health checking. Valid values are ``USE_FIXED_PORT``, ``USE_NAMED_PORT`` or ``USE_SERVING_PORT``.
      */
     @Updatable
-    @ValidStrings({"USE_FIXED_PORT", "USE_NAMED_PORT", "USE_SERVING_PORT"})
+    @ValidStrings({ "USE_FIXED_PORT", "USE_NAMED_PORT", "USE_SERVING_PORT" })
     public String getPortSpecification() {
         return portSpecification;
     }
@@ -69,7 +70,7 @@ public abstract class AbstractHealthCheck extends Diffable {
      * The proxy header to append before sending data to the backend. Valid values are ``NONE`` or ``PROXY_V1``.
      */
     @Updatable
-    @ValidStrings({"NONE", "PROXY_V1"})
+    @ValidStrings({ "NONE", "PROXY_V1" })
     public String getProxyHeader() {
         return proxyHeader;
     }

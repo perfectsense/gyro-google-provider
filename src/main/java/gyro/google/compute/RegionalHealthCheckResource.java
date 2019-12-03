@@ -36,8 +36,50 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
 
     @Override
     public void copyFrom(HealthCheck healthCheck) {
+        setName(healthCheck.getName());
+        setDescription(healthCheck.getDescription());
+        setCheckIntervalSec(healthCheck.getCheckIntervalSec());
+        setTimeoutSec(healthCheck.getTimeoutSec());
+        setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
+        setHealthyThreshold(healthCheck.getHealthyThreshold());
+        setSelfLink(healthCheck.getSelfLink());
+        setType(healthCheck.getType());
         setRegion(healthCheck.getRegion());
-        super.copyFrom(healthCheck);
+
+        setHttpHealthCheck(null);
+        if (healthCheck.getHttpHealthCheck() != null) {
+            HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
+            httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
+            setHttpHealthCheck(httpHealthCheck);
+        }
+
+        setHttpsHealthCheck(null);
+        if (healthCheck.getHttpsHealthCheck() != null) {
+            HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
+            httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
+            setHttpsHealthCheck(httpsHealthCheck);
+        }
+
+        setHttp2HealthCheck(null);
+        if (healthCheck.getHttp2HealthCheck() != null) {
+            HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
+            http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
+            setHttp2HealthCheck(http2HealthCheck);
+        }
+
+        setSslHealthCheck(null);
+        if (healthCheck.getSslHealthCheck() != null) {
+            HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
+            sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
+            setSslHealthCheck(sslHealthCheck);
+        }
+
+        setTcpHealthCheck(null);
+        if (healthCheck.getTcpHealthCheck() != null) {
+            HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
+            tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
+            setTcpHealthCheck(tcpHealthCheck);
+        }
     }
 
     @Override
@@ -130,6 +172,10 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
                 healthCheck.setHealthyThreshold(getHealthyThreshold());
             }
 
+            if (changedFieldNames.contains("region")) {
+                healthCheck.setRegion(getRegion());
+            }
+
             if (changedFieldNames.contains("timeout-sec")) {
                 healthCheck.setTimeoutSec(getTimeoutSec());
             }
@@ -169,7 +215,9 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
                 healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
             }
 
-            Operation operation = client.healthChecks().patch(getProjectId(), getName(), healthCheck).execute();
+            Operation operation = client.regionHealthChecks()
+                .patch(getProjectId(), getRegion(), getName(), healthCheck)
+                .execute();
             Operation.Error error = waitForCompletion(client, operation);
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
@@ -189,7 +237,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
             client.regionHealthChecks().delete(getProjectId(), region, healthCheck.getName()).execute();
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(String.format(
-                "Unable to delete Health Check: %s, Google error: %s",
+                "Unable to delete Regional Health Check: %s, Google error: %s",
                 getName(),
                 e.getMessage()));
         }

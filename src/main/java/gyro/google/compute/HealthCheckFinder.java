@@ -145,7 +145,7 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
 
                 return healthChecks;
             }
-            
+
             return healthChecks;
         } catch (GoogleJsonResponseException e) {
             if (e.getDetails().getCode() == 404) {
