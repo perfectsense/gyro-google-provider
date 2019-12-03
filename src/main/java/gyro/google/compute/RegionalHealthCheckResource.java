@@ -31,6 +31,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     }
 
     public void setRegion(String region) {
+        region = region.substring(region.lastIndexOf("/") + 1);
         this.region = region;
     }
 
@@ -86,9 +87,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     public boolean refresh() {
         Compute client = createComputeClient();
         try {
-            String region = getRegion();
-            region = region.substring(region.lastIndexOf("/") + 1);
-            HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), region, getName()).execute();
+            HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
             copyFrom(healthCheck);
             return true;
         } catch (GoogleJsonResponseException je) {
@@ -231,9 +230,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     public void delete(GyroUI ui, State state) throws Exception {
         try {
             Compute client = createComputeClient();
-            String region = getRegion();
-            region = region.substring(region.lastIndexOf("/") + 1);
-            HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), region, getName()).execute();
+            HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
             client.regionHealthChecks().delete(getProjectId(), region, healthCheck.getName()).execute();
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(String.format(
