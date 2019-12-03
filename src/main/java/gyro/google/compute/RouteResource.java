@@ -268,7 +268,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
             route = client.routes().get(getProjectId(), getName()).execute();
             copyFrom(route);
             if (route.getWarnings() != null && !route.getWarnings().isEmpty()) {
-                // show warning
                 GyroCore.ui().write("@|orange Route created with warnings:|@ %s\n",
                     route.getWarnings().stream().map(Route.Warnings::getMessage).collect(Collectors.joining("\n")));
             }
