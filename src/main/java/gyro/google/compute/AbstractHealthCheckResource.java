@@ -224,30 +224,35 @@ public class AbstractHealthCheckResource extends ComputeResource implements Copy
         setSelfLink(healthCheck.getSelfLink());
         setType(healthCheck.getType());
 
+        setHttpHealthCheck(null);
         if (healthCheck.getHttpHealthCheck() != null) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
             httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
             setHttpHealthCheck(httpHealthCheck);
         }
 
+        setHttpsHealthCheck(null);
         if (healthCheck.getHttpsHealthCheck() != null) {
             HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
             httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
             setHttpsHealthCheck(httpsHealthCheck);
         }
 
+        setHttp2HealthCheck(null);
         if (healthCheck.getHttp2HealthCheck() != null) {
             HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
             http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
             setHttp2HealthCheck(http2HealthCheck);
         }
 
+        setSslHealthCheck(null);
         if (healthCheck.getSslHealthCheck() != null) {
             HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
             sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
             setSslHealthCheck(sslHealthCheck);
         }
 
+        setTcpHealthCheck(null);
         if (healthCheck.getTcpHealthCheck() != null) {
             HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
             tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
