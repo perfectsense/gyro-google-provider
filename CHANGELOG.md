@@ -8,3 +8,4 @@ ISSUES FIXED:
 NEW FEATURES:
 
 * [23](https://github.com/perfectsense/gyro-google-provider/issues/23): Add Route.
+* [24](https://github.com/perfectsense/gyro-google-provider/issues/24): Add Firewall Rule.
