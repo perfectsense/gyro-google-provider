@@ -110,6 +110,9 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         this.id = id;
     }
 
+    /**
+     * [Output Only] Server-defined URL for the resource. The value may be ``null``.
+     */
     @Output
     public String getSelfLink() {
         return selfLink;
