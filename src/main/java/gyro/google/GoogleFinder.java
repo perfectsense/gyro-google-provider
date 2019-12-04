@@ -16,31 +16,57 @@
 
 package gyro.google;
 
-import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
-import com.psddev.dari.util.TypeDefinition;
-import gyro.core.finder.Finder;
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
+import com.psddev.dari.util.TypeDefinition;
+import gyro.core.GyroException;
+import gyro.core.finder.Finder;
+
+import static gyro.google.GoogleResource.formatGoogleExceptionMessage;
+
 public abstract class GoogleFinder<C extends AbstractGoogleJsonClient, M, R extends GoogleResource> extends Finder<R> {
-    protected abstract List<M> findAllGoogle(C client);
-    protected abstract List<M> findGoogle(C client, Map<String, String> filters);
+    protected abstract List<M> findAllGoogle(C client) throws Exception;
+
+    protected abstract List<M> findGoogle(C client, Map<String, String> filters) throws Exception;
 
     @Override
     public List<R> findAll() {
-        return findAllGoogle(newClient()).stream()
-            .map(this::newResource)
-            .collect(Collectors.toList());
+        try {
+            return findAllGoogle(newClient()).stream()
+                .map(this::newResource)
+                .collect(Collectors.toList());
+        } catch (GyroException ex) {
+            throw ex;
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(formatGoogleExceptionMessage(je));
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
     }
 
     @Override
     public List<R> find(Map<String, Object> filters) {
-        return findGoogle(newClient(), convertFilters(filters)).stream()
+        try {
+            return findGoogle(newClient(), convertFilters(filters)).stream()
             .map(this::newResource)
             .collect(Collectors.toList());
+        } catch (GyroException ex) {
+            throw ex;
+        } catch (GoogleJsonResponseException je) {
+            if (je.getDetails().getCode() == 404) {
+                return Collections.emptyList();
+            } else {
+                throw new GyroException(formatGoogleExceptionMessage(je));
+            }
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
     }
 
     protected C newClient() {
