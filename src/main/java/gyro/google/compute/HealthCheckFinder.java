@@ -18,6 +18,7 @@ package gyro.google.compute;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -43,26 +44,18 @@ import gyro.google.GoogleFinder;
  *
  *    compute-health-check: $(external-query google::compute-health-check)
  *
- * Example find the global health check on name equal to 'health-check-example'..
+ * Example find the global health check with a name equal to 'health-check-example'..
  * -------
  *
  * .. code-block:: gyro
  *
  *     compute-health-check: $(external-query google::compute-health-check { name: "health-check-example" })
  *
- * Example find all the health checks for the region 'us-east1'.
- * -------
- *
- * .. code-block:: gyro
- *
- *     compute-health-check: $(external-query google::compute-health-check { region: "us-east1" })
- *
  */
 @Type("compute-health-check")
 public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, HealthCheckResource> {
 
     private String name;
-    private String region;
 
     /**
      * The name of the health check.
@@ -73,17 +66,6 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * The name of the region for this request. Not applicable to global health checks..
-     */
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
     }
 
     @Override
@@ -107,54 +89,26 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
 
     @Override
     protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) {
-        try {
-            List<HealthCheck> healthChecks = new ArrayList<>();
-            HealthCheckList healthCheckList;
-            String nextPageToken = null;
+        if (filters.containsKey("name")) {
+            try {
+                List<HealthCheck> healthChecks = new ArrayList<>();
 
-            if (filters.containsKey("region") && filters.containsKey("name")) {
-                healthChecks.add(client.regionHealthChecks()
-                    .get(getProjectId(), filters.get("region"), filters.get("name"))
-                    .execute());
-
-                return healthChecks;
-            }
-
-            if (filters.containsKey("name")) {
                 healthChecks.add(client.healthChecks()
                     .get(getProjectId(), filters.get("name"))
                     .execute());
 
                 return healthChecks;
+            } catch (GoogleJsonResponseException e) {
+                if (e.getDetails().getCode() == 404) {
+                    return new ArrayList<>();
+                } else {
+                    throw new GyroException(e.getDetails().getMessage());
+                }
+            } catch (IOException ex) {
+                throw new GyroException(ex);
             }
-
-            if (filters.containsKey("region")) {
-                do {
-                    healthCheckList = client.regionHealthChecks()
-                        .list(getProjectId(), filters.get("region"))
-                        .setPageToken(nextPageToken)
-                        .execute();
-
-                    if (healthCheckList != null && healthCheckList.getItems() != null) {
-                        nextPageToken = healthCheckList.getNextPageToken();
-                        healthChecks.addAll(healthCheckList.getItems());
-                    } else {
-                        break;
-                    }
-                } while (nextPageToken != null);
-
-                return healthChecks;
-            }
-
-            return healthChecks;
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails().getCode() == 404) {
-                return new ArrayList<>();
-            } else {
-                throw new GyroException(e.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
         }
+
+        return Collections.emptyList();
     }
 }

@@ -89,6 +89,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
         try {
             HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
             copyFrom(healthCheck);
+
             return true;
         } catch (GoogleJsonResponseException je) {
             if (je.getDetails().getCode() == 404) {
