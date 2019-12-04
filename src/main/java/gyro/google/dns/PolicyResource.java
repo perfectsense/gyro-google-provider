@@ -153,6 +153,8 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
 
     /**
      * List of network names specifying networks to which this policy is applied. The value may be ``null``.
+     *
+     * @subresource gyro.google.dns.DnsPolicyNetwork
      */
     // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
