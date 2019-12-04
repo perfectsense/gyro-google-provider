@@ -19,9 +19,7 @@ package gyro.google.compute;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
-import com.google.api.services.compute.model.AddressAggregatedList;
 import com.google.api.services.compute.model.AddressList;
-import com.google.api.services.compute.model.AddressesScopedList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
@@ -30,46 +28,35 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
- * Query for regional addresses.
+ * Query for global addresses.
  *
  * ========
  * Examples
  * ========
  *
- * Example find all regional addresses for project.
+ * Example find all global addresses for project.
  * -------
  *
  * .. code-block:: gyro
  *
- *    addresses: $(external-query google::address)
+ *    addresses: $(external-query google::global-address)
  *
  *
- * Example find all static IPs for the region 'us-east1'.
+ * Example find the global address filtering on name equal to 'global-address-test-1'.
  * -------
  *
  * .. code-block:: gyro
  *
- *    addresses: $(external-query google::address { region: 'us-east1' })
- *
- *
- * Example find the address filtering on name equal to 'us-east1-test-two' in the region 'us-east1'.
- * -------
- *
- * .. code-block:: gyro
- *
- *    addresses: $(external-query google::address { filter: 'name = "us-east1-test-two"', region: 'us-east1' })
+ *    addresses: $(external-query google::global-address { filter: 'name = "global-address-test-1"' })
  *
  */
-@Type("address")
-public class AddressFinder extends GoogleFinder<Compute, Address, AddressResource> {
+@Type("global-address")
+public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAddressResource> {
 
     private String filter;
-    private String region;
-
+    
     /**
      * A filter expression that filters resources listed in the response. The expression must specify the field name, a comparison operator, and the value that you want to use for filtering.
      */
@@ -81,41 +68,20 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
         this.filter = filter;
     }
 
-    /**
-     * Name of the region for this request. Not applicable to global addresses.
-     */
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
     @Override
     protected List<Address> findAllGoogle(Compute client) {
-        try {
-            List<Address> addresses = new ArrayList<>();
-            String pageToken = null;
+        List<Address> addresses = new ArrayList<>();
+        String pageToken = null;
 
+        try {
             do {
-                AddressAggregatedList aggregatedList = client.addresses().aggregatedList(getProjectId())
+                AddressList addressList = client.globalAddresses().list(getProjectId())
                         .setPageToken(pageToken)
                         .execute();
+                pageToken = addressList.getNextPageToken();
 
-                if (aggregatedList.getItems() != null) {
-                    pageToken = aggregatedList.getNextPageToken();
-                    aggregatedList.getItems().remove("global");
-
-                    List<Address> aggregated = aggregatedList.getItems().values().stream()
-                            .map(AddressesScopedList::getAddresses)
-                            .filter(Objects::nonNull)
-                            .flatMap(List::stream)
-                            .collect(Collectors.toList());
-
-                    if (!aggregated.isEmpty()) {
-                        addresses.addAll(aggregated);
-                    }
+                if (addressList.getItems() != null) {
+                    addresses.addAll(addressList.getItems());
                 } else {
                     break;
                 }
@@ -137,16 +103,15 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
             List<Address> addresses = new ArrayList<>();
             String pageToken = null;
 
-            if (filters.containsKey("region")) {
+            if (filters.containsKey("filter")) {
                 do {
-                    AddressList addressList = client.addresses().list(getProjectId(), filters.get("region"))
+                    AddressList addressList = client.globalAddresses().list(getProjectId())
                             .setFilter(filters.get("filter"))
                             .setPageToken(pageToken)
                             .execute();
+                    pageToken = addressList.getNextPageToken();
 
                     if (addressList.getItems() != null) {
-                        pageToken = addressList.getNextPageToken();
-
                         addresses.addAll(addressList.getItems());
                     } else {
                         break;
