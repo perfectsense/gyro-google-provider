@@ -16,6 +16,11 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Route;
@@ -23,11 +28,6 @@ import com.google.api.services.compute.model.RouteList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Query route.
@@ -41,6 +41,7 @@ import java.util.Map;
  */
 @Type("compute-route")
 public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
+
     private String name;
 
     /**
