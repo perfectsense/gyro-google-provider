@@ -104,6 +104,8 @@ public class DiffableGenerator {
     private void generateField(String name, JsonSchema property) throws Exception {
         String type = property.getType();
 
+        name = isReservedName(name) ? handleReservedName(name) : name;
+
         if ("kind".equals(name) || "etag".equals(name)
             || "timeCreated".equals(name) || "updated".equals(name)) {
             return;
@@ -194,7 +196,8 @@ public class DiffableGenerator {
 
     private String removePlural(String word) {
         if (word.endsWith("s")) {
-            return StringUtils.chop(word);
+            word = StringUtils.chop(word);
+            return isReservedName(word) ? handleReservedName(word) : word;
         }
 
         return word;
@@ -277,5 +280,21 @@ public class DiffableGenerator {
 
     private boolean isDeprecated(JsonSchema property) {
         return property.getDescription() != null && property.getDescription().startsWith("Deprecated");
+    }
+
+    private boolean isReservedName(String name) {
+        if (name.equals("interface")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private String handleReservedName(String name) {
+        if (name.equals("interface")) {
+            return "interfaceValue";
+        }
+
+        return name;
     }
 }
