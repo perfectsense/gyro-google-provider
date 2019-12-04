@@ -160,6 +160,17 @@ public class DiffableGenerator {
                         .build());
 
                 generateGetterSetter(name, listOf, true, property);
+            } else if (schemaType == null) {
+                TypeSpec complexType = generateComplexType(schema.get$ref());
+                ClassName list = ClassName.get("java.util", "List");
+                TypeName listOf = ParameterizedTypeName.get(list, TypeVariableName.get(complexType.name));
+
+                resourceBuilder.addField(
+                    FieldSpec.builder(listOf, removePlural(name), Modifier.PRIVATE)
+                        .build());
+
+                generateGetterSetter(removePlural(name), listOf, true, property);
+
             } else {
                 throw new NotImplementedException("Unhandled schema: " + name + ": " + type + "(" + schemaType + ")");
             }
