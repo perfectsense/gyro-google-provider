@@ -17,6 +17,8 @@ package gyro.provider.google.codegen;
 
 import com.google.api.services.discovery.model.JsonSchema;
 import com.google.api.services.discovery.model.RestDescription;
+import com.psddev.dari.util.ObjectUtils;
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 
 import gyro.core.resource.Output;
+import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
@@ -226,6 +229,12 @@ public class DiffableGenerator {
         // Add @Output annotation
         if (isOutput(property)) {
             builder.addAnnotation(Output.class);
+        }
+
+        // Add @Regex annotation
+        // Ignore if output type attribute
+        if (!isOutput(property) && !ObjectUtils.isBlank(property.getPattern())) {
+            builder.addAnnotation(AnnotationSpec.builder(Regex.class).addMember("value", "$S", property.getPattern()).build());
         }
 
         resourceBuilder.addMethod(builder
