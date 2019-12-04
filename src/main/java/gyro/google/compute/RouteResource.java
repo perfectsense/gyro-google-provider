@@ -16,7 +16,14 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Route;
@@ -32,14 +39,6 @@ import gyro.core.validation.Range;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Creates a route.
@@ -224,27 +223,17 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Route route = client.routes().get(getProjectId(), getName()).execute();
-            copyFrom(route);
+        Route route = client.routes().get(getProjectId(), getName()).execute();
+        copyFrom(route);
 
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         Route route = new Route();
@@ -258,46 +247,33 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         route.setPriority(getPriority());
         route.setTags(new ArrayList<>(getTags()));
 
-        try {
-            Operation operation = client.routes().insert(getProjectId(), route).execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+        Operation operation = client.routes().insert(getProjectId(), route).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
 
-            route = client.routes().get(getProjectId(), getName()).execute();
-            copyFrom(route);
-            if (route.getWarnings() != null && !route.getWarnings().isEmpty()) {
-                GyroCore.ui().write("@|orange Route created with warnings:|@ %s\n",
-                    route.getWarnings().stream().map(Route.Warnings::getMessage).collect(Collectors.joining("\n")));
-            }
-
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        route = client.routes().get(getProjectId(), getName()).execute();
+        copyFrom(route);
+        if (route.getWarnings() != null && !route.getWarnings().isEmpty()) {
+            GyroCore.ui().write("@|orange Route created with warnings:|@ %s\n",
+                route.getWarnings().stream().map(Route.Warnings::getMessage).collect(Collectors.joining("\n")));
         }
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
 
     }
 
     @Override
-    public void delete(GyroUI ui, State state) {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Operation operation = client.routes().delete(getProjectId(), getName()).execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation operation = client.routes().delete(getProjectId(), getName()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
     }
 
