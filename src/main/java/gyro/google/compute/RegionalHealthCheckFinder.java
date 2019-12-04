@@ -74,7 +74,7 @@ public class RegionalHealthCheckFinder extends GoogleFinder<Compute, HealthCheck
     }
 
     /**
-     * The name of the region for this request. Not applicable to global health checks..
+     * The name of the region for this request. Not applicable to global health checks.
      */
     public String getRegion() {
         return region;
