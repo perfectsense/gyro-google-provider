@@ -16,5 +16,151 @@
 
 package gyro.google.compute;
 
-public class InstanceAttachedDisk {
+import com.google.api.services.compute.model.AttachedDisk;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.ValidStrings;
+import gyro.google.Copyable;
+
+import java.util.List;
+
+public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
+
+    private Boolean autoDelete;
+    private Boolean boot;
+    private String deviceName;
+    private InstanceCustomerEncryptionKey diskEncryptionKey;
+    private List<InstanceGuestOsFeature> guestOsFeatures;
+    private InstanceAttachedDiskInitializeParams initializeParams;
+    private String diskInterface; // model name is reserved 'interface'
+    private String mode;
+//    private String source;
+    private String type;
+
+    /**
+     * Whether the disk will be auto-deleted when the instance is deleted, but not when the disk is detached from the instance.
+     */
+    @Updatable
+    public Boolean getAutoDelete() {
+        return autoDelete;
+    }
+
+    public void setAutoDelete(Boolean autoDelete) {
+        this.autoDelete = autoDelete;
+    }
+
+    /**
+     * This is a boot disk the virtual machine will use the first partition of the disk for its root filesystem.
+     */
+    @Updatable
+    public Boolean getBoot() {
+        return boot;
+    }
+
+    public void setBoot(Boolean boot) {
+        this.boot = boot;
+    }
+
+    /**
+     * Only for persistent disks, the unique device name reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. The name can then be used to reference the device for mounting, resizing, etc... from within the instance. Unspecified the server chooses a default name in the form of ``persistent-disk-x``, where ``x`` is a number assigned by Google Compute Engine.
+     */
+    @Updatable
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+    /**
+     * When creating a new disk this field encrypts the new disk using the supplied encryption key. If attaching an existing disk already encrypted, this decrypts the disk using the supplied encryption key.||If you encrypt a disk using a customer-supplied key, you must provide the same key again when you attempt to use this resource at a later time.||If you do not provide an encryption key, then the disk will be encrypted using an automatically generated key and you do not need to provide a key to use the disk later. Instance templates do not store customer-supplied encryption keys, so you cannot use your own keys to encrypt disks in a managed instance group.
+     */
+    @Updatable
+    public InstanceCustomerEncryptionKey getDiskEncryptionKey() {
+        return diskEncryptionKey;
+    }
+
+    public void setDiskEncryptionKey(InstanceCustomerEncryptionKey diskEncryptionKey) {
+        this.diskEncryptionKey = diskEncryptionKey;
+    }
+
+    /**
+     * List of features to enable on the guest operating system. Applicable only for bootable images. See `enabling guest operating system features<https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images#guest-os-features/>`_.
+     */
+    @Updatable
+    public List<InstanceGuestOsFeature> getGuestOsFeatures() {
+        return guestOsFeatures;
+    }
+
+    public void setGuestOsFeatures(List<InstanceGuestOsFeature> guestOsFeatures) {
+        this.guestOsFeatures = guestOsFeatures;
+    }
+
+    /**
+     * Parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.
+     */
+    @Updatable
+    public InstanceAttachedDiskInitializeParams getInitializeParams() {
+        return initializeParams;
+    }
+
+    public void setInitializeParams(InstanceAttachedDiskInitializeParams initializeParams) {
+        this.initializeParams = initializeParams;
+    }
+
+    /**
+     * Disk interface to use for attaching this disk. Valid values are ``SCSI`` or ``NVME``. Default is ``SCSI``. Persistent disks must always use ``SCSI`` and the request will fail if you attempt to attach a persistent disk in any other format than ``SCSI``.
+     */
+    @Updatable
+    @ValidStrings({"SCSI", "NVME"})
+    public String getDiskInterface() {
+        return diskInterface;
+    }
+
+    public void setDiskInterface(String diskInterface) {
+        this.diskInterface = diskInterface;
+    }
+
+    /**
+     * The mode in which to attach this disk. Valid values are ``READ_WRITE`` or ``READ_ONLY``. Default is ``READ_WRITE``.
+     */
+    @Updatable
+    @ValidStrings({"READ_WRITE", "READ_ONLY"})
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+//    /**
+//     * The Persistent Disk resource.
+//     */
+//    @Updatable
+//    public String getSource() {
+//        return source;
+//    }
+//
+//    public void setSource(String source) {
+//        this.source = source;
+//    }
+
+    /**
+     * Type of the disk, valid values are ``SCRATCH`` or ``PERSISTENT``. Default is ``PERSISTENT``.
+     */
+    @Updatable
+    @ValidStrings({"SCRATCH", "PERSISTENT"})
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    @Override
+    public void copyFrom(AttachedDisk model) {
+
+    }
 }

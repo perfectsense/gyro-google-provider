@@ -16,5 +16,41 @@
 
 package gyro.google.compute;
 
-public class InstanceAliasIpRange {
+import com.google.api.services.compute.model.AliasIpRange;
+import gyro.core.resource.Updatable;
+import gyro.google.Copyable;
+
+public class InstanceAliasIpRange implements Copyable<AliasIpRange> {
+
+    private String ipCidrRange;
+    private String subnetworkRangeName;
+
+    /**
+     * The IP alias ranges to allocate for this interface. This IP CIDR range must belong to the specified subnetwork and cannot contain IP addresses reserved by system or used by other network interfaces. This range may be a single IP address (e.g. 10.2.3.4), a netmask (e.g. /24) or a CIDR-formatted string (e.g. 10.1.2.0/24).
+     */
+    @Updatable
+    public String getIpCidrRange() {
+        return ipCidrRange;
+    }
+
+    public void setIpCidrRange(String ipCidrRange) {
+        this.ipCidrRange = ipCidrRange;
+    }
+
+    /**
+     * Name given to a subnetwork secondary IP range for use in allocating the IP alias range. Unspecified the primary range of the subnetwork is used.
+     */
+    @Updatable
+    public String getSubnetworkRangeName() {
+        return subnetworkRangeName;
+    }
+
+    public void setSubnetworkRangeName(String subnetworkRangeName) {
+        this.subnetworkRangeName = subnetworkRangeName;
+    }
+
+    @Override
+    public void copyFrom(AliasIpRange model) {
+
+    }
 }

@@ -17,12 +17,27 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.GuestOsFeature;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-public class InstanceGuestOsFeatures implements Copyable<GuestOsFeature> {
+public class InstanceGuestOsFeature implements Copyable<GuestOsFeature> {
 
+    private String type;
 
-    
+    /**
+     * Valid values are ``FEATURE_TYPE_UNSPECIFIED``, ``MULTI_IP_SUBNET``, ``SECURE_BOOT``, ``UEFI_COMPATIBLE``, ``VIRTIO_SCSI_MULTIQUEUE`` or ``WINDOWS``.
+     */
+    @Updatable
+    @ValidStrings({"FEATURE_TYPE_UNSPECIFIED", "MULTI_IP_SUBNET", "SECURE_BOOT", "UEFI_COMPATIBLE", "VIRTIO_SCSI_MULTIQUEUE", "WINDOWS"})
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public void copyFrom(GuestOsFeature model) {
 

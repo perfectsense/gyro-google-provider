@@ -16,5 +16,90 @@
 
 package gyro.google.compute;
 
-public class InstanceResource {
+import com.google.api.services.compute.model.Instance;
+import gyro.core.GyroUI;
+import gyro.core.resource.Resource;
+import gyro.core.scope.State;
+import gyro.core.validation.Regex;
+import gyro.google.Copyable;
+
+import java.util.List;
+import java.util.Set;
+
+public class InstanceResource  extends ComputeResource implements Copyable<Instance> {
+
+    private String name;
+    private String machineType;
+    private List<InstanceNetworkInterface> networkInterfaces;
+    private List<InstanceAttachedDisk> disks;
+
+    /**
+     * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     */
+    @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Full or partial URL of the machine type resource to use for this instance, in the format: zones/zone/machineTypes/machine-type. See also `creating custom machine types <https://cloud.google.com/compute/docs/instances/creating-instance-with-custom-machine-type#specifications/>`_.
+     */
+    public String getMachineType() {
+        return machineType;
+    }
+
+    public void setMachineType(String machineType) {
+        this.machineType = machineType;
+    }
+
+    /**
+     * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported.
+     */
+    public List<InstanceNetworkInterface> getNetworkInterfaces() {
+        return networkInterfaces;
+    }
+
+    public void setNetworkInterfaces(List<InstanceNetworkInterface> networkInterfaces) {
+        this.networkInterfaces = networkInterfaces;
+    }
+
+    /**
+     * List of disks associated with this instance. Persistent disks must be created before you can assign them.
+     */
+    public List<InstanceAttachedDisk> getDisks() {
+        return disks;
+    }
+
+    public void setDisks(List<InstanceAttachedDisk> disks) {
+        this.disks = disks;
+    }
+
+    @Override
+    public boolean refresh() {
+        return false;
+    }
+
+    @Override
+    public void create(GyroUI ui, State state) throws Exception {
+
+    }
+
+    @Override
+    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+
+    }
+
+    @Override
+    public void delete(GyroUI ui, State state) throws Exception {
+
+    }
+
+    @Override
+    public void copyFrom(Instance model) {
+
+    }
 }

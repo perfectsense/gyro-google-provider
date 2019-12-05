@@ -16,5 +16,54 @@
 
 package gyro.google.compute;
 
-public class InstanceCustomerEncryptionKey {
+import com.google.api.services.compute.model.CustomerEncryptionKey;
+import gyro.core.resource.Updatable;
+import gyro.google.Copyable;
+
+public class InstanceCustomerEncryptionKey implements Copyable<CustomerEncryptionKey> {
+
+    private String kmsKeyName;
+    private String rawKey;
+    private String sha256;
+
+    /**
+     * Name of the encryption key that is stored in Google Cloud KMS.
+     */
+    @Updatable
+    public String getKmsKeyName() {
+        return kmsKeyName;
+    }
+
+    public void setKmsKeyName(String kmsKeyName) {
+        this.kmsKeyName = kmsKeyName;
+    }
+
+    /**
+     * Specifies a 256-bit customer-supplied encryption key, encoded in RFC 4648 base64 to either encrypt or decrypt this resource.
+     */
+    @Updatable
+    public String getRawKey() {
+        return rawKey;
+    }
+
+    public void setRawKey(String rawKey) {
+        this.rawKey = rawKey;
+    }
+
+    /**
+     * The RFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.
+     */
+    @Updatable
+    public String getSha256() {
+        return sha256;
+    }
+
+    public void setSha256(String sha256) {
+        this.sha256 = sha256;
+    }
+
+    @Override
+    public void copyFrom(CustomerEncryptionKey model) {
+
+    }
 }
