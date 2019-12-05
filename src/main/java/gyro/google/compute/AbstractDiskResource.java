@@ -17,6 +17,8 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.Disk;
+import com.google.cloud.compute.v1.ProjectRegionDiskName;
+import com.google.cloud.compute.v1.ProjectZoneDiskName;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -54,7 +56,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     /**
      * The name of the disk. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
      */
-    @Id
     @Required
     @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
     public String getName() {
@@ -214,12 +215,13 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
      * The fully-qualified URL linking back to the disk.
      */
     @Output
+    @Id
     public String getSelfLink() {
         return selfLink;
     }
 
     public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink;
+        this.selfLink = selfLink != null ? toDiskUrl(getProjectId(), selfLink) : null;
     }
 
     /**
@@ -306,5 +308,16 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         }
 
         return errors;
+    }
+
+    static String toDiskUrl(String projectId, String disk) {
+        String parseDisk = ComputeUtils.formatResource(projectId, disk);
+        if (ProjectZoneDiskName.isParsableFrom(parseDisk)) {
+            return ProjectZoneDiskName.parse(parseDisk).toString();
+        }
+        if (ProjectRegionDiskName.isParsableFrom(parseDisk)) {
+            return ProjectRegionDiskName.parse(parseDisk).toString();
+        }
+        return disk;
     }
 }

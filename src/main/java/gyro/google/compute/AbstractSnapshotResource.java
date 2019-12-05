@@ -26,6 +26,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.GlobalSetLabelsRequest;
 import com.google.api.services.compute.model.Snapshot;
+import com.google.cloud.compute.v1.ProjectGlobalSnapshotName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Id;
@@ -194,7 +195,7 @@ public abstract class AbstractSnapshotResource extends ComputeResource implement
     }
 
     public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink;
+        this.selfLink = selfLink != null ? toSnapshotUrl(getProjectId(), selfLink) : null;
     }
 
     /**
@@ -298,5 +299,13 @@ public abstract class AbstractSnapshotResource extends ComputeResource implement
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
+    }
+
+    static String toSnapshotUrl(String projectId, String snapshot) {
+        String parseSnapshot = ComputeUtils.formatResource(projectId, snapshot);
+        if (ProjectGlobalSnapshotName.isParsableFrom(parseSnapshot)) {
+            return ProjectGlobalSnapshotName.parse(parseSnapshot).toString();
+        }
+        return snapshot;
     }
 }
