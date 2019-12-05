@@ -28,7 +28,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Required;
 
 /**
- * Creates a snapshot of a zonal disk.
+ * Creates a snapshot of a disk.
  *
  * Example
  * -------
@@ -86,15 +86,19 @@ public class SnapshotResource extends AbstractSnapshotResource {
         try {
             ProjectZoneDiskName zoneDisk = parseZoneDisk(getProjectId(), selfLink);
 
-            Compute.Disks.CreateSnapshot insert =
-                client.disks().createSnapshot(getProjectId(), zoneDisk.getZone(), zoneDisk.getDisk(), snapshot);
-            Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            if (zoneDisk != null) {
+                Compute.Disks.CreateSnapshot insert =
+                    client.disks().createSnapshot(getProjectId(), zoneDisk.getZone(), zoneDisk.getDisk(), snapshot);
+                Operation operation = insert.execute();
+                Operation.Error error = waitForCompletion(client, operation);
+                if (error != null) {
+                    throw new GyroException(error.toPrettyString());
+                }
 
-            refresh();
+                refresh();
+            } else {
+                throw new GyroException(String.format("Unable to parse %s disk", selfLink));
+            }
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
@@ -107,6 +111,6 @@ public class SnapshotResource extends AbstractSnapshotResource {
         if (ProjectZoneDiskName.isParsableFrom(parseDiskName)) {
             return ProjectZoneDiskName.parse(parseDiskName);
         }
-        throw new GyroException(String.format("Unable to parse %s disk", selfLink));
+        return null;
     }
 }

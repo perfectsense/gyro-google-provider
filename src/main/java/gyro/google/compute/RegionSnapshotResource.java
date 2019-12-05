@@ -85,15 +85,19 @@ public class RegionSnapshotResource extends AbstractSnapshotResource {
         try {
             ProjectRegionDiskName regionDisk = parseRegionDisk(getProjectId(), selfLink);
 
-            Compute.RegionDisks.CreateSnapshot insert = client.regionDisks()
-                .createSnapshot(getProjectId(), regionDisk.getRegion(), regionDisk.getDisk(), snapshot);
-            Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            if (regionDisk != null) {
+                Compute.RegionDisks.CreateSnapshot insert = client.regionDisks()
+                    .createSnapshot(getProjectId(), regionDisk.getRegion(), regionDisk.getDisk(), snapshot);
+                Operation operation = insert.execute();
+                Operation.Error error = waitForCompletion(client, operation);
+                if (error != null) {
+                    throw new GyroException(error.toPrettyString());
+                }
 
-            refresh();
+                refresh();
+            } else {
+                throw new GyroException(String.format("Unable to parse %s disk", selfLink));
+            }
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(je.getDetails().getMessage());
         } catch (Exception ex) {
@@ -106,6 +110,6 @@ public class RegionSnapshotResource extends AbstractSnapshotResource {
         if (ProjectRegionDiskName.isParsableFrom(parseDiskName)) {
             return ProjectRegionDiskName.parse(parseDiskName);
         }
-        throw new GyroException(String.format("Unable to parse %s disk", selfLink));
+        return null;
     }
 }
