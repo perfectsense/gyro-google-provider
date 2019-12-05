@@ -28,9 +28,8 @@ import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.finder.Finder;
 
-import static gyro.google.GoogleResource.formatGoogleExceptionMessage;
-
 public abstract class GoogleFinder<C extends AbstractGoogleJsonClient, M, R extends GoogleResource> extends Finder<R> {
+
     protected abstract List<M> findAllGoogle(C client) throws Exception;
 
     protected abstract List<M> findGoogle(C client, Map<String, String> filters) throws Exception;
@@ -44,7 +43,7 @@ public abstract class GoogleFinder<C extends AbstractGoogleJsonClient, M, R exte
         } catch (GyroException ex) {
             throw ex;
         } catch (GoogleJsonResponseException je) {
-            throw new GyroException(formatGoogleExceptionMessage(je));
+            throw new GyroException(GoogleResource.formatGoogleExceptionMessage(je));
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
@@ -54,15 +53,15 @@ public abstract class GoogleFinder<C extends AbstractGoogleJsonClient, M, R exte
     public List<R> find(Map<String, Object> filters) {
         try {
             return findGoogle(newClient(), convertFilters(filters)).stream()
-            .map(this::newResource)
-            .collect(Collectors.toList());
+                .map(this::newResource)
+                .collect(Collectors.toList());
         } catch (GyroException ex) {
             throw ex;
         } catch (GoogleJsonResponseException je) {
             if (je.getDetails().getCode() == 404) {
                 return Collections.emptyList();
             } else {
-                throw new GyroException(formatGoogleExceptionMessage(je));
+                throw new GyroException(GoogleResource.formatGoogleExceptionMessage(je));
             }
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());

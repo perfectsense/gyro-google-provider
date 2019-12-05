@@ -75,7 +75,8 @@ public abstract class GoogleResource extends Resource {
         }
     }
 
-    public abstract void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception;
+    public abstract void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
+        throws Exception;
 
     @Override
     public final void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {

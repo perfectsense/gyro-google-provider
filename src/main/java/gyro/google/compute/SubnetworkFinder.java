@@ -89,6 +89,7 @@ public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, Subnetwo
 
     @Override
     protected List<Subnetwork> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.subnetworks().get(getProjectId(), filters.get("region"), filters.get("name")).execute());
+        return Collections.singletonList(
+            client.subnetworks().get(getProjectId(), filters.get("region"), filters.get("name")).execute());
     }
 }
