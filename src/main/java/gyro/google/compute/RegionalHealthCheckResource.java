@@ -232,7 +232,13 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
         try {
             Compute client = createComputeClient();
             HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
-            client.regionHealthChecks().delete(getProjectId(), region, healthCheck.getName()).execute();
+            Operation operation = client.regionHealthChecks()
+                .delete(getProjectId(), region, healthCheck.getName())
+                .execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(String.format(
                 "Unable to delete Regional Health Check: %s, Google error: %s",
