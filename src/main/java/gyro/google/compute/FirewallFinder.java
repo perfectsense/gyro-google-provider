@@ -22,28 +22,28 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Network;
-import com.google.api.services.compute.model.NetworkList;
+import com.google.api.services.compute.model.Firewall;
+import com.google.api.services.compute.model.FirewallList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 /**
- * Query network.
+ * Query firewall rue.
  *
  * Example
  * -------
  *
  * .. code-block:: gyro
  *
- *    network: $(external-query google::compute-network { name: 'network-example'})
+ *    firewall-rule: $(external-query google::compute-firewall-rule { name: 'firewall-rule-example'})
  */
-@Type("compute-network")
-public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResource> {
+@Type("compute-firewall-rule")
+public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallResource> {
 
     private String name;
 
     /**
-     * The name of the network.
+     * The name of the firewall rule.
      */
     public String getName() {
         return name;
@@ -54,22 +54,22 @@ public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResourc
     }
 
     @Override
-    protected List<Network> findAllGoogle(Compute client) throws Exception {
-        List<Network> networks = new ArrayList<>();
-        NetworkList networkList;
+    protected List<Firewall> findAllGoogle(Compute client) throws Exception {
+        List<Firewall> firewalls = new ArrayList<>();
+        FirewallList firewallList;
         String nextPageToken = null;
 
         do {
-            networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
-            networks.addAll(networkList.getItems());
-            nextPageToken = networkList.getNextPageToken();
+            firewallList = client.firewalls().list(getProjectId()).setPageToken(nextPageToken).execute();
+            firewalls.addAll(firewallList.getItems());
+            nextPageToken = firewallList.getNextPageToken();
         } while (nextPageToken != null);
 
-        return networks;
+        return firewalls;
     }
 
     @Override
-    protected List<Network> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.networks().get(getProjectId(), filters.get("name")).execute());
+    protected List<Firewall> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.firewalls().get(getProjectId(), filters.get("name")).execute());
     }
 }

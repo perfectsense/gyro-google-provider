@@ -16,6 +16,7 @@
 
 plugins {
     id 'java-library'
+    id 'checkstyle'
     id 'maven-publish'
 }
 
@@ -64,6 +65,11 @@ dependencies {
     implementation 'com.google.auth:google-auth-library-oauth2-http:0.18.0'
 
     gyroDoclet "gyro:gyro-doclet:0.99.0-SNAPSHOT"
+}
+
+checkstyle {
+    toolVersion = '8.24'
+    configFile = rootProject.file('config/checkstyle.xml')
 }
 
 task referenceDocs(type: Javadoc) {
