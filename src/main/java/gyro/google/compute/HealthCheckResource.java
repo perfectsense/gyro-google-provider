@@ -19,6 +19,68 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 
+/**
+ * Creates a global health check resource.
+ *
+ * ========
+ * Examples
+ * ========
+ *
+ * Basic Http Health Check
+ * -----------------------
+ *
+ * .. code-block:: gyro
+ *
+ *      google::compute-health-check health-check-example
+ *          name: "http-basic"
+ *
+ *          http-health-check
+ *              request-path: "/myapp"
+ *          end
+ *      end
+ *
+ * Advanced TCP Health Check
+ * -------------------------
+ *
+ * .. code-block:: gyro
+ *
+ *      google::compute-health-check health-check-example
+ *          check-interval-sec: 30
+ *          description: "The description goes here."
+ *          healthy-threshold: 8
+ *          name: "tcp-advanced"
+ *          timeout-sec: 29
+ *          unhealthy-threshold: 6
+ *
+ *          tcp-health-check
+ *              proxy-header: "PROXY_V1"
+ *              request-path: "/myapp"
+ *              response: "okay"
+ *          end
+ *      end
+ *
+ * Advanced TCP Health Check with Custom Port Name
+ * -----------------------------------------------
+ *
+ * .. code-block:: gyro
+ *
+ *      google::compute-health-check health-check-example
+ *          check-interval-sec: 30
+ *          description: "The description goes here."
+ *          healthy-threshold: 8
+ *          name: "tcp-advanced"
+ *          timeout-sec: 29
+ *          unhealthy-threshold: 6
+ *
+ *          tcp-health-check
+ *              port: 501
+ *              port-name: "custom-port"
+ *              proxy-header: "PROXY_V1"
+ *              request-path: "/myapp"
+ *              response: "okay"
+ *          end
+ *      end
+ */
 @Type("compute-health-check")
 public class HealthCheckResource extends AbstractHealthCheckResource {
 
