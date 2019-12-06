@@ -16,16 +16,13 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.NetworkEndpointGroup;
 import com.google.api.services.compute.model.NetworkEndpointGroupAggregatedList;
 import com.google.api.services.compute.model.NetworkEndpointGroupsScopedList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,48 +69,26 @@ public class NetworkEndpointGroupFinder extends GoogleFinder<Compute, NetworkEnd
     }
 
     @Override
-    protected List<NetworkEndpointGroup> findAllGoogle(Compute client) {
-        try {
-            List<NetworkEndpointGroup> networkEndpointGroups = new ArrayList<>();
-            NetworkEndpointGroupAggregatedList networkEndpointGroupList;
-            String nextPageToken = null;
+    protected List<NetworkEndpointGroup> findAllGoogle(Compute client) throws Exception {
+        List<NetworkEndpointGroup> networkEndpointGroups = new ArrayList<>();
+        NetworkEndpointGroupAggregatedList networkEndpointGroupList;
+        String nextPageToken = null;
 
-            do {
-                networkEndpointGroupList = client.networkEndpointGroups().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
-                networkEndpointGroups.addAll(networkEndpointGroupList.getItems().values().stream()
-                    .map(NetworkEndpointGroupsScopedList::getNetworkEndpointGroups)
-                    .filter(Objects::nonNull)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-                nextPageToken = networkEndpointGroupList.getNextPageToken();
-            } while(nextPageToken != null);
+        do {
+            networkEndpointGroupList = client.networkEndpointGroups().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
+            networkEndpointGroups.addAll(networkEndpointGroupList.getItems().values().stream()
+                .map(NetworkEndpointGroupsScopedList::getNetworkEndpointGroups)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
+            nextPageToken = networkEndpointGroupList.getNextPageToken();
+        } while(nextPageToken != null);
 
-            return networkEndpointGroups;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        return networkEndpointGroups;
     }
 
     @Override
-    protected List<NetworkEndpointGroup> findGoogle(Compute client, Map<String, String> filters) {
-        NetworkEndpointGroup networkEndpointGroup = null;
-
-        try {
-            networkEndpointGroup = client.networkEndpointGroups().get(getProjectId(), filters.get("zone"), filters.get("name")).execute();
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() != 404) {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
-
-        if (networkEndpointGroup != null) {
-            return Collections.singletonList(networkEndpointGroup);
-        } else {
-            return Collections.emptyList();
-        }
+    protected List<NetworkEndpointGroup> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.networkEndpointGroups().get(getProjectId(), filters.get("zone"), filters.get("name")).execute());
     }
 }

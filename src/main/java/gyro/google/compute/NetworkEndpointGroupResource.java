@@ -35,7 +35,6 @@ import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -234,27 +233,17 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            NetworkEndpointGroup networkEndpointGroup = client.networkEndpointGroups().get(getProjectId(), getZone(), getName()).execute();
-            copyFrom(networkEndpointGroup);
+        NetworkEndpointGroup networkEndpointGroup = client.networkEndpointGroups().get(getProjectId(), getZone(), getName()).execute();
+        copyFrom(networkEndpointGroup);
 
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         NetworkEndpointGroup networkEndpointGroup = new NetworkEndpointGroup();
@@ -265,34 +254,28 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
         networkEndpointGroup.setDefaultPort(getDefaultPort());
         networkEndpointGroup.setDescription(getDescription());
 
-        try {
-            Operation operation = client.networkEndpointGroups().insert(getProjectId(), getZone(), networkEndpointGroup).execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-            // Saves the state before trying to save the endpoints
-            // Calling refresh resets values to what is present in the cloud
-            // So temporarily save the current endpoints so that, post refresh it can be set and saved
-            // Refresh is needed to save endpoint and size which change based on how many endpoints are added or removed
-            if (!getEndpoint().isEmpty()) {
-                List<NetworkEndpointResource> endpoint = new ArrayList<>(getEndpoint());
-                refresh();
-                state.save();
-                setEndpoint(endpoint);
-                saveNetworkEndpoint(client, Collections.emptyList());
-            }
-            refresh();
-        } catch (GoogleJsonResponseException je) {
-                throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation operation = client.networkEndpointGroups().insert(getProjectId(), getZone(), networkEndpointGroup).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
+
+        // Saves the state before trying to save the endpoints
+        // Calling refresh resets values to what is present in the cloud
+        // So temporarily save the current endpoints so that, post refresh it can be set and saved
+        // Refresh is needed to save endpoint and size which change based on how many endpoints are added or removed
+        if (!getEndpoint().isEmpty()) {
+            List<NetworkEndpointResource> endpoint = new ArrayList<>(getEndpoint());
+            refresh();
+            state.save();
+            setEndpoint(endpoint);
+            saveNetworkEndpoint(client, Collections.emptyList());
+        }
+        refresh();
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
         NetworkEndpointGroupResource oldResource = (NetworkEndpointGroupResource) current;
@@ -300,19 +283,13 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     @Override
-    public void delete(GyroUI ui, State state) {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Operation operation = client.networkEndpointGroups().delete(getProjectId(), getZone(), getName()).execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation operation = client.networkEndpointGroups().delete(getProjectId(), getZone(), getName()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
     }
 
@@ -331,43 +308,37 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
                 return endpointResource;
             }).collect(Collectors.toList()) : Collections.emptyList();
         } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
+            throw new GyroException(formatGoogleExceptionMessage(je));
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
 
     }
 
-    private void saveNetworkEndpoint(Compute client, List<NetworkEndpointResource> oldEndpoints) {
-        try {
-            Operation operation;
-            Operation.Error error;
+    private void saveNetworkEndpoint(Compute client, List<NetworkEndpointResource> oldEndpoints) throws Exception {
+        Operation operation;
+        Operation.Error error;
 
-            if (!oldEndpoints.isEmpty()) {
-                NetworkEndpointGroupsDetachEndpointsRequest detachRequest = new NetworkEndpointGroupsDetachEndpointsRequest();
-                detachRequest.setNetworkEndpoints(oldEndpoints.stream().map(NetworkEndpointResource::toNetworkEndpoint).collect(Collectors.toList()));
+        if (!oldEndpoints.isEmpty()) {
+            NetworkEndpointGroupsDetachEndpointsRequest detachRequest = new NetworkEndpointGroupsDetachEndpointsRequest();
+            detachRequest.setNetworkEndpoints(oldEndpoints.stream().map(NetworkEndpointResource::toNetworkEndpoint).collect(Collectors.toList()));
 
-                operation = client.networkEndpointGroups().detachNetworkEndpoints(getProjectId(), getZone(), getName(), detachRequest).execute();
-                error = waitForCompletion(client, operation);
-                if (error != null) {
-                    throw new GyroException(error.toPrettyString());
-                }
+            operation = client.networkEndpointGroups().detachNetworkEndpoints(getProjectId(), getZone(), getName(), detachRequest).execute();
+            error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
             }
+        }
 
-            if (!getEndpoint().isEmpty()) {
-                NetworkEndpointGroupsAttachEndpointsRequest attachRequest = new NetworkEndpointGroupsAttachEndpointsRequest();
-                attachRequest.setNetworkEndpoints(getEndpoint().stream().map(NetworkEndpointResource::toNetworkEndpoint).collect(Collectors.toList()));
+        if (!getEndpoint().isEmpty()) {
+            NetworkEndpointGroupsAttachEndpointsRequest attachRequest = new NetworkEndpointGroupsAttachEndpointsRequest();
+            attachRequest.setNetworkEndpoints(getEndpoint().stream().map(NetworkEndpointResource::toNetworkEndpoint).collect(Collectors.toList()));
 
-                operation = client.networkEndpointGroups().attachNetworkEndpoints(getProjectId(), getZone(), getName(), attachRequest).execute();
-                error = waitForCompletion(client, operation);
-                if (error != null) {
-                    throw new GyroException(error.toPrettyString());
-                }
+            operation = client.networkEndpointGroups().attachNetworkEndpoints(getProjectId(), getZone(), getName(), attachRequest).execute();
+            error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
             }
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
         }
     }
 }
