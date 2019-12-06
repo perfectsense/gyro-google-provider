@@ -39,9 +39,9 @@ import java.util.stream.Collectors;
  *
  * .. code-block:: gyro
  *
- *    network-endpoint-group: $(external-query google::network-endpoint-group { name: 'network-endpoint-group-example', region: 'us-east1-b'})
+ *    network-endpoint-group: $(external-query google::compute-network-endpoint-group { name: 'network-endpoint-group-example', region: 'us-east1-b'})
  */
-@Type("network-endpoint-group")
+@Type("compute-network-endpoint-group")
 public class NetworkEndpointGroupFinder extends GoogleFinder<Compute, NetworkEndpointGroup, NetworkEndpointGroupResource> {
     private String name;
     private String zone;

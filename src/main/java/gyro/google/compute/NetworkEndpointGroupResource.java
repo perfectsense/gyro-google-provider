@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  *
  * .. code-block:: gyro
  *
- *     google::network-endpoint-group network-endpoint-group-example
+ *     google::compute-network-endpoint-group network-endpoint-group-example
  *         name: "network-endpoint-group-example"
  *         network: $(google::network network-example-network-endpoint-group)
  *         subnet: $(google::subnet subnet-example-network-endpoint-group)
@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  *         end
  *     end
  */
-@Type("network-endpoint-group")
+@Type("compute-network-endpoint-group")
 public class NetworkEndpointGroupResource extends ComputeResource implements Copyable<NetworkEndpointGroup> {
     private String name;
     private String zone;

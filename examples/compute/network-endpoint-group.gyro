@@ -1,10 +1,10 @@
-google::network network-example-network-endpoint-group
+google::compute-network network-example-network-endpoint-group
     name: "vpc-example-network-endpoint-group"
     description: "vpc-example-desc-network-endpoint-group"
     routing-mode: "REGIONAL"
 end
 
-google::subnet subnet-example-network-endpoint-group
+google::compute-subnet subnet-example-network-endpoint-group
     name: "subnet-example-network-endpoint-group"
     description: "subnet-example-description-network-endpoint-group"
     ip-cidr-range: "10.0.0.0/16"
@@ -12,7 +12,7 @@ google::subnet subnet-example-network-endpoint-group
     region: "us-east1"
 end
 
-google::network-endpoint-group network-endpoint-group-example
+google::compute-network-endpoint-group network-endpoint-group-example
     name: "network-endpoint-group-example"
     network: $(google::network network-example-network-endpoint-group)
     subnet: $(google::subnet subnet-example-network-endpoint-group)
