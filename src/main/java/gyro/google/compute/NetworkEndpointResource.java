@@ -16,6 +16,10 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.google.api.services.compute.model.HealthStatusForNetworkEndpoint;
 import com.google.api.services.compute.model.NetworkEndpoint;
 import com.google.api.services.compute.model.NetworkEndpointWithHealthStatus;
@@ -24,11 +28,8 @@ import gyro.core.resource.Output;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class NetworkEndpointResource extends Diffable implements Copyable<NetworkEndpointWithHealthStatus> {
+
     private String instance;
     private Integer port;
     private String ipAddress;
@@ -88,7 +89,10 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
 
         getHealthStatus().clear();
         if (endpoint.getHealths() != null && !endpoint.getHealths().isEmpty()) {
-            setHealthStatus(endpoint.getHealths().stream().map(HealthStatusForNetworkEndpoint::getHealthState).collect(Collectors.toList()));
+            setHealthStatus(endpoint.getHealths()
+                .stream()
+                .map(HealthStatusForNetworkEndpoint::getHealthState)
+                .collect(Collectors.toList()));
         }
     }
 

@@ -16,13 +16,6 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.NetworkEndpointGroup;
-import com.google.api.services.compute.model.NetworkEndpointGroupAggregatedList;
-import com.google.api.services.compute.model.NetworkEndpointGroupsScopedList;
-import gyro.core.Type;
-import gyro.google.GoogleFinder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.NetworkEndpointGroup;
+import com.google.api.services.compute.model.NetworkEndpointGroupAggregatedList;
+import com.google.api.services.compute.model.NetworkEndpointGroupsScopedList;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
 
 /**
  * Query network-endpoint-group.
@@ -42,7 +42,9 @@ import java.util.stream.Collectors;
  *    network-endpoint-group: $(external-query google::compute-network-endpoint-group { name: 'network-endpoint-group-example', region: 'us-east1-b'})
  */
 @Type("compute-network-endpoint-group")
-public class NetworkEndpointGroupFinder extends GoogleFinder<Compute, NetworkEndpointGroup, NetworkEndpointGroupResource> {
+public class NetworkEndpointGroupFinder
+    extends GoogleFinder<Compute, NetworkEndpointGroup, NetworkEndpointGroupResource> {
+
     private String name;
     private String zone;
 
@@ -75,20 +77,25 @@ public class NetworkEndpointGroupFinder extends GoogleFinder<Compute, NetworkEnd
         String nextPageToken = null;
 
         do {
-            networkEndpointGroupList = client.networkEndpointGroups().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
+            networkEndpointGroupList = client.networkEndpointGroups()
+                .aggregatedList(getProjectId())
+                .setPageToken(nextPageToken)
+                .execute();
             networkEndpointGroups.addAll(networkEndpointGroupList.getItems().values().stream()
                 .map(NetworkEndpointGroupsScopedList::getNetworkEndpointGroups)
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList()));
             nextPageToken = networkEndpointGroupList.getNextPageToken();
-        } while(nextPageToken != null);
+        } while (nextPageToken != null);
 
         return networkEndpointGroups;
     }
 
     @Override
     protected List<NetworkEndpointGroup> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.networkEndpointGroups().get(getProjectId(), filters.get("zone"), filters.get("name")).execute());
+        return Collections.singletonList(client.networkEndpointGroups()
+            .get(getProjectId(), filters.get("zone"), filters.get("name"))
+            .execute());
     }
 }

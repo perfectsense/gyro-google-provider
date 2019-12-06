@@ -16,6 +16,12 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.NetworkEndpointGroup;
@@ -34,12 +40,6 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Creates a network-endpoint-group.
@@ -63,6 +63,7 @@ import java.util.stream.Collectors;
  */
 @Type("compute-network-endpoint-group")
 public class NetworkEndpointGroupResource extends ComputeResource implements Copyable<NetworkEndpointGroup> {
+
     private String name;
     private String zone;
     private Integer defaultPort;
@@ -223,8 +224,12 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
         setDescription(networkEndpointGroup.getDescription());
         setId(networkEndpointGroup.getId().toString());
         setName(networkEndpointGroup.getName());
-        setNetwork(findById(NetworkResource.class, networkEndpointGroup.getNetwork().substring(networkEndpointGroup.getNetwork().lastIndexOf("/") + 1)));
-        setSubnet(findById(SubnetworkResource.class, networkEndpointGroup.getSubnetwork().substring(networkEndpointGroup.getSubnetwork().lastIndexOf("/") + 1)));
+        setNetwork(findById(
+            NetworkResource.class,
+            networkEndpointGroup.getNetwork().substring(networkEndpointGroup.getNetwork().lastIndexOf("/") + 1)));
+        setSubnet(findById(
+            SubnetworkResource.class,
+            networkEndpointGroup.getSubnetwork().substring(networkEndpointGroup.getSubnetwork().lastIndexOf("/") + 1)));
         setType(networkEndpointGroup.getNetworkEndpointType());
         setSelfLink(networkEndpointGroup.getSelfLink());
         setSize(networkEndpointGroup.getSize());
@@ -236,7 +241,9 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
-        NetworkEndpointGroup networkEndpointGroup = client.networkEndpointGroups().get(getProjectId(), getZone(), getName()).execute();
+        NetworkEndpointGroup networkEndpointGroup = client.networkEndpointGroups()
+            .get(getProjectId(), getZone(), getName())
+            .execute();
         copyFrom(networkEndpointGroup);
 
         return true;
@@ -254,7 +261,9 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
         networkEndpointGroup.setDefaultPort(getDefaultPort());
         networkEndpointGroup.setDescription(getDescription());
 
-        Operation operation = client.networkEndpointGroups().insert(getProjectId(), getZone(), networkEndpointGroup).execute();
+        Operation operation = client.networkEndpointGroups()
+            .insert(getProjectId(), getZone(), networkEndpointGroup)
+            .execute();
         Operation.Error error = waitForCompletion(client, operation);
         if (error != null) {
             throw new GyroException(error.toPrettyString());
@@ -299,7 +308,10 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
         try {
             NetworkEndpointGroupsListEndpointsRequest request = new NetworkEndpointGroupsListEndpointsRequest();
             request.setHealthStatus("SHOW");
-            List<NetworkEndpointWithHealthStatus> endpoints = client.networkEndpointGroups().listNetworkEndpoints(getProjectId(), getZone(), getName(), request).execute().getItems();
+            List<NetworkEndpointWithHealthStatus> endpoints = client.networkEndpointGroups()
+                .listNetworkEndpoints(getProjectId(), getZone(), getName(), request)
+                .execute()
+                .getItems();
 
             getEndpoint().clear();
             return endpoints != null ? endpoints.stream().map(endpoint -> {
@@ -321,9 +333,13 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
 
         if (!oldEndpoints.isEmpty()) {
             NetworkEndpointGroupsDetachEndpointsRequest detachRequest = new NetworkEndpointGroupsDetachEndpointsRequest();
-            detachRequest.setNetworkEndpoints(oldEndpoints.stream().map(NetworkEndpointResource::toNetworkEndpoint).collect(Collectors.toList()));
+            detachRequest.setNetworkEndpoints(oldEndpoints.stream()
+                .map(NetworkEndpointResource::toNetworkEndpoint)
+                .collect(Collectors.toList()));
 
-            operation = client.networkEndpointGroups().detachNetworkEndpoints(getProjectId(), getZone(), getName(), detachRequest).execute();
+            operation = client.networkEndpointGroups()
+                .detachNetworkEndpoints(getProjectId(), getZone(), getName(), detachRequest)
+                .execute();
             error = waitForCompletion(client, operation);
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
@@ -332,9 +348,13 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
 
         if (!getEndpoint().isEmpty()) {
             NetworkEndpointGroupsAttachEndpointsRequest attachRequest = new NetworkEndpointGroupsAttachEndpointsRequest();
-            attachRequest.setNetworkEndpoints(getEndpoint().stream().map(NetworkEndpointResource::toNetworkEndpoint).collect(Collectors.toList()));
+            attachRequest.setNetworkEndpoints(getEndpoint().stream()
+                .map(NetworkEndpointResource::toNetworkEndpoint)
+                .collect(Collectors.toList()));
 
-            operation = client.networkEndpointGroups().attachNetworkEndpoints(getProjectId(), getZone(), getName(), attachRequest).execute();
+            operation = client.networkEndpointGroups()
+                .attachNetworkEndpoints(getProjectId(), getZone(), getName(), attachRequest)
+                .execute();
             error = waitForCompletion(client, operation);
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
