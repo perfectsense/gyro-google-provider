@@ -16,7 +16,13 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Firewall;
 import com.google.api.services.compute.model.FirewallLogConfig;
@@ -36,14 +42,6 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Creates a firewall rule.
@@ -410,7 +408,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
         Firewall firewall = getFirewall(client);
@@ -425,62 +423,40 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall());
-            Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-            refresh();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall());
+        Operation operation = insert.execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
+
+        refresh();
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
-        Operation operation;
-        Operation.Error error;
-
-        try {
-            operation = client.firewalls().patch(getProjectId(), getName(), toFirewall()).execute();
-            error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-            refresh();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation operation = client.firewalls().patch(getProjectId(), getName(), toFirewall()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
+
+        refresh();
     }
 
     @Override
-    public void delete(GyroUI ui, State state) {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Operation operation = client.firewalls().delete(getProjectId(), getName()).execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-        } catch (GoogleJsonResponseException je) {
-                throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation operation = client.firewalls().delete(getProjectId(), getName()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
     }
 
@@ -554,19 +530,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         return firewall;
     }
 
-    private Firewall getFirewall(Compute client) {
-        Firewall firewall = null;
-
-        try {
-            firewall = client.firewalls().get(getProjectId(), getName()).execute();
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() != 404) {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
-
-        return firewall;
+    private Firewall getFirewall(Compute client) throws Exception {
+        return client.firewalls().get(getProjectId(), getName()).execute();
     }
 }

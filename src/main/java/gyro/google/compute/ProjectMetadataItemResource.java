@@ -16,6 +16,9 @@
 
 package gyro.google.compute;
 
+import java.util.List;
+import java.util.Set;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Metadata;
@@ -29,8 +32,6 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Creates a project-wide metadata item. Set project-wide SSH keys by creating an item with the key ``ssh-keys``.
@@ -81,7 +82,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
         Metadata metadata = getMetadata(client);
@@ -101,7 +102,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     }
 
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         Metadata.Items item = new Metadata.Items();
@@ -117,7 +118,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
         Metadata metadata = getMetadata(client);
@@ -134,7 +135,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     }
 
     @Override
-    public void delete(GyroUI ui, State state) {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         Metadata metadata = getMetadata(client);
@@ -143,20 +144,14 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
         setMetadata(client, metadata);
     }
 
-    private Metadata getMetadata(Compute client) {
-        try {
-            Compute.Projects.Get projectRequest = client.projects().get(getProjectId());
-            Project project = projectRequest.execute();
+    private Metadata getMetadata(Compute client) throws Exception {
+        Compute.Projects.Get projectRequest = client.projects().get(getProjectId());
+        Project project = projectRequest.execute();
 
-            return project.getCommonInstanceMetadata();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return project.getCommonInstanceMetadata();
     }
 
-    private void setMetadata(Compute client, Metadata metadata) {
+    private void setMetadata(Compute client, Metadata metadata) throws Exception {
         try {
             Compute.Projects.SetCommonInstanceMetadata metadataRequest =
                 client.projects().setCommonInstanceMetadata(getProjectId(), metadata);
@@ -172,9 +167,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
                 throw new GyroException(String.format("Duplicate keys: %s", getKey()));
             }
 
-            throw new GyroException(message);
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+            throw je;
         }
     }
 }
