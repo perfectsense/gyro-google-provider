@@ -21,7 +21,6 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class HealthCheckHttpHealthCheck extends AbstractHealthCheck implements Copyable<HTTPHealthCheck> {
-
     private String host;
 
     /**
@@ -34,6 +33,11 @@ public class HealthCheckHttpHealthCheck extends AbstractHealthCheck implements C
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    @Override
+    public String primaryKey() {
+        return "HttpHealthCheck";
     }
 
     @Override
@@ -56,12 +60,12 @@ public class HealthCheckHttpHealthCheck extends AbstractHealthCheck implements C
 
     public HTTPHealthCheck toHttpHealthCheck() {
         return new HTTPHealthCheck()
-            .setHost(getHost())
-            .setPort(getPort())
-            .setPortName(getPortName())
-            .setPortSpecification(getPortSpecification())
-            .setProxyHeader(getProxyHeader())
-            .setResponse(getResponse())
-            .setRequestPath(getRequestPath());
+                .setHost(getHost())
+                .setPort(getPort())
+                .setPortName(getPortName())
+                .setPortSpecification(getPortSpecification())
+                .setProxyHeader(getProxyHeader())
+                .setResponse(getResponse())
+                .setRequestPath(getRequestPath());
     }
 }
