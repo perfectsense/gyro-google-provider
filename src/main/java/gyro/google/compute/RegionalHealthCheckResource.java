@@ -21,15 +21,15 @@ import gyro.core.scope.State;
 import gyro.core.validation.Required;
 
 /**
- * Creates a regional health check resource.
+ * Creates a regional health check.
  *
  * Examples
  * --------
  *
  * .. code-block:: gyro
  *
- *      google::compute-regional-health-check regional-health-check-example-basic-http
- *          name: "http-basic"
+ *      google::compute-regional-health-check regional-health-check-example-http
+ *          name: "regional-health-check-example-http"
  *          region: "us-east1"
  *
  *          http-health-check
@@ -39,11 +39,46 @@ import gyro.core.validation.Required;
  *
  * .. code-block:: gyro
  *
- *      google::compute-regional-health-check regional-health-check-example-advanced-tcp
+ *      google::compute-regional-health-check regional-health-check-example-https
+ *          name: "regional-health-check-example-https"
  *          check-interval-sec: 30
- *          description: "The description goes here."
+ *          description: "regional-health-check-example-description"
  *          healthy-threshold: 8
- *          name: "tcp-advanced"
+ *          timeout-sec: 29
+ *          unhealthy-threshold: 6
+ *          region: "us-east1"
+ *
+ *          https-health-check
+ *              request-path: "/myapp"
+ *              response: "okay"
+ *          end
+ *      end
+ *
+ * .. code-block:: gyro
+ *
+ *      google::compute-regional-health-check regional-health-check-example-http2
+ *          name: "regional-health-check-example-http2"
+ *          check-interval-sec: 30
+ *          description: "regional-health-check-example-description"
+ *          healthy-threshold: 8
+ *          timeout-sec: 29
+ *          unhealthy-threshold: 6
+ *          region: "us-east1"
+ *
+ *          http2-health-check
+ *              proxy-header: "PROXY_V1"
+ *              request-path: "/myapp"
+ *              response: "okay"
+ *          end
+ *      end
+ *
+ * .. code-block:: gyro
+ *
+ *      google::compute-regional-health-check regional-health-check-example-tcp
+ *          name: "regional-health-check-example-tcp"
+ *          check-interval-sec: 30
+ *          description: "regional-health-check-example-description"
+ *          healthy-threshold: 8
  *          timeout-sec: 29
  *          unhealthy-threshold: 6
  *          region: "us-east1"
@@ -55,6 +90,25 @@ import gyro.core.validation.Required;
  *          end
  *      end
  *
+ * .. code-block:: gyro
+ *
+ *      google::compute-regional-health-check regional-health-check-example-ssh
+ *          name: "regional-health-check-example-ssh"
+ *          check-interval-sec: 30
+ *          description: "regional-health-check-example-description"
+ *          healthy-threshold: 8
+ *          timeout-sec: 29
+ *          unhealthy-threshold: 6
+ *          region: "us-east1"
+ *
+ *          ssh-health-check
+ *              port: 501
+ *              port-name: "custom-port"
+ *              proxy-header: "PROXY_V1"
+ *              request-path: "/myapp"
+ *              response: "okay"
+ *          end
+ *      end
  */
 @Type("compute-regional-health-check")
 public class RegionalHealthCheckResource extends AbstractHealthCheckResource {

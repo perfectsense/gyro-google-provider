@@ -36,15 +36,15 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 
 /**
- * Creates a global health check resource.
+ * Creates a global health check.
  *
  * Examples
  * --------
  *
  * .. code-block:: gyro
  *
- *      google::compute-health-check health-check-example-basic-http
- *          name: "http-basic"
+ *      google::compute-health-check health-check-example-http
+ *          name: "health-check-example-http"
  *
  *          http-health-check
  *              request-path: "/myapp"
@@ -53,11 +53,11 @@ import gyro.core.scope.State;
  *
  * .. code-block:: gyro
  *
- *      google::compute-health-check health-check-example-advanced-https
+ *      google::compute-health-check health-check-example-https
+ *          name: "health-check-example-https"
  *          check-interval-sec: 30
- *          description: "The description goes here."
+ *          description: "health-check-example-description"
  *          healthy-threshold: 8
- *          name: "https-advanced"
  *          timeout-sec: 29
  *          unhealthy-threshold: 6
  *
@@ -69,11 +69,11 @@ import gyro.core.scope.State;
  *
  * .. code-block:: gyro
  *
- *      google::compute-health-check health-check-example-advanced-http2
+ *      google::compute-health-check health-check-example-http2
+ *          name: "health-check-example-http2"
  *          check-interval-sec: 30
- *          description: "The description goes here."
+ *          description: "health-check-example-description"
  *          healthy-threshold: 8
- *          name: "http2-advanced"
  *          timeout-sec: 29
  *          unhealthy-threshold: 6
  *
@@ -86,11 +86,11 @@ import gyro.core.scope.State;
  *
  * .. code-block:: gyro
  *
- *      google::compute-health-check health-check-example-advanced-tcp
+ *      google::compute-health-check health-check-example-tcp
+ *          name: "health-check-example-tcp"
  *          check-interval-sec: 30
- *          description: "The description goes here."
+ *          description: "health-check-example-description"
  *          healthy-threshold: 8
- *          name: "tcp-advanced"
  *          timeout-sec: 29
  *          unhealthy-threshold: 6
  *
@@ -103,11 +103,11 @@ import gyro.core.scope.State;
  *
  * .. code-block:: gyro
  *
- *      google::compute-health-check health-check-example-advanced-ssh
+ *      google::compute-health-check health-check-example-ssh
+ *          name: "health-check-example-ssh"
  *          check-interval-sec: 30
- *          description: "The description goes here."
+ *          description: "health-check-example-description"
  *          healthy-threshold: 8
- *          name: "ssh-advanced"
  *          timeout-sec: 29
  *          unhealthy-threshold: 6
  *
