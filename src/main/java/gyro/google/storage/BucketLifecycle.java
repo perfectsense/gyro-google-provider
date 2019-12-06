@@ -16,15 +16,15 @@
 
 package gyro.google.storage;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.google.api.services.storage.model.Bucket.Lifecycle;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * The Buckets lifecycle configuration.
@@ -56,12 +56,12 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
         getRule().clear();
         if (model.getRule() != null) {
             setRule(model.getRule().stream()
-                    .map(r -> {
-                        BucketLifecycleRule bucketLifecycleRule = newSubresource(BucketLifecycleRule.class);
-                        bucketLifecycleRule.copyFrom(r);
-                        return bucketLifecycleRule;
-                    })
-                    .collect(Collectors.toList())
+                .map(r -> {
+                    BucketLifecycleRule bucketLifecycleRule = newSubresource(BucketLifecycleRule.class);
+                    bucketLifecycleRule.copyFrom(r);
+                    return bucketLifecycleRule;
+                })
+                .collect(Collectors.toList())
             );
         }
     }
@@ -73,8 +73,8 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
 
     public Lifecycle toLifecycle() {
         return new Lifecycle()
-                .setRule(getRule().stream()
-                        .map(BucketLifecycleRule::toLifecycleRule)
-                        .collect(Collectors.toList()));
+            .setRule(getRule().stream()
+                .map(BucketLifecycleRule::toLifecycleRule)
+                .collect(Collectors.toList()));
     }
 }

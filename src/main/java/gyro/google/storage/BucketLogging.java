@@ -66,7 +66,7 @@ public class BucketLogging extends Diffable implements Copyable<Logging> {
 
     public Logging toBucketLogging() {
         return new Logging()
-                .setLogBucket(getLogBucket() != null ? getLogBucket().getName() : null)
-                .setLogObjectPrefix(getLogObjectPrefix());
+            .setLogBucket(getLogBucket() != null ? getLogBucket().getName() : null)
+            .setLogObjectPrefix(getLogObjectPrefix());
     }
 }

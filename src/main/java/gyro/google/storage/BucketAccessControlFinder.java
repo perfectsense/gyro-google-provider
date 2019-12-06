@@ -16,6 +16,13 @@
 
 package gyro.google.storage;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.BucketAccessControl;
@@ -23,13 +30,6 @@ import com.google.api.services.storage.model.Buckets;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Query for Bucket Access Controls.
@@ -83,7 +83,10 @@ public class BucketAccessControlFinder extends GoogleFinder<Storage, BucketAcces
                     Iterator<Bucket> it = results.getItems().iterator();
                     while (it.hasNext()) {
                         Bucket b = it.next();
-                        List<BucketAccessControl> items = client.bucketAccessControls().list(b.getName()).execute().getItems();
+                        List<BucketAccessControl> items = client.bucketAccessControls()
+                            .list(b.getName())
+                            .execute()
+                            .getItems();
                         if (items != null) {
                             acls.addAll(items);
                         }
@@ -102,7 +105,9 @@ public class BucketAccessControlFinder extends GoogleFinder<Storage, BucketAcces
 
         if (filters.containsKey("bucket") && filters.containsKey("entity")) {
             try {
-                BucketAccessControl acl = client.bucketAccessControls().get(filters.get("bucket"), filters.get("entity")).execute();
+                BucketAccessControl acl = client.bucketAccessControls()
+                    .get(filters.get("bucket"), filters.get("entity"))
+                    .execute();
 
                 if (acl != null) {
                     return Collections.singletonList(acl);

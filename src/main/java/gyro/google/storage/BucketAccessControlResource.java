@@ -16,6 +16,8 @@
 
 package gyro.google.storage;
 
+import java.util.Set;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.BucketAccessControl;
@@ -31,8 +33,6 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
-
-import java.util.Set;
 
 /**
  *
@@ -60,7 +60,7 @@ import java.util.Set;
  */
 @Type("acl")
 public class BucketAccessControlResource extends GoogleResource implements Copyable<BucketAccessControl> {
-    
+
     private static final String ENTITY_REGEX = "\\b(allUsers|allAuthenticatedUsers)\\b|^(user|group|domain|project)-.*?";
 
     private BucketResource bucket;
@@ -84,13 +84,13 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     public void setBucket(BucketResource bucket) {
         this.bucket = bucket;
     }
-    
+
     /**
      * The access permission for the entity. Valid values are ``OWNER``, ``READER``, or ``WRITER``.
      */
     @Required
     @Updatable
-    @ValidStrings({"OWNER", "READER", "WRITER"})
+    @ValidStrings({ "OWNER", "READER", "WRITER" })
     public String getRole() {
         return role;
     }
@@ -148,7 +148,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     public void setId(String id) {
         this.id = id;
     }
-    
+
     /**
      * The link to this access-control entry.
      */
@@ -191,9 +191,9 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
 
         try {
             BucketAccessControl acl = storage.bucketAccessControls()
-                    .get(getBucket().getName(), getEntity())
-                    .setUserProject(getUserProject())
-                    .execute();
+                .get(getBucket().getName(), getEntity())
+                .setUserProject(getUserProject())
+                .execute();
 
             if (acl == null) {
                 return false;
@@ -221,8 +221,8 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
         acl.setRole(getRole());
 
         copyFrom(storage.bucketAccessControls().insert(getBucket().getName(), acl)
-                .setUserProject(getUserProject())
-                .execute());
+            .setUserProject(getUserProject())
+            .execute());
     }
 
     @Override
@@ -243,15 +243,15 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
         }
 
         copyFrom(storage.bucketAccessControls().patch(getBucket().getName(), getEntity(), acl)
-                .setUserProject(getUserProject())
-                .execute());
+            .setUserProject(getUserProject())
+            .execute());
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Storage storage = createClient(Storage.class);
         storage.bucketAccessControls().delete(getBucket().getName(), getEntity())
-                .execute();
+            .execute();
     }
 
     @Override

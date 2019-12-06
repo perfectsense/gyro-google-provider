@@ -16,13 +16,13 @@
 
 package gyro.google.storage;
 
+import java.util.List;
+
 import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.Condition;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-
-import java.util.List;
 
 /**
  * The condition(s) under which the action will be taken.
@@ -71,7 +71,7 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     /**
      * Matches objects having any of the storage classes specified. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI_REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``.
      */
-    @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", "MULTI_REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
+    @ValidStrings({ "STANDARD", "NEARLINE", "COLDLINE", "MULTI_REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY" })
     public List<String> getMatchesStorageClass() {
         return matchesStorageClass;
     }
@@ -102,10 +102,10 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
 
     public Condition toLifecycleRuleCondition() {
         return new Condition()
-                .setAge(getAge())
-                .setCreatedBefore(getCreatedBefore() == null ? null : DateTime.parseRfc3339(getCreatedBefore()))
-                .setIsLive(getIsLive())
-                .setMatchesStorageClass(getMatchesStorageClass())
-                .setNumNewerVersions(getNumNewerVersions());
+            .setAge(getAge())
+            .setCreatedBefore(getCreatedBefore() == null ? null : DateTime.parseRfc3339(getCreatedBefore()))
+            .setIsLive(getIsLive())
+            .setMatchesStorageClass(getMatchesStorageClass())
+            .setNumNewerVersions(getNumNewerVersions());
     }
 }

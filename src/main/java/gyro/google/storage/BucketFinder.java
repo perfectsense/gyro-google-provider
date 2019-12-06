@@ -16,6 +16,12 @@
 
 package gyro.google.storage;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
@@ -23,12 +29,6 @@ import com.google.api.services.storage.model.Buckets;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Query for a bucket.

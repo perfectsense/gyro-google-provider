@@ -16,6 +16,15 @@
 
 package gyro.google.storage;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.storage.Storage;
@@ -33,15 +42,6 @@ import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Creates a Bucket within a specified region.
@@ -155,7 +155,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      *  Sets predefined access controls to the bucket. Valid values are ``authenticatedRead``, ``private``, ``projectPrivate``, ``publicRead`` and ``publicReadWrite``. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
      */
     @Updatable
-    @ValidStrings({"authenticatedRead", "private", "projectPrivate", "publicRead", "publicReadWrite"})
+    @ValidStrings({ "authenticatedRead", "private", "projectPrivate", "publicRead", "publicReadWrite" })
     public String getPredefinedAcl() {
         return predefinedAcl;
     }
@@ -167,7 +167,13 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     /**
      * Set predefined default object access controls to the bucket. Valid values are ``authenticatedRead``, ``bucketOwnerFullControl``, ``bucketOwnerRead``, ``private``, ``projectPrivate`` and ``publicRead``. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
      */
-    @ValidStrings({"authenticatedRead", "bucketOwnerFullControl", "bucketOwnerRead", "private", "projectPrivate", "publicRead"})
+    @ValidStrings({
+        "authenticatedRead",
+        "bucketOwnerFullControl",
+        "bucketOwnerRead",
+        "private",
+        "projectPrivate",
+        "publicRead" })
     @Updatable
     public String getPredefinedDefaultObjectAcl() {
         return predefinedDefaultObjectAcl;
@@ -343,7 +349,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      * Bucket's default storage class used whenever no ``storageClass`` is specified for a newly-created object. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI-REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``. Defaults to ``STANDARD``.
      */
     @Updatable
-    @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", "MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
+    @ValidStrings({ "STANDARD", "NEARLINE", "COLDLINE", "MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY" })
     public String getStorageClass() {
         return storageClass;
     }
@@ -398,9 +404,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
         try {
             Bucket bucket = storage.buckets()
-                    .get(getName())
-                    .setProjection("full")
-                    .execute();
+                .get(getName())
+                .setProjection("full")
+                .execute();
 
             if (bucket == null) {
                 return false;
@@ -429,21 +435,23 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
         bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
         bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
-        bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+        bucket.setIamConfiguration(
+            getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
         bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
         bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
-        bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
+        bucket.setRetentionPolicy(
+            getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
         bucket.setStorageClass(getStorageClass());
         bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
         bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
 
         copyFrom(storage.buckets()
-                .insert(getProjectId(), bucket)
-                .setPredefinedAcl(getPredefinedAcl())
-                .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
-                .setUserProject(getUserProject())
-                .setProjection("full")
-                .execute());
+            .insert(getProjectId(), bucket)
+            .setPredefinedAcl(getPredefinedAcl())
+            .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
+            .setUserProject(getUserProject())
+            .setProjection("full")
+            .execute());
     }
 
     @Override
@@ -473,23 +481,30 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         }
 
         if (changedFieldNames.contains("billing")) {
-            bucket.setBilling(getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
+            bucket.setBilling(
+                getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
         }
 
         if (changedFieldNames.contains("iam-configuration")) {
-            bucket.setIamConfiguration(getIamConfiguration() == null ? Data.nullOf(Bucket.IamConfiguration.class) : getIamConfiguration().toBucketIamConfiguration());
+            bucket.setIamConfiguration(getIamConfiguration() == null
+                ? Data.nullOf(Bucket.IamConfiguration.class)
+                : getIamConfiguration().toBucketIamConfiguration());
         }
 
         if (changedFieldNames.contains("lifecycle")) {
-            bucket.setLifecycle(getLifecycle() == null ? Data.nullOf(Bucket.Lifecycle.class) : getLifecycle().toLifecycle());
+            bucket.setLifecycle(
+                getLifecycle() == null ? Data.nullOf(Bucket.Lifecycle.class) : getLifecycle().toLifecycle());
         }
 
         if (changedFieldNames.contains("logging")) {
-            bucket.setLogging(getLogging() == null ? Data.nullOf(Bucket.Logging.class) : getLogging().toBucketLogging());
+            bucket.setLogging(
+                getLogging() == null ? Data.nullOf(Bucket.Logging.class) : getLogging().toBucketLogging());
         }
 
         if (changedFieldNames.contains("retention-policy")) {
-            bucket.setRetentionPolicy(getRetentionPolicy() == null ? Data.nullOf(Bucket.RetentionPolicy.class) : getRetentionPolicy().toBucketRententionPolicy());
+            bucket.setRetentionPolicy(getRetentionPolicy() == null
+                ? Data.nullOf(Bucket.RetentionPolicy.class)
+                : getRetentionPolicy().toBucketRententionPolicy());
         }
 
         if (changedFieldNames.contains("storage-class")) {
@@ -497,27 +512,29 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         }
 
         if (changedFieldNames.contains("versioning")) {
-            bucket.setVersioning(getVersioning() == null ? Data.nullOf(Bucket.Versioning.class) : getVersioning().toBucketVersioning());
+            bucket.setVersioning(
+                getVersioning() == null ? Data.nullOf(Bucket.Versioning.class) : getVersioning().toBucketVersioning());
         }
 
         if (changedFieldNames.contains("website")) {
-            bucket.setWebsite(getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
+            bucket.setWebsite(
+                getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
         }
 
         copyFrom(storage.buckets()
-                .patch(getName(), bucket)
-                .setPredefinedAcl(getPredefinedAcl())
-                .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
-                .setUserProject(getUserProject())
-                .setProjection("full")
-                .execute());
+            .patch(getName(), bucket)
+            .setPredefinedAcl(getPredefinedAcl())
+            .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
+            .setUserProject(getUserProject())
+            .setProjection("full")
+            .execute());
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Storage storage = createClient(Storage.class);
         storage.buckets().delete(getName())
-                .execute();
+            .execute();
     }
 
     @Override
@@ -532,12 +549,12 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 Matcher valueMatcher = LABEL_PATTERN.matcher(value);
                 if ((key.length() > 63) || (value.length() > 63) || keyMatcher.find() || valueMatcher.find()) {
                     errors.add(new ValidationError(
-                            this,
-                            "labels",
-                            String.format("Invalid key/value => '%s:%s'. Keys and values must be less than 64 characters "
-                                    + "and contain only lowercase letters, numeric characters, international characters, "
-                                    + "underscores, and dashes. Keys must start with letter or international character and "
-                                    + "must not be empty.", key, value)));
+                        this,
+                        "labels",
+                        String.format("Invalid key/value => '%s:%s'. Keys and values must be less than 64 characters "
+                            + "and contain only lowercase letters, numeric characters, international characters, "
+                            + "underscores, and dashes. Keys must start with letter or international character and "
+                            + "must not be empty.", key, value)));
                 }
             }
         }
@@ -606,12 +623,12 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         getCors().clear();
         if (model.getCors() != null) {
             setCors(model.getCors().stream()
-                    .map(cor -> {
-                        BucketCors bucketCors = newSubresource(BucketCors.class);
-                        bucketCors.copyFrom(cor);
-                        return bucketCors;
-                    })
-                    .collect(Collectors.toList())
+                .map(cor -> {
+                    BucketCors bucketCors = newSubresource(BucketCors.class);
+                    bucketCors.copyFrom(cor);
+                    return bucketCors;
+                })
+                .collect(Collectors.toList())
             );
         }
     }

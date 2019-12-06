@@ -56,6 +56,8 @@ public class BucketIamConfiguration extends Diffable implements Copyable<IamConf
 
     public IamConfiguration toBucketIamConfiguration() {
         return new IamConfiguration()
-                .setUniformBucketLevelAccess(getUniformBucketLevelAccess() == null ? null : getUniformBucketLevelAccess().toIamConfigurationUniformBucketLevelAccess());
+            .setUniformBucketLevelAccess(getUniformBucketLevelAccess() == null
+                ? null
+                : getUniformBucketLevelAccess().toIamConfigurationUniformBucketLevelAccess());
     }
 }

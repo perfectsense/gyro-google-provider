@@ -16,12 +16,12 @@
 
 package gyro.google.storage;
 
+import java.util.List;
+
 import com.google.api.services.storage.model.Bucket.Cors;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-
-import java.util.List;
 
 /**
  * Subresource for setting of Bucket.Cors configuration for assets within a Bucket.
@@ -47,7 +47,7 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
     /**
      * List of HTTP methods to include CORS response headers. Valid values are ``GET``, ``HEAD``, ``POST``, ``MATCH``, ``PUT``, ``DELETE``, ``CONNECT``, ``OPTIONS``, ``TRACE``, ``PATCH`` or ``*`` for all methods.
      */
-    @ValidStrings({"GET", "HEAD", "POST", "MATCH", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "*"})
+    @ValidStrings({ "GET", "HEAD", "POST", "MATCH", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "*" })
     public List<String> getMethod() {
         return method;
     }
@@ -88,9 +88,9 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
 
     public Cors toBucketCors() {
         return new Cors()
-                .setMaxAgeSeconds(getMaxAgeSeconds())
-                .setMethod(getMethod())
-                .setOrigin(getOrigin())
-                .setResponseHeader(getResponseHeader());
+            .setMaxAgeSeconds(getMaxAgeSeconds())
+            .setMethod(getMethod())
+            .setOrigin(getOrigin())
+            .setResponseHeader(getResponseHeader());
     }
 }
