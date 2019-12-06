@@ -18,7 +18,6 @@ package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -36,7 +35,6 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
      * @subresource gyro.google.storage.BucketLifecycleRuleAction
      */
     @Required
-    @Updatable
     public BucketLifecycleRuleAction getAction() {
         return action;
     }
@@ -51,7 +49,6 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
      * @subresource gyro.google.storage.BucketLifecycleRuleCondition
      */
     @Required
-    @Updatable
     public BucketLifecycleRuleCondition getCondition() {
         return condition;
     }
@@ -78,7 +75,7 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
 
     public Rule toLifecycleRule() {
         return new Rule()
-               .setAction(getAction() == null ? null : getAction().toLifecycleRuleAction())
-               .setCondition(getCondition() == null ? null : getCondition().toLifecycleRuleCondition());
+               .setAction(getAction().toLifecycleRuleAction())
+               .setCondition(getCondition().toLifecycleRuleCondition());
     }
 }

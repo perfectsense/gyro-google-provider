@@ -73,7 +73,6 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     private String domain;
     private String email;
     private String entityId;
-    private BucketAccessControlProjectTeam projectTeam;
 
     /**
      * The associated Bucket.
@@ -187,17 +186,6 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
         this.entityId = entityId;
     }
 
-    /**
-     * The project team configuration associated with the entity.
-     */
-    public BucketAccessControlProjectTeam getProjectTeam() {
-        return projectTeam;
-    }
-
-    public void setProjectTeam(BucketAccessControlProjectTeam projectTeam) {
-        this.projectTeam = projectTeam;
-    }
-
     @Override
     public boolean refresh() {
         Storage storage = createClient(Storage.class);
@@ -291,12 +279,5 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
         setDomain(model.getDomain());
         setEmail(model.getEmail());
         setEntityId(model.getEntityId());
-
-        setProjectTeam(null);
-        if (model.getProjectTeam() != null) {
-            BucketAccessControlProjectTeam projectTeam = newSubresource(BucketAccessControlProjectTeam.class);
-            projectTeam.copyFrom(model.getProjectTeam());
-            setProjectTeam(projectTeam);
-        }
     }
 }

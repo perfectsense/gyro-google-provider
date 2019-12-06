@@ -35,7 +35,11 @@ import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -139,7 +143,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private List<BucketCors> cors;
     private BucketBilling billing;
     private Boolean defaultEventBasedHold;
-    private BucketEncryption encryption;
     private BucketIamConfiguration iamConfiguration;
     private BucketLifecycle lifecycle;
     private BucketLogging logging;
@@ -282,20 +285,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * The buckets encryption configuration.
-     *
-     * @subresource gyro.google.storage.BucketEncryption
-     */
-    @Updatable
-    public BucketEncryption getEncryption() {
-        return encryption;
-    }
-
-    public void setEncryption(BucketEncryption encryption) {
-        this.encryption = encryption;
-    }
-
-    /**
      * The bucket's IAM configuration. See also `Cloud Identity and Access Management <https://cloud.google.com/storage/docs/access-control/iam/>`_.
      *
      * @subresource gyro.google.storage.BucketIamConfiguration
@@ -403,7 +392,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     public void setSelfLink(String selfLink) {
         this.selfLink = selfLink;
     }
-    
+
     @Override
     public boolean refresh() {
         Storage storage = createClient(Storage.class);
@@ -444,7 +433,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
             bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
             bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
-            bucket.setEncryption(getEncryption() == null ? null : getEncryption().toBucketEncryption());
             bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
             bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
             bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
@@ -495,10 +483,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
 
             if (changedFieldNames.contains("billing")) {
                 bucket.setBilling(getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
-            }
-
-            if (changedFieldNames.contains("encryption")) {
-                bucket.setEncryption(getEncryption() == null ? Data.nullOf(Bucket.Encryption.class) : getEncryption().toBucketEncryption());
             }
 
             if (changedFieldNames.contains("iam-configuration")) {
@@ -570,9 +554,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                             this,
                             "labels",
                             String.format("Invalid key/value => '%s:%s'. Keys and values must be less than 64 characters "
-                                   + "and contain only lowercase letters, numeric characters, international characters, "
-                                   + "underscores, and dashes. Keys must start with letter or international character and "
-                                   + "must not be empty.", key, value)));
+                                    + "and contain only lowercase letters, numeric characters, international characters, "
+                                    + "underscores, and dashes. Keys must start with letter or international character and "
+                                    + "must not be empty.", key, value)));
                 }
             }
         }
@@ -594,13 +578,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             BucketBilling bucketBilling = newSubresource(BucketBilling.class);
             bucketBilling.copyFrom(model.getBilling());
             setBilling(bucketBilling);
-        }
-
-        setEncryption(null);
-        if (model.getEncryption() != null) {
-            BucketEncryption bucketEncryption = newSubresource(BucketEncryption.class);
-            bucketEncryption.copyFrom(model.getEncryption());
-            setEncryption(bucketEncryption);
         }
 
         setIamConfiguration(null);

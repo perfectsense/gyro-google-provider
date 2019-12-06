@@ -41,6 +41,11 @@ public class BucketVersioning extends Diffable implements Copyable<Versioning> {
     }
 
     @Override
+    public String primaryKey() {
+        return "versioning-config";
+    }
+
+    @Override
     public void copyFrom(Versioning model) {
         setEnabled(model.getEnabled());
     }

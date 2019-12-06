@@ -18,7 +18,6 @@ package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket.Cors;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
@@ -37,7 +36,6 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
     /**
      * The value quantified in seconds to be returned in the ``Access-Control-Max-Age`` header.
      */
-    @Updatable
     public Integer getMaxAgeSeconds() {
         return maxAgeSeconds;
     }
@@ -47,9 +45,8 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
     }
 
     /**
-     * List of HTTP methods in which to include CORS response headers. Valid values are ``GET``, ``HEAD``, ``POST``, ``MATCH``, ``PUT``, ``DELETE``, ``CONNECT``, ``OPTIONS``, ``TRACE``, ``PATCH`` or ``*`` for all methods.
+     * List of HTTP methods to include CORS response headers. Valid values are ``GET``, ``HEAD``, ``POST``, ``MATCH``, ``PUT``, ``DELETE``, ``CONNECT``, ``OPTIONS``, ``TRACE``, ``PATCH`` or ``*`` for all methods.
      */
-    @Updatable
     @ValidStrings({"GET", "HEAD", "POST", "MATCH", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH", "*"})
     public List<String> getMethod() {
         return method;
@@ -62,7 +59,6 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
     /**
      * List of Origins able to receive CORS response headers. The ``*`` value is also permitted for allowing any origin.
      */
-    @Updatable
     public List<String> getOrigin() {
         return origin;
     }
@@ -74,7 +70,6 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
     /**
      * List of HTTP headers other than the simple response headers giving permission for the user-agent to share across domains.
      */
-    @Updatable
     public List<String> getResponseHeader() {
         return responseHeader;
     }

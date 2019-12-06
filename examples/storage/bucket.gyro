@@ -23,6 +23,13 @@ google::bucket bucket-1
         response-header: ['application-x-test']
     end
 
+    cors
+        max-age-seconds: 3300
+        method: ['POST']
+        origin: ['*']
+        response-header: ['application-x-test']
+    end
+
     billing
         requester-pays: false
     end
@@ -72,6 +79,10 @@ google::bucket bucket-1
 
     retention-policy
         retention-period: 3200
+    end
+
+    versioning
+        enabled: false
     end
 
     website

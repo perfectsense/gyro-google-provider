@@ -44,7 +44,7 @@ public class BucketIamConfiguration extends Diffable implements Copyable<IamConf
 
     @Override
     public String primaryKey() {
-        return getUniformBucketLevelAccess().primaryKey();
+        return "iam-configuration-config";
     }
 
     @Override

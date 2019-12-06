@@ -33,18 +33,8 @@ import java.util.Map;
 /**
  * Query for a bucket.
  *
- * ========
  * Examples
- * ========
- *
- * **All buckets**
- *
- * .. code-block:: gyro
- *
- *    buckets: $(external-query google::bucket)
- *
- *
- * **Bucket named "example-one"**
+ * --------
  *
  * .. code-block:: gyro
  *

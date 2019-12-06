@@ -54,6 +54,11 @@ public class BucketWebsite extends Diffable implements Copyable<Website> {
     }
 
     @Override
+    public String primaryKey() {
+        return "website-config";
+    }
+
+    @Override
     public void copyFrom(Website model) {
         setMainPageSuffix(model.getMainPageSuffix());
         setNotFoundPage(model.getNotFoundPage());

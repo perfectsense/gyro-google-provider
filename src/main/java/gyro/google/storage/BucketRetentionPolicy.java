@@ -43,6 +43,11 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Retentio
     }
 
     @Override
+    public String primaryKey() {
+        return "retention-policy-config";
+    }
+
+    @Override
     public void copyFrom(RetentionPolicy model) {
         setRetentionPeriod(model.getRetentionPeriod());
     }

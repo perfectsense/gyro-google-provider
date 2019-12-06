@@ -30,7 +30,7 @@ public class BucketLogging extends Diffable implements Copyable<Logging> {
     private String logObjectPrefix;
 
     /**
-     * A prefix for log object names.
+     * The destination bucket where the current bucket's logs should be placed.
      */
     @Updatable
     public BucketResource getLogBucket() {
@@ -42,7 +42,7 @@ public class BucketLogging extends Diffable implements Copyable<Logging> {
     }
 
     /**
-     * The destination bucket where the current bucket's logs should be placed.
+     * A prefix for log object names.
      */
     @Updatable
     public String getLogObjectPrefix() {
@@ -51,6 +51,11 @@ public class BucketLogging extends Diffable implements Copyable<Logging> {
 
     public void setLogObjectPrefix(String logObjectPrefix) {
         this.logObjectPrefix = logObjectPrefix;
+    }
+
+    @Override
+    public String primaryKey() {
+        return "logging-config";
     }
 
     @Override

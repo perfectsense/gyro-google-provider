@@ -19,7 +19,6 @@ package gyro.google.storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.Bucket.IamConfiguration.UniformBucketLevelAccess;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
@@ -28,12 +27,10 @@ import gyro.google.Copyable;
 public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<UniformBucketLevelAccess> {
 
     private Boolean enabled;
-    private String lockedTime;
 
     /**
      * When ``true`` access is controlled only by bucket-level or above IAM policies.
      */
-    @Updatable
     public Boolean getEnabled() {
         return enabled;
     }
@@ -42,24 +39,13 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
         this.enabled = enabled;
     }
 
-    /**
-     * The deadline date after which ``enabled`` becomes ``false``.
-     */
-    public String getLockedTime() {
-        return lockedTime;
-    }
-
-    public void setLockedTime(String lockedTime) {
-        this.lockedTime = lockedTime;
+    public String primaryKey() {
+        return "uniform-bucket-level-access-config";
     }
 
     @Override
     public void copyFrom(UniformBucketLevelAccess model) {
         setEnabled(model.getEnabled());
-
-        if (model.getLockedTime() != null) {
-            setLockedTime(model.getLockedTime().toStringRfc3339());
-        }
     }
 
     public UniformBucketLevelAccess toIamConfigurationUniformBucketLevelAccess() {

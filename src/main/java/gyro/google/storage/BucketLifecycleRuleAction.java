@@ -18,7 +18,6 @@ package gyro.google.storage;
 
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.Action;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
@@ -33,7 +32,6 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
     /**
      * Target storage class. Required when ``action`` is set to ``SetStorageClass``.
      */
-    @Updatable
     public String getStorageClass() {
         return storageClass;
     }
@@ -45,7 +43,6 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
     /**
      * Type of the action to take on condition. Valid types are ``Delete`` or ``SetStorageClass``.
      */
-    @Updatable
     @ValidStrings({"Delete", "SetStorageClass"})
     public String getType() {
         return type;

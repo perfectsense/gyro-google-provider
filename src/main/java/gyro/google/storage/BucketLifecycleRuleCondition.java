@@ -19,7 +19,6 @@ package gyro.google.storage;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.Condition;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
@@ -39,7 +38,6 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     /**
      * Age of an object in days.
      */
-    @Updatable
     public Integer getAge() {
         return age;
     }
@@ -51,7 +49,6 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     /**
      * A date in RFC-3339 format with only the date part. Ex ``2013-01-15``.
      */
-    @Updatable
     public String getCreatedBefore() {
         return createdBefore;
     }
@@ -63,7 +60,6 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     /**
      * Only for versioned objects. When ``true`` this condition matches live objects; When ``false`` it matches archived objects.
      */
-    @Updatable
     public Boolean getIsLive() {
         return isLive;
     }
@@ -75,7 +71,6 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     /**
      * Matches objects having any of the storage classes specified. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI_REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``.
      */
-    @Updatable
     @ValidStrings({"STANDARD", "NEARLINE", "COLDLINE", "MULTI_REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY"})
     public List<String> getMatchesStorageClass() {
         return matchesStorageClass;
@@ -88,7 +83,6 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     /**
      * Only for versioned objects. If the value is ``N``, the condition is met when there are at least ``N`` versions, including the live version, newer than this version of the object.
      */
-    @Updatable
     public Integer getNumNewerVersions() {
         return numNewerVersions;
     }
