@@ -16,13 +16,14 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.Firewall.Allowed;
-import gyro.google.Copyable;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import com.google.api.services.compute.model.Firewall.Allowed;
+import gyro.google.Copyable;
+
 public class FirewallAllowed extends FirewallRule implements Copyable<Allowed> {
+
     @Override
     public void copyFrom(Allowed allowed) {
         setProtocol(allowed.getIPProtocol());

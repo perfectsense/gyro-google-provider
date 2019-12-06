@@ -16,11 +16,11 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.Firewall.Denied;
-import gyro.google.Copyable;
-
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import com.google.api.services.compute.model.Firewall.Denied;
+import gyro.google.Copyable;
 
 public class FirewallDenied extends FirewallRule implements Copyable<Denied> {
 
