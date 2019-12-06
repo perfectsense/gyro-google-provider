@@ -16,20 +16,20 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Subnetwork;
-import com.google.api.services.compute.model.SubnetworksScopedList;
-import gyro.core.GyroException;
-import gyro.core.Type;
-import gyro.google.GoogleFinder;
-
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Subnetwork;
+import com.google.api.services.compute.model.SubnetworkAggregatedList;
+import com.google.api.services.compute.model.SubnetworksScopedList;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
 
 /**
  * Query subnet.
@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
  */
 @Type("subnet")
 public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, SubnetworkResource> {
+
     private String name;
     private String region;
 
@@ -69,39 +70,27 @@ public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, Subnetwo
     }
 
     @Override
-    protected List<Subnetwork> findAllGoogle(Compute client) {
-        try {
-            return client.subnetworks()
-                .aggregatedList(getProjectId()).execute()
-                .getItems().values().stream()
+    protected List<Subnetwork> findAllGoogle(Compute client) throws Exception {
+        List<Subnetwork> subnetworks = new ArrayList<>();
+        SubnetworkAggregatedList subnetworkList;
+        String nextPageToken = null;
+
+        do {
+            subnetworkList = client.subnetworks().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
+            subnetworks.addAll(subnetworkList.getItems().values().stream()
                 .map(SubnetworksScopedList::getSubnetworks)
+                .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+                .collect(Collectors.toList()));
+            nextPageToken = subnetworkList.getNextPageToken();
+        } while (nextPageToken != null);
+
+        return subnetworks;
     }
 
     @Override
-    protected List<Subnetwork> findGoogle(Compute client, Map<String, String> filters) {
-        Subnetwork subnetwork = null;
-
-        try {
-            subnetwork = client.subnetworks().get(getProjectId(), filters.get("region"), filters.get("name")).execute();
-        } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
-
-        if (subnetwork != null) {
-            return Collections.singletonList(subnetwork);
-        } else {
-            return Collections.emptyList();
-        }
+    protected List<Subnetwork> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(
+            client.subnetworks().get(getProjectId(), filters.get("region"), filters.get("name")).execute());
     }
 }

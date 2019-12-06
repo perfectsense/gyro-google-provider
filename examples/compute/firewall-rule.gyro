@@ -1,0 +1,43 @@
+google::network network-example-firewall-rule
+    name: "vpc-example-firewall-rule"
+    description: "vpc-example-firewall-rule-desc"
+    routing-mode: "Regional"
+end
+
+google::compute-firewall-rule firewall-rule-example-allow
+    name: "firewall-rule-example-allow"
+    network: $(google::network network-example-firewall-rule)
+    description: "firewall-rule-example-desc"
+    direction: "ingress"
+    priority: 1001
+
+    rule-type: "allow"
+
+    allowed
+        protocol: "tcp"
+        ports: ["95-96", "80-85"]
+    end
+
+    source-tags: [
+        "something"
+    ]
+end
+
+google::compute-firewall-rule firewall-rule-example-deny
+    name: "firewall-rule-example-deny"
+    network: $(google::network network-example-firewall-rule)
+    description: "firewall-rule-example-desc-update"
+    direction: "ingress"
+    priority: 1000
+
+    rule-type: "deny"
+
+    denied
+        protocol: "tcp"
+        ports: ["95-96", "80-85"]
+    end
+
+    source-tags: [
+        "something"
+    ]
+end
