@@ -34,7 +34,6 @@ import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -394,7 +393,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Storage storage = createClient(Storage.class);
 
         try {
@@ -414,129 +413,111 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
             if (e.getDetails().getCode() == 404) {
                 return false;
             } else {
-                throw new GyroException(e.getDetails().getMessage());
+                throw new GyroException(formatGoogleExceptionMessage(e));
             }
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage());
         }
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Storage storage = createClient(Storage.class);
+        Bucket bucket = new Bucket();
 
-        try {
-            Bucket bucket = new Bucket();
-            bucket.setName(getName());
-            bucket.setLabels(getLabels());
-            bucket.setLocation(getLocation());
-            bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
-            bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
-            bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
-            bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
-            bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
-            bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
-            bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
-            bucket.setStorageClass(getStorageClass());
-            bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
-            bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
+        bucket.setName(getName());
+        bucket.setLabels(getLabels());
+        bucket.setLocation(getLocation());
+        bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
+        bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
+        bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
+        bucket.setIamConfiguration(getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
+        bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
+        bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
+        bucket.setRetentionPolicy(getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
+        bucket.setStorageClass(getStorageClass());
+        bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
+        bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
 
-            copyFrom(storage.buckets()
-                    .insert(getProjectId(), bucket)
-                    .setPredefinedAcl(getPredefinedAcl())
-                    .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
-                    .setUserProject(getUserProject())
-                    .setProjection("full")
-                    .execute());
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        }
+        copyFrom(storage.buckets()
+                .insert(getProjectId(), bucket)
+                .setPredefinedAcl(getPredefinedAcl())
+                .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
+                .setUserProject(getUserProject())
+                .setProjection("full")
+                .execute());
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Storage storage = createClient(Storage.class);
         BucketResource currentResource = (BucketResource) current;
+        Bucket bucket = new Bucket();
 
-        try {
-            Bucket bucket = new Bucket();
-
-            if (changedFieldNames.contains("labels")) {
-                // To remove an entry you must pass the key with a Data.NULL_STRING value.
-                Map<String, String> updateLabels = new HashMap<>();
-                currentResource.getLabels().forEach((key, value) -> updateLabels.put(key, Data.NULL_STRING));
-                updateLabels.putAll(getLabels());
-                bucket.setLabels(updateLabels);
-            }
-
-            if (changedFieldNames.contains("location")) {
-                bucket.setLocation(getLocation());
-            }
-
-            if (changedFieldNames.contains("default-event-based-hold")) {
-                bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
-            }
-
-            if (changedFieldNames.contains("cors")) {
-                bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
-            }
-
-            if (changedFieldNames.contains("billing")) {
-                bucket.setBilling(getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
-            }
-
-            if (changedFieldNames.contains("iam-configuration")) {
-                bucket.setIamConfiguration(getIamConfiguration() == null ? Data.nullOf(Bucket.IamConfiguration.class) : getIamConfiguration().toBucketIamConfiguration());
-            }
-
-            if (changedFieldNames.contains("lifecycle")) {
-                bucket.setLifecycle(getLifecycle() == null ? Data.nullOf(Bucket.Lifecycle.class) : getLifecycle().toLifecycle());
-            }
-
-            if (changedFieldNames.contains("logging")) {
-                bucket.setLogging(getLogging() == null ? Data.nullOf(Bucket.Logging.class) : getLogging().toBucketLogging());
-            }
-
-            if (changedFieldNames.contains("retention-policy")) {
-                bucket.setRetentionPolicy(getRetentionPolicy() == null ? Data.nullOf(Bucket.RetentionPolicy.class) : getRetentionPolicy().toBucketRententionPolicy());
-            }
-
-            if (changedFieldNames.contains("storage-class")) {
-                bucket.setStorageClass(getStorageClass());
-            }
-
-            if (changedFieldNames.contains("versioning")) {
-                bucket.setVersioning(getVersioning() == null ? Data.nullOf(Bucket.Versioning.class) : getVersioning().toBucketVersioning());
-            }
-
-            if (changedFieldNames.contains("website")) {
-                bucket.setWebsite(getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
-            }
-
-            copyFrom(storage.buckets()
-                    .patch(getName(), bucket)
-                    .setPredefinedAcl(getPredefinedAcl())
-                    .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
-                    .setUserProject(getUserProject())
-                    .setProjection("full")
-                    .execute());
-
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
+        if (changedFieldNames.contains("labels")) {
+            // To remove an entry you must pass the key with a Data.NULL_STRING value.
+            Map<String, String> updateLabels = new HashMap<>();
+            currentResource.getLabels().forEach((key, value) -> updateLabels.put(key, Data.NULL_STRING));
+            updateLabels.putAll(getLabels());
+            bucket.setLabels(updateLabels);
         }
+
+        if (changedFieldNames.contains("location")) {
+            bucket.setLocation(getLocation());
+        }
+
+        if (changedFieldNames.contains("default-event-based-hold")) {
+            bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
+        }
+
+        if (changedFieldNames.contains("cors")) {
+            bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
+        }
+
+        if (changedFieldNames.contains("billing")) {
+            bucket.setBilling(getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
+        }
+
+        if (changedFieldNames.contains("iam-configuration")) {
+            bucket.setIamConfiguration(getIamConfiguration() == null ? Data.nullOf(Bucket.IamConfiguration.class) : getIamConfiguration().toBucketIamConfiguration());
+        }
+
+        if (changedFieldNames.contains("lifecycle")) {
+            bucket.setLifecycle(getLifecycle() == null ? Data.nullOf(Bucket.Lifecycle.class) : getLifecycle().toLifecycle());
+        }
+
+        if (changedFieldNames.contains("logging")) {
+            bucket.setLogging(getLogging() == null ? Data.nullOf(Bucket.Logging.class) : getLogging().toBucketLogging());
+        }
+
+        if (changedFieldNames.contains("retention-policy")) {
+            bucket.setRetentionPolicy(getRetentionPolicy() == null ? Data.nullOf(Bucket.RetentionPolicy.class) : getRetentionPolicy().toBucketRententionPolicy());
+        }
+
+        if (changedFieldNames.contains("storage-class")) {
+            bucket.setStorageClass(getStorageClass());
+        }
+
+        if (changedFieldNames.contains("versioning")) {
+            bucket.setVersioning(getVersioning() == null ? Data.nullOf(Bucket.Versioning.class) : getVersioning().toBucketVersioning());
+        }
+
+        if (changedFieldNames.contains("website")) {
+            bucket.setWebsite(getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
+        }
+
+        copyFrom(storage.buckets()
+                .patch(getName(), bucket)
+                .setPredefinedAcl(getPredefinedAcl())
+                .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
+                .setUserProject(getUserProject())
+                .setProjection("full")
+                .execute());
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
-        try {
-            Storage storage = createClient(Storage.class);
-            storage.buckets().delete(getName()).execute();
-
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage());
-        }
+    public void doDelete(GyroUI ui, State state) throws Exception {
+        Storage storage = createClient(Storage.class);
+        storage.buckets().delete(getName())
+                .execute();
     }
 
     @Override
