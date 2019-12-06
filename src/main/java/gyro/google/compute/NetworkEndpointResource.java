@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class NetworkEndpointResource extends Diffable implements Copyable<NetworkEndpointWithHealthStatus> {
-    private InstanceResource instance;
+    private String instance;
     private Integer port;
     private String ipAddress;
 
@@ -37,11 +37,11 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
     private List<String> healthStatus;
 
     @Required
-    public InstanceResource getInstance() {
+    public String getInstance() {
         return instance;
     }
 
-    public void setInstance(InstanceResource instance) {
+    public void setInstance(String instance) {
         this.instance = instance;
     }
 
@@ -76,13 +76,13 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
 
     @Override
     public String primaryKey() {
-        return getInstance().getName();
+        return getInstance();
     }
 
     @Override
     public void copyFrom(NetworkEndpointWithHealthStatus endpoint) {
         NetworkEndpoint networkEndpoint = endpoint.getNetworkEndpoint();
-        setInstance(findById(InstanceResource.class, networkEndpoint.getInstance()));
+        setInstance(networkEndpoint.getInstance());
         setIpAddress(networkEndpoint.getIpAddress());
         setPort(networkEndpoint.getPort());
 
@@ -94,7 +94,7 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
 
     NetworkEndpoint toNetworkEndpoint() {
         NetworkEndpoint networkEndpoint = new NetworkEndpoint();
-        networkEndpoint.setInstance(getInstance().getName());
+        networkEndpoint.setInstance(getInstance());
         networkEndpoint.setPort(getPort());
         networkEndpoint.setIpAddress(getIpAddress());
 
