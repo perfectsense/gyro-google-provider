@@ -43,6 +43,7 @@ import gyro.google.GoogleFinder;
  */
 @Type("subnet")
 public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, SubnetworkResource> {
+
     private String name;
     private String region;
 

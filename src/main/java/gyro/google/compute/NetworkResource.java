@@ -50,6 +50,7 @@ import gyro.google.Copyable;
  */
 @Type("network")
 public class NetworkResource extends ComputeResource implements Copyable<Network> {
+
     private String name;
     private String description;
     private String routingMode;
@@ -85,7 +86,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
      * The routing mode for the network. Valid values are ``GLOBAL`` or ``REGIONAL``.
      */
     @Required
-    @ValidStrings({"GLOBAL", "REGIONAL"})
+    @ValidStrings({ "GLOBAL", "REGIONAL" })
     @Updatable
     public String getRoutingMode() {
         return routingMode != null ? routingMode.toUpperCase() : null;

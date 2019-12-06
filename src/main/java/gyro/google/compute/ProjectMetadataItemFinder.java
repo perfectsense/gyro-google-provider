@@ -37,6 +37,7 @@ import gyro.google.GoogleFinder;
  */
 @Type("project-metadata-item")
 public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.Items, ProjectMetadataItemResource> {
+
     private String key;
 
     /**

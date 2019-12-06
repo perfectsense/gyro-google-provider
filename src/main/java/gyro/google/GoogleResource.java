@@ -29,7 +29,9 @@ import gyro.core.scope.State;
 
 public abstract class GoogleResource extends Resource {
 
-    protected static <T extends AbstractGoogleJsonClient> T createClient(Class<T> clientClass, GoogleCredentials credentials) {
+    protected static <T extends AbstractGoogleJsonClient> T createClient(
+        Class<T> clientClass,
+        GoogleCredentials credentials) {
         return credentials.createClient(clientClass);
     }
 

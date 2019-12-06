@@ -39,6 +39,7 @@ import gyro.google.GoogleFinder;
  */
 @Type("network")
 public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResource> {
+
     private String name;
 
     /**

@@ -39,6 +39,7 @@ import gyro.google.GoogleFinder;
  */
 @Type("compute-firewall-rule")
 public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallResource> {
+
     private String name;
 
     /**

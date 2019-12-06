@@ -58,6 +58,7 @@ import gyro.google.Copyable;
  */
 @Type("compute-route")
 public class RouteResource extends ComputeResource implements Copyable<Route> {
+
     private String name;
     private String description;
     private String destRange;
@@ -121,7 +122,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     /**
      * The priority of the route. Defaults to ``1000``.
      */
-    @Range(min=0, max = 65535)
+    @Range(min = 0, max = 65535)
     public Long getPriority() {
         if (priority == null) {
             priority = 1000L;
@@ -214,7 +215,9 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         setDescription(route.getDescription());
         setDestRange(route.getDestRange());
         setNetwork(findById(NetworkResource.class, route.getNetwork()));
-        setNetwork(findById(NetworkResource.class, route.getNetwork().substring(route.getNetwork().lastIndexOf("/") + 1)));
+        setNetwork(findById(
+            NetworkResource.class,
+            route.getNetwork().substring(route.getNetwork().lastIndexOf("/") + 1)));
         setPriority(route.getPriority());
         setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
         setNextHopGateway(route.getNextHopGateway());
@@ -287,9 +290,15 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
             .count();
 
         if (count == 0) {
-            errors.add(new ValidationError(this, null, "One of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' is required."));
+            errors.add(new ValidationError(
+                this,
+                null,
+                "One of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' is required."));
         } else if (count > 1) {
-            errors.add(new ValidationError(this, null, "Only one of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' can be set."));
+            errors.add(new ValidationError(
+                this,
+                null,
+                "Only one of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' can be set."));
         }
 
         return errors;
