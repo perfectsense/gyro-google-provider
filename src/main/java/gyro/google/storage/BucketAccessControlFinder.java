@@ -34,18 +34,8 @@ import java.util.Map;
 /**
  * Query for Bucket Access Controls.
  *
- * ========
  * Examples
- * ========
- *
- * **Find all Bucket Access Controls**
- *
- * .. code-block:: gyro
- *
- *    aclAll: $(external-query google::acl)
- *
- *
- * **A single Bucket Access Controls for the bucket named "acl-example" and the entity value "domain-sample.com"**
+ * --------
  *
  * .. code-block:: gyro
  *

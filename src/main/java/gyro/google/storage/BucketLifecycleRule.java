@@ -59,7 +59,7 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
 
     @Override
     public String primaryKey() {
-        return String.format("%s where %s", getAction().primaryKey(), getCondition().primaryKey());
+        return String.format("rule-config action: %s and condition: %s", (getAction() == null ? "" : getAction().primaryKey()), (getCondition() == null ? "" : getCondition().primaryKey()));
     }
 
     @Override
