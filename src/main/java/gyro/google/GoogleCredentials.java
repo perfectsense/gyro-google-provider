@@ -16,21 +16,20 @@
 
 package gyro.google;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
+
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.compute.Compute;
 import com.google.auth.http.HttpCredentialsAdapter;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.auth.Credentials;
-
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.security.GeneralSecurityException;
-import java.util.Collections;
 
 public class GoogleCredentials extends Credentials {
 
@@ -63,29 +62,21 @@ public class GoogleCredentials extends Credentials {
 
             try (GyroInputStream input = openInput(getCredentialFilePath())) {
                 googleCredentials = com.google.auth.oauth2.GoogleCredentials.fromStream(input)
-                        .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
+                    .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
             } catch (Exception ex) {
                 throw new GyroException("Could not load credentials file.");
             }
 
-            try {
-                Class builderClass = Class.forName(clientClass.getCanonicalName() + "$Builder");
-                Constructor constructor = builderClass.getConstructor(
-                        com.google.api.client.http.HttpTransport.class,
-                        com.google.api.client.json.JsonFactory.class,
-                        com.google.api.client.http.HttpRequestInitializer.class);
-                AbstractGoogleJsonClient.Builder client = (AbstractGoogleJsonClient.Builder) constructor.newInstance(
+            switch (clientClass.getSimpleName()) {
+                case "Compute":
+                    return (T) new Compute.Builder(
                         httpTransport,
                         jsonFactory,
-                        new HttpCredentialsAdapter(googleCredentials));
-                client.setApplicationName("gyro-google-provider");
+                        new HttpCredentialsAdapter(googleCredentials))
+                        .setApplicationName("gyro-google-provider").build();
 
-                return (T) client.build();
-
-            } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException | ClassNotFoundException e) {
-                throw new GyroException(String.format(
-                        "Unable to create a Google JSON Client from %s",
-                        clientClass.getCanonicalName()));
+                default:
+                    throw new GyroException(String.format("No client found for class %s", clientClass.getSimpleName()));
             }
         } catch (GeneralSecurityException | IOException e) {
             throw new GyroException(String.format("Unable to create %s client", clientClass.getSimpleName()));

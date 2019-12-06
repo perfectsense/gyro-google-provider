@@ -16,6 +16,7 @@
 
 plugins {
     id 'java-library'
+    id 'checkstyle'
     id 'maven-publish'
 }
 
@@ -65,6 +66,11 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-storage:1.99.0'
 
     gyroDoclet "gyro:gyro-doclet:0.99.0-SNAPSHOT"
+}
+
+checkstyle {
+    toolVersion = '8.24'
+    configFile = rootProject.file('config/checkstyle.xml')
 }
 
 task referenceDocs(type: Javadoc) {
