@@ -16,14 +16,12 @@
 
 package gyro.google.dns;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.ManagedZone;
@@ -258,38 +256,22 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Dns client = createClient(Dns.class);
-
-        try {
-            ManagedZone managedZone = client.managedZones().get(getProjectId(), getName()).execute();
-            return refreshFrom(managedZone);
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        ManagedZone managedZone = client.managedZones().get(getProjectId(), getName()).execute();
+        return refreshFrom(managedZone);
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Dns client = createClient(Dns.class);
         ManagedZone managedZone = createManagedZone();
-
-        try {
-            ManagedZone response = client.managedZones().create(getProjectId(), managedZone).execute();
-            refreshFrom(response);
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        ManagedZone response = client.managedZones().create(getProjectId(), managedZone).execute();
+        refreshFrom(response);
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         if (!(current instanceof ManagedZoneResource)) {
             throw new GyroException("Incompatible resource type! " + current.getClass().getName());
         }
@@ -329,7 +311,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Dns client = createClient(Dns.class);
         client.managedZones().delete(getProjectId(), getName()).execute();
     }
@@ -425,28 +407,23 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         return managedZone;
     }
 
-    private void patch(GyroUI ui, ManagedZone managedZone, boolean shouldRefresh) {
+    private void patch(GyroUI ui, ManagedZone managedZone, boolean shouldRefresh) throws Exception {
         Dns client = createClient(Dns.class);
+        Operation response = client.managedZones().patch(getProjectId(), getName(), managedZone).execute();
+        Dns.ManagedZoneOperations.Get getRequest = client
+            .managedZoneOperations()
+            .get(getProjectId(), getName(), response.getId());
 
-        try {
-            Operation response = client.managedZones().patch(getProjectId(), getName(), managedZone).execute();
-            Dns.ManagedZoneOperations.Get getRequest = client
-                .managedZoneOperations()
-                .get(getProjectId(), getName(), response.getId());
+        // TODO: limit retry?
+        long count = 1;
 
-            // TODO: limit retry?
-            long count = 1;
-
-            while (response.getStatus().equals("pending")) {
-                ui.write("\nWaiting to be updated.");
-                Thread.sleep(1000L * count++);
-                response = getRequest.execute();
-            }
-            if (shouldRefresh) {
-                refreshFrom(response.getZoneContext().getNewValue());
-            }
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        while (response.getStatus().equals("pending")) {
+            ui.write("\nWaiting to be updated.");
+            Thread.sleep(1000L * count++);
+            response = getRequest.execute();
+        }
+        if (shouldRefresh) {
+            refreshFrom(response.getZoneContext().getNewValue());
         }
     }
 }

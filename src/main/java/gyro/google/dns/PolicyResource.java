@@ -16,7 +16,6 @@
 
 package gyro.google.dns;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.PoliciesPatchResponse;
@@ -167,25 +165,14 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Dns client = createClient(Dns.class);
-
-        try {
-            Policy policy = client.policies().get(getProjectId(), getName()).execute();
-            return refreshFrom(policy);
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        Policy policy = client.policies().get(getProjectId(), getName()).execute();
+        return refreshFrom(policy);
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Dns client = createClient(Dns.class);
         Policy policy = new Policy();
         DnsPolicyAlternativeNameServerConfig alternativeNameServerConfig = getAlternativeNameServerConfig();
@@ -205,18 +192,12 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                 .map(DnsPolicyNetwork::copyTo)
                 .collect(Collectors.toList()));
         }
-
-        try {
-            Policy response = client.policies().create(getProjectId(), policy).execute();
-            refreshFrom(response);
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
-
+        Policy response = client.policies().create(getProjectId(), policy).execute();
+        refreshFrom(response);
     }
 
     @Override
-    public void update(
+    public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         if (!(current instanceof PolicyResource)) {
             throw new GyroException("Incompatible resource type! " + current.getClass().getName());
@@ -245,17 +226,12 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
             }
         }
         Dns client = createClient(Dns.class);
-
-        try {
-            PoliciesPatchResponse response = client.policies().patch(getProjectId(), getName(), policy).execute();
-            refreshFrom(response.getPolicy());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        PoliciesPatchResponse response = client.policies().patch(getProjectId(), getName(), policy).execute();
+        refreshFrom(response.getPolicy());
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Dns client = createClient(Dns.class);
         client.policies().delete(getProjectId(), getName()).execute();
     }

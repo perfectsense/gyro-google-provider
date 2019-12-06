@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.Change;
 import com.google.api.services.dns.model.ResourceRecordSet;
@@ -151,45 +150,34 @@ public class ResourceRecordSetResource extends GoogleResource
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Dns client = createClient(Dns.class);
         String managedZoneName = getManagedZone().getName();
+        Dns.ResourceRecordSets.List request = client.resourceRecordSets().list(getProjectId(), managedZoneName);
+        request.setName(getName());
+        request.setType(getType());
+        ResourceRecordSetsListResponse response = request.execute();
+        List<ResourceRecordSet> rrsets = response.getRrsets();
 
-        try {
-            Dns.ResourceRecordSets.List request = client.resourceRecordSets().list(getProjectId(), managedZoneName);
-            request.setName(getName());
-            request.setType(getType());
-            ResourceRecordSetsListResponse response = request.execute();
-            List<ResourceRecordSet> rrsets = response.getRrsets();
-
-            if (rrsets.isEmpty()) {
-                return false;
-            } else if (rrsets.size() > 1) {
-                throw new GyroException(
-                    String.format("Multiple records found! [%s] [%s] [%s]", managedZoneName, getName(), getType()));
-            }
-            copyFrom(rrsets.get(0));
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        if (rrsets.isEmpty()) {
+            return false;
+        } else if (rrsets.size() > 1) {
+            throw new GyroException(
+                String.format("Multiple records found! [%s] [%s] [%s]", managedZoneName, getName(), getType()));
         }
+        copyFrom(rrsets.get(0));
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Change change = new Change();
         change.setAdditions(Collections.singletonList(copyTo()));
         process(ui, change);
     }
 
     @Override
-    public void update(
+    public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
         if (!(current instanceof ResourceRecordSetResource)) {
@@ -202,7 +190,7 @@ public class ResourceRecordSetResource extends GoogleResource
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Change change = new Change();
         change.setDeletions(Collections.singletonList(copyTo()));
         process(ui, change);
@@ -228,25 +216,21 @@ public class ResourceRecordSetResource extends GoogleResource
         return resourceRecordSet;
     }
 
-    private void process(GyroUI ui, Change change) {
+    private void process(GyroUI ui, Change change) throws Exception {
         Dns client = createClient(Dns.class);
-        try {
-            Change response = client.changes().create(getProjectId(), getManagedZone().getName(), change).execute();
-            Dns.Changes.Get getRequest = client
-                .changes()
-                .get(getProjectId(), getManagedZone().getName(), response.getId());
+        Change response = client.changes().create(getProjectId(), getManagedZone().getName(), change).execute();
+        Dns.Changes.Get getRequest = client
+            .changes()
+            .get(getProjectId(), getManagedZone().getName(), response.getId());
 
-            // TODO: limit retry?
-            long count = 1;
+        // TODO: limit retry?
+        long count = 1;
 
-            while (response.getStatus().equals("pending")) {
-                ui.write("\nWaiting to be updated.");
-                Thread.sleep(1000L * count++);
-                response = getRequest.execute();
-            }
-            refresh();
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        while (response.getStatus().equals("pending")) {
+            ui.write("\nWaiting to be updated.");
+            Thread.sleep(1000L * count++);
+            response = getRequest.execute();
         }
+        refresh();
     }
 }
