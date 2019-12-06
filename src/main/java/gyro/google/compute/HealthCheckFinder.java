@@ -33,18 +33,7 @@ import gyro.google.GoogleFinder;
 /**
  * Query for health checks.
  *
- * ========
- * Examples
- * ========
- *
- * Example find all global health checks for project.
- * -------
- *
- * .. code-block:: gyro
- *
- *    compute-health-check: $(external-query google::compute-health-check)
- *
- * Example find the global health check with a name equal to 'health-check-example'..
+ * Example
  * -------
  *
  * .. code-block:: gyro

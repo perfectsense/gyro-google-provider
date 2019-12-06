@@ -37,18 +37,7 @@ import gyro.google.GoogleFinder;
 /**
  * Query for regional health checks.
  *
- * ========
- * Examples
- * ========
- *
- * Example find all the regional health checks.
- * -------
- *
- * .. code-block:: gyro
- *
- *     compute-regional-health-check: $(external-query google::compute-regional-health-check)
- *
- ** Example find all the health checks for the region 'us-east1'.
+ * Example
  * -------
  *
  * .. code-block:: gyro

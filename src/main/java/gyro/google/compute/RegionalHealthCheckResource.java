@@ -23,16 +23,12 @@ import gyro.core.validation.Required;
 /**
  * Creates a regional health check resource.
  *
- * ========
  * Examples
- * ========
- *
- * Basic Regional Http Health Check
- * -----------------------
+ * --------
  *
  * .. code-block:: gyro
  *
- *      google::compute-regional-health-check regional-health-check-example
+ *      google::compute-regional-health-check regional-health-check-example-basic-http
  *          name: "http-basic"
  *          region: "us-east1"
  *
@@ -41,12 +37,9 @@ import gyro.core.validation.Required;
  *          end
  *      end
  *
- * Advanced Regional TCP Health Check
- * -------------------------
- *
  * .. code-block:: gyro
  *
- *      google::compute-regional-health-check regional-health-check-example
+ *      google::compute-regional-health-check regional-health-check-example-advanced-tcp
  *          check-interval-sec: 30
  *          description: "The description goes here."
  *          healthy-threshold: 8
