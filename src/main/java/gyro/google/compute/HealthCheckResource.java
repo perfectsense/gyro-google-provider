@@ -210,7 +210,11 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
         try {
             Compute client = createComputeClient();
             HealthCheck healthCheck = client.healthChecks().get(getProjectId(), getName()).execute();
-            client.healthChecks().delete(getProjectId(), healthCheck.getName()).execute();
+            Operation operation = client.healthChecks().delete(getProjectId(), healthCheck.getName()).execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
         } catch (GoogleJsonResponseException e) {
             throw new GyroException(String.format(
                 "Unable to delete Health Check: %s, Google error: %s",
