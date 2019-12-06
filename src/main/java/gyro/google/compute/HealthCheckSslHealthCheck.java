@@ -45,11 +45,11 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Co
 
     public SSLHealthCheck toSslHealthCheck() {
         return new SSLHealthCheck()
-                .setPort(getPort())
-                .setPortName(getPortName())
-                .setPortSpecification(getPortSpecification())
-                .setProxyHeader(getProxyHeader())
-                .setResponse(getResponse())
-                .setRequest(getRequestPath());
+            .setPort(getPort())
+            .setPortName(getPortName())
+            .setPortSpecification(getPortSpecification())
+            .setProxyHeader(getProxyHeader())
+            .setResponse(getResponse())
+            .setRequest(getRequestPath());
     }
 }
