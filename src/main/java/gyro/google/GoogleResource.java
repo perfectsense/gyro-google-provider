@@ -16,8 +16,16 @@
 
 package gyro.google;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
+import gyro.core.GyroException;
+import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
+import gyro.core.scope.State;
 
 public abstract class GoogleResource extends Resource {
 
@@ -35,4 +43,74 @@ public abstract class GoogleResource extends Resource {
         return credentials(GoogleCredentials.class).getProjectId();
     }
 
+    protected abstract boolean doRefresh() throws Exception;
+
+    @Override
+    public final boolean refresh() {
+        try {
+            return doRefresh();
+        } catch (GyroException ex) {
+            throw ex;
+        } catch (GoogleJsonResponseException je) {
+            if (je.getDetails().getCode() != 404) {
+                return false;
+            } else {
+                throw new GyroException(formatGoogleExceptionMessage(je));
+            }
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+    protected abstract void doCreate(GyroUI ui, State state) throws Exception;
+
+    @Override
+    public final void create(GyroUI ui, State state) {
+        try {
+            doCreate(ui, state);
+        } catch (GyroException ex) {
+            throw ex;
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(formatGoogleExceptionMessage(je));
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+    public abstract void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
+        throws Exception;
+
+    @Override
+    public final void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+        try {
+            doUpdate(ui, state, current, changedFieldNames);
+        } catch (GyroException ex) {
+            throw ex;
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(formatGoogleExceptionMessage(je));
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+    public abstract void doDelete(GyroUI ui, State state) throws Exception;
+
+    @Override
+    public final void delete(GyroUI ui, State state) {
+        try {
+            doDelete(ui, state);
+        } catch (GyroException ex) {
+            throw ex;
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(formatGoogleExceptionMessage(je));
+        } catch (Exception ex) {
+            throw new GyroException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+    protected static String formatGoogleExceptionMessage(GoogleJsonResponseException je) {
+        return je.getDetails().getErrors().stream()
+            .map(GoogleJsonError.ErrorInfo::getMessage)
+            .collect(Collectors.joining("\n"));
+    }
 }

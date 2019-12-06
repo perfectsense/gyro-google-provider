@@ -16,17 +16,14 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
 import com.google.api.services.compute.model.NetworkList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -57,44 +54,22 @@ public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResourc
     }
 
     @Override
-    protected List<Network> findAllGoogle(Compute client) {
-        try {
-            List<Network> networks = new ArrayList<>();
-            NetworkList networkList;
-            String nextPageToken = null;
+    protected List<Network> findAllGoogle(Compute client) throws Exception {
+        List<Network> networks = new ArrayList<>();
+        NetworkList networkList;
+        String nextPageToken = null;
 
-            do {
-                networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
-                networks.addAll(networkList.getItems());
-                nextPageToken = networkList.getNextPageToken();
-            } while (nextPageToken != null);
+        do {
+            networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
+            networks.addAll(networkList.getItems());
+            nextPageToken = networkList.getNextPageToken();
+        } while (nextPageToken != null);
 
-            return networks;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        return networks;
     }
 
     @Override
-    protected List<Network> findGoogle(Compute client, Map<String, String> filters) {
-        Network network = null;
-
-        try {
-            network = client.networks().get(getProjectId(), filters.get("name")).execute();
-        } catch (GoogleJsonResponseException je) {
-            if (!je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
-
-        if (network != null) {
-            return Collections.singletonList(network);
-        } else {
-            return Collections.emptyList();
-        }
+    protected List<Network> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.networks().get(getProjectId(), filters.get("name")).execute());
     }
 }
