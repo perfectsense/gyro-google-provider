@@ -16,17 +16,14 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Metadata;
-import gyro.core.GyroException;
-import gyro.core.Type;
-import gyro.google.GoogleFinder;
-
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Metadata;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
 
 /**
  * Query a project-wide metadata item.
@@ -36,10 +33,11 @@ import java.util.Map;
  *
  * .. code-block:: gyro
  *
- *    project-metadata-item: $(external-query google::project-metadata-item { key: 'example-key'})
+ *    project-metadata-item: $(external-query google::compute-project-metadata-item { key: 'example-key'})
  */
-@Type("project-metadata-item")
+@Type("compute-project-metadata-item")
 public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.Items, ProjectMetadataItemResource> {
+
     private String key;
 
     /**
@@ -54,33 +52,26 @@ public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.It
     }
 
     @Override
-    protected List<Metadata.Items> findAllGoogle(Compute client) {
-        try {
-            return client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+    protected List<Metadata.Items> findAllGoogle(Compute client) throws Exception {
+        return client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems();
     }
 
     @Override
-    protected List<Metadata.Items> findGoogle(Compute client, Map<String, String> filters) {
-        try {
-            Metadata.Items item = client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems().stream()
-                .filter(r -> filters.get("key").equals(r.getKey()))
-                .findFirst()
-                .orElse(null);
+    protected List<Metadata.Items> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        Metadata.Items item = client.projects()
+            .get(getProjectId())
+            .execute()
+            .getCommonInstanceMetadata()
+            .getItems()
+            .stream()
+            .filter(r -> filters.get("key").equals(r.getKey()))
+            .findFirst()
+            .orElse(null);
 
-            if (item != null) {
-                return Collections.singletonList(item);
-            } else {
-                return Collections.emptyList();
-            }
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        if (item != null) {
+            return Collections.singletonList(item);
+        } else {
+            return Collections.emptyList();
         }
     }
 }

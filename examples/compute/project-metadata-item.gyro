@@ -1,9 +1,9 @@
-google::project-metadata-item project-metadata-item-example
+google::compute-project-metadata-item project-metadata-item-example
     key: "example-key"
     value: "example-value"
 end
 
-google::project-metadata-item project-ssh-keys-example
+google::compute-project-metadata-item project-ssh-keys-example
     key: "ssh-keys"
     value: "[USERNAME_1]:ssh-rsa [SSH_KEY_1] [USERNAME_1]\n[USERNAME_2]:ssh-rsa [SSH_KEY_2] [USERNAME_2]"
 end
