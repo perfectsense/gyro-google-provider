@@ -16,7 +16,6 @@
 
 package gyro.google.storage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -27,7 +26,6 @@ import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.BucketAccessControl;
 import com.google.api.services.storage.model.Buckets;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -70,50 +68,42 @@ public class BucketAccessControlFinder extends GoogleFinder<Storage, BucketAcces
     }
 
     @Override
-    protected List<BucketAccessControl> findAllGoogle(Storage client) {
+    protected List<BucketAccessControl> findAllGoogle(Storage client) throws Exception {
         List<BucketAccessControl> acls = new ArrayList<>();
         String pageToken;
 
-        try {
-            do {
-                Buckets results = client.buckets().list(getProjectId()).execute();
-                pageToken = results.getNextPageToken();
+        do {
+            Buckets results = client.buckets().list(getProjectId()).execute();
+            pageToken = results.getNextPageToken();
 
-                if (results.getItems() != null) {
-                    Iterator<Bucket> it = results.getItems().iterator();
-                    while (it.hasNext()) {
-                        Bucket b = it.next();
-                        List<BucketAccessControl> items = client.bucketAccessControls()
-                            .list(b.getName())
-                            .execute()
-                            .getItems();
-                        if (items != null) {
-                            acls.addAll(items);
-                        }
+            if (results.getItems() != null) {
+                Iterator<Bucket> it = results.getItems().iterator();
+                while (it.hasNext()) {
+                    Bucket b = it.next();
+                    List<BucketAccessControl> items = client.bucketAccessControls()
+                        .list(b.getName())
+                        .execute()
+                        .getItems();
+                    if (items != null) {
+                        acls.addAll(items);
                     }
                 }
-            } while (pageToken != null);
-        } catch (IOException e) {
-            throw new GyroException(e);
-        }
+            }
+        } while (pageToken != null);
 
         return acls;
     }
 
     @Override
-    protected List<BucketAccessControl> findGoogle(Storage client, Map<String, String> filters) {
+    protected List<BucketAccessControl> findGoogle(Storage client, Map<String, String> filters) throws Exception {
 
         if (filters.containsKey("bucket") && filters.containsKey("entity")) {
-            try {
-                BucketAccessControl acl = client.bucketAccessControls()
-                    .get(filters.get("bucket"), filters.get("entity"))
-                    .execute();
+            BucketAccessControl acl = client.bucketAccessControls()
+                .get(filters.get("bucket"), filters.get("entity"))
+                .execute();
 
-                if (acl != null) {
-                    return Collections.singletonList(acl);
-                }
-            } catch (IOException e) {
-                throw new GyroException(e);
+            if (acl != null) {
+                return Collections.singletonList(acl);
             }
         }
 

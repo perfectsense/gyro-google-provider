@@ -16,7 +16,6 @@
 
 package gyro.google.storage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,30 +56,24 @@ public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> 
     }
 
     @Override
-    protected List<Bucket> findAllGoogle(Storage client) {
+    protected List<Bucket> findAllGoogle(Storage client) throws Exception {
         List<Bucket> buckets = new ArrayList<>();
         String pageToken;
 
-        try {
-            do {
-                Buckets results = client.buckets().list(getProjectId()).execute();
-                pageToken = results.getNextPageToken();
+        do {
+            Buckets results = client.buckets().list(getProjectId()).execute();
+            pageToken = results.getNextPageToken();
 
-                if (results.getItems() != null) {
-                    buckets.addAll(results.getItems());
-                }
-            } while (pageToken != null);
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        } catch (IOException e) {
-            throw new GyroException(e);
-        }
+            if (results.getItems() != null) {
+                buckets.addAll(results.getItems());
+            }
+        } while (pageToken != null);
 
         return buckets;
     }
 
     @Override
-    protected List<Bucket> findGoogle(Storage client, Map<String, String> filters) {
+    protected List<Bucket> findGoogle(Storage client, Map<String, String> filters) throws Exception {
         if (filters.containsKey("name")) {
             try {
                 Bucket bucket = client.buckets().get(filters.get("name")).execute();
@@ -95,8 +88,6 @@ public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> 
                 } else {
                     throw new GyroException(e.getDetails().getMessage());
                 }
-            } catch (IOException e) {
-                throw new GyroException(e);
             }
         }
 
