@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,36 +56,29 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
     }
 
     @Override
-    protected List<Address> findAllGoogle(Compute client) {
+    protected List<Address> findAllGoogle(Compute client) throws Exception {
         List<Address> addresses = new ArrayList<>();
         String pageToken = null;
 
-        try {
-            do {
-                AddressList addressList = client.globalAddresses().list(getProjectId())
-                    .setPageToken(pageToken)
-                    .execute();
-                pageToken = addressList.getNextPageToken();
+        do {
+            AddressList addressList = client.globalAddresses().list(getProjectId())
+                .setPageToken(pageToken)
+                .execute();
+            pageToken = addressList.getNextPageToken();
 
-                if (addressList.getItems() != null) {
-                    addresses.addAll(addressList.getItems());
-                } else {
-                    break;
-                }
+            if (addressList.getItems() != null) {
+                addresses.addAll(addressList.getItems());
+            } else {
+                break;
+            }
 
-            } while (pageToken != null);
+        } while (pageToken != null);
 
-            return addresses;
-
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage());
-        }
+        return addresses;
     }
 
     @Override
-    protected List<Address> findGoogle(Compute client, Map<String, String> filters) {
+    protected List<Address> findGoogle(Compute client, Map<String, String> filters) throws Exception {
         try {
             List<Address> addresses = new ArrayList<>();
             String pageToken = null;
@@ -118,8 +110,6 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
             } else {
                 throw new GyroException(e.getDetails().getMessage());
             }
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage());
         }
     }
 }
