@@ -16,19 +16,16 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Firewall;
-import com.google.api.services.compute.model.FirewallList;
-import gyro.core.GyroException;
-import gyro.core.Type;
-import gyro.google.GoogleFinder;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Firewall;
+import com.google.api.services.compute.model.FirewallList;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
 
 /**
  * Query firewall rue.
@@ -42,6 +39,7 @@ import java.util.Map;
  */
 @Type("compute-firewall-rule")
 public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallResource> {
+
     private String name;
 
     /**
@@ -56,44 +54,22 @@ public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallReso
     }
 
     @Override
-    protected List<Firewall> findAllGoogle(Compute client) {
-        try {
-            List<Firewall> firewalls = new ArrayList<>();
-            FirewallList firewallList;
-            String nextPageToken = null;
+    protected List<Firewall> findAllGoogle(Compute client) throws Exception {
+        List<Firewall> firewalls = new ArrayList<>();
+        FirewallList firewallList;
+        String nextPageToken = null;
 
-            do {
-                firewallList = client.firewalls().list(getProjectId()).setPageToken(nextPageToken).execute();
-                firewalls.addAll(firewallList.getItems());
-                nextPageToken = firewallList.getNextPageToken();
-            } while (nextPageToken != null);
+        do {
+            firewallList = client.firewalls().list(getProjectId()).setPageToken(nextPageToken).execute();
+            firewalls.addAll(firewallList.getItems());
+            nextPageToken = firewallList.getNextPageToken();
+        } while (nextPageToken != null);
 
-            return firewalls;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        return firewalls;
     }
 
     @Override
-    protected List<Firewall> findGoogle(Compute client, Map<String, String> filters) {
-        Firewall firewall = null;
-
-        try {
-            firewall = client.firewalls().get(getProjectId(), filters.get("name")).execute();
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() != 404) {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
-
-        if (firewall != null) {
-            return Collections.singletonList(firewall);
-        } else {
-            return Collections.emptyList();
-        }
+    protected List<Firewall> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.firewalls().get(getProjectId(), filters.get("name")).execute());
     }
 }

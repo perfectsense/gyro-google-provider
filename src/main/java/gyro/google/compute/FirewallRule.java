@@ -16,11 +16,6 @@
 
 package gyro.google.compute;
 
-import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
-import gyro.core.validation.Required;
-import gyro.core.validation.ValidationError;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +24,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
+
 public class FirewallRule extends Diffable {
+
     private static final Pattern PORT_PATTERN = Pattern.compile("(?<start>[1-9]\\d*)-?(?<end>[1-9]\\d*)?");
 
     private String protocol;
@@ -73,13 +74,21 @@ public class FirewallRule extends Diffable {
         List<ValidationError> errors = new ArrayList<>();
 
         if (!getProtocol().equals("tcp") && !getProtocol().equals("udp") && !getPorts().isEmpty()) {
-            errors.add(new ValidationError(this, "ports", "'ports' can only be set when 'protocol' is set to either 'tcp' or 'udp'"));
+            errors.add(new ValidationError(
+                this,
+                "ports",
+                "'ports' can only be set when 'protocol' is set to either 'tcp' or 'udp'"));
         }
 
-        List<String> invalidPorts = getPorts().stream().filter(port -> !validatePort(port)).collect(Collectors.toList());
+        List<String> invalidPorts = getPorts().stream()
+            .filter(port -> !validatePort(port))
+            .collect(Collectors.toList());
         if (!invalidPorts.isEmpty()) {
             for (String port : invalidPorts) {
-                errors.add(new ValidationError(this, "ports", String.format("invalid entry %s. Must be an integer or a valid range", port)));
+                errors.add(new ValidationError(
+                    this,
+                    "ports",
+                    String.format("invalid entry %s. Must be an integer or a valid range", port)));
             }
         }
 
