@@ -32,18 +32,6 @@ import gyro.google.GoogleFinder;
 /**
  * Query for global addresses.
  *
- * ========
- * Examples
- * ========
- *
- * Example find all global addresses for project.
- * -------
- *
- * .. code-block:: gyro
- *
- *    addresses: $(external-query google::global-address)
- *
- *
  * Example find the global address filtering on name equal to 'global-address-test-1'.
  * -------
  *

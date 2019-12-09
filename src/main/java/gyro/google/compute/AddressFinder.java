@@ -35,26 +35,6 @@ import gyro.google.GoogleFinder;
 /**
  * Query for regional addresses.
  *
- * ========
- * Examples
- * ========
- *
- * Example find all regional addresses for project.
- * -------
- *
- * .. code-block:: gyro
- *
- *    addresses: $(external-query google::address)
- *
- *
- * Example find all static IPs for the region 'us-east1'.
- * -------
- *
- * .. code-block:: gyro
- *
- *    addresses: $(external-query google::address { region: 'us-east1' })
- *
- *
  * Example find the address filtering on name equal to 'us-east1-test-two' in the region 'us-east1'.
  * -------
  *

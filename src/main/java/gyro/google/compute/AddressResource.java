@@ -20,7 +20,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -49,7 +48,6 @@ public class AddressResource extends AbstractAddressResource {
     /**
      * Networking tier used for configuring this address. Valid values are ``PREMIUM`` or ``STANDARD``. Defaults to ``PREMIUM``.
      */
-    @Updatable
     @ValidStrings({ "PREMIUM", "STANDARD" })
     public String getNetworkTier() {
         return networkTier;
@@ -60,7 +58,6 @@ public class AddressResource extends AbstractAddressResource {
     }
 
     @Required
-    @Updatable
     public String getRegion() {
         return region;
     }
