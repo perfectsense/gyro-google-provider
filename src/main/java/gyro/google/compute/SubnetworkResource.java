@@ -62,6 +62,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the subnet. (Required)
@@ -164,6 +165,18 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * The fully qualified url for the subnet.
+     */
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
     }
 
     @Override

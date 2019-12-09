@@ -16,12 +16,8 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
-
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Updatable;
@@ -78,53 +74,34 @@ public class AddressResource extends AbstractAddressResource {
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute compute = createClient(Compute.class);
-        try {
-            Address address = compute.addresses().get(getProjectId(), getRegion(), getName()).execute();
+        Address address = compute.addresses().get(getProjectId(), getRegion(), getName()).execute();
 
-            if (address == null) {
-                return false;
-            }
-
-            copyFrom(address);
-
-            return true;
-
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage(), e.getCause());
+        if (address == null) {
+            return false;
         }
+
+        copyFrom(address);
+
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
         Address address = copyTo()
             .setRegion(getRegion())
             .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
 
-        try {
-            waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());
-            refresh();
-
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        }
+        waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());
+        refresh();
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
-        try {
-            compute.addresses().delete(getProjectId(), getRegion(), getName()).execute();
-
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage(), e.getCause());
-        }
+        compute.addresses().delete(getProjectId(), getRegion(), getName()).execute();
     }
 
     @Override

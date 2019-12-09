@@ -181,7 +181,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         // Do nothing, API doesn't support with an update and/or patch method.
     }
 

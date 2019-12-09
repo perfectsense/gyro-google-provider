@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -93,46 +92,39 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
     }
 
     @Override
-    protected List<Address> findAllGoogle(Compute client) {
-        try {
-            List<Address> addresses = new ArrayList<>();
-            String pageToken = null;
+    protected List<Address> findAllGoogle(Compute client) throws Exception {
+        List<Address> addresses = new ArrayList<>();
+        String pageToken = null;
 
-            do {
-                AddressAggregatedList aggregatedList = client.addresses().aggregatedList(getProjectId())
-                    .setPageToken(pageToken)
-                    .execute();
+        do {
+            AddressAggregatedList aggregatedList = client.addresses().aggregatedList(getProjectId())
+                .setPageToken(pageToken)
+                .execute();
 
-                if (aggregatedList.getItems() != null) {
-                    pageToken = aggregatedList.getNextPageToken();
-                    aggregatedList.getItems().remove("global");
+            if (aggregatedList.getItems() != null) {
+                pageToken = aggregatedList.getNextPageToken();
+                aggregatedList.getItems().remove("global");
 
-                    List<Address> aggregated = aggregatedList.getItems().values().stream()
-                        .map(AddressesScopedList::getAddresses)
-                        .filter(Objects::nonNull)
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList());
+                List<Address> aggregated = aggregatedList.getItems().values().stream()
+                    .map(AddressesScopedList::getAddresses)
+                    .filter(Objects::nonNull)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
 
-                    if (!aggregated.isEmpty()) {
-                        addresses.addAll(aggregated);
-                    }
-                } else {
-                    break;
+                if (!aggregated.isEmpty()) {
+                    addresses.addAll(aggregated);
                 }
+            } else {
+                break;
+            }
 
-            } while (pageToken != null);
+        } while (pageToken != null);
 
-            return addresses;
-
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(e.getDetails().getMessage());
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage());
-        }
+        return addresses;
     }
 
     @Override
-    protected List<Address> findGoogle(Compute client, Map<String, String> filters) {
+    protected List<Address> findGoogle(Compute client, Map<String, String> filters) throws Exception {
         try {
             List<Address> addresses = new ArrayList<>();
             String pageToken = null;
@@ -165,8 +157,6 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
             } else {
                 throw new GyroException(e.getDetails().getMessage());
             }
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage());
         }
     }
 }
