@@ -136,46 +136,25 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
+        InstanceGroup instanceGroup = client.instanceGroups().get(getProjectId(), getZone(), getName()).execute();
+        copyFrom(instanceGroup);
 
-        try {
-            InstanceGroup instanceGroup = client.instanceGroups().get(getProjectId(), getZone(), getName()).execute();
-            copyFrom(instanceGroup);
-
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
-
-        try {
-            client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
-
-            refresh();
-        } catch (
-            GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
+        refresh();
     }
 
     @Override
-    public void update(
+    public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
-
         if (changedFieldNames.contains("named-port")) {
             saveNamedPort(client, (InstanceGroupResource) current);
         }
@@ -184,19 +163,12 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
-
-        try {
-            Operation operation = client.instanceGroups().delete(getProjectId(), getZone(), getName()).execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation operation = client.instanceGroups().delete(getProjectId(), getZone(), getName()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
     }
 

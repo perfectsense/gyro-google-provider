@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,12 +24,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroup;
 import com.google.api.services.compute.model.InstanceGroupAggregatedList;
 import com.google.api.services.compute.model.InstanceGroupsScopedList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -61,57 +58,41 @@ public class InstanceGroupFinder extends GoogleFinder<Compute, InstanceGroup, In
     }
 
     @Override
-    protected List<InstanceGroup> findAllGoogle(Compute client) {
-        try {
-            List<InstanceGroup> instanceGroups = new ArrayList<>();
-            InstanceGroupAggregatedList instanceGroupAggregatedList;
-            String nextPageToken = null;
-            do {
-                instanceGroupAggregatedList = client.instanceGroups()
-                    .aggregatedList(getProjectId())
-                    .setPageToken(nextPageToken)
-                    .execute();
-                instanceGroups.addAll(instanceGroupAggregatedList
-                    .getItems().values().stream()
-                    .map(InstanceGroupsScopedList::getInstanceGroups)
-                    .filter(Objects::nonNull)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-            } while (nextPageToken != null);
+    protected List<InstanceGroup> findAllGoogle(Compute client) throws Exception {
+        List<InstanceGroup> instanceGroups = new ArrayList<>();
+        InstanceGroupAggregatedList instanceGroupAggregatedList;
+        String nextPageToken = null;
+        do {
+            instanceGroupAggregatedList = client.instanceGroups()
+                .aggregatedList(getProjectId())
+                .setPageToken(nextPageToken)
+                .execute();
+            instanceGroups.addAll(instanceGroupAggregatedList
+                .getItems().values().stream()
+                .map(InstanceGroupsScopedList::getInstanceGroups)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
+        } while (nextPageToken != null);
 
-            return instanceGroups;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        return instanceGroups;
     }
 
     @Override
-    protected List<InstanceGroup> findGoogle(Compute client, Map<String, String> filters) {
+    protected List<InstanceGroup> findGoogle(Compute client, Map<String, String> filters) throws Exception {
         List<InstanceGroup> instanceGroups = new ArrayList<>();
-        try {
-            if (filters.containsKey("name")) {
-                instanceGroups.add(client.instanceGroups()
-                    .get(getProjectId(), filters.get("zone"), filters.get("name"))
-                    .execute());
-            } else {
-                instanceGroups = Optional.ofNullable(client.instanceGroups()
-                    .list(getProjectId(), filters.get("zone"))
-                    .execute()
-                    .getItems())
-                    .orElse(new ArrayList<>());
-            }
-
-            return instanceGroups;
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails().getCode() == 404) {
-                return new ArrayList<>();
-            } else {
-                throw new GyroException(e.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
+        if (filters.containsKey("name")) {
+            instanceGroups.add(client.instanceGroups()
+                .get(getProjectId(), filters.get("zone"), filters.get("name"))
+                .execute());
+        } else {
+            instanceGroups = Optional.ofNullable(client.instanceGroups()
+                .list(getProjectId(), filters.get("zone"))
+                .execute()
+                .getItems())
+                .orElse(new ArrayList<>());
         }
+
+        return instanceGroups;
     }
 }
