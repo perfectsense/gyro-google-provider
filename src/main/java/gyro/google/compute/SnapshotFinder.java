@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
@@ -68,7 +67,6 @@ public class SnapshotFinder extends GoogleFinder<Compute, Snapshot, SnapshotReso
             snapshots.addAll(snapshotAggregatedList.getItems()
                 .stream()
                 .filter(Objects::nonNull)
-                .filter(s -> SnapshotResource.parseZoneDisk(projectId, s.getSourceDisk()) != null)
                 .collect(Collectors.toList()));
             nextPageToken = snapshotAggregatedList.getNextPageToken();
         } while (nextPageToken != null);
@@ -78,9 +76,6 @@ public class SnapshotFinder extends GoogleFinder<Compute, Snapshot, SnapshotReso
 
     @Override
     protected List<Snapshot> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Optional.ofNullable(client.snapshots().get(getProjectId(), filters.get("name")).execute())
-            .filter(s -> SnapshotResource.parseZoneDisk(getProjectId(), s.getSourceDisk()) != null)
-            .map(Collections::singletonList)
-            .orElse(Collections.emptyList());
+        return Collections.singletonList(client.snapshots().get(getProjectId(), filters.get("name")).execute());
     }
 }
