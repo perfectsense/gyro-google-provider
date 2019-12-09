@@ -70,7 +70,7 @@ import gyro.core.validation.ValidationError;
  *             "us-central1-c",
  *             "us-central1-a"
  *         ]
- *         source-snapshot: $(google::compute-region-snapshot region-snapshot-example)
+ *         source-snapshot: $(google::compute-snapshot region-snapshot-example)
  *         source-snapshot-encryption-key
  *             kms-key-name: "my-kms-key-name"
  *         end
