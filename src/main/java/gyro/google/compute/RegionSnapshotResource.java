@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Snapshot;
@@ -75,33 +74,27 @@ public class RegionSnapshotResource extends AbstractSnapshotResource {
     }
 
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         String selfLink = getRegionSourceDisk().getSelfLink();
         Snapshot snapshot = toSnapshot();
         snapshot.setSourceDisk(selfLink);
 
-        try {
-            ProjectRegionDiskName regionDisk = parseRegionDisk(getProjectId(), selfLink);
+        ProjectRegionDiskName regionDisk = parseRegionDisk(getProjectId(), selfLink);
 
-            if (regionDisk != null) {
-                Compute.RegionDisks.CreateSnapshot insert = client.regionDisks()
-                    .createSnapshot(getProjectId(), regionDisk.getRegion(), regionDisk.getDisk(), snapshot);
-                Operation operation = insert.execute();
-                Operation.Error error = waitForCompletion(client, operation);
-                if (error != null) {
-                    throw new GyroException(error.toPrettyString());
-                }
-
-                refresh();
-            } else {
-                throw new GyroException(String.format("Unable to parse %s disk", selfLink));
+        if (regionDisk != null) {
+            Compute.RegionDisks.CreateSnapshot insert = client.regionDisks()
+                .createSnapshot(getProjectId(), regionDisk.getRegion(), regionDisk.getDisk(), snapshot);
+            Operation operation = insert.execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
             }
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+
+            refresh();
+        } else {
+            throw new GyroException(String.format("Unable to parse %s disk", selfLink));
         }
     }
 

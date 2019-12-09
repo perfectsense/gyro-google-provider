@@ -16,7 +16,10 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Disk;
 import com.google.api.services.compute.model.DisksAddResourcePoliciesRequest;
@@ -32,9 +35,6 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Creates a zonal disk.
@@ -72,6 +72,7 @@ import java.util.stream.Collectors;
  */
 @Type("compute-disk")
 public class DiskResource extends AbstractDiskResource {
+
     private String zone;
     private String sourceImage;
     private EncryptionKey sourceImageEncryptionKey;
@@ -108,7 +109,7 @@ public class DiskResource extends AbstractDiskResource {
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith({"source-disk-encryption-key", "source-snapshot-encryption-key"})
+    @ConflictsWith({ "source-disk-encryption-key", "source-snapshot-encryption-key" })
     public EncryptionKey getSourceImageEncryptionKey() {
         return sourceImageEncryptionKey;
     }
@@ -133,8 +134,11 @@ public class DiskResource extends AbstractDiskResource {
     public void setResourcePolicies(List<String> resourcePolicies) {
         super.setResourcePolicies(resourcePolicies != null
             ? resourcePolicies.stream()
-                .map(policy -> ComputeUtils.toResourcePolicyUrl(getProjectId(), policy, getZone().substring(0, getZone().lastIndexOf("-"))))
-                .collect(Collectors.toList())
+            .map(policy -> ComputeUtils.toResourcePolicyUrl(
+                getProjectId(),
+                policy,
+                getZone().substring(0, getZone().lastIndexOf("-"))))
+            .collect(Collectors.toList())
             : null);
     }
 
@@ -161,67 +165,37 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Disk disk = client.disks().get(getProjectId(), getZone(), getName()).execute();
-            copyFrom(disk);
+        Disk disk = client.disks().get(getProjectId(), getZone(), getName()).execute();
+        copyFrom(disk);
 
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
-
-
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         Disk disk = toDisk();
         disk.setZone(getZone());
         disk.setSourceImage(getSourceImage());
-        disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null ? getSourceImageEncryptionKey().toCustomerEncryptionKey() : null);
+        disk.setSourceImageEncryptionKey(
+            getSourceImageEncryptionKey() != null ? getSourceImageEncryptionKey().toCustomerEncryptionKey() : null);
 
-        try {
-            Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
-            Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-            refresh();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
+        Operation operation = insert.execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
+
+        refresh();
     }
 
     @Override
-    public void delete(GyroUI ui, State state) {
-        Compute compute = createComputeClient();
-
-        try {
-            compute.disks().delete(getProjectId(), getZone(), getName()).execute();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
-    }
-
-    @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
         if (changedFieldNames.contains("size-gb")) {
@@ -239,57 +213,49 @@ public class DiskResource extends AbstractDiskResource {
         refresh();
     }
 
-    private void saveSizeGb(Compute client, DiskResource oldDiskResource) {
+    @Override
+    public void doDelete(GyroUI ui, State state) throws Exception {
+        Compute compute = createComputeClient();
+
+        compute.disks().delete(getProjectId(), getZone(), getName()).execute();
+    }
+
+    private void saveSizeGb(Compute client, DiskResource oldDiskResource) throws Exception {
         if (getSizeGb() < oldDiskResource.getSizeGb()) {
             throw new GyroException("Size of the disk cannot be decreased once set.");
         }
 
-        try {
-            DisksResizeRequest resizeRequest = new DisksResizeRequest();
-            resizeRequest.setSizeGb(getSizeGb());
-            client.disks().resize(getProjectId(), getZone(), getName(), resizeRequest).execute();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        DisksResizeRequest resizeRequest = new DisksResizeRequest();
+        resizeRequest.setSizeGb(getSizeGb());
+        client.disks().resize(getProjectId(), getZone(), getName(), resizeRequest).execute();
     }
 
-    private void saveLabels(Compute client) {
-        try {
-            ZoneSetLabelsRequest labelsRequest = new ZoneSetLabelsRequest();
-            labelsRequest.setLabels(getLabels());
-            labelsRequest.setLabelFingerprint(getLabelFingerprint());
-            client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+    private void saveLabels(Compute client) throws Exception {
+        ZoneSetLabelsRequest labelsRequest = new ZoneSetLabelsRequest();
+        labelsRequest.setLabels(getLabels());
+        labelsRequest.setLabelFingerprint(getLabelFingerprint());
+        client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
     }
 
-    private void saveResourcePolicies(Compute client, DiskResource oldDiskResource) {
-        try {
-            if (!oldDiskResource.getResourcePolicies().isEmpty()) {
-                DisksRemoveResourcePoliciesRequest removeResourcePoliciesRequest = new DisksRemoveResourcePoliciesRequest();
-                removeResourcePoliciesRequest.setResourcePolicies(oldDiskResource.getResourcePolicies());
-                Operation operation = client.disks()
-                    .removeResourcePolicies(getProjectId(), getZone(), getName(), removeResourcePoliciesRequest).execute();
-                Operation.Error error = waitForCompletion(client, operation);
-                if (error != null) {
-                    throw new GyroException(error.toPrettyString());
-                }
+    private void saveResourcePolicies(Compute client, DiskResource oldDiskResource) throws Exception {
+        if (!oldDiskResource.getResourcePolicies().isEmpty()) {
+            DisksRemoveResourcePoliciesRequest removeResourcePoliciesRequest = new DisksRemoveResourcePoliciesRequest();
+            removeResourcePoliciesRequest.setResourcePolicies(oldDiskResource.getResourcePolicies());
+            Operation operation = client.disks()
+                .removeResourcePolicies(getProjectId(), getZone(), getName(), removeResourcePoliciesRequest)
+                .execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
             }
+        }
 
-            if (!getResourcePolicies().isEmpty()) {
-                DisksAddResourcePoliciesRequest addResourcePoliciesRequest = new DisksAddResourcePoliciesRequest();
-                addResourcePoliciesRequest.setResourcePolicies(getResourcePolicies());
-                client.disks().addResourcePolicies(getProjectId(), getZone(), getName(), addResourcePoliciesRequest).execute();
-            }
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        if (!getResourcePolicies().isEmpty()) {
+            DisksAddResourcePoliciesRequest addResourcePoliciesRequest = new DisksAddResourcePoliciesRequest();
+            addResourcePoliciesRequest.setResourcePolicies(getResourcePolicies());
+            client.disks()
+                .addResourcePolicies(getProjectId(), getZone(), getName(), addResourcePoliciesRequest)
+                .execute();
         }
     }
 }

@@ -16,6 +16,11 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.api.services.compute.model.Disk;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
 import com.google.cloud.compute.v1.ProjectZoneDiskName;
@@ -29,12 +34,9 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidNumbers;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractDiskResource extends ComputeResource implements Copyable<Disk> {
+
     private String name;
     private String description;
     private Long sizeGb;
@@ -99,7 +101,8 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     public void setSourceSnapshot(String sourceSnapshot) {
-        this.sourceSnapshot = sourceSnapshot != null ? ComputeUtils.toSourceSnapshotUrl(getProjectId(), sourceSnapshot) : null;
+        this.sourceSnapshot =
+            sourceSnapshot != null ? ComputeUtils.toSourceSnapshotUrl(getProjectId(), sourceSnapshot) : null;
     }
 
     /**
@@ -118,7 +121,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith({"source-image-encryption-key", "source-snapshot-encryption-key"})
+    @ConflictsWith({ "source-image-encryption-key", "source-snapshot-encryption-key" })
     public EncryptionKey getDiskEncryptionKey() {
         return diskEncryptionKey;
     }
@@ -132,7 +135,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith({"source-image-encryption-key", "source-disk-encryption-key"})
+    @ConflictsWith({ "source-image-encryption-key", "source-disk-encryption-key" })
     public EncryptionKey getSourceSnapshotEncryptionKey() {
         return sourceSnapshotEncryptionKey;
     }
@@ -159,7 +162,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     /**
      * The physical block size of the disk, in bytes. Valid values are ``4096`` or ``16384``. Defaults to ``4096``.
      */
-    @ValidNumbers({4096, 16384})
+    @ValidNumbers({ 4096, 16384 })
     public Long getPhysicalBlockSizeBytes() {
         if (physicalBlockSizeBytes == null) {
             physicalBlockSizeBytes = 4096L;
@@ -278,7 +281,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         }
     }
 
-    Disk toDisk() {
+    protected Disk toDisk() {
         Disk disk = new Disk();
         disk.setName(getName());
         disk.setDescription(getDescription());
@@ -288,7 +291,8 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         disk.setLabels(getLabels());
         disk.setResourcePolicies(getResourcePolicies());
         disk.setSourceSnapshot(getSourceSnapshot());
-        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
+        disk.setDiskEncryptionKey(
+            getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
         disk.setSourceSnapshotEncryptionKey(getSourceSnapshotEncryptionKey() != null
             ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
             : null);

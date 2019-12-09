@@ -22,12 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.GlobalSetLabelsRequest;
 import com.google.api.services.compute.model.Snapshot;
 import com.google.cloud.compute.v1.ProjectGlobalSnapshotName;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -237,23 +235,13 @@ public abstract class AbstractSnapshotResource extends ComputeResource implement
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Snapshot snapshot = client.snapshots().get(getProjectId(), getName()).execute();
-            copyFrom(snapshot);
+        Snapshot snapshot = client.snapshots().get(getProjectId(), getName()).execute();
+        copyFrom(snapshot);
 
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
     protected Snapshot toSnapshot() {
@@ -271,34 +259,22 @@ public abstract class AbstractSnapshotResource extends ComputeResource implement
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-        try {
-            Compute client = createComputeClient();
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        Compute client = createComputeClient();
 
-            GlobalSetLabelsRequest labelsRequest = new GlobalSetLabelsRequest();
-            labelsRequest.setLabels(getLabels());
-            labelsRequest.setLabelFingerprint(getLabelFingerprint());
-            client.snapshots().setLabels(getProjectId(), getName(), labelsRequest).execute();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        GlobalSetLabelsRequest labelsRequest = new GlobalSetLabelsRequest();
+        labelsRequest.setLabels(getLabels());
+        labelsRequest.setLabelFingerprint(getLabelFingerprint());
+        client.snapshots().setLabels(getProjectId(), getName(), labelsRequest).execute();
 
         refresh();
     }
 
     @Override
-    public void delete(GyroUI ui, State state) {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute compute = createComputeClient();
 
-        try {
-            compute.snapshots().delete(getProjectId(), getName()).execute();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        compute.snapshots().delete(getProjectId(), getName()).execute();
     }
 
     static String toSnapshotUrl(String projectId, String snapshot) {

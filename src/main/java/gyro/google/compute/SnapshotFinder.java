@@ -24,11 +24,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Snapshot;
 import com.google.api.services.compute.model.SnapshotList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -59,46 +57,30 @@ public class SnapshotFinder extends GoogleFinder<Compute, Snapshot, SnapshotReso
     }
 
     @Override
-    protected List<Snapshot> findAllGoogle(Compute client) {
-        try {
-            String projectId = getProjectId();
-            List<Snapshot> snapshots = new ArrayList<>();
-            SnapshotList snapshotAggregatedList;
-            String nextPageToken = null;
+    protected List<Snapshot> findAllGoogle(Compute client) throws Exception {
+        String projectId = getProjectId();
+        List<Snapshot> snapshots = new ArrayList<>();
+        SnapshotList snapshotAggregatedList;
+        String nextPageToken = null;
 
-            do {
-                snapshotAggregatedList = client.snapshots().list(projectId).setPageToken(nextPageToken).execute();
-                snapshots.addAll(snapshotAggregatedList.getItems()
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .filter(s -> SnapshotResource.parseZoneDisk(projectId, s.getSourceDisk()) != null)
-                    .collect(Collectors.toList()));
-                nextPageToken = snapshotAggregatedList.getNextPageToken();
-            } while (nextPageToken != null);
+        do {
+            snapshotAggregatedList = client.snapshots().list(projectId).setPageToken(nextPageToken).execute();
+            snapshots.addAll(snapshotAggregatedList.getItems()
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(s -> SnapshotResource.parseZoneDisk(projectId, s.getSourceDisk()) != null)
+                .collect(Collectors.toList()));
+            nextPageToken = snapshotAggregatedList.getNextPageToken();
+        } while (nextPageToken != null);
 
-            return snapshots;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return snapshots;
     }
 
     @Override
-    protected List<Snapshot> findGoogle(Compute client, Map<String, String> filters) {
-        try {
-            return Optional.ofNullable(client.snapshots().get(getProjectId(), filters.get("name")).execute())
-                .filter(s -> SnapshotResource.parseZoneDisk(getProjectId(), s.getSourceDisk()) != null)
-                .map(Collections::singletonList)
-                .orElse(Collections.emptyList());
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() != 404) {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-
-            return Collections.emptyList();
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+    protected List<Snapshot> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        return Optional.ofNullable(client.snapshots().get(getProjectId(), filters.get("name")).execute())
+            .filter(s -> SnapshotResource.parseZoneDisk(getProjectId(), s.getSourceDisk()) != null)
+            .map(Collections::singletonList)
+            .orElse(Collections.emptyList());
     }
 }

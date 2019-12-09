@@ -16,14 +16,6 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Disk;
-import com.google.api.services.compute.model.DiskAggregatedList;
-import com.google.api.services.compute.model.DisksScopedList;
-import gyro.core.GyroException;
-import gyro.core.Type;
-import gyro.google.GoogleFinder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,6 +24,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Disk;
+import com.google.api.services.compute.model.DiskAggregatedList;
+import com.google.api.services.compute.model.DisksScopedList;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
 
 /**
  * Query for a zonal disk.
@@ -45,6 +44,7 @@ import java.util.stream.Collectors;
  */
 @Type("compute-disk")
 public class DiskFinder extends GoogleFinder<Compute, Disk, DiskResource> {
+
     private String name;
     private String zone;
 
@@ -71,49 +71,35 @@ public class DiskFinder extends GoogleFinder<Compute, Disk, DiskResource> {
     }
 
     @Override
-    protected List<Disk> findAllGoogle(Compute client) {
-        try {
-            List<Disk> disks = new ArrayList<>();
-            DiskAggregatedList diskAggregatedList;
-            String nextPageToken = null;
+    protected List<Disk> findAllGoogle(Compute client) throws Exception {
+        List<Disk> disks = new ArrayList<>();
+        DiskAggregatedList diskAggregatedList;
+        String nextPageToken = null;
 
-            do {
-                diskAggregatedList = client.disks().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
-                disks.addAll(diskAggregatedList
-                    .getItems().values().stream()
-                    .map(DisksScopedList::getDisks)
-                    .filter(Objects::nonNull)
-                    .flatMap(Collection::stream)
-                    .filter(disk -> disk.getZone() != null)
-                    .collect(Collectors.toList()));
-                nextPageToken = diskAggregatedList.getNextPageToken();
-            } while (nextPageToken != null);
+        do {
+            diskAggregatedList = client.disks().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
+            disks.addAll(diskAggregatedList
+                .getItems().values().stream()
+                .map(DisksScopedList::getDisks)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(disk -> disk.getZone() != null)
+                .collect(Collectors.toList()));
+            nextPageToken = diskAggregatedList.getNextPageToken();
+        } while (nextPageToken != null);
 
-            return disks;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return disks;
     }
 
     @Override
-    protected List<Disk> findGoogle(Compute client, Map<String, String> filters) {
-        try {
-            if (filters.containsKey("name")) {
-                return Collections.singletonList(client.disks().get(getProjectId(), filters.get("zone"), filters.get("name")).execute());
-            } else {
-                return Optional.ofNullable(client.disks().list(getProjectId(), filters.get("zone")).execute().getItems())
-                    .orElse(new ArrayList<>());
-            }
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() != 404) {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-
-            return Collections.emptyList();
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+    protected List<Disk> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        if (filters.containsKey("name")) {
+            return Collections.singletonList(client.disks()
+                .get(getProjectId(), filters.get("zone"), filters.get("name"))
+                .execute());
+        } else {
+            return Optional.ofNullable(client.disks().list(getProjectId(), filters.get("zone")).execute().getItems())
+                .orElse(new ArrayList<>());
         }
     }
 }
