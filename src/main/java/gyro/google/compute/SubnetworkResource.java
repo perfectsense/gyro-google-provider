@@ -16,7 +16,8 @@
 
 package gyro.google.compute;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import java.util.Set;
+
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Subnetwork;
@@ -25,16 +26,12 @@ import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-
-import java.io.IOException;
-import java.util.Set;
 
 /**
  * Creates a subnet.
@@ -44,16 +41,17 @@ import java.util.Set;
  *
  * .. code-block:: gyro
  *
- *     google::subnet subnet-example
+ *     google::compute-subnet subnet-example
  *         name: "subnet-example"
  *         description: "subnet-example-description"
  *         ip-cidr-range: "10.0.0.0/16"
- *         network: $(google::network network-example-subnet)
+ *         network: $(google::compute-network network-example-subnet)
  *         region: "us-east1"
  *     end
  */
-@Type("subnet")
+@Type("compute-subnet")
 public class SubnetworkResource extends ComputeResource implements Copyable<Subnetwork> {
+
     private String name;
     private String description;
     private String ipCidrRange;
@@ -64,12 +62,10 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     // Read-only
     private String id;
-    private String selfLink;
 
     /**
      * The name of the subnet. (Required)
      */
-    @Id
     @Required
     public String getName() {
         return name;
@@ -170,18 +166,6 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         this.id = id;
     }
 
-    /**
-     * The fully qualified url for the subnet.
-     */
-    @Output
-    public String getSelfLink() {
-        return selfLink;
-    }
-
-    public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink;
-    }
-
     @Override
     public void copyFrom(Subnetwork subnetwork) {
         setId(subnetwork.getId().toString());
@@ -190,33 +174,24 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         setEnableFlowLogs(subnetwork.getEnableFlowLogs());
         setPrivateIpGoogleAccess(subnetwork.getPrivateIpGoogleAccess());
         setName(subnetwork.getName());
-        setNetwork(findById(NetworkResource.class, subnetwork.getNetwork().substring(subnetwork.getNetwork().lastIndexOf("/") + 1)));
+        setNetwork(findById(
+            NetworkResource.class,
+            subnetwork.getNetwork().substring(subnetwork.getNetwork().lastIndexOf("/") + 1)));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
-        setSelfLink(subnetwork.getSelfLink());
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
-            copyFrom(subnetwork);
+        Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
+        copyFrom(subnetwork);
 
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         Subnetwork subnetwork = new Subnetwork();
@@ -227,56 +202,42 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         subnetwork.setEnableFlowLogs(getEnableFlowLogs());
         subnetwork.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
 
-        try {
-            Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
-            Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+        Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
+        Operation operation = insert.execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
 
-            refresh();
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        refresh();
+    }
+
+    @Override
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        Compute client = createComputeClient();
+
+        if (changedFieldNames.contains("enable-flow-logs")) {
+            Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
+            subnetwork.setEnableFlowLogs(getEnableFlowLogs());
+            client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
+        }
+
+        if (changedFieldNames.contains("private-ip-google-access")) {
+            SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
+            flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
+            client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
         }
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            if (changedFieldNames.contains("enable-flow-logs")) {
-                Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
-                subnetwork.setEnableFlowLogs(getEnableFlowLogs());
-                client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
-            }
+        Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
 
-            if (changedFieldNames.contains("private-ip-google-access")) {
-                SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
-                flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
-                client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
-            }
-
-            refresh();
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
-    }
-
-    @Override
-    public void delete(GyroUI ui, State state) {
-        Compute client = createComputeClient();
-
-        try {
-            Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
-
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
     }
 }
