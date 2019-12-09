@@ -18,7 +18,6 @@ package gyro.google.storage;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -77,9 +76,7 @@ public class BucketAccessControlFinder extends GoogleFinder<Storage, BucketAcces
             pageToken = results.getNextPageToken();
 
             if (results.getItems() != null) {
-                Iterator<Bucket> it = results.getItems().iterator();
-                while (it.hasNext()) {
-                    Bucket b = it.next();
+                for (Bucket b : results.getItems()) {
                     List<BucketAccessControl> items = client.bucketAccessControls()
                         .list(b.getName())
                         .execute()
