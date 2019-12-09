@@ -17,7 +17,6 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -70,16 +69,13 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
 
     @Override
     protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        List<HealthCheck> healthChecks = new ArrayList<>();
         if (filters.containsKey("name")) {
-            List<HealthCheck> healthChecks = new ArrayList<>();
-
             healthChecks.add(client.healthChecks()
                 .get(getProjectId(), filters.get("name"))
                 .execute());
-
-            return healthChecks;
         }
 
-        return Collections.emptyList();
+        return healthChecks;
     }
 }

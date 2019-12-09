@@ -104,11 +104,7 @@ public class RegionalHealthCheckFinder extends GoogleFinder<Compute, HealthCheck
             healthChecks.add(client.regionHealthChecks()
                 .get(getProjectId(), filters.get("region"), filters.get("name"))
                 .execute());
-
-            return healthChecks;
-        }
-
-        if (filters.containsKey("region")) {
+        } else if (filters.containsKey("region")) {
             do {
                 healthCheckList = client.regionHealthChecks()
                     .list(getProjectId(), filters.get("region"))
@@ -122,8 +118,6 @@ public class RegionalHealthCheckFinder extends GoogleFinder<Compute, HealthCheck
                     break;
                 }
             } while (nextPageToken != null);
-
-            return healthChecks;
         }
 
         return healthChecks;
