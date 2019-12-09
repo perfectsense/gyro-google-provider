@@ -62,7 +62,6 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     /**
      * The name of the network. (Required)
      */
-    @Id
     @Required
     public String getName() {
         return name;
@@ -112,6 +111,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     /**
      * The fully qualified url for the subnet.
      */
+    @Id
     @Output
     public String getSelfLink() {
         return selfLink;
