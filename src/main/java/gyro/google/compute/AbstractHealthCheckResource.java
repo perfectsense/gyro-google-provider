@@ -16,7 +16,15 @@
 
 package gyro.google.compute;
 
+import java.util.Set;
+
+import com.google.api.client.util.Data;
+import com.google.api.services.compute.model.HTTP2HealthCheck;
+import com.google.api.services.compute.model.HTTPHealthCheck;
+import com.google.api.services.compute.model.HTTPSHealthCheck;
 import com.google.api.services.compute.model.HealthCheck;
+import com.google.api.services.compute.model.SSLHealthCheck;
+import com.google.api.services.compute.model.TCPHealthCheck;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -211,5 +219,132 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
 
     public void setSelfLink(String selfLink) {
         this.selfLink = selfLink;
+    }
+
+    @Override
+    public void copyFrom(HealthCheck healthCheck) {
+        setName(healthCheck.getName());
+        setDescription(healthCheck.getDescription());
+        setCheckIntervalSec(healthCheck.getCheckIntervalSec());
+        setTimeoutSec(healthCheck.getTimeoutSec());
+        setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
+        setHealthyThreshold(healthCheck.getHealthyThreshold());
+        setSelfLink(healthCheck.getSelfLink());
+        setType(healthCheck.getType());
+
+        setHttpHealthCheck(null);
+        if (healthCheck.getHttpHealthCheck() != null) {
+            HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
+            httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
+            setHttpHealthCheck(httpHealthCheck);
+        }
+
+        setHttpsHealthCheck(null);
+        if (healthCheck.getHttpsHealthCheck() != null) {
+            HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
+            httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
+            setHttpsHealthCheck(httpsHealthCheck);
+        }
+
+        setHttp2HealthCheck(null);
+        if (healthCheck.getHttp2HealthCheck() != null) {
+            HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
+            http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
+            setHttp2HealthCheck(http2HealthCheck);
+        }
+
+        setSslHealthCheck(null);
+        if (healthCheck.getSslHealthCheck() != null) {
+            HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
+            sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
+            setSslHealthCheck(sslHealthCheck);
+        }
+
+        setTcpHealthCheck(null);
+        if (healthCheck.getTcpHealthCheck() != null) {
+            HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
+            tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
+            setTcpHealthCheck(tcpHealthCheck);
+        }
+    }
+
+    public HealthCheck getHealthCheck(Set<String> changedFieldNames) {
+        Boolean isUpdate = false;
+        if (changedFieldNames != null && changedFieldNames.size() > 0) {
+            isUpdate = true;
+        }
+
+        HealthCheck healthCheck = new HealthCheck();
+
+        if (!isUpdate) {
+            healthCheck.setName(getName());
+        }
+
+        if (!isUpdate || isUpdate && changedFieldNames.contains("check-interval-sec")) {
+            healthCheck.setCheckIntervalSec(getCheckIntervalSec());
+        }
+
+        if (!isUpdate || isUpdate && changedFieldNames.contains("description")) {
+            healthCheck.setDescription(getDescription());
+        }
+
+        if (!isUpdate || isUpdate && changedFieldNames.contains("healthy-threshold")) {
+            healthCheck.setHealthyThreshold(getHealthyThreshold());
+        }
+
+        if (!isUpdate || isUpdate && changedFieldNames.contains("timeout-sec")) {
+            healthCheck.setTimeoutSec(getTimeoutSec());
+        }
+
+        if (!isUpdate || isUpdate && changedFieldNames.contains("unhealthy-threshold")) {
+            healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
+        }
+
+        if (isUpdate) {
+            healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
+        }
+
+        if (getHttpHealthCheck() != null) {
+            healthCheck.setType(getHttpHealthCheck().getType());
+            healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
+        }
+
+        if (isUpdate) {
+            healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
+        }
+
+        if (getHttpsHealthCheck() != null) {
+            healthCheck.setType(getHttpsHealthCheck().getType());
+            healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
+        }
+
+        if (isUpdate) {
+            healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
+        }
+
+        if (getHttp2HealthCheck() != null) {
+            healthCheck.setType(getHttp2HealthCheck().getType());
+            healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
+        }
+
+        if (isUpdate) {
+            healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
+        }
+
+        if (getSslHealthCheck() != null) {
+            healthCheck.setType(getSslHealthCheck().getType());
+            healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
+        }
+
+        if (isUpdate) {
+            healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
+        }
+
+        if (getTcpHealthCheck() != null) {
+            healthCheck.setType(getTcpHealthCheck().getType());
+            healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
+        }
+
+        return healthCheck;
     }
 }
