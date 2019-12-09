@@ -8,16 +8,4 @@ google::compute-disk disk-example
         label-key: 'label-value'
     }
     physical-block-size-bytes: 4096
-    resource-policies: [
-        "projects/project-name/regions/us-central1/resourcePolicies/schedule-name"
-    ]
-end
-
-google::compute-disk disk-image-example
-    name: "disk-image-example"
-    zone: "us-central1-a"
-    image: "projects/debian-cloud/global/images/family/debian-9"
-    source-image-encryption-key
-        raw-key: "my-256-bit-raw-key"
-    end
 end

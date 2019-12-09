@@ -32,7 +32,6 @@ import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidNumbers;
-import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public abstract class AbstractDiskResource extends ComputeResource implements Copyable<Disk> {
@@ -46,7 +45,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private EncryptionKey sourceSnapshotEncryptionKey;
     private Map<String, String> labels;
     private Long physicalBlockSizeBytes;
-    private List<String> resourcePolicies;
 
     // Read-only
     private String status;
@@ -80,7 +78,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The size of the persistent disk, specified in GB. Values must be in the range ``1`` to ``65536``, inclusive. The size can only be increased once it has been set. If you specify this field along with ``sourceImage`` or ``sourceSnapshot``, the value must not be less than the size of the image or snapshot.
+     * The size of the persistent disk, specified in GB. Values must be in the range ``1`` to ``65536``, inclusive. The size can only be increased once it has been set. If you specify this field along with ``sourceSnapshot``, the value must not be less than the size of the snapshot.
      */
     @Updatable
     @Range(min = 1, max = 65536)
@@ -95,7 +93,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     /**
      * The source snapshot used to create the disk. Valid forms are ``https://www.googleapis.com/compute/v1/projects/project/global/snapshots/snapshot``, ``projects/project-name/global/snapshots/snapshot-name``, ``global/snapshots/snapshot-name``, or ``snapshot-name``. See `Source Snapshot <https://cloud.google.com/compute/docs/reference/rest/v1/disks#Disk.FIELDS.source_snapshot>`_.
      */
-    @ConflictsWith("source-image")
     public String getSourceSnapshot() {
         return sourceSnapshot;
     }
@@ -117,11 +114,11 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The encryption key used to encrypt the disk. Only use this if you have not specified a source image or snapshot. If you do not provide an encryption key when creating the disk, the disk will be encrypted using an automatically generated key.
+     * The encryption key used to encrypt the disk. Only use this if you have not specified a source snapshot. If you do not provide an encryption key when creating the disk, the disk will be encrypted using an automatically generated key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith({ "source-image-encryption-key", "source-snapshot-encryption-key" })
+    @ConflictsWith("source-snapshot-encryption-key")
     public EncryptionKey getDiskEncryptionKey() {
         return diskEncryptionKey;
     }
@@ -135,7 +132,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith({ "source-image-encryption-key", "source-disk-encryption-key" })
+    @ConflictsWith("source-disk-encryption-key")
     public EncryptionKey getSourceSnapshotEncryptionKey() {
         return sourceSnapshotEncryptionKey;
     }
@@ -173,21 +170,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
 
     public void setPhysicalBlockSizeBytes(Long physicalBlockSizeBytes) {
         this.physicalBlockSizeBytes = physicalBlockSizeBytes;
-    }
-
-    /**
-     * Resource policies applied to the disk used for setting an automatic snapshot schedule.
-     */
-    @Updatable
-    public List<String> getResourcePolicies() {
-        if (resourcePolicies == null) {
-            resourcePolicies = new ArrayList<>();
-        }
-        return resourcePolicies;
-    }
-
-    public void setResourcePolicies(List<String> resourcePolicies) {
-        this.resourcePolicies = resourcePolicies;
     }
 
     /**
@@ -289,7 +271,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         disk.setType(getType());
         disk.setPhysicalBlockSizeBytes(getPhysicalBlockSizeBytes());
         disk.setLabels(getLabels());
-        disk.setResourcePolicies(getResourcePolicies());
         disk.setSourceSnapshot(getSourceSnapshot());
         disk.setDiskEncryptionKey(
             getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
@@ -298,20 +279,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
             : null);
 
         return disk;
-    }
-
-    @Override
-    public List<ValidationError> validate() {
-        List<ValidationError> errors = new ArrayList<>();
-
-        if (getResourcePolicies().size() > 1) {
-            errors.add(new ValidationError(
-                this,
-                "resource-policies",
-                "Attaching more than one resource policy is not supported."));
-        }
-
-        return errors;
     }
 
     static String toDiskUrl(String projectId, String disk) {

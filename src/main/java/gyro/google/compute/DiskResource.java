@@ -16,24 +16,18 @@
 
 package gyro.google.compute;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Disk;
-import com.google.api.services.compute.model.DisksAddResourcePoliciesRequest;
-import com.google.api.services.compute.model.DisksRemoveResourcePoliciesRequest;
 import com.google.api.services.compute.model.DisksResizeRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.ZoneSetLabelsRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
-import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
 
 /**
@@ -54,31 +48,12 @@ import gyro.core.validation.Required;
  *             label-key: 'label-value'
  *         }
  *         physical-block-size-bytes: 4096
- *         resource-policies: [
- *             "projects/project-name/regions/us-central1/resourcePolicies/schedule-name"
- *         ]
- *     end
- *
- * .. code-block:: gyro
- *
- *     google::compute-disk disk-image-example
- *         name: "disk-image-example"
- *         zone: "us-central1-a"
- *         image: "projects/debian-cloud/global/images/family/debian-9"
- *         source-image-encryption-key
- *             raw-key: "my-256-bit-raw-key"
- *         end
  *     end
  */
 @Type("compute-disk")
 public class DiskResource extends AbstractDiskResource {
 
     private String zone;
-    private String sourceImage;
-    private EncryptionKey sourceImageEncryptionKey;
-
-    // Read-only
-    private String sourceImageId;
 
     /**
      * The zone where the disk resides. (Required)
@@ -92,76 +67,11 @@ public class DiskResource extends AbstractDiskResource {
         this.zone = zone;
     }
 
-    /**
-     * The source image used to create this disk. Valid forms are ``https://www.googleapis.com/compute/v1/projects/project-name/global/images/image-name``, ``projects/project-name/global/images/family/family-name``, ``projects/project-name/global/images/image-name``, ``global/images/image-name``, ``global/images/family/family-name``, or ``image-name``. See `Source Image <https://cloud.google.com/compute/docs/reference/rest/v1/disks#Disk.FIELDS.source_image>`_.
-     */
-    @ConflictsWith("source-snapshot")
-    public String getSourceImage() {
-        return sourceImage;
-    }
-
-    public void setSourceImage(String sourceImage) {
-        this.sourceImage = sourceImage != null ? ComputeUtils.toSourceImageUrl(getProjectId(), sourceImage) : null;
-    }
-
-    /**
-     * The encryption key of the source image. This is required if the source image is protected by a customer-supplied encryption key.
-     *
-     * @subresource gyro.google.compute.EncryptionKey
-     */
-    @ConflictsWith({ "source-disk-encryption-key", "source-snapshot-encryption-key" })
-    public EncryptionKey getSourceImageEncryptionKey() {
-        return sourceImageEncryptionKey;
-    }
-
-    public void setSourceImageEncryptionKey(EncryptionKey sourceImageEncryptionKey) {
-        this.sourceImageEncryptionKey = sourceImageEncryptionKey;
-    }
-
-    /**
-     * The unique ID of the image used to create the disk.
-     */
-    @Output
-    public String getSourceImageId() {
-        return sourceImageId;
-    }
-
-    public void setSourceImageId(String sourceImageId) {
-        this.sourceImageId = sourceImageId;
-    }
-
-    @Override
-    public void setResourcePolicies(List<String> resourcePolicies) {
-        super.setResourcePolicies(resourcePolicies != null
-            ? resourcePolicies.stream()
-            .map(policy -> ComputeUtils.toResourcePolicyUrl(
-                getProjectId(),
-                policy,
-                getZone().substring(0, getZone().lastIndexOf("-"))))
-            .collect(Collectors.toList())
-            : null);
-    }
-
-    @Override
-    public void setType(String type) {
-        super.setType(type != null ? ComputeUtils.toZoneDiskTypeUrl(getProjectId(), type, getZone()) : null);
-    }
-
     @Override
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
         setZone(disk.getZone().substring(disk.getZone().lastIndexOf("/") + 1));
-        setSourceImage(disk.getSourceImage());
-        setSourceImageId(disk.getSourceImageId());
-        setType(disk.getType());
-        setResourcePolicies(disk.getResourcePolicies());
-
-        if (disk.getSourceImageEncryptionKey() != null) {
-            EncryptionKey sourceImageEncryption = newSubresource(EncryptionKey.class);
-            sourceImageEncryption.copyFrom(disk.getSourceImageEncryptionKey());
-            setSourceImageEncryptionKey(sourceImageEncryption);
-        }
     }
 
     @Override
@@ -180,9 +90,6 @@ public class DiskResource extends AbstractDiskResource {
 
         Disk disk = toDisk();
         disk.setZone(getZone());
-        disk.setSourceImage(getSourceImage());
-        disk.setSourceImageEncryptionKey(
-            getSourceImageEncryptionKey() != null ? getSourceImageEncryptionKey().toCustomerEncryptionKey() : null);
 
         Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
         Operation operation = insert.execute();
@@ -204,10 +111,6 @@ public class DiskResource extends AbstractDiskResource {
 
         if (changedFieldNames.contains("labels")) {
             saveLabels(client);
-        }
-
-        if (changedFieldNames.contains("resource-policies")) {
-            saveResourcePolicies(client, (DiskResource) current);
         }
 
         refresh();
@@ -237,25 +140,4 @@ public class DiskResource extends AbstractDiskResource {
         client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
     }
 
-    private void saveResourcePolicies(Compute client, DiskResource oldDiskResource) throws Exception {
-        if (!oldDiskResource.getResourcePolicies().isEmpty()) {
-            DisksRemoveResourcePoliciesRequest removeResourcePoliciesRequest = new DisksRemoveResourcePoliciesRequest();
-            removeResourcePoliciesRequest.setResourcePolicies(oldDiskResource.getResourcePolicies());
-            Operation operation = client.disks()
-                .removeResourcePolicies(getProjectId(), getZone(), getName(), removeResourcePoliciesRequest)
-                .execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-        }
-
-        if (!getResourcePolicies().isEmpty()) {
-            DisksAddResourcePoliciesRequest addResourcePoliciesRequest = new DisksAddResourcePoliciesRequest();
-            addResourcePoliciesRequest.setResourcePolicies(getResourcePolicies());
-            client.disks()
-                .addResourcePolicies(getProjectId(), getZone(), getName(), addResourcePoliciesRequest)
-                .execute();
-        }
-    }
 }

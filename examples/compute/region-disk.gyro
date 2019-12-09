@@ -12,9 +12,6 @@ google::compute-region-disk region-disk-example
         label-key: 'label-value'
     }
     physical-block-size-bytes: 16384
-    resource-policies: [
-        "projects/project-name/regions/us-central1/resourcePolicies/schedule-name"
-    ]
 end
 
 google::compute-region-disk region-disk-snapshot-example
