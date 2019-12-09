@@ -23,7 +23,7 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Co
 
     @Override
     public String primaryKey() {
-        return "SslHealthCheck";
+        return "";
     }
 
     @Override

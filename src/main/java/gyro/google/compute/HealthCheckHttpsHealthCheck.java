@@ -38,7 +38,7 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck implements 
 
     @Override
     public String primaryKey() {
-        return "HttpsHealthCheck";
+        return "";
     }
 
     @Override

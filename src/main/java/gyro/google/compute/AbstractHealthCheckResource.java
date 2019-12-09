@@ -269,10 +269,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     public HealthCheck getHealthCheck(Set<String> changedFieldNames) {
-        Boolean isUpdate = false;
-        if (changedFieldNames != null && changedFieldNames.size() > 0) {
-            isUpdate = true;
-        }
+        boolean isUpdate = changedFieldNames != null && (changedFieldNames.size() > 0);
 
         HealthCheck healthCheck = new HealthCheck();
 
@@ -280,23 +277,23 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
             healthCheck.setName(getName());
         }
 
-        if (!isUpdate || isUpdate && changedFieldNames.contains("check-interval-sec")) {
+        if (!isUpdate || changedFieldNames.contains("check-interval-sec")) {
             healthCheck.setCheckIntervalSec(getCheckIntervalSec());
         }
 
-        if (!isUpdate || isUpdate && changedFieldNames.contains("description")) {
+        if (!isUpdate || changedFieldNames.contains("description")) {
             healthCheck.setDescription(getDescription());
         }
 
-        if (!isUpdate || isUpdate && changedFieldNames.contains("healthy-threshold")) {
+        if (!isUpdate || changedFieldNames.contains("healthy-threshold")) {
             healthCheck.setHealthyThreshold(getHealthyThreshold());
         }
 
-        if (!isUpdate || isUpdate && changedFieldNames.contains("timeout-sec")) {
+        if (!isUpdate || changedFieldNames.contains("timeout-sec")) {
             healthCheck.setTimeoutSec(getTimeoutSec());
         }
 
-        if (!isUpdate || isUpdate && changedFieldNames.contains("unhealthy-threshold")) {
+        if (!isUpdate || changedFieldNames.contains("unhealthy-threshold")) {
             healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         }
 

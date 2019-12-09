@@ -23,7 +23,7 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
 
     @Override
     public String primaryKey() {
-        return "TcpHealthCheck";
+        return "";
     }
 
     @Override
