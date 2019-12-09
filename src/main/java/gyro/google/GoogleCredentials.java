@@ -16,6 +16,10 @@
 
 package gyro.google;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
+
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
 import com.google.api.client.http.HttpTransport;
@@ -26,10 +30,6 @@ import com.google.auth.http.HttpCredentialsAdapter;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.auth.Credentials;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Collections;
 
 public class GoogleCredentials extends Credentials {
 
@@ -68,10 +68,15 @@ public class GoogleCredentials extends Credentials {
             }
 
             switch (clientClass.getSimpleName()) {
-                case "Compute": return (T) new Compute.Builder(httpTransport, jsonFactory, new HttpCredentialsAdapter(googleCredentials))
-                                .setApplicationName("gyro-google-provider").build();
+                case "Compute":
+                    return (T) new Compute.Builder(
+                        httpTransport,
+                        jsonFactory,
+                        new HttpCredentialsAdapter(googleCredentials))
+                        .setApplicationName("gyro-google-provider").build();
 
-                default: throw new GyroException(String.format("No client found for class %s", clientClass.getSimpleName()));
+                default:
+                    throw new GyroException(String.format("No client found for class %s", clientClass.getSimpleName()));
             }
         } catch (GeneralSecurityException | IOException e) {
             throw new GyroException(String.format("Unable to create %s client", clientClass.getSimpleName()));
