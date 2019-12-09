@@ -39,7 +39,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private String name;
     private String description;
     private Long sizeGb;
-    private String sourceSnapshot;
+    private SnapshotResource sourceSnapshot;
     private String type;
     private EncryptionKey diskEncryptionKey;
     private EncryptionKey sourceSnapshotEncryptionKey;
@@ -91,15 +91,14 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The source snapshot used to create the disk. Valid forms are ``https://www.googleapis.com/compute/v1/projects/project/global/snapshots/snapshot``, ``projects/project-name/global/snapshots/snapshot-name``, ``global/snapshots/snapshot-name``, or ``snapshot-name``. See `Source Snapshot <https://cloud.google.com/compute/docs/reference/rest/v1/disks#Disk.FIELDS.source_snapshot>`_.
+     * The source snapshot used to create the disk.
      */
-    public String getSourceSnapshot() {
+    public SnapshotResource getSourceSnapshot() {
         return sourceSnapshot;
     }
 
-    public void setSourceSnapshot(String sourceSnapshot) {
-        this.sourceSnapshot =
-            sourceSnapshot != null ? ComputeUtils.toSourceSnapshotUrl(getProjectId(), sourceSnapshot) : null;
+    public void setSourceSnapshot(SnapshotResource sourceSnapshot) {
+        this.sourceSnapshot = sourceSnapshot;
     }
 
     /**
@@ -110,7 +109,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     public void setType(String type) {
-        this.type = type;
+        this.type = type != null ? type.substring(type.lastIndexOf("/") + 1) : null;
     }
 
     /**
@@ -241,7 +240,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         setName(disk.getName());
         setDescription(disk.getDescription());
         setSizeGb(disk.getSizeGb());
-        setSourceSnapshot(disk.getSourceSnapshot());
+        setSourceSnapshot(findById(SnapshotResource.class, disk.getSourceSnapshot()));
         setLabels(disk.getLabels());
         setPhysicalBlockSizeBytes(disk.getPhysicalBlockSizeBytes());
         setStatus(disk.getStatus());
@@ -271,7 +270,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         disk.setType(getType());
         disk.setPhysicalBlockSizeBytes(getPhysicalBlockSizeBytes());
         disk.setLabels(getLabels());
-        disk.setSourceSnapshot(getSourceSnapshot());
+        disk.setSourceSnapshot(getSourceSnapshot().getSelfLink());
         disk.setDiskEncryptionKey(
             getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
         disk.setSourceSnapshotEncryptionKey(getSourceSnapshotEncryptionKey() != null
@@ -282,7 +281,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     static String toDiskUrl(String projectId, String disk) {
-        String parseDisk = ComputeUtils.formatResource(projectId, disk);
+        String parseDisk = formatResource(projectId, disk);
         if (ProjectZoneDiskName.isParsableFrom(parseDisk)) {
             return ProjectZoneDiskName.parse(parseDisk).toString();
         }

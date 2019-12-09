@@ -28,6 +28,7 @@ import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.RegionDisksResizeRequest;
 import com.google.api.services.compute.model.RegionSetLabelsRequest;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
+import com.google.cloud.compute.v1.ProjectZoneName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -69,9 +70,9 @@ import gyro.core.validation.ValidationError;
  *             "us-central1-c",
  *             "us-central1-a"
  *         ]
- *         snapshot: "global/snapshots/snapshot-name"
+ *         source-snapshot: $(google::compute-region-snapshot region-snapshot-example)
  *         source-snapshot-encryption-key
- *         kms-key-name: "my-kms-key-name"
+ *             kms-key-name: "my-kms-key-name"
  *         end
  *     end
  */
@@ -106,7 +107,7 @@ public class RegionDiskResource extends AbstractDiskResource {
 
     public void setReplicaZones(List<String> replicaZones) {
         this.replicaZones = replicaZones != null
-            ? replicaZones.stream().map(z -> z.substring(z.lastIndexOf("/") + 1)).collect(Collectors.toList())
+            ? replicaZones.stream().map(zone -> toZoneUrl(getProjectId(), zone)).collect(Collectors.toList())
             : null;
     }
 
@@ -176,7 +177,7 @@ public class RegionDiskResource extends AbstractDiskResource {
 
     @Override
     public List<ValidationError> validate() {
-        List<ValidationError> errors = super.validate();
+        List<ValidationError> errors = new ArrayList<>();
 
         if (getReplicaZones().size() != 2) {
             errors.add(new ValidationError(
@@ -211,5 +212,13 @@ public class RegionDiskResource extends AbstractDiskResource {
             return ProjectRegionDiskName.parse(parseDiskName);
         }
         return null;
+    }
+
+    static String toZoneUrl(String projectId, String zone) {
+        String parseZone = formatResource(projectId, zone);
+        if (ProjectZoneName.isParsableFrom(parseZone)) {
+            return ProjectZoneName.parse(parseZone).toString();
+        }
+        return ProjectZoneName.format(projectId, zone);
     }
 }

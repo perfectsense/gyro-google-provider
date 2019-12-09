@@ -70,7 +70,7 @@ import gyro.google.Copyable;
  *
  *     google::compute-snapshot region-snapshot-example
  *         name: "region-snapshot-example"
- *         region-source-disk: $(google::compute-region-disk region-disk-example)
+ *         source-region-disk: $(google::compute-region-disk region-disk-example)
  *         storage-locations: [
  *             "us"
  *         ]
@@ -83,7 +83,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     private String name;
     private String description;
     private DiskResource sourceDisk;
-    private RegionDiskResource regionSourceDisk;
+    private RegionDiskResource sourceRegionDisk;
     private EncryptionKey snapshotEncryptionKey;
     private EncryptionKey sourceDiskEncryptionKey;
     private Map<String, String> labels;
@@ -137,12 +137,12 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
      * The regional source disk used to create this snapshot.
      */
     @ConflictsWith("source-disk")
-    public RegionDiskResource getRegionSourceDisk() {
-        return regionSourceDisk;
+    public RegionDiskResource getSourceRegionDisk() {
+        return sourceRegionDisk;
     }
 
-    public void setRegionSourceDisk(RegionDiskResource regionSourceDisk) {
-        this.regionSourceDisk = regionSourceDisk;
+    public void setSourceRegionDisk(RegionDiskResource sourceRegionDisk) {
+        this.sourceRegionDisk = sourceRegionDisk;
     }
 
     /**
@@ -288,12 +288,12 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         setSelfLink(snapshot.getSelfLink());
         setLabelFingerprint(snapshot.getLabelFingerprint());
 
-        if (parseZoneDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
+        if (DiskResource.parseDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
             setSourceDisk(findById(DiskResource.class, snapshot.getSourceDisk()));
         }
 
-        if (parseRegionDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
-            setRegionSourceDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
+        if (RegionDiskResource.parseRegionDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
+            setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
         }
 
         if (snapshot.getSourceDiskEncryptionKey() != null) {
@@ -334,9 +334,10 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             getSnapshotEncryptionKey() != null ? getSnapshotEncryptionKey().toCustomerEncryptionKey() : null);
 
         if (getSourceDisk() != null) {
+            ProjectZoneDiskName zoneDisk = DiskResource.parseDisk(getProjectId(), getSourceDisk().getSelfLink());
+
             snapshot.setSourceDisk(getSourceDisk().getSelfLink());
 
-            ProjectZoneDiskName zoneDisk = parseZoneDisk(getProjectId(), getSourceDisk().getSelfLink());
             Compute.Disks.CreateSnapshot insert =
                 client.disks().createSnapshot(getProjectId(), zoneDisk.getZone(), zoneDisk.getDisk(), snapshot);
             Operation operation = insert.execute();
@@ -349,10 +350,12 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             return;
         }
 
-        if (getRegionSourceDisk() != null) {
-            snapshot.setSourceDisk(getRegionSourceDisk().getSelfLink());
+        if (getSourceRegionDisk() != null) {
+            ProjectRegionDiskName regionDisk =
+                RegionDiskResource.parseRegionDisk(getProjectId(), getSourceRegionDisk().getSelfLink());
 
-            ProjectRegionDiskName regionDisk = parseRegionDisk(getProjectId(), getRegionSourceDisk().getSelfLink());
+            snapshot.setSourceDisk(getSourceRegionDisk().getSelfLink());
+
             Compute.RegionDisks.CreateSnapshot insert = client.regionDisks()
                 .createSnapshot(getProjectId(), regionDisk.getRegion(), regionDisk.getDisk(), snapshot);
             Operation operation = insert.execute();
@@ -388,11 +391,33 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
 
-        if (getSourceDisk() == null && getRegionSourceDisk() == null) {
+        if (getSourceDisk() == null && getSourceRegionDisk() == null) {
             errors.add(new ValidationError(
                 this,
                 "source-disk",
                 "A source disk is required when creating a snapshot."));
+        }
+
+        if (getSourceDisk() != null && DiskResource.parseDisk(getProjectId(), getSourceDisk().getSelfLink()) == null) {
+            errors.add(new ValidationError(
+                this,
+                "source-disk",
+                "Unable to parse source disk."));
+        }
+
+        if (getSourceRegionDisk() != null
+            && RegionDiskResource.parseRegionDisk(getProjectId(), getSourceRegionDisk().getSelfLink()) == null) {
+            errors.add(new ValidationError(
+                this,
+                "source-region-disk",
+                "Unable to parse source region disk."));
+        }
+
+        if (getStorageLocations().size() > 1) {
+            errors.add(new ValidationError(
+                this,
+                "storage-locations",
+                "Attaching more than one storage location is not supported."));
         }
 
         return errors;
@@ -404,21 +429,5 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             return ProjectGlobalSnapshotName.parse(parseSnapshot).toString();
         }
         return snapshot;
-    }
-
-    static ProjectZoneDiskName parseZoneDisk(String projectId, String selfLink) {
-        String parseDiskName = formatResource(projectId, selfLink);
-        if (ProjectZoneDiskName.isParsableFrom(parseDiskName)) {
-            return ProjectZoneDiskName.parse(parseDiskName);
-        }
-        throw new GyroException(String.format("Unable to parse %s disk", selfLink));
-    }
-
-    static ProjectRegionDiskName parseRegionDisk(String projectId, String selfLink) {
-        String parseDiskName = formatResource(projectId, selfLink);
-        if (ProjectRegionDiskName.isParsableFrom(parseDiskName)) {
-            return ProjectRegionDiskName.parse(parseDiskName);
-        }
-        throw new GyroException(String.format("Unable to parse %s disk", selfLink));
     }
 }

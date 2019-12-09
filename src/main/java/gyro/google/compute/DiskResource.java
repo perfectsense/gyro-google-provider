@@ -23,6 +23,7 @@ import com.google.api.services.compute.model.Disk;
 import com.google.api.services.compute.model.DisksResizeRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.ZoneSetLabelsRequest;
+import com.google.cloud.compute.v1.ProjectZoneDiskName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -64,14 +65,14 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     public void setZone(String zone) {
-        this.zone = zone;
+        this.zone = zone != null ? zone.substring(zone.lastIndexOf("/") + 1) : null;
     }
 
     @Override
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
-        setZone(disk.getZone().substring(disk.getZone().lastIndexOf("/") + 1));
+        setZone(disk.getZone());
     }
 
     @Override
@@ -140,4 +141,11 @@ public class DiskResource extends AbstractDiskResource {
         client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
     }
 
+    static ProjectZoneDiskName parseDisk(String projectId, String selfLink) {
+        String parseDiskName = formatResource(projectId, selfLink);
+        if (ProjectZoneDiskName.isParsableFrom(parseDiskName)) {
+            return ProjectZoneDiskName.parse(parseDiskName);
+        }
+        return null;
+    }
 }

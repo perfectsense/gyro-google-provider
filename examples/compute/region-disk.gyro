@@ -21,7 +21,7 @@ google::compute-region-disk region-disk-snapshot-example
          "us-central1-c",
          "us-central1-a"
     ]
-    snapshot: "global/snapshots/snapshot-name"
+    source-snapshot: $(google::compute-region-snapshot region-snapshot-example)
     source-snapshot-encryption-key
         kms-key-name: "my-kms-key-name"
     end
