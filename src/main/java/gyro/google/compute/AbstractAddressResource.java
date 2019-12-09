@@ -103,7 +103,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * Type of address to reserve. Valid values are "INTERNAL" or "EXTERNAL". Defaults to "EXTERNAL".
+     * Type of address to reserve. Valid values are ``INTERNAL`` or ``EXTERNAL``. Defaults to ``EXTERNAL``.
      */
     @ValidStrings({ "EXTERNAL", "INTERNAL" })
     public String getAddressType() {
