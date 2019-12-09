@@ -182,6 +182,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     @Override
     public void copyFrom(Subnetwork subnetwork) {
         setId(subnetwork.getId().toString());
+        setSelfLink(subnetwork.getSelfLink());
         setDescription(subnetwork.getDescription());
         setIpCidrRange(subnetwork.getIpCidrRange());
         setEnableFlowLogs(subnetwork.getEnableFlowLogs());

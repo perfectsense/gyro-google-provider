@@ -18,6 +18,8 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
+import com.google.api.services.compute.model.Operation;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
@@ -71,7 +73,10 @@ public class GlobalAddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         Address address = copyTo().setIpVersion(getIpVersion());
 
-        waitForCompletion(compute, compute.globalAddresses().insert(getProjectId(), address).execute());
+        Operation.Error error = waitForCompletion(compute, compute.globalAddresses().insert(getProjectId(), address).execute());
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
         refresh();
     }
 

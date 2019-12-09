@@ -12,13 +12,13 @@ google::compute-subnet subnet-example-address
     region: "us-east1"
 end
 
-google::address us-east1-address-1
+google::address default-east1-address-1
     name: "us-east1-test-one"
     region: "us-east1"
     description: "test static IP address"
 end
 
-google::address us-east1-address-2
+google::address subnet-example-address-east1-address-1
     name: "us-east1-test-two"
     region: "us-east1"
     description: "test static IP address"
