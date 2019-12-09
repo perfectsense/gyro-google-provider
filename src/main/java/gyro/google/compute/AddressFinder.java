@@ -16,6 +16,13 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
@@ -25,13 +32,6 @@ import com.google.api.services.compute.model.AddressesScopedList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Query for regional addresses.
@@ -100,18 +100,18 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
 
             do {
                 AddressAggregatedList aggregatedList = client.addresses().aggregatedList(getProjectId())
-                        .setPageToken(pageToken)
-                        .execute();
+                    .setPageToken(pageToken)
+                    .execute();
 
                 if (aggregatedList.getItems() != null) {
                     pageToken = aggregatedList.getNextPageToken();
                     aggregatedList.getItems().remove("global");
 
                     List<Address> aggregated = aggregatedList.getItems().values().stream()
-                            .map(AddressesScopedList::getAddresses)
-                            .filter(Objects::nonNull)
-                            .flatMap(List::stream)
-                            .collect(Collectors.toList());
+                        .map(AddressesScopedList::getAddresses)
+                        .filter(Objects::nonNull)
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
 
                     if (!aggregated.isEmpty()) {
                         addresses.addAll(aggregated);
@@ -140,9 +140,9 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
             if (filters.containsKey("region")) {
                 do {
                     AddressList addressList = client.addresses().list(getProjectId(), filters.get("region"))
-                            .setFilter(filters.get("filter"))
-                            .setPageToken(pageToken)
-                            .execute();
+                        .setFilter(filters.get("filter"))
+                        .setPageToken(pageToken)
+                        .execute();
 
                     if (addressList.getItems() != null) {
                         pageToken = addressList.getNextPageToken();

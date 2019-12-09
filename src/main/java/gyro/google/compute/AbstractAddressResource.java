@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.util.Set;
+
 import com.google.api.services.compute.model.Address;
 import gyro.core.GyroUI;
 import gyro.core.resource.Id;
@@ -27,8 +29,6 @@ import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-
-import java.util.Set;
 
 public abstract class AbstractAddressResource extends ComputeResource implements Copyable<Address> {
 
@@ -105,12 +105,12 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     public void setPrefixLength(Integer prefixLength) {
         this.prefixLength = prefixLength;
     }
-    
+
     /**
      * Type of address to reserve. Valid values are "INTERNAL" or "EXTERNAL". Defaults to "EXTERNAL".
      */
     @Updatable
-    @ValidStrings({"EXTERNAL", "INTERNAL"})
+    @ValidStrings({ "EXTERNAL", "INTERNAL" })
     public String getAddressType() {
         return addressType;
     }
@@ -123,7 +123,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
      * Purpose for this resource. Valid values are ``GCE_ENDPOINT``, ``DNS_RESOLVER``, ``VPC_PEERING`` or ``NAT_AUTO``.
      */
     @Updatable
-    @ValidStrings({"GCE_ENDPOINT", "DNS_RESOLVER", "VPC_PEERING", "NAT_AUTO"})
+    @ValidStrings({ "GCE_ENDPOINT", "DNS_RESOLVER", "VPC_PEERING", "NAT_AUTO" })
     public String getPurpose() {
         return purpose;
     }
@@ -193,22 +193,28 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         setPrefixLength(model.getPrefixLength());
         setAddressType(model.getAddressType());
         setPurpose(model.getPurpose());
-        setSubnetwork(model.getSubnetwork() == null ? null : findById(SubnetworkResource.class, model.getSubnetwork().substring(model.getSubnetwork().lastIndexOf('/') + 1)));
-        setNetwork(model.getNetwork() == null ? null : findById(NetworkResource.class, model.getNetwork().substring(model.getNetwork().lastIndexOf('/') + 1)));
+        setSubnetwork(model.getSubnetwork() == null
+            ? null
+            : findById(
+                SubnetworkResource.class,
+                model.getSubnetwork().substring(model.getSubnetwork().lastIndexOf('/') + 1)));
+        setNetwork(model.getNetwork() == null
+            ? null
+            : findById(NetworkResource.class, model.getNetwork().substring(model.getNetwork().lastIndexOf('/') + 1)));
         setStatus(model.getStatus());
         setSelfLink(model.getSelfLink());
     }
 
     public Address copyTo() {
         return new Address()
-                .setName(getName())
-                .setDescription(getDescription())
-                .setAddress(getAddress())
-                .setPrefixLength(getPrefixLength())
-                .setAddressType(getAddressType())
-                .setPurpose(getPurpose())
-                .setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null)
-                .setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
+            .setName(getName())
+            .setDescription(getDescription())
+            .setAddress(getAddress())
+            .setPrefixLength(getPrefixLength())
+            .setAddressType(getAddressType())
+            .setPurpose(getPurpose())
+            .setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null)
+            .setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
     }
 }
 

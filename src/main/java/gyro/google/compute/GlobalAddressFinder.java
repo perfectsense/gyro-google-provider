@@ -16,6 +16,11 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
@@ -23,11 +28,6 @@ import com.google.api.services.compute.model.AddressList;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Query for global addresses.
@@ -56,7 +56,7 @@ import java.util.Map;
 public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAddressResource> {
 
     private String filter;
-    
+
     /**
      * A filter expression that filters resources listed in the response. The expression must specify the field name, a comparison operator, and the value that you want to use for filtering.
      */
@@ -76,8 +76,8 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
         try {
             do {
                 AddressList addressList = client.globalAddresses().list(getProjectId())
-                        .setPageToken(pageToken)
-                        .execute();
+                    .setPageToken(pageToken)
+                    .execute();
                 pageToken = addressList.getNextPageToken();
 
                 if (addressList.getItems() != null) {
@@ -106,9 +106,9 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
             if (filters.containsKey("filter")) {
                 do {
                     AddressList addressList = client.globalAddresses().list(getProjectId())
-                            .setFilter(filters.get("filter"))
-                            .setPageToken(pageToken)
-                            .execute();
+                        .setFilter(filters.get("filter"))
+                        .setPageToken(pageToken)
+                        .execute();
                     pageToken = addressList.getNextPageToken();
 
                     if (addressList.getItems() != null) {

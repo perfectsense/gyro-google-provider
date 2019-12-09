@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
@@ -26,8 +28,6 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
-
-import java.io.IOException;
 
 /**
  * Adds a regional internal IP address that comes from either a primary or secondary IP range of a subnet in a VPC network. Regional external IP addresses can be assigned to GCP VM instances, Cloud VPN gateways, regional external forwarding rules for network load balancers (in either Standard or Premium Tier), and regional external forwarding rules for HTTP(S), SSL Proxy, and TCP Proxy load balancers in Standard Tier.
@@ -54,7 +54,7 @@ public class AddressResource extends AbstractAddressResource {
      * Networking tier used for configuring this address. Valid values are ``PREMIUM`` or ``STANDARD``. Defaults to ``PREMIUM``.
      */
     @Updatable
-    @ValidStrings({"PREMIUM", "STANDARD"})
+    @ValidStrings({ "PREMIUM", "STANDARD" })
     public String getNetworkTier() {
         return networkTier;
     }
@@ -102,8 +102,8 @@ public class AddressResource extends AbstractAddressResource {
     public void create(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
         Address address = copyTo()
-                .setRegion(getRegion())
-                .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
+            .setRegion(getRegion())
+            .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
 
         try {
             waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());

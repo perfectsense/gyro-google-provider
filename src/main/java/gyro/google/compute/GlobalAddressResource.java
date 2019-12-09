@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
@@ -24,8 +26,6 @@ import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
-
-import java.io.IOException;
 
 /**
  * Global external IP addresses are IPv4 or IPv6 addresses. They can only be assigned to global forwarding rules for HTTP(S), SSL Proxy, or TCP Proxy load balancers in Premium Tier.
@@ -57,7 +57,6 @@ public class GlobalAddressResource extends AbstractAddressResource {
     public void setIpVersion(String ipVersion) {
         this.ipVersion = ipVersion;
     }
-
 
     @Override
     public boolean refresh() {
