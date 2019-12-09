@@ -18,7 +18,7 @@ google::bucket bucket-1
 
     cors
         max-age-seconds: 3200
-        method: ['GET', 'POST']
+        method: ['GET']
         origin: ['*']
         response-header: ['application-x-test']
     end
