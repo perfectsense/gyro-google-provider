@@ -16,17 +16,14 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.HealthCheckList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -58,44 +55,29 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
     }
 
     @Override
-    protected List<HealthCheck> findAllGoogle(Compute client) {
-        try {
-            List<HealthCheck> healthChecks = new ArrayList<>();
-            HealthCheckList healthCheckList;
-            String nextPageToken = null;
-            do {
-                healthCheckList = client.healthChecks().list(getProjectId()).setPageToken(nextPageToken).execute();
-                healthChecks.addAll(healthCheckList.getItems());
-                nextPageToken = healthCheckList.getNextPageToken();
-            } while (nextPageToken != null);
-            return healthChecks;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+    protected List<HealthCheck> findAllGoogle(Compute client) throws Exception {
+        List<HealthCheck> healthChecks = new ArrayList<>();
+        HealthCheckList healthCheckList;
+        String nextPageToken = null;
+        do {
+            healthCheckList = client.healthChecks().list(getProjectId()).setPageToken(nextPageToken).execute();
+            healthChecks.addAll(healthCheckList.getItems());
+            nextPageToken = healthCheckList.getNextPageToken();
+        } while (nextPageToken != null);
+
+        return healthChecks;
     }
 
     @Override
-    protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) {
+    protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) throws Exception {
         if (filters.containsKey("name")) {
-            try {
-                List<HealthCheck> healthChecks = new ArrayList<>();
+            List<HealthCheck> healthChecks = new ArrayList<>();
 
-                healthChecks.add(client.healthChecks()
-                    .get(getProjectId(), filters.get("name"))
-                    .execute());
+            healthChecks.add(client.healthChecks()
+                .get(getProjectId(), filters.get("name"))
+                .execute());
 
-                return healthChecks;
-            } catch (GoogleJsonResponseException e) {
-                if (e.getDetails().getCode() == 404) {
-                    return new ArrayList<>();
-                } else {
-                    throw new GyroException(e.getDetails().getMessage());
-                }
-            } catch (IOException ex) {
-                throw new GyroException(ex);
-            }
+            return healthChecks;
         }
 
         return Collections.emptyList();

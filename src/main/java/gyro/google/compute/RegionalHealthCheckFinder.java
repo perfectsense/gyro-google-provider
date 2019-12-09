@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,13 +23,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.HealthCheckList;
 import com.google.api.services.compute.model.HealthChecksAggregatedList;
 import com.google.api.services.compute.model.HealthChecksScopedList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -74,77 +71,61 @@ public class RegionalHealthCheckFinder extends GoogleFinder<Compute, HealthCheck
     }
 
     @Override
-    protected List<HealthCheck> findAllGoogle(Compute client) {
-        try {
-            List<HealthCheck> healthChecks = new ArrayList<>();
-            HealthChecksAggregatedList healthChecksAggregatedList;
-            String nextPageToken = null;
+    protected List<HealthCheck> findAllGoogle(Compute client) throws Exception {
+        List<HealthCheck> healthChecks = new ArrayList<>();
+        HealthChecksAggregatedList healthChecksAggregatedList;
+        String nextPageToken = null;
 
-            do {
-                healthChecksAggregatedList = client.healthChecks()
-                    .aggregatedList(getProjectId())
-                    .setPageToken(nextPageToken)
-                    .execute();
-                healthChecks.addAll(healthChecksAggregatedList
-                    .getItems().values().stream()
-                    .map(HealthChecksScopedList::getHealthChecks)
-                    .filter(Objects::nonNull)
-                    .flatMap(Collection::stream)
-                    .filter(healthCheck -> healthCheck.getRegion() != null)
-                    .collect(Collectors.toList()));
-                nextPageToken = healthChecksAggregatedList.getNextPageToken();
-            } while (nextPageToken != null);
+        do {
+            healthChecksAggregatedList = client.healthChecks()
+                .aggregatedList(getProjectId())
+                .setPageToken(nextPageToken)
+                .execute();
+            healthChecks.addAll(healthChecksAggregatedList
+                .getItems().values().stream()
+                .map(HealthChecksScopedList::getHealthChecks)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(healthCheck -> healthCheck.getRegion() != null)
+                .collect(Collectors.toList()));
+            nextPageToken = healthChecksAggregatedList.getNextPageToken();
+        } while (nextPageToken != null);
 
-            return healthChecks;
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        return healthChecks;
     }
 
     @Override
-    protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) {
-        try {
-            List<HealthCheck> healthChecks = new ArrayList<>();
-            HealthCheckList healthCheckList;
-            String nextPageToken = null;
+    protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        List<HealthCheck> healthChecks = new ArrayList<>();
+        HealthCheckList healthCheckList;
+        String nextPageToken = null;
 
-            if (filters.containsKey("region") && filters.containsKey("name")) {
-                healthChecks.add(client.regionHealthChecks()
-                    .get(getProjectId(), filters.get("region"), filters.get("name"))
-                    .execute());
-
-                return healthChecks;
-            }
-
-            if (filters.containsKey("region")) {
-                do {
-                    healthCheckList = client.regionHealthChecks()
-                        .list(getProjectId(), filters.get("region"))
-                        .setPageToken(nextPageToken)
-                        .execute();
-
-                    if (healthCheckList != null && healthCheckList.getItems() != null) {
-                        nextPageToken = healthCheckList.getNextPageToken();
-                        healthChecks.addAll(healthCheckList.getItems());
-                    } else {
-                        break;
-                    }
-                } while (nextPageToken != null);
-
-                return healthChecks;
-            }
+        if (filters.containsKey("region") && filters.containsKey("name")) {
+            healthChecks.add(client.regionHealthChecks()
+                .get(getProjectId(), filters.get("region"), filters.get("name"))
+                .execute());
 
             return healthChecks;
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails().getCode() == 404) {
-                return new ArrayList<>();
-            } else {
-                throw new GyroException(e.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex);
         }
+
+        if (filters.containsKey("region")) {
+            do {
+                healthCheckList = client.regionHealthChecks()
+                    .list(getProjectId(), filters.get("region"))
+                    .setPageToken(nextPageToken)
+                    .execute();
+
+                if (healthCheckList != null && healthCheckList.getItems() != null) {
+                    nextPageToken = healthCheckList.getNextPageToken();
+                    healthChecks.addAll(healthCheckList.getItems());
+                } else {
+                    break;
+                }
+            } while (nextPageToken != null);
+
+            return healthChecks;
+        }
+
+        return healthChecks;
     }
 }

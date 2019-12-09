@@ -28,7 +28,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     private String proxyHeader;
     private String response;
     private String requestPath;
-    
+
     /**
      * The port for the domain name and/or ip address to monitor for the health check.
      */

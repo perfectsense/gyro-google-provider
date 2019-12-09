@@ -1,9 +1,7 @@
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.Set;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.HTTP2HealthCheck;
@@ -174,26 +172,16 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
-        try {
-            HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
-            copyFrom(healthCheck);
+        HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
+        copyFrom(healthCheck);
 
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         HealthCheck healthCheck = new HealthCheck();
         healthCheck.setName(getName());
@@ -229,111 +217,98 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
         }
 
-        try {
-            Compute.RegionHealthChecks.Insert insert = client.regionHealthChecks()
-                .insert(getProjectId(), healthCheck.getRegion(), healthCheck);
-            Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-
-            refresh();
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Compute.RegionHealthChecks.Insert insert = client.regionHealthChecks()
+            .insert(getProjectId(), healthCheck.getRegion(), healthCheck);
+        Operation operation = insert.execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
+
+        refresh();
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            HealthCheck healthCheck = new HealthCheck();
-            if (changedFieldNames.contains("check-interval-sec")) {
-                healthCheck.setCheckIntervalSec(getCheckIntervalSec());
-            }
-
-            if (changedFieldNames.contains("description")) {
-                healthCheck.setDescription(getDescription());
-            }
-
-            if (changedFieldNames.contains("healthy-threshold")) {
-                healthCheck.setHealthyThreshold(getHealthyThreshold());
-            }
-
-            if (changedFieldNames.contains("region")) {
-                healthCheck.setRegion(getRegion());
-            }
-
-            if (changedFieldNames.contains("timeout-sec")) {
-                healthCheck.setTimeoutSec(getTimeoutSec());
-            }
-
-            if (changedFieldNames.contains("unhealthy-threshold")) {
-                healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
-            }
-
-            healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
-            healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
-            healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
-            healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
-            healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
-
-            if (getHttpHealthCheck() != null) {
-                healthCheck.setType(getHttpHealthCheck().getType());
-                healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
-            }
-
-            if (getHttpsHealthCheck() != null) {
-                healthCheck.setType(getHttpsHealthCheck().getType());
-                healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
-            }
-
-            if (getHttp2HealthCheck() != null) {
-                healthCheck.setType(getHttp2HealthCheck().getType());
-                healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
-            }
-
-            if (getSslHealthCheck() != null) {
-                healthCheck.setType(getSslHealthCheck().getType());
-                healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
-            }
-
-            if (getTcpHealthCheck() != null) {
-                healthCheck.setType(getTcpHealthCheck().getType());
-                healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
-            }
-
-            Operation operation = client.regionHealthChecks()
-                .patch(getProjectId(), getRegion(), getName(), healthCheck)
-                .execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-        } catch (GoogleJsonResponseException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        HealthCheck healthCheck = new HealthCheck();
+        if (changedFieldNames.contains("check-interval-sec")) {
+            healthCheck.setCheckIntervalSec(getCheckIntervalSec());
         }
+
+        if (changedFieldNames.contains("description")) {
+            healthCheck.setDescription(getDescription());
+        }
+
+        if (changedFieldNames.contains("healthy-threshold")) {
+            healthCheck.setHealthyThreshold(getHealthyThreshold());
+        }
+
+        if (changedFieldNames.contains("region")) {
+            healthCheck.setRegion(getRegion());
+        }
+
+        if (changedFieldNames.contains("timeout-sec")) {
+            healthCheck.setTimeoutSec(getTimeoutSec());
+        }
+
+        if (changedFieldNames.contains("unhealthy-threshold")) {
+            healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
+        }
+
+        healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
+        healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
+        healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
+        healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
+        healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
+
+        if (getHttpHealthCheck() != null) {
+            healthCheck.setType(getHttpHealthCheck().getType());
+            healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
+        }
+
+        if (getHttpsHealthCheck() != null) {
+            healthCheck.setType(getHttpsHealthCheck().getType());
+            healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
+        }
+
+        if (getHttp2HealthCheck() != null) {
+            healthCheck.setType(getHttp2HealthCheck().getType());
+            healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
+        }
+
+        if (getSslHealthCheck() != null) {
+            healthCheck.setType(getSslHealthCheck().getType());
+            healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
+        }
+
+        if (getTcpHealthCheck() != null) {
+            healthCheck.setType(getTcpHealthCheck().getType());
+            healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
+        }
+
+        Operation operation = client.regionHealthChecks()
+            .patch(getProjectId(), getRegion(), getName(), healthCheck)
+            .execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
+
+        refresh();
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
-        try {
-            Compute client = createComputeClient();
-            HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
-            Operation operation = client.regionHealthChecks()
-                .delete(getProjectId(), region, healthCheck.getName())
-                .execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
-        } catch (GoogleJsonResponseException e) {
-            throw new GyroException(String.format(
-                "Unable to delete Regional Health Check: %s, Google error: %s",
-                getName(),
-                e.getMessage()));
+    public void doDelete(GyroUI ui, State state) throws Exception {
+        Compute client = createComputeClient();
+        HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
+        Operation operation = client.regionHealthChecks()
+            .delete(getProjectId(), region, healthCheck.getName())
+            .execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
     }
 }
