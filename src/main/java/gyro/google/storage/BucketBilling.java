@@ -42,7 +42,7 @@ public class BucketBilling extends Diffable implements Copyable<Billing> {
 
     @Override
     public String primaryKey() {
-        return Boolean.toString("true".equals(getRequesterPays()));
+        return "";
     }
 
     @Override

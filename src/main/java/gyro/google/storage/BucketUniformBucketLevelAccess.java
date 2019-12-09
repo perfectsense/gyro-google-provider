@@ -40,7 +40,7 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
     }
 
     public String primaryKey() {
-        return "uniform-bucket-level-access-config";
+        return "";
     }
 
     @Override

@@ -42,7 +42,7 @@ public class BucketVersioning extends Diffable implements Copyable<Versioning> {
 
     @Override
     public String primaryKey() {
-        return "versioning-config";
+        return "";
     }
 
     @Override

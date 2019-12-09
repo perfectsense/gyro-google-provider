@@ -55,7 +55,7 @@ public class BucketWebsite extends Diffable implements Copyable<Website> {
 
     @Override
     public String primaryKey() {
-        return "website-config";
+        return "";
     }
 
     @Override

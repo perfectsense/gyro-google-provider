@@ -18,10 +18,8 @@ package gyro.google.storage;
 
 import java.util.Set;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.BucketAccessControl;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Output;
@@ -188,27 +186,18 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     @Override
     public boolean doRefresh() throws Exception {
         Storage storage = createClient(Storage.class);
+        BucketAccessControl acl = storage.bucketAccessControls()
+            .get(getBucket().getName(), getEntity())
+            .setUserProject(getUserProject())
+            .execute();
 
-        try {
-            BucketAccessControl acl = storage.bucketAccessControls()
-                .get(getBucket().getName(), getEntity())
-                .setUserProject(getUserProject())
-                .execute();
-
-            if (acl == null) {
-                return false;
-            }
-
-            copyFrom(acl);
-
-            return true;
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(formatGoogleExceptionMessage(e));
-            }
+        if (acl == null) {
+            return false;
         }
+
+        copyFrom(acl);
+
+        return true;
     }
 
     @Override

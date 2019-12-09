@@ -55,7 +55,7 @@ public class BucketLogging extends Diffable implements Copyable<Logging> {
 
     @Override
     public String primaryKey() {
-        return "logging-config";
+        return "";
     }
 
     @Override

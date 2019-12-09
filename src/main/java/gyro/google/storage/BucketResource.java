@@ -25,11 +25,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -401,27 +399,18 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Override
     public boolean doRefresh() throws Exception {
         Storage storage = createClient(Storage.class);
+        Bucket bucket = storage.buckets()
+            .get(getName())
+            .setProjection("full")
+            .execute();
 
-        try {
-            Bucket bucket = storage.buckets()
-                .get(getName())
-                .setProjection("full")
-                .execute();
-
-            if (bucket == null) {
-                return false;
-            }
-
-            copyFrom(bucket);
-
-            return true;
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails().getCode() == 404) {
-                return false;
-            } else {
-                throw new GyroException(formatGoogleExceptionMessage(e));
-            }
+        if (bucket == null) {
+            return false;
         }
+
+        copyFrom(bucket);
+
+        return true;
     }
 
     @Override

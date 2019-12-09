@@ -44,7 +44,7 @@ public class BucketRetentionPolicy extends Diffable implements Copyable<Retentio
 
     @Override
     public String primaryKey() {
-        return "retention-policy-config";
+        return "";
     }
 
     @Override

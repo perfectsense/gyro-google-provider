@@ -68,7 +68,7 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
 
     @Override
     public String primaryKey() {
-        return "lifecycle-config";
+        return "";
     }
 
     public Lifecycle toLifecycle() {
