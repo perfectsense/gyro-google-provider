@@ -39,7 +39,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *      compute-instance-group: $(external-query google::compute-instance-group { name: "example-instance-group", region: "us-central1-a" })
+ *      compute-instance-group: $(external-query google::compute-instance-group { name: "instance-group-example", zone: "us-central1-a" })
  */
 @Type("compute-instance-group")
 public class InstanceGroupFinder extends GoogleFinder<Compute, InstanceGroup, InstanceGroupResource> {
@@ -81,11 +81,11 @@ public class InstanceGroupFinder extends GoogleFinder<Compute, InstanceGroup, In
     @Override
     protected List<InstanceGroup> findGoogle(Compute client, Map<String, String> filters) throws Exception {
         List<InstanceGroup> instanceGroups = new ArrayList<>();
-        if (filters.containsKey("name")) {
+        if (filters.containsKey("name") && filters.containsKey("zone")) {
             instanceGroups.add(client.instanceGroups()
                 .get(getProjectId(), filters.get("zone"), filters.get("name"))
                 .execute());
-        } else {
+        } else if (filters.containsKey("zone")) {
             instanceGroups = Optional.ofNullable(client.instanceGroups()
                 .list(getProjectId(), filters.get("zone"))
                 .execute()
