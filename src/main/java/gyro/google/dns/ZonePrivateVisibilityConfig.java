@@ -26,10 +26,8 @@ import com.google.api.services.dns.model.ManagedZonePrivateVisibilityConfigNetwo
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 
-public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<ManagedZonePrivateVisibilityConfig>,
-    Requestable<ManagedZonePrivateVisibilityConfig> {
+public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<ManagedZonePrivateVisibilityConfig> {
 
     private List<ZonePrivateVisibilityConfigNetwork> network;
 
@@ -69,7 +67,6 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
         }
     }
 
-    @Override
     public ManagedZonePrivateVisibilityConfig copyTo() {
         ManagedZonePrivateVisibilityConfig managedZonePrivateVisibilityConfig = new ManagedZonePrivateVisibilityConfig();
         List<ZonePrivateVisibilityConfigNetwork> networks = getNetwork();

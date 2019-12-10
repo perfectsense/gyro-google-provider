@@ -33,7 +33,6 @@ import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
-import gyro.google.Requestable;
 
 /**
  * Creates a Resource Record Set.
@@ -60,8 +59,7 @@ import gyro.google.Requestable;
  *     end
  */
 @Type("dns-resource-record-set")
-public class ResourceRecordSetResource extends GoogleResource
-    implements Copyable<ResourceRecordSet>, Requestable<ResourceRecordSet> {
+public class ResourceRecordSetResource extends GoogleResource implements Copyable<ResourceRecordSet> {
 
     private ManagedZoneResource managedZone;
 
@@ -205,7 +203,6 @@ public class ResourceRecordSetResource extends GoogleResource
         setType(model.getType());
     }
 
-    @Override
     public ResourceRecordSet copyTo() {
         ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
         resourceRecordSet.setName(getName());

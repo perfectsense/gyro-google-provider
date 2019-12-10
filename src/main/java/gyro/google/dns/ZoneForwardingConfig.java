@@ -25,10 +25,8 @@ import com.google.api.services.dns.model.ManagedZoneForwardingConfig;
 import com.google.api.services.dns.model.ManagedZoneForwardingConfigNameServerTarget;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 
-public class ZoneForwardingConfig extends Diffable
-    implements Copyable<ManagedZoneForwardingConfig>, Requestable<ManagedZoneForwardingConfig> {
+public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZoneForwardingConfig> {
 
     private List<ZoneForwardingConfigNameServerTarget> targetNameServer;
 
@@ -67,7 +65,6 @@ public class ZoneForwardingConfig extends Diffable
         }
     }
 
-    @Override
     public ManagedZoneForwardingConfig copyTo() {
         ManagedZoneForwardingConfig managedZoneForwardingConfig = new ManagedZoneForwardingConfig();
         List<ZoneForwardingConfigNameServerTarget> targetNameServers = getTargetNameServer();

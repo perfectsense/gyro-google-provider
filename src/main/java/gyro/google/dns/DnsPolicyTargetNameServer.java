@@ -23,11 +23,9 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 
 public class DnsPolicyTargetNameServer extends Diffable
-    implements Copyable<PolicyAlternativeNameServerConfigTargetNameServer>,
-    Requestable<PolicyAlternativeNameServerConfigTargetNameServer> {
+    implements Copyable<PolicyAlternativeNameServerConfigTargetNameServer> {
 
     private String ipv4Address;
 
@@ -50,7 +48,6 @@ public class DnsPolicyTargetNameServer extends Diffable
 
     }
 
-    @Override
     public PolicyAlternativeNameServerConfigTargetNameServer copyTo() {
         PolicyAlternativeNameServerConfigTargetNameServer policyAlternativeNameServerConfigTargetNameServer = new PolicyAlternativeNameServerConfigTargetNameServer();
         policyAlternativeNameServerConfigTargetNameServer.setIpv4Address(getIpv4Address());

@@ -25,11 +25,9 @@ import com.google.api.services.dns.model.PolicyAlternativeNameServerConfig;
 import com.google.api.services.dns.model.PolicyAlternativeNameServerConfigTargetNameServer;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 
 public class DnsPolicyAlternativeNameServerConfig extends Diffable
-    implements Copyable<PolicyAlternativeNameServerConfig>,
-    Requestable<PolicyAlternativeNameServerConfig> {
+    implements Copyable<PolicyAlternativeNameServerConfig> {
 
     private List<DnsPolicyTargetNameServer> targetNameServer;
 
@@ -70,7 +68,6 @@ public class DnsPolicyAlternativeNameServerConfig extends Diffable
 
     }
 
-    @Override
     public PolicyAlternativeNameServerConfig copyTo() {
         PolicyAlternativeNameServerConfig policyAlternativeNameServerConfig = new PolicyAlternativeNameServerConfig();
         List<DnsPolicyTargetNameServer> targetNameServers = getTargetNameServer();

@@ -22,9 +22,8 @@ import com.google.api.services.dns.model.DnsKeySpec;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 
-public class KeySpec extends Diffable implements Copyable<DnsKeySpec>, Requestable<DnsKeySpec> {
+public class KeySpec extends Diffable implements Copyable<DnsKeySpec> {
 
     private String algorithm;
 
@@ -74,7 +73,6 @@ public class KeySpec extends Diffable implements Copyable<DnsKeySpec>, Requestab
         setKeyType(model.getKeyType());
     }
 
-    @Override
     public DnsKeySpec copyTo() {
         DnsKeySpec dnsKeySpec = new DnsKeySpec();
         dnsKeySpec.setAlgorithm(getAlgorithm());

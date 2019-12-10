@@ -21,11 +21,9 @@ import java.util.Optional;
 import com.google.api.services.dns.model.ManagedZoneForwardingConfigNameServerTarget;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 
 public class ZoneForwardingConfigNameServerTarget extends Diffable
-    implements Copyable<ManagedZoneForwardingConfigNameServerTarget>,
-    Requestable<ManagedZoneForwardingConfigNameServerTarget> {
+    implements Copyable<ManagedZoneForwardingConfigNameServerTarget> {
 
     private String ipv4Address;
 
@@ -45,7 +43,6 @@ public class ZoneForwardingConfigNameServerTarget extends Diffable
         setIpv4Address(model.getIpv4Address());
     }
 
-    @Override
     public ManagedZoneForwardingConfigNameServerTarget copyTo() {
         ManagedZoneForwardingConfigNameServerTarget managedZoneForwardingConfigNameServerTarget = new ManagedZoneForwardingConfigNameServerTarget();
         managedZoneForwardingConfigNameServerTarget.setIpv4Address(getIpv4Address());

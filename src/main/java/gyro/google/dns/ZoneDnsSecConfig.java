@@ -27,10 +27,8 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 
-public class ZoneDnsSecConfig extends Diffable
-    implements Copyable<ManagedZoneDnsSecConfig>, Requestable<ManagedZoneDnsSecConfig> {
+public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDnsSecConfig> {
 
     private List<KeySpec> defaultKeySpec;
 
@@ -100,7 +98,6 @@ public class ZoneDnsSecConfig extends Diffable
         setState(model.getState());
     }
 
-    @Override
     public ManagedZoneDnsSecConfig copyTo() {
         ManagedZoneDnsSecConfig managedZoneDnsSecConfig = new ManagedZoneDnsSecConfig();
         List<KeySpec> defaultKeySpec = getDefaultKeySpec();

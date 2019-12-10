@@ -21,11 +21,9 @@ import java.util.Optional;
 import com.google.api.services.dns.model.PolicyNetwork;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
-import gyro.google.Requestable;
 import gyro.google.compute.NetworkResource;
 
-public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork>,
-    Requestable<PolicyNetwork> {
+public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork> {
 
     private NetworkResource network;
 
@@ -51,7 +49,6 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
         }
     }
 
-    @Override
     public PolicyNetwork copyTo() {
         PolicyNetwork policyNetwork = new PolicyNetwork();
         NetworkResource network = getNetwork();
