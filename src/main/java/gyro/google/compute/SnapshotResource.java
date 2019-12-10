@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.CustomerEncryptionKey;
 import com.google.api.services.compute.model.GlobalSetLabelsRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Snapshot;
@@ -253,8 +255,8 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     /**
      * The fully-qualified URL linking back to the snapshot.
      */
-    @Output
     @Id
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -288,20 +290,24 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         setSelfLink(snapshot.getSelfLink());
         setLabelFingerprint(snapshot.getLabelFingerprint());
 
+        setSourceDisk(null);
         if (DiskResource.parseDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
             setSourceDisk(findById(DiskResource.class, snapshot.getSourceDisk()));
         }
 
+        setSourceRegionDisk(null);
         if (RegionDiskResource.parseRegionDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
             setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
         }
 
+        setSourceDiskEncryptionKey(null);
         if (snapshot.getSourceDiskEncryptionKey() != null) {
             EncryptionKey sourceDiskEncryption = newSubresource(EncryptionKey.class);
             sourceDiskEncryption.copyFrom(snapshot.getSourceDiskEncryptionKey());
             setSourceDiskEncryptionKey(sourceDiskEncryption);
         }
 
+        setSnapshotEncryptionKey(null);
         if (snapshot.getSnapshotEncryptionKey() != null) {
             EncryptionKey snapshotEncryption = newSubresource(EncryptionKey.class);
             snapshotEncryption.copyFrom(snapshot.getSnapshotEncryptionKey());
@@ -328,10 +334,12 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         snapshot.setDescription(getDescription());
         snapshot.setLabels(getLabels());
         snapshot.setStorageLocations(getStorageLocations());
-        snapshot.setSourceDiskEncryptionKey(
-            getSourceDiskEncryptionKey() != null ? getSourceDiskEncryptionKey().toCustomerEncryptionKey() : null);
-        snapshot.setSnapshotEncryptionKey(
-            getSnapshotEncryptionKey() != null ? getSnapshotEncryptionKey().toCustomerEncryptionKey() : null);
+        snapshot.setSourceDiskEncryptionKey(getSourceDiskEncryptionKey() != null
+            ? getSourceDiskEncryptionKey().toCustomerEncryptionKey()
+            : Data.nullOf(CustomerEncryptionKey.class));
+        snapshot.setSnapshotEncryptionKey(getSnapshotEncryptionKey() != null
+            ? getSnapshotEncryptionKey().toCustomerEncryptionKey()
+            : Data.nullOf(CustomerEncryptionKey.class));
 
         if (getSourceDisk() != null) {
             ProjectZoneDiskName zoneDisk = DiskResource.parseDisk(getProjectId(), getSourceDisk().getSelfLink());
@@ -347,10 +355,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             }
 
             refresh();
-            return;
-        }
-
-        if (getSourceRegionDisk() != null) {
+        } else if (getSourceRegionDisk() != null) {
             ProjectRegionDiskName regionDisk =
                 RegionDiskResource.parseRegionDisk(getProjectId(), getSourceRegionDisk().getSelfLink());
 
@@ -375,16 +380,24 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         GlobalSetLabelsRequest labelsRequest = new GlobalSetLabelsRequest();
         labelsRequest.setLabels(getLabels());
         labelsRequest.setLabelFingerprint(getLabelFingerprint());
-        client.snapshots().setLabels(getProjectId(), getName(), labelsRequest).execute();
+        Operation operation = client.snapshots().setLabels(getProjectId(), getName(), labelsRequest).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createComputeClient();
+        Compute client = createComputeClient();
 
-        compute.snapshots().delete(getProjectId(), getName()).execute();
+        Operation operation = client.snapshots().delete(getProjectId(), getName()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     @Override
@@ -395,14 +408,14 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             errors.add(new ValidationError(
                 this,
                 "source-disk",
-                "A source disk is required when creating a snapshot."));
+                "Either a 'source-disk' or 'source-region-disk' is required when creating a snapshot."));
         }
 
         if (getSourceDisk() != null && DiskResource.parseDisk(getProjectId(), getSourceDisk().getSelfLink()) == null) {
             errors.add(new ValidationError(
                 this,
                 "source-disk",
-                "Unable to parse source disk."));
+                "Unable to parse 'source-disk'."));
         }
 
         if (getSourceRegionDisk() != null
@@ -410,7 +423,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             errors.add(new ValidationError(
                 this,
                 "source-region-disk",
-                "Unable to parse source region disk."));
+                "Unable to parse 'source-region-disk'."));
         }
 
         if (getStorageLocations().size() > 1) {

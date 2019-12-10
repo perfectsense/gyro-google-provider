@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Disk;
 import com.google.api.services.compute.model.Operation;
@@ -164,14 +163,12 @@ public class RegionDiskResource extends AbstractDiskResource {
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createComputeClient();
+        Compute client = createComputeClient();
 
-        try {
-            compute.regionDisks().delete(getProjectId(), getRegion(), getName()).execute();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+        Operation operation = client.regionDisks().delete(getProjectId(), getRegion(), getName()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
         }
     }
 
@@ -191,19 +188,33 @@ public class RegionDiskResource extends AbstractDiskResource {
 
     private void saveSizeGb(Compute client, RegionDiskResource oldRegionDiskResource) throws Exception {
         if (getSizeGb() < oldRegionDiskResource.getSizeGb()) {
-            throw new GyroException("Size of the disk cannot be decreased once set.");
+            throw new GyroException(String.format(
+                "Size of the disk cannot be decreased once set. Current size %s.",
+                oldRegionDiskResource.getSizeGb()));
         }
 
         RegionDisksResizeRequest resizeRequest = new RegionDisksResizeRequest();
         resizeRequest.setSizeGb(getSizeGb());
-        client.regionDisks().resize(getProjectId(), getRegion(), getName(), resizeRequest).execute();
+        Operation operation = client.regionDisks()
+            .resize(getProjectId(), getRegion(), getName(), resizeRequest)
+            .execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     private void saveLabels(Compute client) throws Exception {
         RegionSetLabelsRequest labelsRequest = new RegionSetLabelsRequest();
         labelsRequest.setLabels(getLabels());
         labelsRequest.setLabelFingerprint(getLabelFingerprint());
-        client.regionDisks().setLabels(getProjectId(), getRegion(), getName(), labelsRequest).execute();
+        Operation operation = client.regionDisks()
+            .setLabels(getProjectId(), getRegion(), getName(), labelsRequest)
+            .execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     static ProjectRegionDiskName parseRegionDisk(String projectId, String selfLink) {

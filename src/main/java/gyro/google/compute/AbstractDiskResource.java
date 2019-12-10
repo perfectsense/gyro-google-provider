@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.api.client.util.Data;
+import com.google.api.services.compute.model.CustomerEncryptionKey;
 import com.google.api.services.compute.model.Disk;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
 import com.google.cloud.compute.v1.ProjectZoneDiskName;
@@ -198,8 +200,8 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     /**
      * The fully-qualified URL linking back to the disk.
      */
-    @Output
     @Id
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -249,12 +251,14 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         setUsers(disk.getUsers());
         setLabelFingerprint(disk.getLabelFingerprint());
 
+        setDiskEncryptionKey(null);
         if (disk.getDiskEncryptionKey() != null) {
             EncryptionKey diskEncryption = newSubresource(EncryptionKey.class);
             diskEncryption.copyFrom(disk.getDiskEncryptionKey());
             setDiskEncryptionKey(diskEncryption);
         }
 
+        setSourceSnapshotEncryptionKey(null);
         if (disk.getSourceSnapshotEncryptionKey() != null) {
             EncryptionKey sourceSnapshotEncryption = newSubresource(EncryptionKey.class);
             sourceSnapshotEncryption.copyFrom(disk.getSourceSnapshotEncryptionKey());
@@ -271,11 +275,12 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         disk.setPhysicalBlockSizeBytes(getPhysicalBlockSizeBytes());
         disk.setLabels(getLabels());
         disk.setSourceSnapshot(getSourceSnapshot().getSelfLink());
-        disk.setDiskEncryptionKey(
-            getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
+        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null
+            ? getDiskEncryptionKey().toCustomerEncryptionKey()
+            : Data.nullOf(CustomerEncryptionKey.class));
         disk.setSourceSnapshotEncryptionKey(getSourceSnapshotEncryptionKey() != null
             ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
-            : null);
+            : Data.nullOf(CustomerEncryptionKey.class));
 
         return disk;
     }

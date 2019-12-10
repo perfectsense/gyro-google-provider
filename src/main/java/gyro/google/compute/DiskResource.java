@@ -119,26 +119,40 @@ public class DiskResource extends AbstractDiskResource {
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createComputeClient();
+        Compute client = createComputeClient();
 
-        compute.disks().delete(getProjectId(), getZone(), getName()).execute();
+        Operation operation = client.disks().delete(getProjectId(), getZone(), getName()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     private void saveSizeGb(Compute client, DiskResource oldDiskResource) throws Exception {
         if (getSizeGb() < oldDiskResource.getSizeGb()) {
-            throw new GyroException("Size of the disk cannot be decreased once set.");
+            throw new GyroException(String.format(
+                "Size of the disk cannot be decreased once set. Current size %s.",
+                oldDiskResource.getSizeGb()));
         }
 
         DisksResizeRequest resizeRequest = new DisksResizeRequest();
         resizeRequest.setSizeGb(getSizeGb());
-        client.disks().resize(getProjectId(), getZone(), getName(), resizeRequest).execute();
+        Operation operation = client.disks().resize(getProjectId(), getZone(), getName(), resizeRequest).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     private void saveLabels(Compute client) throws Exception {
         ZoneSetLabelsRequest labelsRequest = new ZoneSetLabelsRequest();
         labelsRequest.setLabels(getLabels());
         labelsRequest.setLabelFingerprint(getLabelFingerprint());
-        client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
+        Operation operation = client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     static ProjectZoneDiskName parseDisk(String projectId, String selfLink) {
