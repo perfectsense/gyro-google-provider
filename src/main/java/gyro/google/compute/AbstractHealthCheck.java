@@ -93,7 +93,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The request path of the health check request. Prefixes the path with a / if missing.
+     * The request path of the health check request. Prefixes the path with a ``/`` if missing.
      */
     @Updatable
     public String getRequestPath() {
