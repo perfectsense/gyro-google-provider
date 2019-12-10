@@ -70,6 +70,21 @@ import gyro.google.Copyable;
  *              port: 123
  *          end
  *     end
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-network network-example
+ *         name: "network-example"
+ *         description: "network-example-description"
+ *         routing-mode: "Regional"
+ *     end
+ *
+ *     google::compute-instance-group instance-group-network-example
+ *          name: "instance-group-network-example"
+ *          description: "instance-group-network-example-description"
+ *          zone: "us-central1-a"
+ *          network: $(network-example)
+ *     end
  */
 @Type("compute-instance-group")
 public class InstanceGroupResource extends ComputeResource implements Copyable<InstanceGroup> {
