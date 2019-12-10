@@ -31,6 +31,7 @@ import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -73,11 +74,16 @@ import gyro.google.Copyable;
 @Type("compute-instance-group")
 public class InstanceGroupResource extends ComputeResource implements Copyable<InstanceGroup> {
 
-    public String name;
-    public String description;
+    private String name;
+    private String description;
     private List<InstanceGroupNamedPort> namedPort;
-    public NetworkResource network;
-    public String zone;
+    private NetworkResource network;
+    private String zone;
+
+    // Read-only
+    private String region;
+    private String selfLink;
+    private String subNetwork;
 
     /**
      * The name of the instance group. The name must be 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash. (Required)
@@ -140,6 +146,42 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         this.zone = zone;
     }
 
+    /**
+     * The fully-qualified URL of the region where the instance group is located.
+     */
+    @Output
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    /**
+     * The fully-qualified URL linking back to the instance group.
+     */
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
+    /**
+     * The fully-qualified URL of the subNetwork of which this instance group belongs.
+     */
+    @Output
+    public String getSubNetwork() {
+        return subNetwork;
+    }
+
+    public void setSubNetwork(String subNetwork) {
+        this.subNetwork = subNetwork;
+    }
+
     @Override
     public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
@@ -182,6 +224,9 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         setName(instanceGroup.getName());
         setDescription(instanceGroup.getDescription());
         setZone(instanceGroup.getZone());
+        setRegion(instanceGroup.getRegion());
+        setSelfLink(instanceGroup.getSelfLink());
+        setSubNetwork(instanceGroup.getSubnetwork());
 
         if (instanceGroup.getNetwork() != null) {
             setNetwork(findById(
@@ -203,6 +248,9 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         instanceGroup.setName(getName());
         instanceGroup.setDescription(getDescription());
         instanceGroup.setZone(getZone());
+        instanceGroup.setRegion(getRegion());
+        instanceGroup.setSelfLink(getSelfLink());
+        instanceGroup.setSubnetwork(getSubNetwork());
 
         if (getNetwork() != null) {
             instanceGroup.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
