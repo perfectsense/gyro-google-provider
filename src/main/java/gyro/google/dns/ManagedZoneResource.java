@@ -185,6 +185,9 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      */
     @Updatable
     public Map<String, String> getLabels() {
+        if (labels == null) {
+            labels = new HashMap<>();
+        }
         return labels;
     }
 
@@ -220,6 +223,9 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      */
     @Output
     public List<String> getNameServers() {
+        if (nameServers == null) {
+            nameServers = new ArrayList<>();
+        }
         return nameServers;
     }
 

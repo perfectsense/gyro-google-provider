@@ -16,6 +16,7 @@
 
 package gyro.google.dns;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,9 @@ public class DnsPolicyAlternativeNameServerConfig extends Diffable
      * @subresource gyro.google.dns.DnsPolicyTargetNameServer
      */
     public List<DnsPolicyTargetNameServer> getTargetNameServer() {
+        if (targetNameServer == null) {
+            targetNameServer = new ArrayList<>();
+        }
         return targetNameServer;
     }
 

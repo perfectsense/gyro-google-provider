@@ -16,6 +16,7 @@
 
 package gyro.google.dns;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,9 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
      * @subresource gyro.google.dns.KeySpec
      */
     public List<KeySpec> getDefaultKeySpec() {
+        if (defaultKeySpec == null) {
+            defaultKeySpec = new ArrayList<>();
+        }
         return defaultKeySpec;
     }
 

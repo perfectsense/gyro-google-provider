@@ -16,6 +16,7 @@
 
 package gyro.google.dns;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,9 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
      */
     @Required
     public List<ZonePrivateVisibilityConfigNetwork> getNetwork() {
+        if (network == null) {
+            network = new ArrayList<>();
+        }
         return network;
     }
 

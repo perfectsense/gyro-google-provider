@@ -16,6 +16,7 @@
 
 package gyro.google.dns;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -107,6 +108,9 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
      */
     @Updatable
     public List<String> getRrdatas() {
+        if (rrdatas == null) {
+            rrdatas = new ArrayList<>();
+        }
         return rrdatas;
     }
 
@@ -119,6 +123,9 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
      */
     @Updatable
     public List<String> getSignatureRrdatas() {
+        if (signatureRrdatas == null) {
+            signatureRrdatas = new ArrayList<>();
+        }
         return signatureRrdatas;
     }
 

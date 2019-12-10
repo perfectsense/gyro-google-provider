@@ -16,6 +16,7 @@
 
 package gyro.google.dns;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,9 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
      * @subresource gyro.google.dns.ZoneForwardingConfigNameServerTarget
      */
     public List<ZoneForwardingConfigNameServerTarget> getTargetNameServer() {
+        if (targetNameServer == null) {
+            targetNameServer = new ArrayList<>();
+        }
         return targetNameServer;
     }
 

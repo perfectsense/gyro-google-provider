@@ -157,6 +157,9 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public List<DnsPolicyNetwork> getNetwork() {
+        if (network == null) {
+            network = new ArrayList<>();
+        }
         return network;
     }
 
