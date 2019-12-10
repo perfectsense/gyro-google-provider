@@ -46,7 +46,7 @@ public class ManagedZoneFinder extends GoogleFinder<Dns, ManagedZone, ManagedZon
     private String name;
 
     /**
-     * User assigned name for the managed zone. The value may be ``null``.
+     * User assigned name for the managed zone.
      */
     public String getName() {
         return name;

@@ -74,7 +74,7 @@ public class ResourceRecordSetResource extends GoogleResource
     private Integer ttl;
 
     /**
-     * The identifier of a supported record type. See the list of Supported DNS record types. The value may be ``null``.
+     * The identifier of a supported record type. See the list of Supported DNS record types.
      */
     private String type;
 
@@ -93,7 +93,7 @@ public class ResourceRecordSetResource extends GoogleResource
     }
 
     /**
-     * For example, www.example.com. The value may be ``null``.
+     * For example, www.example.com.
      */
     @Updatable
     public String getName() {
@@ -105,7 +105,7 @@ public class ResourceRecordSetResource extends GoogleResource
     }
 
     /**
-     * As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples. The value may be ``null``.
+     * As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples.
      */
     @Updatable
     public List<String> getRrdatas() {
@@ -117,7 +117,7 @@ public class ResourceRecordSetResource extends GoogleResource
     }
 
     /**
-     * As defined in RFC 4034 (section 3.2). The value may be ``null``.
+     * As defined in RFC 4034 (section 3.2).
      */
     @Updatable
     public List<String> getSignatureRrdatas() {
@@ -129,7 +129,7 @@ public class ResourceRecordSetResource extends GoogleResource
     }
 
     /**
-     * Number of seconds that this ResourceRecordSet can be cached by resolvers. The value may be ``null``.
+     * Number of seconds that this ResourceRecordSet can be cached by resolvers.
      */
     @Updatable
     public Integer getTtl() {

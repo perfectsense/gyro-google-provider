@@ -32,7 +32,7 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
     private NetworkResource network;
 
     /**
-     * The VPC network to bind to. The value may be ``null``.
+     * The VPC network to bind to.
      *
      * @resource gyro.google.compute.NetworkResource
      */

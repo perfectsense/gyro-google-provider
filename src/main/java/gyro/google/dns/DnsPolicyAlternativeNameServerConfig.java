@@ -34,7 +34,7 @@ public class DnsPolicyAlternativeNameServerConfig extends Diffable
     private List<DnsPolicyTargetNameServer> targetNameServer;
 
     /**
-     * Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as .internal are not available when an alternative name server is specified. The value may be ``null``.
+     * Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as .internal are not available when an alternative name server is specified.
      *
      * @subresource gyro.google.dns.DnsPolicyTargetNameServer
      */

@@ -39,7 +39,7 @@ public class ZoneDnsSecConfig extends Diffable
     private String state;
 
     /**
-     * Specifies parameters for generating initial DnsKeys for this ManagedZone. Can only be changed while the state is ``off``. The value may be ``null``.
+     * Specifies parameters for generating initial DnsKeys for this ManagedZone. Can only be changed while the state is ``off``.
      *
      * @subresource gyro.google.dns.KeySpec
      */
@@ -52,7 +52,7 @@ public class ZoneDnsSecConfig extends Diffable
     }
 
     /**
-     * Specifies the mechanism for authenticated denial-of-existence responses. Can only be changed while the state is ``off``. The value may be ``null``.
+     * Specifies the mechanism for authenticated denial-of-existence responses. Can only be changed while the state is ``off``.
      */
     @Updatable
     @ValidStrings({ "nsec", "nsec3" })
@@ -65,7 +65,7 @@ public class ZoneDnsSecConfig extends Diffable
     }
 
     /**
-     * Specifies whether DNSSEC is enabled, and what mode it is in. The value may be ``null``.
+     * Specifies whether DNSSEC is enabled, and what mode it is in.
      */
     @Updatable
     @ValidStrings({ "on", "off", "transfer" })

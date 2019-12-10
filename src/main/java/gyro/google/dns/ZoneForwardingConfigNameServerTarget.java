@@ -30,7 +30,7 @@ public class ZoneForwardingConfigNameServerTarget extends Diffable
     private String ipv4Address;
 
     /**
-     * IPv4 address of a target name server. The value may be ``null``.
+     * IPv4 address of a target name server.
      */
     public String getIpv4Address() {
         return ipv4Address;

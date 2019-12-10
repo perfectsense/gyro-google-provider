@@ -46,7 +46,7 @@ public class PolicyFinder extends GoogleFinder<Dns, Policy, PolicyResource> {
     private String name;
 
     /**
-     * User given friendly name of the policy. The value may be ``null``.
+     * User given friendly name of the policy.
      */
     public String getName() {
         return name;

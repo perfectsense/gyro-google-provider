@@ -32,7 +32,7 @@ public class DnsPolicyTargetNameServer extends Diffable
     private String ipv4Address;
 
     /**
-     * IPv4 address to forward to. The value may be ``null``.
+     * IPv4 address to forward to.
      */
     @Required
     @Updatable

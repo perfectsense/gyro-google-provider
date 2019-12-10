@@ -101,7 +101,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     private String visibility;
 
     /**
-     * The time that this resource was created on the server. This is in RFC3339 text format. Output only. The value may be ``null``.
+     * The time that this resource was created on the server. This is in RFC3339 text format. Output only.
      */
     @Output
     public String getCreationTime() {
@@ -113,7 +113,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * A mutable string of at most 1024 characters associated with this resource for the user's convenience. Has no effect on the managed zone's function. The value may be ``null``.
+     * A mutable string of at most 1024 characters associated with this resource for the user's convenience. Has no effect on the managed zone's function.
      */
     @Required
     @Updatable
@@ -126,7 +126,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The DNS name of this managed zone, for instance ``example.com.``. The value may be ``null``.
+     * The DNS name of this managed zone, for instance ``example.com.``.
      */
     public String getDnsName() {
         return dnsName;
@@ -137,7 +137,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * DNSSEC configuration. The value may be ``null``.
+     * DNSSEC configuration.
      *
      * @subresource gyro.google.dns.ZoneDnsSecConfig
      */
@@ -153,7 +153,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The presence for this field indicates that outbound forwarding is enabled for this zone. The value of this field contains the set of destinations to forward to. The value may be ``null``.
+     * The presence for this field indicates that outbound forwarding is enabled for this zone. The value of this field contains the set of destinations to forward to.
      *
      * @subresource gyro.google.dns.ZoneForwardingConfig
      */
@@ -169,7 +169,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * Unique identifier for the resource; defined by the server (output only) The value may be ``null``.
+     * Unique identifier for the resource; defined by the server (output only)
      */
     @Output
     public String getId() {
@@ -181,7 +181,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * User labels. The value may be ``null``.
+     * User labels.
      */
     @Updatable
     public Map<String, String> getLabels() {
@@ -193,7 +193,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * User assigned name for this resource. Must be unique within the project. The name must be 1-63 characters long, must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes. The value may be ``null``.
+     * User assigned name for this resource. Must be unique within the project. The name must be 1-63 characters long, must begin with a letter, end with a letter or digit, and only contain lowercase letters, digits or dashes.
      */
     @Required
     public String getName() {
@@ -205,7 +205,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * Optionally specifies the NameServerSet for this ManagedZone. A NameServerSet is a set of DNS name servers that all host the same ManagedZones. Most users will leave this field unset. The value may be ``null``.
+     * Optionally specifies the NameServerSet for this ManagedZone. A NameServerSet is a set of DNS name servers that all host the same ManagedZones. Most users will leave this field unset.
      */
     public String getNameServerSet() {
         return nameServerSet;
@@ -216,7 +216,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * Delegate your managed_zone to these virtual name servers; defined by the server (output only) The value may be ``null``.
+     * Delegate your managed_zone to these virtual name servers; defined by the server (output only)
      */
     @Output
     public List<String> getNameServers() {
@@ -228,7 +228,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * For privately visible zones, the set of Virtual Private Cloud resources that the zone is visible from. The value may be ``null``.
+     * For privately visible zones, the set of Virtual Private Cloud resources that the zone is visible from.
      *
      * @subresource gyro.google.dns.ZonePrivateVisibilityConfig
      */
@@ -244,7 +244,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources. The value may be ``null``.
+     * The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources.
      */
     @ValidStrings({ "private", "public" })
     public String getVisibility() {

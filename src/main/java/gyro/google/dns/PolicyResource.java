@@ -74,7 +74,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     private List<DnsPolicyNetwork> network;
 
     /**
-     * Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as .internal are not available when an alternative name server is specified. The value may be ``null``.
+     * Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as .internal are not available when an alternative name server is specified.
      *
      * @subresource gyro.google.dns.DnsPolicyAlternativeNameServerConfig
      */
@@ -89,7 +89,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     /**
-     * A mutable string of at most 1024 characters associated with this resource for the user's convenience. Has no effect on the policy's function. The value may be ``null``.
+     * A mutable string of at most 1024 characters associated with this resource for the user's convenience. Has no effect on the policy's function.
      */
     @Required
     @Updatable
@@ -102,7 +102,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     /**
-     * Allows networks bound to this policy to receive DNS queries sent by VMs or applications over VPN connections. When enabled, a virtual IP address will be allocated from each of the sub- networks that are bound to this policy. The value may be ``null``.
+     * Allows networks bound to this policy to receive DNS queries sent by VMs or applications over VPN connections. When enabled, a virtual IP address will be allocated from each of the sub- networks that are bound to this policy.
      */
     @Updatable
     public Boolean getEnableInboundForwarding() {
@@ -114,7 +114,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     /**
-     * Controls whether logging is enabled for the networks bound to this policy. Defaults to no logging if not set. The value may be ``null``.
+     * Controls whether logging is enabled for the networks bound to this policy. Defaults to no logging if not set.
      */
     @Updatable
     public Boolean getEnableLogging() {
@@ -126,7 +126,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     /**
-     * Unique identifier for the resource; defined by the server (output only). The value may be ``null``.
+     * Unique identifier for the resource; defined by the server (output only).
      */
     @Output
     public String getId() {
@@ -138,7 +138,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     /**
-     * User assigned name for this policy. The value may be ``null``.
+     * User assigned name for this policy.
      */
     @Required
     public String getName() {
@@ -150,7 +150,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     /**
-     * List of network names specifying networks to which this policy is applied. The value may be ``null``.
+     * List of network names specifying networks to which this policy is applied.
      *
      * @subresource gyro.google.dns.DnsPolicyNetwork
      */
