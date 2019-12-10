@@ -41,14 +41,22 @@ import gyro.google.Copyable;
 /**
  * Creates an instance group.
  *
- * Example
+ * Examples
  * --------
  *
  * .. code-block:: gyro
  *
- *      google::compute-instance-group instance-group-named-ports-example
+ *     google::compute-instance-group instance-group-example
  *          name: "instance-group-example"
  *          description: "instance-group-example-description"
+ *          zone: "us-central1-a"
+ *     end
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-instance-group instance-group-named-ports-example
+ *          name: "instance-group-named-ports-example"
+ *          description: "instance-group-named-ports-example-description"
  *          zone: "us-central1-a"
  *
  *          named-port
@@ -61,7 +69,6 @@ import gyro.google.Copyable;
  *              port: 123
  *          end
  *     end
- *
  */
 @Type("compute-instance-group")
 public class InstanceGroupResource extends ComputeResource implements Copyable<InstanceGroup> {
@@ -89,7 +96,6 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     /**
      * The description of the instance group.
      */
-    @Updatable
     public String getDescription() {
         return description;
     }
@@ -113,7 +119,6 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     /**
      * The network of the instance group.
      */
-    @Updatable
     public NetworkResource getNetwork() {
         return network;
     }
@@ -177,6 +182,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         setName(instanceGroup.getName());
         setDescription(instanceGroup.getDescription());
         setZone(instanceGroup.getZone());
+
         if (instanceGroup.getNetwork() != null) {
             setNetwork(findById(
                 NetworkResource.class,
@@ -197,6 +203,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         instanceGroup.setName(getName());
         instanceGroup.setDescription(getDescription());
         instanceGroup.setZone(getZone());
+
         if (getNetwork() != null) {
             instanceGroup.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
         }
