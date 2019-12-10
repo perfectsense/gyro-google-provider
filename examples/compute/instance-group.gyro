@@ -1,4 +1,4 @@
-google::network network-example
+google::compute-network network-example
     name: "vpc-example"
     description: "vpc-example-desc"
     routing-mode: "Regional"
