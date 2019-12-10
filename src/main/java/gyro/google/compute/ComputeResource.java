@@ -48,10 +48,12 @@ public abstract class ComputeResource extends GoogleResource {
                 }
 
                 if (zone != null) {
-                    Compute.ZoneOperations.Get get = compute.zoneOperations().get(getProjectId(), zone, operation.getName());
+                    Compute.ZoneOperations.Get get = compute.zoneOperations()
+                        .get(getProjectId(), zone, operation.getName());
                     operation = get.execute();
                 } else {
-                    Compute.GlobalOperations.Get get = compute.globalOperations().get(getProjectId(), operation.getName());
+                    Compute.GlobalOperations.Get get = compute.globalOperations()
+                        .get(getProjectId(), operation.getName());
                     operation = get.execute();
                 }
             }

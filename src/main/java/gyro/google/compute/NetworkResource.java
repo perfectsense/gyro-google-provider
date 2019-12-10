@@ -16,15 +16,12 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.Set;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
 import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -44,14 +41,15 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *     google::network network-example
+ *     google::compute-network network-example
  *         name: "vpc-example"
  *         description: "vpc-example-desc"
  *         routing-mode: "GLOBAL"
  *     end
  */
-@Type("network")
+@Type("compute-network")
 public class NetworkResource extends ComputeResource implements Copyable<Network> {
+
     private String name;
     private String description;
     private String routingMode;
@@ -87,7 +85,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
      * The routing mode for the network. Valid values are ``GLOBAL`` or ``REGIONAL``.
      */
     @Required
-    @ValidStrings({"GLOBAL", "REGIONAL"})
+    @ValidStrings({ "GLOBAL", "REGIONAL" })
     @Updatable
     public String getRoutingMode() {
         return routingMode != null ? routingMode.toUpperCase() : null;
@@ -118,27 +116,17 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Network network = client.networks().get(getProjectId(), getName()).execute();
-            copyFrom(network);
+        Network network = client.networks().get(getProjectId(), getName()).execute();
+        copyFrom(network);
 
-            return true;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getMessage().matches("The resource (.*) was not found")) {
-                return false;
-            } else {
-                throw new GyroException(je.getDetails().getMessage());
-            }
-        } catch (IOException ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        return true;
     }
 
     @Override
-    public void create(GyroUI ui, State state) {
+    public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
         Network network = new Network();
@@ -150,52 +138,33 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         networkRoutingConfig.setRoutingMode(getRoutingMode());
         network.setRoutingConfig(networkRoutingConfig);
 
-        try {
-            Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
-            Operation operation = insert.execute();
-            waitForCompletion(client, operation);
+        Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
+        Operation operation = insert.execute();
+        waitForCompletion(client, operation);
 
-            refresh();
-        } catch (GyroException ge) {
-            throw ge;
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        refresh();
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
-            networkRoutingConfig.setRoutingMode(getRoutingMode());
+        NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
+        networkRoutingConfig.setRoutingMode(getRoutingMode());
 
-            Network network = client.networks().get(getProjectId(), getName()).execute();
-            network.setRoutingConfig(networkRoutingConfig);
+        Network network = client.networks().get(getProjectId(), getName()).execute();
+        network.setRoutingConfig(networkRoutingConfig);
 
-            Operation operation = client.networks().patch(getProjectId(), getName(), network).execute();
-            waitForCompletion(client, operation);
-
-            refresh();
-        } catch (GyroException ge) {
-            throw ge;
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        Operation operation = client.networks().patch(getProjectId(), getName(), network).execute();
+        waitForCompletion(client, operation);
+        refresh();
     }
 
     @Override
-    public void delete(GyroUI ui, State state) {
+    public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        try {
-            Operation operation = client.networks().delete(getProjectId(), getName()).execute();
-            waitForCompletion(client, operation);
-        } catch (GyroException ge) {
-            throw ge;
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+        Operation operation = client.networks().delete(getProjectId(), getName()).execute();
+        waitForCompletion(client, operation);
     }
 }

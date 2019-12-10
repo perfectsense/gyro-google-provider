@@ -62,7 +62,7 @@
  *
  * .. code:: shell
  *
- *     google::network backend
+ *     google::compute-network backend
  *         name: 'backend'
  *
  *         {@literal @}uses-credentials: 'project-2'
