@@ -21,11 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.Buckets;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -75,19 +73,10 @@ public class BucketFinder extends GoogleFinder<Storage, Bucket, BucketResource> 
     @Override
     protected List<Bucket> findGoogle(Storage client, Map<String, String> filters) throws Exception {
         if (filters.containsKey("name")) {
-            try {
-                Bucket bucket = client.buckets().get(filters.get("name")).execute();
+            Bucket bucket = client.buckets().get(filters.get("name")).execute();
 
-                if (bucket != null) {
-                    return Collections.singletonList(bucket);
-                }
-
-            } catch (GoogleJsonResponseException e) {
-                if (e.getDetails().getCode() == 404) {
-                    return new ArrayList<>();
-                } else {
-                    throw new GyroException(e.getDetails().getMessage());
-                }
+            if (bucket != null) {
+                return Collections.singletonList(bucket);
             }
         }
 
