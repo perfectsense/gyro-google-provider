@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import com.psddev.dari.util.StringUtils;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
@@ -92,10 +93,14 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The request path of the health check request.
+     * The request path of the health check request. Prefixes the path with a / if missing.
      */
     @Updatable
     public String getRequestPath() {
+        if (requestPath != null) {
+            requestPath = StringUtils.ensureStart(requestPath, "/");
+        }
+
         return requestPath;
     }
 
