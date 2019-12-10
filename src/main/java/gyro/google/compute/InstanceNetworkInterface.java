@@ -16,12 +16,11 @@
 
 package gyro.google.compute;
 
+import java.util.List;
+
 import com.google.api.services.compute.model.NetworkInterface;
 import gyro.core.resource.Updatable;
-import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-
-import java.util.List;
 
 public class InstanceNetworkInterface implements Copyable<NetworkInterface> {
 
@@ -72,7 +71,6 @@ public class InstanceNetworkInterface implements Copyable<NetworkInterface> {
      * Array of configurations for this interface. Currently, only ``NE_TO_ONE_NAT`` is supported. If unspecified this instance will have no external internet access.
      */
     @Updatable
-    @ValidStrings({"NE_TO_ONE_NAT"})
     public List<InstanceAccessConfig> getAccessConfigs() {
         return accessConfigs;
     }

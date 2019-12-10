@@ -16,6 +16,9 @@
 
 package gyro.google.compute;
 
+import java.util.List;
+import java.util.Set;
+
 import com.google.api.services.compute.model.Instance;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
@@ -23,10 +26,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.google.Copyable;
 
-import java.util.List;
-import java.util.Set;
-
-public class InstanceResource  extends ComputeResource implements Copyable<Instance> {
+public class InstanceResource extends ComputeResource implements Copyable<Instance> {
 
     private String name;
     private String machineType;
@@ -79,22 +79,22 @@ public class InstanceResource  extends ComputeResource implements Copyable<Insta
     }
 
     @Override
-    public boolean refresh() {
+    public boolean doRefresh() throws Exception {
         return false;
     }
 
     @Override
-    public void create(GyroUI ui, State state) throws Exception {
+    public void doCreate(GyroUI ui, State state) throws Exception {
 
     }
 
     @Override
-    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
     }
 
     @Override
-    public void delete(GyroUI ui, State state) throws Exception {
+    public void doDelete(GyroUI ui, State state) throws Exception {
 
     }
 

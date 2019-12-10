@@ -16,11 +16,11 @@
 
 package gyro.google.compute;
 
+import java.util.Map;
+
 import com.google.api.services.compute.model.AttachedDiskInitializeParams;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
-
-import java.util.Map;
 
 public class InstanceAttachedDiskInitializeParams implements Copyable<AttachedDiskInitializeParams> {
 

@@ -16,12 +16,12 @@
 
 package gyro.google.compute;
 
+import java.util.List;
+
 import com.google.api.services.compute.model.AttachedDisk;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
-
-import java.util.List;
 
 public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
 
@@ -33,7 +33,7 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     private InstanceAttachedDiskInitializeParams initializeParams;
     private String diskInterface; // model name is reserved 'interface'
     private String mode;
-//    private String source;
+    //    private String source;
     private String type;
 
     /**
@@ -112,7 +112,7 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
      * Disk interface to use for attaching this disk. Valid values are ``SCSI`` or ``NVME``. Default is ``SCSI``. Persistent disks must always use ``SCSI`` and the request will fail if you attempt to attach a persistent disk in any other format than ``SCSI``.
      */
     @Updatable
-    @ValidStrings({"SCSI", "NVME"})
+    @ValidStrings({ "SCSI", "NVME" })
     public String getDiskInterface() {
         return diskInterface;
     }
@@ -125,7 +125,7 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
      * The mode in which to attach this disk. Valid values are ``READ_WRITE`` or ``READ_ONLY``. Default is ``READ_WRITE``.
      */
     @Updatable
-    @ValidStrings({"READ_WRITE", "READ_ONLY"})
+    @ValidStrings({ "READ_WRITE", "READ_ONLY" })
     public String getMode() {
         return mode;
     }
@@ -134,23 +134,23 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
         this.mode = mode;
     }
 
-//    /**
-//     * The Persistent Disk resource.
-//     */
-//    @Updatable
-//    public String getSource() {
-//        return source;
-//    }
-//
-//    public void setSource(String source) {
-//        this.source = source;
-//    }
+    //    /**
+    //     * The Persistent Disk resource.
+    //     */
+    //    @Updatable
+    //    public String getSource() {
+    //        return source;
+    //    }
+    //
+    //    public void setSource(String source) {
+    //        this.source = source;
+    //    }
 
     /**
      * Type of the disk, valid values are ``SCRATCH`` or ``PERSISTENT``. Default is ``PERSISTENT``.
      */
     @Updatable
-    @ValidStrings({"SCRATCH", "PERSISTENT"})
+    @ValidStrings({ "SCRATCH", "PERSISTENT" })
     public String getType() {
         return type;
     }
