@@ -72,8 +72,8 @@ public class GlobalAddressResource extends AbstractAddressResource {
     public void doCreate(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
         Address address = copyTo().setIpVersion(getIpVersion());
-
         Operation.Error error = waitForCompletion(compute, compute.globalAddresses().insert(getProjectId(), address).execute());
+
         if (error != null) {
             throw new GyroException(error.toPrettyString());
         }
@@ -83,7 +83,11 @@ public class GlobalAddressResource extends AbstractAddressResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
-        compute.globalAddresses().delete(getProjectId(), getName()).execute();
+        Operation.Error error = waitForCompletion(compute, compute.globalAddresses().delete(getProjectId(), getName()).execute());
+
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     @Override

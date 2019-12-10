@@ -17,14 +17,13 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
 import com.google.api.services.compute.model.AddressList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -79,37 +78,26 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
 
     @Override
     protected List<Address> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        try {
+        if (filters.containsKey("filter")) {
             List<Address> addresses = new ArrayList<>();
             String pageToken = null;
 
-            if (filters.containsKey("filter")) {
-                do {
-                    AddressList addressList = client.globalAddresses().list(getProjectId())
-                        .setFilter(filters.get("filter"))
-                        .setPageToken(pageToken)
-                        .execute();
-                    pageToken = addressList.getNextPageToken();
+            do {
+                AddressList addressList = client.globalAddresses().list(getProjectId())
+                    .setFilter(filters.get("filter"))
+                    .setPageToken(pageToken)
+                    .execute();
+                pageToken = addressList.getNextPageToken();
 
-                    if (addressList.getItems() != null) {
-                        addresses.addAll(addressList.getItems());
-                    } else {
-                        break;
-                    }
+                if (addressList.getItems() != null) {
+                    addresses.addAll(addressList.getItems());
+                }
 
-                } while (pageToken != null);
+            } while (pageToken != null);
 
-                return addresses;
-            } else {
-                return findAllGoogle(client);
-            }
-
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails().getCode() == 404) {
-                return new ArrayList<>();
-            } else {
-                throw new GyroException(e.getDetails().getMessage());
-            }
+            return addresses;
         }
+
+        return Collections.emptyList();
     }
 }

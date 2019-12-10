@@ -17,18 +17,17 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
 import com.google.api.services.compute.model.AddressAggregatedList;
 import com.google.api.services.compute.model.AddressList;
 import com.google.api.services.compute.model.AddressesScopedList;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -82,8 +81,8 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
                 .execute();
 
             if (aggregatedList.getItems() != null) {
-                pageToken = aggregatedList.getNextPageToken();
                 aggregatedList.getItems().remove("global");
+                pageToken = aggregatedList.getNextPageToken();
 
                 List<Address> aggregated = aggregatedList.getItems().values().stream()
                     .map(AddressesScopedList::getAddresses)
@@ -105,38 +104,26 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
 
     @Override
     protected List<Address> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        try {
+        if (filters.containsKey("region")) {
             List<Address> addresses = new ArrayList<>();
             String pageToken = null;
 
-            if (filters.containsKey("region")) {
-                do {
-                    AddressList addressList = client.addresses().list(getProjectId(), filters.get("region"))
-                        .setFilter(filters.get("filter"))
-                        .setPageToken(pageToken)
-                        .execute();
+            do {
+                AddressList addressList = client.addresses().list(getProjectId(), filters.get("region"))
+                    .setFilter(filters.get("filter"))
+                    .setPageToken(pageToken)
+                    .execute();
+                pageToken = addressList.getNextPageToken();
 
-                    if (addressList.getItems() != null) {
-                        pageToken = addressList.getNextPageToken();
+                if (addressList.getItems() != null) {
+                    addresses.addAll(addressList.getItems());
+                }
 
-                        addresses.addAll(addressList.getItems());
-                    } else {
-                        break;
-                    }
+            } while (pageToken != null);
 
-                } while (pageToken != null);
-
-                return addresses;
-            } else {
-                return findAllGoogle(client);
-            }
-
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails().getCode() == 404) {
-                return new ArrayList<>();
-            } else {
-                throw new GyroException(e.getDetails().getMessage());
-            }
+            return addresses;
         }
+
+        return Collections.emptyList();
     }
 }

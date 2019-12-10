@@ -186,22 +186,14 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         setAddressType(model.getAddressType());
         setPurpose(model.getPurpose());
 
-        String subNetworkLink = model.getSubnetwork();
-        if (subNetworkLink != null) {
-            String sunbNetworkName = model.getSubnetwork().substring(model.getSubnetwork().lastIndexOf('/') + 1);
-
-            if (!"default".equals(sunbNetworkName)) {
-                setSubnetwork(findById(SubnetworkResource.class, sunbNetworkName));
-            }
+        setSubnetwork(null);
+        if ((model.getSubnetwork() != null) && !model.getSubnetwork().endsWith("default")) {
+            setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         }
 
-        String networkLink = model.getNetwork();
-        if (networkLink != null) {
-            String networkName = model.getNetwork().substring(model.getNetwork().lastIndexOf('/') + 1);
-
-            if (!"default".equals(networkName)) {
-                setNetwork(findById(NetworkResource.class, networkName));
-            }
+        setNetwork(null);
+        if ((model.getNetwork() != null) && !model.getNetwork().endsWith("default")) {
+            setNetwork(findById(NetworkResource.class, model.getNetwork()));
         }
 
         setStatus(model.getStatus());

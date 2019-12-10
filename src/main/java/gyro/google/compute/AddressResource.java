@@ -92,8 +92,8 @@ public class AddressResource extends AbstractAddressResource {
         Address address = copyTo()
             .setRegion(getRegion())
             .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
-
         Operation.Error error = waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());
+
         if (error != null) {
             throw new GyroException(error.toPrettyString());
         }
@@ -103,7 +103,11 @@ public class AddressResource extends AbstractAddressResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
-        compute.addresses().delete(getProjectId(), getRegion(), getName()).execute();
+        Operation.Error error = waitForCompletion(compute, compute.addresses().delete(getProjectId(), getRegion(), getName()).execute());
+
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 
     @Override
