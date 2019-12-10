@@ -168,7 +168,8 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     public boolean doRefresh() throws Exception {
         Dns client = createClient(Dns.class);
         Policy policy = client.policies().get(getProjectId(), getName()).execute();
-        return refreshFrom(policy);
+        copyFrom(policy);
+        return true;
     }
 
     @Override
@@ -193,7 +194,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                 .collect(Collectors.toList()));
         }
         Policy response = client.policies().create(getProjectId(), policy).execute();
-        refreshFrom(response);
+        copyFrom(response);
     }
 
     @Override
@@ -227,7 +228,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
         }
         Dns client = createClient(Dns.class);
         PoliciesPatchResponse response = client.policies().patch(getProjectId(), getName(), policy).execute();
-        refreshFrom(response.getPolicy());
+        copyFrom(response.getPolicy());
     }
 
     @Override
@@ -267,10 +268,5 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                 })
                 .collect(Collectors.toList()));
         }
-    }
-
-    private boolean refreshFrom(Policy managedZone) {
-        copyFrom(managedZone);
-        return true;
     }
 }

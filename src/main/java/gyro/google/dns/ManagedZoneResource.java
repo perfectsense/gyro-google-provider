@@ -259,7 +259,8 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     public boolean doRefresh() throws Exception {
         Dns client = createClient(Dns.class);
         ManagedZone managedZone = client.managedZones().get(getProjectId(), getName()).execute();
-        return refreshFrom(managedZone);
+        copyFrom(managedZone);
+        return true;
     }
 
     @Override
@@ -267,7 +268,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         Dns client = createClient(Dns.class);
         ManagedZone managedZone = createManagedZone();
         ManagedZone response = client.managedZones().create(getProjectId(), managedZone).execute();
-        refreshFrom(response);
+        copyFrom(response);
     }
 
     @Override
@@ -377,11 +378,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         return errors;
     }
 
-    private boolean refreshFrom(ManagedZone managedZone) {
-        copyFrom(managedZone);
-        return true;
-    }
-
     private ManagedZone createManagedZone() {
         ManagedZone managedZone = new ManagedZone();
         managedZone.setDescription(getDescription());
@@ -423,7 +419,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
             response = getRequest.execute();
         }
         if (shouldRefresh) {
-            refreshFrom(response.getZoneContext().getNewValue());
+            copyFrom(response.getZoneContext().getNewValue());
         }
     }
 }
