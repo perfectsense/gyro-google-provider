@@ -88,7 +88,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     /**
-     * The http Health Check type.
+     * The http health check type.
      *
      * @subresource gyro.google.compute.HealthCheckHttpHealthCheck
      */
@@ -103,7 +103,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     /**
-     * The https Health Check type.
+     * The https health check type.
      *
      * @subresource gyro.google.compute.HealthCheckHttpsHealthCheck
      */
@@ -118,7 +118,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     /**
-     * The http2 Health Check type.
+     * The http2 health check type.
      *
      * @subresource gyro.google.compute.HealthCheckHttp2HealthCheck
      */
@@ -133,7 +133,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     /**
-     * The ssl Health Check type.
+     * The ssl health check type.
      *
      * @subresource gyro.google.compute.HealthCheckSslHealthCheck
      */
@@ -148,7 +148,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     /**
-     * The tcp Health Check type.
+     * The tcp health check type.
      *
      * @subresource gyro.google.compute.HealthCheckTcpHealthCheck
      */
