@@ -46,15 +46,15 @@ public class DnsPolicyTargetNameServer extends Diffable
 
     }
 
+    @Override
+    public String primaryKey() {
+        return getIpv4Address();
+    }
+
     public PolicyAlternativeNameServerConfigTargetNameServer copyTo() {
         PolicyAlternativeNameServerConfigTargetNameServer policyAlternativeNameServerConfigTargetNameServer = new PolicyAlternativeNameServerConfigTargetNameServer();
         policyAlternativeNameServerConfigTargetNameServer.setIpv4Address(getIpv4Address());
         return policyAlternativeNameServerConfigTargetNameServer;
-    }
-
-    @Override
-    public String primaryKey() {
-        return getIpv4Address();
     }
 
     public boolean isEqualTo(PolicyAlternativeNameServerConfigTargetNameServer policyAlternativeNameServerConfigTargetNameServer) {

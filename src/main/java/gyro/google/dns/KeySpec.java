@@ -73,17 +73,17 @@ public class KeySpec extends Diffable implements Copyable<DnsKeySpec> {
         setKeyType(model.getKeyType());
     }
 
+    @Override
+    public String primaryKey() {
+        return getKeyType();
+    }
+
     public DnsKeySpec copyTo() {
         DnsKeySpec dnsKeySpec = new DnsKeySpec();
         dnsKeySpec.setAlgorithm(getAlgorithm());
         dnsKeySpec.setKeyLength(getKeyLength());
         dnsKeySpec.setKeyType(getKeyType());
         return dnsKeySpec;
-    }
-
-    @Override
-    public String primaryKey() {
-        return getKeyType();
     }
 
     public boolean isEqualTo(DnsKeySpec dnsKeySpec) {

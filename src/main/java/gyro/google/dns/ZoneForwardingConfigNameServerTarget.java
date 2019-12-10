@@ -43,15 +43,15 @@ public class ZoneForwardingConfigNameServerTarget extends Diffable
         setIpv4Address(model.getIpv4Address());
     }
 
+    @Override
+    public String primaryKey() {
+        return getIpv4Address();
+    }
+
     public ManagedZoneForwardingConfigNameServerTarget copyTo() {
         ManagedZoneForwardingConfigNameServerTarget managedZoneForwardingConfigNameServerTarget = new ManagedZoneForwardingConfigNameServerTarget();
         managedZoneForwardingConfigNameServerTarget.setIpv4Address(getIpv4Address());
         return managedZoneForwardingConfigNameServerTarget;
-    }
-
-    @Override
-    public String primaryKey() {
-        return getIpv4Address();
     }
 
     public boolean isEqualTo(ManagedZoneForwardingConfigNameServerTarget managedZoneForwardingConfigNameServerTarget) {
