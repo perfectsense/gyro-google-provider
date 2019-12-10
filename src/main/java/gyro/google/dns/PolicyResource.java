@@ -126,7 +126,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     }
 
     /**
-     * Unique identifier for the resource; defined by the server (output only).
+     * The generated ID for the policy.
      */
     @Output
     public String getId() {

@@ -101,7 +101,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     private String visibility;
 
     /**
-     * The time that this resource was created on the server. This is in RFC3339 text format. Output only.
+     * The time that this resource was created on the server. This is in RFC3339 text format.
      */
     @Output
     public String getCreationTime() {
@@ -169,7 +169,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * Unique identifier for the resource; defined by the server (output only)
+     * The generated ID for the managed zone.
      */
     @Output
     public String getId() {
@@ -219,7 +219,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * Delegate your managed_zone to these virtual name servers; defined by the server (output only)
+     * Delegate your managed_zone to these virtual name servers.
      */
     @Output
     public List<String> getNameServers() {

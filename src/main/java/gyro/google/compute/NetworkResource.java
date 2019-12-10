@@ -110,7 +110,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     }
 
     /**
-     * [Output Only] Server-defined URL for the resource.
+     * Server-defined URL for the resource.
      */
     @Output
     public String getSelfLink() {

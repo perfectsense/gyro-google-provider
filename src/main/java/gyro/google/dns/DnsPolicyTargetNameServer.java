@@ -20,7 +20,6 @@ import java.util.Optional;
 
 import com.google.api.services.dns.model.PolicyAlternativeNameServerConfigTargetNameServer;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -33,7 +32,6 @@ public class DnsPolicyTargetNameServer extends Diffable
      * IPv4 address to forward to.
      */
     @Required
-    @Updatable
     public String getIpv4Address() {
         return ipv4Address;
     }
