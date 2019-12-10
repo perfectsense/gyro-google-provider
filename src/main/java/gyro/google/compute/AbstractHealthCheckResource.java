@@ -297,46 +297,31 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
             healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         }
 
-        if (isUpdate) {
-            healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
-        }
-
+        healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
         if (getHttpHealthCheck() != null) {
             healthCheck.setType(getHttpHealthCheck().getType());
             healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
         }
 
-        if (isUpdate) {
-            healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
-        }
-
+        healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
         if (getHttpsHealthCheck() != null) {
             healthCheck.setType(getHttpsHealthCheck().getType());
             healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
         }
 
-        if (isUpdate) {
-            healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
-        }
-
+        healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
         if (getHttp2HealthCheck() != null) {
             healthCheck.setType(getHttp2HealthCheck().getType());
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
         }
 
-        if (isUpdate) {
-            healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
-        }
-
+        healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
         if (getSslHealthCheck() != null) {
             healthCheck.setType(getSslHealthCheck().getType());
             healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
         }
 
-        if (isUpdate) {
-            healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
-        }
-
+        healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
         if (getTcpHealthCheck() != null) {
             healthCheck.setType(getTcpHealthCheck().getType());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
