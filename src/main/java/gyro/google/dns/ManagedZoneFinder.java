@@ -16,17 +16,14 @@
 
 package gyro.google.dns;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.api.services.dns.model.ManagedZonesListResponse;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -57,34 +54,22 @@ public class ManagedZoneFinder extends GoogleFinder<Dns, ManagedZone, ManagedZon
     }
 
     @Override
-    protected List<ManagedZone> findAllGoogle(Dns client) {
+    protected List<ManagedZone> findAllGoogle(Dns client) throws Exception {
         List<ManagedZone> allZones = new ArrayList<>();
-        try {
-            Dns.ManagedZones.List request = client.managedZones().list(getProjectId());
-            String nextPageToken = null;
+        Dns.ManagedZones.List request = client.managedZones().list(getProjectId());
+        String nextPageToken = null;
 
-            do {
-                ManagedZonesListResponse response = request.execute();
-                allZones.addAll(response.getManagedZones());
-                nextPageToken = response.getNextPageToken();
-                request.setPageToken(nextPageToken);
-            } while (nextPageToken != null);
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        do {
+            ManagedZonesListResponse response = request.execute();
+            allZones.addAll(response.getManagedZones());
+            nextPageToken = response.getNextPageToken();
+            request.setPageToken(nextPageToken);
+        } while (nextPageToken != null);
         return allZones;
     }
 
     @Override
-    protected List<ManagedZone> findGoogle(Dns client, Map<String, String> filters) {
-        try {
-            return Collections.singletonList(client.managedZones().get(getProjectId(), filters.get("name")).execute());
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+    protected List<ManagedZone> findGoogle(Dns client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.managedZones().get(getProjectId(), filters.get("name")).execute());
     }
 }

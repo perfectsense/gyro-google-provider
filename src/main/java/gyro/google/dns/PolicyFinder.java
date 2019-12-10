@@ -16,17 +16,14 @@
 
 package gyro.google.dns;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.PoliciesListResponse;
 import com.google.api.services.dns.model.Policy;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -57,34 +54,22 @@ public class PolicyFinder extends GoogleFinder<Dns, Policy, PolicyResource> {
     }
 
     @Override
-    protected List<Policy> findAllGoogle(Dns client) {
+    protected List<Policy> findAllGoogle(Dns client) throws Exception {
         List<Policy> allPolicies = new ArrayList<>();
-        try {
-            Dns.Policies.List request = client.policies().list(getProjectId());
-            String nextPageToken = null;
+        Dns.Policies.List request = client.policies().list(getProjectId());
+        String nextPageToken = null;
 
-            do {
-                PoliciesListResponse response = request.execute();
-                allPolicies.addAll(response.getPolicies());
-                nextPageToken = response.getNextPageToken();
-                request.setPageToken(nextPageToken);
-            } while (nextPageToken != null);
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        do {
+            PoliciesListResponse response = request.execute();
+            allPolicies.addAll(response.getPolicies());
+            nextPageToken = response.getNextPageToken();
+            request.setPageToken(nextPageToken);
+        } while (nextPageToken != null);
         return allPolicies;
     }
 
     @Override
-    protected List<Policy> findGoogle(Dns client, Map<String, String> filters) {
-        try {
-            return Collections.singletonList(client.policies().get(getProjectId(), filters.get("name")).execute());
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+    protected List<Policy> findGoogle(Dns client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.policies().get(getProjectId(), filters.get("name")).execute());
     }
 }

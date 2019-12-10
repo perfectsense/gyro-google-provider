@@ -16,17 +16,14 @@
 
 package gyro.google.dns;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.api.services.dns.model.ResourceRecordSetsListResponse;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -57,29 +54,23 @@ public class ResourceRecordSetFinder extends GoogleFinder<Dns, ResourceRecordSet
     }
 
     @Override
-    protected List<ResourceRecordSet> findAllGoogle(Dns client) {
+    protected List<ResourceRecordSet> findAllGoogle(Dns client) throws Exception {
         // TODO: return all resource record sets through out all zones?
         return Collections.emptyList();
     }
 
     @Override
-    protected List<ResourceRecordSet> findGoogle(Dns client, Map<String, String> filters) {
+    protected List<ResourceRecordSet> findGoogle(Dns client, Map<String, String> filters) throws Exception {
         List<ResourceRecordSet> allRecordSets = new ArrayList<>();
-        try {
-            Dns.ResourceRecordSets.List request = client.resourceRecordSets().list(getProjectId(), filters.get("name"));
-            String nextPageToken = null;
+        Dns.ResourceRecordSets.List request = client.resourceRecordSets().list(getProjectId(), filters.get("name"));
+        String nextPageToken = null;
 
-            do {
-                ResourceRecordSetsListResponse response = request.execute();
-                allRecordSets.addAll(response.getRrsets());
-                nextPageToken = response.getNextPageToken();
-                request.setPageToken(nextPageToken);
-            } while (nextPageToken != null);
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (IOException ex) {
-            throw new GyroException(ex);
-        }
+        do {
+            ResourceRecordSetsListResponse response = request.execute();
+            allRecordSets.addAll(response.getRrsets());
+            nextPageToken = response.getNextPageToken();
+            request.setPageToken(nextPageToken);
+        } while (nextPageToken != null);
         return allRecordSets;
     }
 }
