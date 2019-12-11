@@ -74,7 +74,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     // Read-only
     private String region;
     private String selfLink;
-    private String subNetwork;
+    private String subnetwork;
 
     /**
      * The name of the instance group. The name must be 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash. (Required)
@@ -166,15 +166,15 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     }
 
     /**
-     * The fully-qualified URL of the subNetwork of which this instance group belongs.
+     * The fully-qualified URL of the subnetwork of which this instance group belongs.
      */
     @Output
-    public String getSubNetwork() {
-        return subNetwork;
+    public String getSubnetwork() {
+        return subnetwork;
     }
 
-    public void setSubNetwork(String subNetwork) {
-        this.subNetwork = subNetwork;
+    public void setSubnetwork(String subnetwork) {
+        this.subnetwork = subnetwork;
     }
 
     @Override
@@ -228,7 +228,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         setZone(instanceGroup.getZone());
         setRegion(instanceGroup.getRegion());
         setSelfLink(instanceGroup.getSelfLink());
-        setSubNetwork(instanceGroup.getSubnetwork());
+        setSubnetwork(instanceGroup.getSubnetwork());
 
         if (instanceGroup.getNetwork() != null) {
             setNetwork(findById(
@@ -252,7 +252,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         instanceGroup.setZone(getZone());
         instanceGroup.setRegion(getRegion());
         instanceGroup.setSelfLink(getSelfLink());
-        instanceGroup.setSubnetwork(getSubNetwork());
+        instanceGroup.setSubnetwork(getSubnetwork());
 
         if (getNetwork() != null) {
             instanceGroup.setNetwork(getNetwork().getSelfLink());
