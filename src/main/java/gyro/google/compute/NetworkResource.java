@@ -57,11 +57,11 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the network. (Required)
      */
-    @Id
     @Required
     public String getName() {
         return name;
@@ -108,12 +108,26 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         this.id = id;
     }
 
+    /**
+     * The fully-qualified URL linking back to the network.
+     */
+    @Id
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
     @Override
     public void copyFrom(Network network) {
         setId(network.getId().toString());
         setRoutingMode(network.getRoutingConfig().getRoutingMode());
         setDescription(network.getDescription());
         setName(network.getName());
+        setSelfLink(network.getSelfLink());
     }
 
     @Override

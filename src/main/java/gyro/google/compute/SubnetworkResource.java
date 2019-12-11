@@ -22,10 +22,10 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Subnetwork;
 import com.google.api.services.compute.model.SubnetworksSetPrivateIpGoogleAccessRequest;
-import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -62,6 +62,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the subnet. (Required)
@@ -166,6 +167,19 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         this.id = id;
     }
 
+    /**
+     * The fully-qualified URL linking back to the subnetwork.
+     */
+    @Id
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
     @Override
     public void copyFrom(Subnetwork subnetwork) {
         setId(subnetwork.getId().toString());
@@ -176,8 +190,9 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         setName(subnetwork.getName());
         setNetwork(findById(
             NetworkResource.class,
-            subnetwork.getNetwork().substring(subnetwork.getNetwork().lastIndexOf("/") + 1)));
+            subnetwork.getNetwork()));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
+        setSelfLink(subnetwork.getSelfLink());
     }
 
     @Override
@@ -196,7 +211,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
         Subnetwork subnetwork = new Subnetwork();
         subnetwork.setName(getName());
-        subnetwork.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
+        subnetwork.setNetwork(getNetwork().getSelfLink());
         subnetwork.setDescription(getDescription());
         subnetwork.setIpCidrRange(getIpCidrRange());
         subnetwork.setEnableFlowLogs(getEnableFlowLogs());
