@@ -245,7 +245,9 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
         PolicyAlternativeNameServerConfig policyAlternativeNameServerConfig = model.getAlternativeNameServerConfig();
 
         if (policyAlternativeNameServerConfig != null) {
-            DnsPolicyAlternativeNameServerConfig alternativeNameServerConfig = getAlternativeNameServerConfig();
+            DnsPolicyAlternativeNameServerConfig alternativeNameServerConfig =
+                Optional.ofNullable(getAlternativeNameServerConfig())
+                    .orElse(newSubresource(DnsPolicyAlternativeNameServerConfig.class));
             alternativeNameServerConfig.copyFrom(policyAlternativeNameServerConfig);
         }
         setDescription(model.getDescription());

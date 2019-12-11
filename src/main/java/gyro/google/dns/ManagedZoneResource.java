@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.api.client.util.Data;
@@ -331,13 +332,15 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         ManagedZoneDnsSecConfig dnssecConfig = model.getDnssecConfig();
 
         if (dnssecConfig != null) {
-            ZoneDnsSecConfig zoneDnsSecConfig = getDnssecConfig();
+            ZoneDnsSecConfig zoneDnsSecConfig = Optional.ofNullable(getDnssecConfig())
+                .orElse(newSubresource(ZoneDnsSecConfig.class));
             zoneDnsSecConfig.copyFrom(dnssecConfig);
         }
         ManagedZoneForwardingConfig forwardingConfig = model.getForwardingConfig();
 
         if (forwardingConfig != null) {
-            ZoneForwardingConfig zoneForwardingConfig = getForwardingConfig();
+            ZoneForwardingConfig zoneForwardingConfig = Optional.ofNullable(getForwardingConfig())
+                .orElse(newSubresource(ZoneForwardingConfig.class));
             zoneForwardingConfig.copyFrom(forwardingConfig);
         }
         setId(model.getId().toString());
@@ -348,7 +351,8 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         ManagedZonePrivateVisibilityConfig privateVisibilityConfig = model.getPrivateVisibilityConfig();
 
         if (privateVisibilityConfig != null) {
-            ZonePrivateVisibilityConfig zonePrivateVisibilityConfig = getPrivateVisibilityConfig();
+            ZonePrivateVisibilityConfig zonePrivateVisibilityConfig = Optional.ofNullable(getPrivateVisibilityConfig())
+                .orElse(newSubresource(ZonePrivateVisibilityConfig.class));
             zonePrivateVisibilityConfig.copyFrom(privateVisibilityConfig);
         }
         setVisibility(model.getVisibility());
