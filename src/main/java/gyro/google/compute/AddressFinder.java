@@ -79,23 +79,15 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
             AddressAggregatedList aggregatedList = client.addresses().aggregatedList(getProjectId())
                 .setPageToken(pageToken)
                 .execute();
+            pageToken = aggregatedList.getNextPageToken();
 
-            if (aggregatedList.getItems() != null) {
-                aggregatedList.getItems().remove("global");
-                pageToken = aggregatedList.getNextPageToken();
+            aggregatedList.getItems().remove("global");
 
-                List<Address> aggregated = aggregatedList.getItems().values().stream()
-                    .map(AddressesScopedList::getAddresses)
-                    .filter(Objects::nonNull)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
-
-                if (!aggregated.isEmpty()) {
-                    addresses.addAll(aggregated);
-                }
-            } else {
-                break;
-            }
+            addresses.addAll(aggregatedList.getItems().values().stream()
+                .map(AddressesScopedList::getAddresses)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .collect(Collectors.toList()));
 
         } while (pageToken != null);
 
@@ -115,9 +107,7 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
                     .execute();
                 pageToken = addressList.getNextPageToken();
 
-                if (addressList.getItems() != null) {
-                    addresses.addAll(addressList.getItems());
-                }
+                addresses.addAll(addressList.getItems());
 
             } while (pageToken != null);
 

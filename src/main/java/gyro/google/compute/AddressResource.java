@@ -97,6 +97,7 @@ public class AddressResource extends AbstractAddressResource {
         if (error != null) {
             throw new GyroException(error.toPrettyString());
         }
+
         refresh();
     }
 

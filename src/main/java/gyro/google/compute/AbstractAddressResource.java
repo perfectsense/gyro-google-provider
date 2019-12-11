@@ -31,7 +31,6 @@ import gyro.google.Copyable;
 
 public abstract class AbstractAddressResource extends ComputeResource implements Copyable<Address> {
 
-    private String id;
     private String name;
     private String description;
     private String address;
@@ -42,18 +41,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     private NetworkResource network;
     private String status;
     private String selfLink;
-
-    /**
-     * Internal Google id.
-     */
-    @Output
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     /**
      * Name for the resource. See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements.

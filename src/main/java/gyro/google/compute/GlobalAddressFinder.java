@@ -65,11 +65,7 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
                 .execute();
             pageToken = addressList.getNextPageToken();
 
-            if (addressList.getItems() != null) {
-                addresses.addAll(addressList.getItems());
-            } else {
-                break;
-            }
+            addresses.addAll(addressList.getItems());
 
         } while (pageToken != null);
 
@@ -89,9 +85,7 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
                     .execute();
                 pageToken = addressList.getNextPageToken();
 
-                if (addressList.getItems() != null) {
-                    addresses.addAll(addressList.getItems());
-                }
+                addresses.addAll(addressList.getItems());
 
             } while (pageToken != null);
 
