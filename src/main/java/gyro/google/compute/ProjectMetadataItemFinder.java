@@ -33,9 +33,9 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    project-metadata-item: $(external-query google::project-metadata-item { key: 'example-key'})
+ *    project-metadata-item: $(external-query google::compute-project-metadata-item { key: 'example-key'})
  */
-@Type("project-metadata-item")
+@Type("compute-project-metadata-item")
 public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.Items, ProjectMetadataItemResource> {
 
     private String key;
@@ -58,7 +58,11 @@ public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.It
 
     @Override
     protected List<Metadata.Items> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        Metadata.Items item = client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems()
+        Metadata.Items item = client.projects()
+            .get(getProjectId())
+            .execute()
+            .getCommonInstanceMetadata()
+            .getItems()
             .stream()
             .filter(r -> filters.get("key").equals(r.getKey()))
             .findFirst()

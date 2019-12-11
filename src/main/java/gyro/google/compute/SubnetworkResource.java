@@ -41,15 +41,15 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *     google::subnet subnet-example
+ *     google::compute-subnet subnet-example
  *         name: "subnet-example"
  *         description: "subnet-example-description"
  *         ip-cidr-range: "10.0.0.0/16"
- *         network: $(google::network network-example-subnet)
+ *         network: $(google::compute-network network-example-subnet)
  *         region: "us-east1"
  *     end
  */
-@Type("subnet")
+@Type("compute-subnet")
 public class SubnetworkResource extends ComputeResource implements Copyable<Subnetwork> {
 
     private String name;

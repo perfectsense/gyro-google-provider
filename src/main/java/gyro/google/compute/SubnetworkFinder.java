@@ -39,9 +39,9 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    subnet: $(external-query google::subnet { name: 'subnet-example', region: 'us-east1'})
+ *    subnet: $(external-query google::compute-subnet { name: 'subnet-example', region: 'us-east1'})
  */
-@Type("subnet")
+@Type("compute-subnet")
 public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, SubnetworkResource> {
 
     private String name;

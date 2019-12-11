@@ -42,13 +42,13 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *     google::network network-example
+ *     google::compute-network network-example
  *         name: "vpc-example"
  *         description: "vpc-example-desc"
  *         routing-mode: "GLOBAL"
  *     end
  */
-@Type("network")
+@Type("compute-network")
 public class NetworkResource extends ComputeResource implements Copyable<Network> {
 
     private String name;

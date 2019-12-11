@@ -41,12 +41,12 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *     google::project-metadata-item project-metadata-item-example
+ *     google::compute-project-metadata-item project-metadata-item-example
  *         key: "example-key"
  *         value: "example-value"
  *     end
  */
-@Type("project-metadata-item")
+@Type("compute-project-metadata-item")
 public class ProjectMetadataItemResource extends ComputeResource implements Copyable<Metadata.Items> {
 
     private String key;
