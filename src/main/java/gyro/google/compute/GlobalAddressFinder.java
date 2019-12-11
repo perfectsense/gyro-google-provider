@@ -17,7 +17,6 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -74,8 +73,9 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
 
     @Override
     protected List<Address> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        List<Address> addresses = new ArrayList<>();
+
         if (filters.containsKey("filter")) {
-            List<Address> addresses = new ArrayList<>();
             String pageToken = null;
 
             do {
@@ -88,10 +88,8 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
                 addresses.addAll(addressList.getItems());
 
             } while (pageToken != null);
-
-            return addresses;
         }
 
-        return Collections.emptyList();
+        return addresses;
     }
 }

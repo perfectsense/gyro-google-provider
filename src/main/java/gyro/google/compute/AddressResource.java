@@ -65,10 +65,6 @@ public class AddressResource extends AbstractAddressResource {
     }
 
     public void setRegion(String region) {
-        if ((region != null) && region.startsWith("http")) {
-            String[] paths = region.split("/");
-            region = paths[paths.length - 1];
-        }
         this.region = region;
     }
 
@@ -92,7 +88,9 @@ public class AddressResource extends AbstractAddressResource {
         Address address = copyTo()
             .setRegion(getRegion())
             .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
-        Operation.Error error = waitForCompletion(compute, compute.addresses().insert(getProjectId(), getRegion(), address).execute());
+        Operation.Error error = waitForCompletion(
+            compute,
+            compute.addresses().insert(getProjectId(), getRegion(), address).execute());
 
         if (error != null) {
             throw new GyroException(error.toPrettyString());
@@ -104,7 +102,9 @@ public class AddressResource extends AbstractAddressResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
-        Operation.Error error = waitForCompletion(compute, compute.addresses().delete(getProjectId(), getRegion(), getName()).execute());
+        Operation.Error error = waitForCompletion(
+            compute,
+            compute.addresses().delete(getProjectId(), getRegion(), getName()).execute());
 
         if (error != null) {
             throw new GyroException(error.toPrettyString());
@@ -115,6 +115,11 @@ public class AddressResource extends AbstractAddressResource {
     public void copyFrom(Address model) {
         super.copyFrom(model);
         setNetworkTier(model.getNetworkTier());
-        setRegion(model.getRegion());
+
+        // API only accepts region name, but model returns the region selfLink so strip name from the end of URL.
+        if ((model.getRegion() != null) && model.getRegion().startsWith("http")) {
+            String[] paths = model.getRegion().split("/");
+            setRegion(paths[paths.length - 1]);
+        }
     }
 }
