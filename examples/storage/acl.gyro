@@ -1,0 +1,16 @@
+google::bucket 'acl-bucket'
+    name: 'acl-example'
+    location: 'US-CENTRAL1'
+end
+
+google::acl 'acl-one'
+   bucket: $(google::bucket acl-bucket)
+   entity: 'domain-brightspot.com'
+   role: 'OWNER'
+end
+
+google::acl 'acl-two'
+   bucket: $(google::bucket acl-bucket)
+   entity: 'domain-sample.com'
+   role: 'READER'
+end

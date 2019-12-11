@@ -1,0 +1,92 @@
+google::bucket logs
+    name: 'example-logging'
+    location: 'US-CENTRAL1'
+end
+
+google::bucket bucket-1
+    name: 'example-one'
+    location: 'US-CENTRAL1'
+    predefined-acl: 'publicRead'
+    predefined-default-object-acl: 'bucketOwnerFullControl'
+    default-event-based-hold: true
+    storage-class: 'STANDARD'
+
+    labels: {
+        foo: 'bar_1900',
+        bar: 'foo_1800'
+    }
+
+    cors
+        max-age-seconds: 3200
+        method: ['GET']
+        origin: ['*']
+        response-header: ['application-x-test']
+    end
+
+    cors
+        max-age-seconds: 3300
+        method: ['POST']
+        origin: ['*']
+        response-header: ['application-x-test']
+    end
+
+    billing
+        requester-pays: false
+    end
+
+    iam-configuration
+        uniform-bucket-level-access
+            enabled: false
+        end
+    end
+
+    lifecycle
+        rule
+            action
+                type: 'Delete'
+            end
+            condition
+                age: 7
+           end
+        end
+
+        rule
+            action
+                type: 'Delete'
+            end
+
+            condition
+                num-newer-versions: 10
+            end
+        end
+
+        rule
+            action
+               type: 'Delete'
+            end
+
+            condition
+                is-live: true
+                age: 15
+            end
+        end
+    end
+
+    logging
+        log-bucket: $(google::bucket logs)
+        log-object-prefix: 'gyro'
+    end
+
+    retention-policy
+        retention-period: 3200
+    end
+
+    versioning
+        enabled: false
+    end
+
+    website
+        main-page-suffix: 'index.html'
+        not-found-page: '404.jpg'
+    end
+end
