@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import com.google.api.services.dns.model.PolicyNetwork;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.compute.NetworkResource;
 
@@ -32,6 +33,7 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
      *
      * @resource gyro.google.compute.NetworkResource
      */
+    @Required
     public NetworkResource getNetwork() {
         return network;
     }
