@@ -16,17 +16,15 @@
 
 package gyro.google.compute;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroup;
 import com.google.api.services.compute.model.InstanceGroupsSetNamedPortsRequest;
 import com.google.api.services.compute.model.Operation;
-import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -66,8 +64,8 @@ import gyro.google.Copyable;
  *          end
  *
  *          named-port
- *              name: "port-a"
- *              port: 123
+ *              name: "port-b"
+ *              port: 300
  *          end
  *     end
  *
@@ -83,7 +81,7 @@ import gyro.google.Copyable;
  *          name: "instance-group-network-example"
  *          description: "instance-group-network-example-description"
  *          zone: "us-central1-a"
- *          network: $(network-example)
+ *          network: $(google::compute-network network-example)
  *     end
  */
 @Type("compute-instance-group")
@@ -130,6 +128,10 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
      */
     @Updatable
     public List<InstanceGroupNamedPort> getNamedPort() {
+        if (namedPort == null) {
+            namedPort = new ArrayList<>();
+        }
+
         return namedPort;
     }
 
@@ -209,7 +211,16 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
-        client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
+        Operation operation = client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
+
+        state.save();
+
+        saveNamedPort(client);
+
         refresh();
     }
 
@@ -217,9 +228,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
-        if (changedFieldNames.contains("named-port")) {
-            saveNamedPort(client, (InstanceGroupResource) current);
-        }
+        saveNamedPort(client);
 
         refresh();
     }
@@ -246,7 +255,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         if (instanceGroup.getNetwork() != null) {
             setNetwork(findById(
                 NetworkResource.class,
-                instanceGroup.getNetwork().substring(instanceGroup.getNetwork().lastIndexOf("/") + 1)));
+                instanceGroup.getNetwork()));
         }
 
         if (instanceGroup.getNamedPorts() != null) {
@@ -268,33 +277,21 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         instanceGroup.setSubnetwork(getSubNetwork());
 
         if (getNetwork() != null) {
-            instanceGroup.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
+            instanceGroup.setNetwork(getNetwork().getSelfLink());
         }
 
-        if (getNamedPort() != null) {
-            instanceGroup.setNamedPorts(getNamedPort().stream()
-                .map(InstanceGroupNamedPort::toNamedPort)
-                .collect(Collectors.toList()));
-        }
+        instanceGroup.setNamedPorts(getNamedPort().stream()
+            .map(InstanceGroupNamedPort::toNamedPort)
+            .collect(Collectors.toList()));
 
         return instanceGroup;
     }
 
-    private void saveNamedPort(Compute client, InstanceGroupResource oldInstanceGroupResource) {
-        try {
-            InstanceGroupsSetNamedPortsRequest namedPortsRequest = new InstanceGroupsSetNamedPortsRequest();
-            if (getNamedPort() == null) {
-                namedPortsRequest.setNamedPorts(Collections.emptyList());
-            } else {
-                namedPortsRequest.setNamedPorts(getNamedPort().stream()
-                    .map(InstanceGroupNamedPort::toNamedPort)
-                    .collect(Collectors.toList()));
-            }
-            client.instanceGroups().setNamedPorts(getProjectId(), getZone(), getName(), namedPortsRequest).execute();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(je.getDetails().getMessage());
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
+    private void saveNamedPort(Compute client) throws Exception {
+        InstanceGroupsSetNamedPortsRequest namedPortsRequest = new InstanceGroupsSetNamedPortsRequest();
+        namedPortsRequest.setNamedPorts(getNamedPort().stream()
+            .map(InstanceGroupNamedPort::toNamedPort)
+            .collect(Collectors.toList()));
+        client.instanceGroups().setNamedPorts(getProjectId(), getZone(), getName(), namedPortsRequest).execute();
     }
 }

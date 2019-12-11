@@ -44,7 +44,19 @@ import gyro.google.GoogleFinder;
 @Type("compute-instance-group")
 public class InstanceGroupFinder extends GoogleFinder<Compute, InstanceGroup, InstanceGroupResource> {
 
+    private String name;
     private String zone;
+
+    /**
+     * The name of the instance group.
+     */
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     /**
      * The zone that the instance group is within.
