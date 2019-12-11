@@ -48,7 +48,7 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
         String networkUrl = model.getNetworkUrl();
 
         if (networkUrl != null) {
-            setNetwork(findById(NetworkResource.class, networkUrl.substring(networkUrl.lastIndexOf("/") + 1)));
+            setNetwork(findById(NetworkResource.class, networkUrl));
         }
     }
 

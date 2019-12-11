@@ -45,7 +45,7 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
         String networkUrl = model.getNetworkUrl();
 
         if (networkUrl != null) {
-            setNetwork(findById(NetworkResource.class, networkUrl.substring(networkUrl.lastIndexOf("/") + 1)));
+            setNetwork(findById(NetworkResource.class, networkUrl));
         }
     }
 
