@@ -48,10 +48,12 @@ import gyro.core.validation.ValidationError;
  *         name: "region-disk-example"
  *         description: "region-disk-example-desc"
  *         region: "us-central1"
+ *
  *         replica-zones: [
  *             "us-central1-c",
  *             "us-central1-a"
  *         ]
+ *
  *         size-gb: 32
  *         type: "pd-ssd"
  *         labels: {
@@ -65,11 +67,14 @@ import gyro.core.validation.ValidationError;
  *     google::compute-region-disk region-disk-snapshot-example
  *         name: "region-disk-snapshot-example"
  *         region: "us-central1"
+ *
  *         replica-zones: [
  *             "us-central1-c",
  *             "us-central1-a"
  *         ]
+ *
  *         source-snapshot: $(google::compute-snapshot region-snapshot-example)
+ *
  *         source-snapshot-encryption-key
  *             kms-key-name: "my-kms-key-name"
  *         end
@@ -105,6 +110,7 @@ public class RegionDiskResource extends AbstractDiskResource {
     }
 
     public void setReplicaZones(List<String> replicaZones) {
+        // Full URLs are required for replicaZones, so format the zone to a full URL so it is accepted
         this.replicaZones = replicaZones != null
             ? replicaZones.stream().map(zone -> toZoneUrl(getProjectId(), zone)).collect(Collectors.toList())
             : null;

@@ -5,9 +5,11 @@ google::compute-snapshot snapshot-example
     labels: {
         label-key: 'label-value'
     }
+
     source-disk-encryption-key
         raw-key: "disk-256-bit-raw-key"
     end
+
     storage-locations: [
         "us-west1"
     ]
@@ -16,6 +18,7 @@ end
 google::compute-snapshot region-snapshot-example
     name: "region-snapshot-example"
     source-region-disk: $(google::compute-region-disk region-disk-example)
+
     storage-locations: [
         "us"
     ]

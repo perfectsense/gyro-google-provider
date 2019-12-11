@@ -60,9 +60,11 @@ import gyro.google.Copyable;
  *         labels: {
  *             label-key: 'label-value'
  *         }
+ *
  *         source-disk-encryption-key
  *             raw-key: "disk-256-bit-raw-key"
  *         end
+ *
  *         storage-locations: [
  *             "us-west1"
  *         ]
@@ -73,6 +75,7 @@ import gyro.google.Copyable;
  *     google::compute-snapshot region-snapshot-example
  *         name: "region-snapshot-example"
  *         source-region-disk: $(google::compute-region-disk region-disk-example)
+ *
  *         storage-locations: [
  *             "us"
  *         ]
@@ -124,7 +127,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The source disk used to create this snapshot.
+     * The source disk used to create this snapshot. Conflicts with ``region-source-disk``.
      */
     @ConflictsWith("region-source-disk")
     public DiskResource getSourceDisk() {
@@ -136,7 +139,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The regional source disk used to create this snapshot.
+     * The regional source disk used to create this snapshot. Conflicts with ``source-disk``.
      */
     @ConflictsWith("source-disk")
     public RegionDiskResource getSourceRegionDisk() {
@@ -148,7 +151,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The encryption key used to encrypt the snapshot. If you do not provide an encryption key when creating the snapshot, the snapshot will be encrypted using an automatically generated key.
+     * The encryption key used to encrypt the snapshot. If you do not provide an encryption key when creating the snapshot, the snapshot will be encrypted using an automatically generated key. Conflicts with ``source-disk-encryption-key``.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
@@ -162,7 +165,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The encryption key of the source disk. This is required if the source disk is protected by a customer-supplied encryption key.
+     * The encryption key of the source disk. This is required if the source disk is protected by a customer-supplied encryption key. Conflicts with ``snapshot-encryption-key``.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
@@ -407,7 +410,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         if (getSourceDisk() == null && getSourceRegionDisk() == null) {
             errors.add(new ValidationError(
                 this,
-                "source-disk",
+                null,
                 "Either a 'source-disk' or 'source-region-disk' is required when creating a snapshot."));
         }
 

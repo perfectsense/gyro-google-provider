@@ -2,10 +2,12 @@ google::compute-region-disk region-disk-example
     name: "region-disk-example"
     description: "region-disk-example-desc"
     region: "us-central1"
+
     replica-zones: [
          "us-central1-c",
          "us-central1-a"
     ]
+
     size-gb: 32
     type: "pd-ssd"
     labels: {
@@ -17,11 +19,14 @@ end
 google::compute-region-disk region-disk-snapshot-example
     name: "region-disk-snapshot-example"
     region: "us-central1"
+
     replica-zones: [
          "us-central1-c",
          "us-central1-a"
     ]
+
     source-snapshot: $(google::compute-snapshot region-snapshot-example)
+
     source-snapshot-encryption-key
         kms-key-name: "my-kms-key-name"
     end

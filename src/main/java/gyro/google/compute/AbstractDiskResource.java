@@ -111,11 +111,12 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     public void setType(String type) {
+        // A full URL isn't required for type, so it is easier to strip out just the type rather than format the URL
         this.type = type != null ? type.substring(type.lastIndexOf("/") + 1) : null;
     }
 
     /**
-     * The encryption key used to encrypt the disk. Only use this if you have not specified a source snapshot. If you do not provide an encryption key when creating the disk, the disk will be encrypted using an automatically generated key.
+     * The encryption key used to encrypt the disk. Only use this if you have not specified a source snapshot. If you do not provide an encryption key when creating the disk, the disk will be encrypted using an automatically generated key. Conflicts with ``source-snapshot-encryption-key``.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
@@ -129,7 +130,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The encryption key of the source snapshot. This is required if the source snapshot is protected by a customer-supplied encryption key.
+     * The encryption key of the source snapshot. This is required if the source snapshot is protected by a customer-supplied encryption key. Conflicts with ``source-disk-encryption-key``.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
