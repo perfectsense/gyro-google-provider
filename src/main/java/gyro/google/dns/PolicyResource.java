@@ -32,7 +32,6 @@ import com.google.api.services.dns.model.PolicyNetwork;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -66,8 +65,6 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     private Boolean enableInboundForwarding;
 
     private Boolean enableLogging;
-
-    private String id;
 
     private String name;
 
@@ -123,18 +120,6 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
 
     public void setEnableLogging(Boolean enableLogging) {
         this.enableLogging = enableLogging;
-    }
-
-    /**
-     * The generated ID for the policy.
-     */
-    @Output
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     /**
@@ -253,7 +238,6 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
         setDescription(model.getDescription());
         setEnableInboundForwarding(model.getEnableInboundForwarding());
         setEnableLogging(model.getEnableLogging());
-        setId(model.getId().toString());
         setName(model.getName());
         List<PolicyNetwork> networks = model.getNetworks();
 

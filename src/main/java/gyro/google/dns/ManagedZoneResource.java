@@ -77,8 +77,6 @@ import gyro.google.GoogleResource;
 @Type("dns-managed-zone")
 public class ManagedZoneResource extends GoogleResource implements Copyable<ManagedZone> {
 
-    private String creationTime;
-
     private String description;
 
     private String dnsName;
@@ -86,8 +84,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     private ZoneDnsSecConfig dnssecConfig;
 
     private ZoneForwardingConfig forwardingConfig;
-
-    private String id;
 
     private Map<String, String> labels;
 
@@ -100,18 +96,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     private ZonePrivateVisibilityConfig privateVisibilityConfig;
 
     private String visibility;
-
-    /**
-     * The time that this resource was created on the server. This is in RFC3339 text format.
-     */
-    @Output
-    public String getCreationTime() {
-        return creationTime;
-    }
-
-    public void setCreationTime(String creationTime) {
-        this.creationTime = creationTime;
-    }
 
     /**
      * A mutable string of at most 1024 characters associated with this resource for the user's convenience. Has no effect on the managed zone's function.
@@ -167,18 +151,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
 
     public void setForwardingConfig(ZoneForwardingConfig forwardingConfig) {
         this.forwardingConfig = forwardingConfig;
-    }
-
-    /**
-     * The generated ID for the managed zone.
-     */
-    @Output
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     /**
@@ -326,7 +298,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
 
     @Override
     public void copyFrom(ManagedZone model) {
-        setCreationTime(model.getCreationTime());
         setDescription(model.getDescription());
         setDnsName(model.getDnsName());
         ManagedZoneDnsSecConfig dnssecConfig = model.getDnssecConfig();
@@ -343,7 +314,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
                 .orElse(newSubresource(ZoneForwardingConfig.class));
             zoneForwardingConfig.copyFrom(forwardingConfig);
         }
-        setId(model.getId().toString());
         setLabels(model.getLabels());
         setName(model.getName());
         setNameServerSet(model.getNameServerSet());
