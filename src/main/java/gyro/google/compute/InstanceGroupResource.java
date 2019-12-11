@@ -40,16 +40,8 @@ import gyro.google.Copyable;
 /**
  * Creates an instance group.
  *
- * Examples
- * --------
- *
- * .. code-block:: gyro
- *
- *     google::compute-instance-group instance-group-example
- *          name: "instance-group-example"
- *          description: "instance-group-example-description"
- *          zone: "us-central1-a"
- *     end
+ * Example
+ * -------
  *
  * .. code-block:: gyro
  *
@@ -69,20 +61,6 @@ import gyro.google.Copyable;
  *          end
  *     end
  *
- * .. code-block:: gyro
- *
- *     google::compute-network network-example
- *         name: "network-example"
- *         description: "network-example-description"
- *         routing-mode: "Regional"
- *     end
- *
- *     google::compute-instance-group instance-group-network-example
- *          name: "instance-group-network-example"
- *          description: "instance-group-network-example-description"
- *          zone: "us-central1-a"
- *          network: $(google::compute-network network-example)
- *     end
  */
 @Type("compute-instance-group")
 public class InstanceGroupResource extends ComputeResource implements Copyable<InstanceGroup> {
@@ -292,6 +270,12 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         namedPortsRequest.setNamedPorts(getNamedPort().stream()
             .map(InstanceGroupNamedPort::toNamedPort)
             .collect(Collectors.toList()));
-        client.instanceGroups().setNamedPorts(getProjectId(), getZone(), getName(), namedPortsRequest).execute();
+        Operation operation = client.instanceGroups()
+            .setNamedPorts(getProjectId(), getZone(), getName(), namedPortsRequest)
+            .execute();
+        Operation.Error error = waitForCompletion(client, operation);
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
     }
 }

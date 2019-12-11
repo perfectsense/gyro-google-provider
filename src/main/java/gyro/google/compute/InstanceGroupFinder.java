@@ -79,6 +79,7 @@ public class InstanceGroupFinder extends GoogleFinder<Compute, InstanceGroup, In
                 .aggregatedList(getProjectId())
                 .setPageToken(nextPageToken)
                 .execute();
+            nextPageToken = instanceGroupAggregatedList.getNextPageToken();
             instanceGroups.addAll(instanceGroupAggregatedList
                 .getItems().values().stream()
                 .map(InstanceGroupsScopedList::getInstanceGroups)

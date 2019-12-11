@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.NamedPort;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -28,12 +27,11 @@ public class InstanceGroupNamedPort extends Diffable implements Copyable<NamedPo
     private String name;
     private Integer port;
 
-    /*
+    /**
      * The name for this named port.
      */
     @Required
     @Regex("(?:(?:[-a-z0-9]{1,63}\\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))")
-    @Updatable
     public String getName() {
         return name;
     }
@@ -42,11 +40,10 @@ public class InstanceGroupNamedPort extends Diffable implements Copyable<NamedPo
         this.name = name;
     }
 
-    /*
+    /**
      * The port number for this named port.
      */
     @Required
-    @Updatable
     public Integer getPort() {
         return port;
     }

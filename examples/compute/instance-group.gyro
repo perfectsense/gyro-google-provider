@@ -1,6 +1,6 @@
 google::compute-network network-example
-    name: "vpc-example"
-    description: "vpc-example-desc"
+    name: "vpc-example-instance-group"
+    description: "vpc-example-instance-group-description"
     routing-mode: "Regional"
 end
 
@@ -8,7 +8,7 @@ google::compute-instance-group instance-group-example
     name: "instance-group-example"
     description: "instance-group-example-description"
     zone: "us-central1-b"
-    network: $(network-example)
+    network: $(google::compute-network network-example)
 
     named-port
         name: "port-a"
