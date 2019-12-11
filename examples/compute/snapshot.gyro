@@ -1,3 +1,8 @@
+google::compute-disk disk-example
+    name: "disk-example"
+    zone: "us-central1-a"
+end
+
 google::compute-snapshot snapshot-example
     name: "snapshot-example"
     description: "snapshot-example-desc"
@@ -12,6 +17,16 @@ google::compute-snapshot snapshot-example
 
     storage-locations: [
         "us-west1"
+    ]
+end
+
+google::compute-region-disk region-disk-example
+    name: "region-disk-example"
+    region: "us-central1"
+
+    replica-zones: [
+         "us-central1-c",
+         "us-central1-a"
     ]
 end
 

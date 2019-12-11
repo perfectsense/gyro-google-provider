@@ -16,6 +16,11 @@ google::compute-region-disk region-disk-example
     physical-block-size-bytes: 16384
 end
 
+google::compute-snapshot region-snapshot-example
+    name: "region-snapshot-example"
+    source-region-disk: $(google::compute-region-disk region-disk-example)
+end
+
 google::compute-region-disk region-disk-snapshot-example
     name: "region-disk-snapshot-example"
     region: "us-central1"
