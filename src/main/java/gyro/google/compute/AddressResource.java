@@ -73,10 +73,6 @@ public class AddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         Address address = compute.addresses().get(getProjectId(), getRegion(), getName()).execute();
 
-        if (address == null) {
-            return false;
-        }
-
         copyFrom(address);
 
         return true;
@@ -118,8 +114,7 @@ public class AddressResource extends AbstractAddressResource {
 
         // API only accepts region name, but model returns the region selfLink so strip name from the end of URL.
         if ((model.getRegion() != null) && model.getRegion().startsWith("http")) {
-            String[] paths = model.getRegion().split("/");
-            setRegion(paths[paths.length - 1]);
+            setRegion(model.getRegion().substring(model.getRegion().lastIndexOf("/") + 1));
         }
     }
 }

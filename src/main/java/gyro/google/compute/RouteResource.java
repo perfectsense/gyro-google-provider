@@ -215,9 +215,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         setDescription(route.getDescription());
         setDestRange(route.getDestRange());
         setNetwork(findById(NetworkResource.class, route.getNetwork()));
-        setNetwork(findById(
-            NetworkResource.class,
-            route.getNetwork().substring(route.getNetwork().lastIndexOf("/") + 1)));
         setPriority(route.getPriority());
         setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
         setNextHopGateway(route.getNextHopGateway());
