@@ -104,18 +104,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The disk type used to create the disk.
-     */
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        // A full URL isn't required for type, so it is easier to strip out just the type rather than format the URL
-        this.type = type != null ? type.substring(type.lastIndexOf("/") + 1) : null;
-    }
-
-    /**
      * The encryption key used to encrypt the disk. Only use this if you have not specified a source snapshot. If you do not provide an encryption key when creating the disk, the disk will be encrypted using an automatically generated key. Conflicts with ``source-snapshot-encryption-key``.
      *
      * @subresource gyro.google.compute.EncryptionKey
@@ -272,10 +260,9 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         disk.setName(getName());
         disk.setDescription(getDescription());
         disk.setSizeGb(getSizeGb());
-        disk.setType(getType());
         disk.setPhysicalBlockSizeBytes(getPhysicalBlockSizeBytes());
         disk.setLabels(getLabels());
-        disk.setSourceSnapshot(getSourceSnapshot().getSelfLink());
+        disk.setSourceSnapshot(getSourceSnapshot() != null ? getSourceSnapshot().getSelfLink() : null);
         disk.setDiskEncryptionKey(getDiskEncryptionKey() != null
             ? getDiskEncryptionKey().toCustomerEncryptionKey()
             : Data.nullOf(CustomerEncryptionKey.class));

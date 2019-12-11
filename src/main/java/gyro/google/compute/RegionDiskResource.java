@@ -27,6 +27,7 @@ import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.RegionDisksResizeRequest;
 import com.google.api.services.compute.model.RegionSetLabelsRequest;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
+import com.google.cloud.compute.v1.ProjectRegionDiskTypeName;
 import com.google.cloud.compute.v1.ProjectZoneName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -85,6 +86,7 @@ public class RegionDiskResource extends AbstractDiskResource {
 
     private String region;
     private List<String> replicaZones;
+    private String type;
 
     /**
      * The region where the disk resides. (Required)
@@ -116,12 +118,26 @@ public class RegionDiskResource extends AbstractDiskResource {
             : null;
     }
 
+    /**
+     * The disk type used to create the disk.
+     */
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        // Full URLs are required for type, so format the type to a full URL so it is accepted
+        requires("region");
+        this.type = type != null ? toRegionDiskTypeUrl(getProjectId(), type, getRegion()) : null;
+    }
+
     @Override
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
         setRegion(disk.getRegion());
         setReplicaZones(disk.getReplicaZones());
+        setType(disk.getType());
     }
 
     @Override
@@ -141,6 +157,7 @@ public class RegionDiskResource extends AbstractDiskResource {
         Disk disk = toDisk();
         disk.setRegion(getRegion());
         disk.setReplicaZones(getReplicaZones());
+        disk.setType(getType());
 
         Compute.RegionDisks.Insert insert = client.regionDisks().insert(getProjectId(), getRegion(), disk);
         Operation operation = insert.execute();
@@ -237,5 +254,13 @@ public class RegionDiskResource extends AbstractDiskResource {
             return ProjectZoneName.parse(parseZone).toString();
         }
         return ProjectZoneName.format(projectId, zone);
+    }
+
+    static String toRegionDiskTypeUrl(String projectId, String type, String region) {
+        String parseDiskType = formatResource(projectId, type);
+        if (ProjectRegionDiskTypeName.isParsableFrom(parseDiskType)) {
+            return ProjectRegionDiskTypeName.parse(parseDiskType).toString();
+        }
+        return ProjectRegionDiskTypeName.format(type, projectId, region);
     }
 }

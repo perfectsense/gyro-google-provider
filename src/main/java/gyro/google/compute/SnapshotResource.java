@@ -346,6 +346,9 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
 
         if (getSourceDisk() != null) {
             ProjectZoneDiskName zoneDisk = DiskResource.parseDisk(getProjectId(), getSourceDisk().getSelfLink());
+            if (zoneDisk == null) {
+                throw new GyroException("Invalid 'source-disk'.");
+            }
 
             snapshot.setSourceDisk(getSourceDisk().getSelfLink());
 
@@ -361,6 +364,9 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         } else if (getSourceRegionDisk() != null) {
             ProjectRegionDiskName regionDisk =
                 RegionDiskResource.parseRegionDisk(getProjectId(), getSourceRegionDisk().getSelfLink());
+            if (regionDisk == null) {
+                throw new GyroException("Invalid 'source-region-disk'.");
+            }
 
             snapshot.setSourceDisk(getSourceRegionDisk().getSelfLink());
 
@@ -412,21 +418,6 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
                 this,
                 null,
                 "Either a 'source-disk' or 'source-region-disk' is required when creating a snapshot."));
-        }
-
-        if (getSourceDisk() != null && DiskResource.parseDisk(getProjectId(), getSourceDisk().getSelfLink()) == null) {
-            errors.add(new ValidationError(
-                this,
-                "source-disk",
-                "Unable to parse 'source-disk'."));
-        }
-
-        if (getSourceRegionDisk() != null
-            && RegionDiskResource.parseRegionDisk(getProjectId(), getSourceRegionDisk().getSelfLink()) == null) {
-            errors.add(new ValidationError(
-                this,
-                "source-region-disk",
-                "Unable to parse 'source-region-disk'."));
         }
 
         if (getStorageLocations().size() > 1) {

@@ -24,6 +24,7 @@ import com.google.api.services.compute.model.DisksResizeRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.ZoneSetLabelsRequest;
 import com.google.cloud.compute.v1.ProjectZoneDiskName;
+import com.google.cloud.compute.v1.ProjectZoneDiskTypeName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -55,6 +56,7 @@ import gyro.core.validation.Required;
 public class DiskResource extends AbstractDiskResource {
 
     private String zone;
+    private String type;
 
     /**
      * The zone where the disk resides. (Required)
@@ -68,11 +70,25 @@ public class DiskResource extends AbstractDiskResource {
         this.zone = zone != null ? zone.substring(zone.lastIndexOf("/") + 1) : null;
     }
 
+    /**
+     * The disk type used to create the disk.
+     */
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        // Full URLs are required for type, so format the type to a full URL so it is accepted
+        requires("zone");
+        this.type = type != null ? toZoneDiskTypeUrl(getProjectId(), type, getZone()) : null;
+    }
+
     @Override
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
         setZone(disk.getZone());
+        setType(disk.getType());
     }
 
     @Override
@@ -91,6 +107,7 @@ public class DiskResource extends AbstractDiskResource {
 
         Disk disk = toDisk();
         disk.setZone(getZone());
+        disk.setType(getType());
 
         Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
         Operation operation = insert.execute();
@@ -161,5 +178,13 @@ public class DiskResource extends AbstractDiskResource {
             return ProjectZoneDiskName.parse(parseDiskName);
         }
         return null;
+    }
+
+    static String toZoneDiskTypeUrl(String projectId, String type, String zone) {
+        String parseDiskType = formatResource(projectId, type);
+        if (ProjectZoneDiskTypeName.isParsableFrom(parseDiskType)) {
+            return ProjectZoneDiskTypeName.parse(parseDiskType).toString();
+        }
+        return ProjectZoneDiskTypeName.format(type, projectId, zone);
     }
 }
