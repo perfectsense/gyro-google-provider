@@ -16,12 +16,17 @@
 
 package gyro.google.compute;
 
+import java.util.concurrent.TimeUnit;
+
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.Wait;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -84,13 +89,15 @@ public class AddressResource extends AbstractAddressResource {
         Address address = copyTo()
             .setRegion(getRegion())
             .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
-        Operation.Error error = waitForCompletion(
-            compute,
-            compute.addresses().insert(getProjectId(), getRegion(), address).execute());
 
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        // When Network/Subnetwork have just been created they may still be unavailable, so wait until ready.
+        boolean success = Wait.atMost(30, TimeUnit.SECONDS)
+             .prompt(false)
+             .checkEvery(10, TimeUnit.SECONDS)
+             .until(() -> createAddress(compute, address));
+         if (!success) {
+             throw new GyroException(String.format("The resource '%s' is not ready", getSubnetwork().getSelfLink()));
+         }
 
         refresh();
     }
@@ -116,5 +123,26 @@ public class AddressResource extends AbstractAddressResource {
         if ((model.getRegion() != null) && model.getRegion().startsWith("http")) {
             setRegion(model.getRegion().substring(model.getRegion().lastIndexOf("/") + 1));
         }
+    }
+
+    private boolean createAddress(Compute compute, Address address) throws Exception {
+        try {
+            Operation.Error error = waitForCompletion(
+                compute,
+                compute.addresses().insert(getProjectId(), getRegion(), address).execute());
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
+        } catch (GoogleJsonResponseException e) {
+            if (e.getDetails()
+                .getErrors()
+                .stream()
+                .map(GoogleJsonError.ErrorInfo::getReason)
+                .anyMatch("resourceNotReady"::equals)) {
+                return false;
+            }
+            throw e;
+        }
+        return true;
     }
 }
