@@ -77,7 +77,7 @@ import gyro.core.validation.ValidationError;
  *         source-snapshot: $(google::compute-snapshot region-snapshot-example)
  *
  *         source-snapshot-encryption-key
- *             kms-key-name: "my-kms-key-name"
+ *             raw-key: "snapshot-256-bit-raw-key"
  *         end
  *     end
  */

@@ -19,6 +19,10 @@ end
 google::compute-snapshot region-snapshot-example
     name: "region-snapshot-example"
     source-region-disk: $(google::compute-region-disk region-disk-example)
+
+    snapshot-encryption-key
+        raw-key: "snapshot-256-bit-raw-key"
+    end
 end
 
 google::compute-region-disk region-disk-snapshot-example
@@ -33,6 +37,6 @@ google::compute-region-disk region-disk-snapshot-example
     source-snapshot: $(google::compute-snapshot region-snapshot-example)
 
     source-snapshot-encryption-key
-        kms-key-name: "my-kms-key-name"
+        raw-key: "snapshot-256-bit-raw-key"
     end
 end
