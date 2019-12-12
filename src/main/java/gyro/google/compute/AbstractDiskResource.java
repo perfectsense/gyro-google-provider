@@ -42,7 +42,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private String description;
     private Long sizeGb;
     private SnapshotResource sourceSnapshot;
-    private String type;
     private EncryptionKey diskEncryptionKey;
     private EncryptionKey sourceSnapshotEncryptionKey;
     private Map<String, String> labels;
