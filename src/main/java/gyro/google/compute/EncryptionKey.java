@@ -1,9 +1,13 @@
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.api.services.compute.model.CustomerEncryptionKey;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.ConflictsWith;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 /**
@@ -18,7 +22,7 @@ public class EncryptionKey extends Diffable implements Copyable<CustomerEncrypti
     private String sha256;
 
     /**
-     * The 256-bit encryption key, encoded in RFC 4648 base64, that protects this resource. Conflicts with ``kms-key-name``.
+     * The 256-bit encryption key, encoded in RFC 4648 base64, that protects this resource. See `Encrypt disks with customer-supplied encryption keys <https://cloud.google.com/compute/docs/disks/customer-supplied-encryption>`_. Conflicts with ``kms-key-name``.
      */
     @ConflictsWith("kms-key-name")
     public String getRawKey() {
@@ -60,10 +64,28 @@ public class EncryptionKey extends Diffable implements Copyable<CustomerEncrypti
         setSha256(model.getSha256());
     }
 
+    @Override
+    public List<ValidationError> validate() {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (getRawKey() == null && getKmsKeyName() == null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "Either a 'raw-key' or 'kms-key-name' is required when creating an encryption key."));
+        }
+
+        return errors;
+    }
+
+    @Override
+    public String primaryKey() {
+        return "";
+    }
+
     CustomerEncryptionKey toCustomerEncryptionKey() {
         return new CustomerEncryptionKey()
             .setRawKey(getRawKey())
-            .setKmsKeyName(getKmsKeyName())
-            .setSha256(getSha256());
+            .setKmsKeyName(getKmsKeyName());
     }
 }
