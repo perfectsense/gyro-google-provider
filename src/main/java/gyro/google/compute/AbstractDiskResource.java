@@ -20,16 +20,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.CustomerEncryptionKey;
 import com.google.api.services.compute.model.Disk;
+import com.google.api.services.compute.model.Operation;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
 import com.google.cloud.compute.v1.ProjectZoneDiskName;
+import gyro.core.GyroException;
+import gyro.core.Wait;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
-import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
@@ -103,11 +110,10 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The encryption key used to encrypt the disk. Only use this if you have not specified a source snapshot. If you do not provide an encryption key when creating the disk, the disk will be encrypted using an automatically generated key. Conflicts with ``source-snapshot-encryption-key``.
+     * The encryption key used to encrypt the disk. Only use this if you have not specified a source snapshot. If you do not provide an encryption key when creating the disk, the disk will be encrypted using an automatically generated key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith("source-snapshot-encryption-key")
     public EncryptionKey getDiskEncryptionKey() {
         return diskEncryptionKey;
     }
@@ -117,11 +123,10 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The encryption key of the source snapshot. This is required if the source snapshot is protected by a customer-supplied encryption key. Conflicts with ``source-disk-encryption-key``.
+     * The encryption key of the source snapshot. This is required if the source snapshot is protected by a customer-supplied encryption key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith("source-disk-encryption-key")
     public EncryptionKey getSourceSnapshotEncryptionKey() {
         return sourceSnapshotEncryptionKey;
     }
@@ -238,20 +243,6 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         setSelfLink(disk.getSelfLink());
         setUsers(disk.getUsers());
         setLabelFingerprint(disk.getLabelFingerprint());
-
-        setDiskEncryptionKey(null);
-        if (disk.getDiskEncryptionKey() != null) {
-            EncryptionKey diskEncryption = newSubresource(EncryptionKey.class);
-            diskEncryption.copyFrom(disk.getDiskEncryptionKey());
-            setDiskEncryptionKey(diskEncryption);
-        }
-
-        setSourceSnapshotEncryptionKey(null);
-        if (disk.getSourceSnapshotEncryptionKey() != null) {
-            EncryptionKey sourceSnapshotEncryption = newSubresource(EncryptionKey.class);
-            sourceSnapshotEncryption.copyFrom(disk.getSourceSnapshotEncryptionKey());
-            setSourceSnapshotEncryptionKey(sourceSnapshotEncryption);
-        }
     }
 
     protected Disk toDisk() {
@@ -281,5 +272,35 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
             return ProjectRegionDiskName.parse(parseDisk).toString();
         }
         return disk;
+    }
+
+    void retryCreate(Compute client, ComputeRequest<Operation> insert) throws Exception {
+        boolean success = Wait.atMost(30, TimeUnit.SECONDS)
+            .prompt(false)
+            .checkEvery(10, TimeUnit.SECONDS)
+            .until(() -> createDisk(client, insert));
+        if (!success) {
+            throw new GyroException(String.format("The resource '%s' is not ready", getSourceSnapshot().getSelfLink()));
+        }
+    }
+
+    private boolean createDisk(Compute client, ComputeRequest<Operation> insert) throws Exception {
+        try {
+            Operation operation = insert.execute();
+            Operation.Error error = waitForCompletion(client, operation);
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
+        } catch (GoogleJsonResponseException je) {
+            if (je.getDetails()
+                .getErrors()
+                .stream()
+                .map(GoogleJsonError.ErrorInfo::getReason)
+                .anyMatch("resourceNotReady"::equals)) {
+                return false;
+            }
+            throw je;
+        }
+        return true;
     }
 }

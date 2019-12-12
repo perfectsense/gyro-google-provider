@@ -151,11 +151,10 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The encryption key used to encrypt the snapshot. If you do not provide an encryption key when creating the snapshot, the snapshot will be encrypted using an automatically generated key. Conflicts with ``source-disk-encryption-key``.
+     * The encryption key used to encrypt the snapshot. If you do not provide an encryption key when creating the snapshot, the snapshot will be encrypted using an automatically generated key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith("source-disk-encryption-key")
     public EncryptionKey getSnapshotEncryptionKey() {
         return snapshotEncryptionKey;
     }
@@ -165,11 +164,10 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The encryption key of the source disk. This is required if the source disk is protected by a customer-supplied encryption key. Conflicts with ``snapshot-encryption-key``.
+     * The encryption key of the source disk. This is required if the source disk is protected by a customer-supplied encryption key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
-    @ConflictsWith("snapshot-encryption-key")
     public EncryptionKey getSourceDiskEncryptionKey() {
         return sourceDiskEncryptionKey;
     }
@@ -302,20 +300,6 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         if (RegionDiskResource.parseRegionDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
             setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
         }
-
-        setSourceDiskEncryptionKey(null);
-        if (snapshot.getSourceDiskEncryptionKey() != null) {
-            EncryptionKey sourceDiskEncryption = newSubresource(EncryptionKey.class);
-            sourceDiskEncryption.copyFrom(snapshot.getSourceDiskEncryptionKey());
-            setSourceDiskEncryptionKey(sourceDiskEncryption);
-        }
-
-        setSnapshotEncryptionKey(null);
-        if (snapshot.getSnapshotEncryptionKey() != null) {
-            EncryptionKey snapshotEncryption = newSubresource(EncryptionKey.class);
-            snapshotEncryption.copyFrom(snapshot.getSnapshotEncryptionKey());
-            setSnapshotEncryptionKey(snapshotEncryption);
-        }
     }
 
     @Override
@@ -425,6 +409,13 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
                 this,
                 "storage-locations",
                 "Attaching more than one storage location is not supported."));
+        }
+
+        if (getSourceDiskEncryptionKey() != null && getSnapshotEncryptionKey() == null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "A 'snapshot-encryption-key' is required when providing a 'source-disk-encryption-key'."));
         }
 
         return errors;

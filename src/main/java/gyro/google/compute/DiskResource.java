@@ -110,11 +110,7 @@ public class DiskResource extends AbstractDiskResource {
         disk.setType(getType());
 
         Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
-        Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        retryCreate(client, insert);
 
         refresh();
     }
