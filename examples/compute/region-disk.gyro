@@ -14,11 +14,19 @@ google::compute-region-disk region-disk-example
         label-key: 'label-value'
     }
     physical-block-size-bytes: 16384
+
+    disk-encryption-key
+        raw-key: "disk-256-bit-raw-key"
+    end
 end
 
 google::compute-snapshot region-snapshot-example
     name: "region-snapshot-example"
     source-region-disk: $(google::compute-region-disk region-disk-example)
+
+    source-disk-encryption-key
+        raw-key: "disk-256-bit-raw-key"
+    end
 
     snapshot-encryption-key
         raw-key: "snapshot-256-bit-raw-key"

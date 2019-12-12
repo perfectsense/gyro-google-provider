@@ -65,6 +65,10 @@ import gyro.google.Copyable;
  *             raw-key: "disk-256-bit-raw-key"
  *         end
  *
+ *         snapshot-encryption-key
+ *             raw-key: "snapshot-256-bit-raw-key"
+ *         end
+ *
  *         storage-locations: [
  *             "us-west1"
  *         ]

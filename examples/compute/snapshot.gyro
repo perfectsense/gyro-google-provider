@@ -1,6 +1,10 @@
 google::compute-disk disk-example
     name: "disk-example"
     zone: "us-central1-a"
+
+    disk-encryption-key
+        raw-key: "disk-256-bit-raw-key"
+    end
 end
 
 google::compute-snapshot snapshot-example
@@ -13,6 +17,10 @@ google::compute-snapshot snapshot-example
 
     source-disk-encryption-key
         raw-key: "disk-256-bit-raw-key"
+    end
+
+    snapshot-encryption-key
+        raw-key: "snapshot-256-bit-raw-key"
     end
 
     storage-locations: [
