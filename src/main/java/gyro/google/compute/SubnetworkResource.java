@@ -168,7 +168,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * The fully qualified url for the subnet.
+     * The fully-qualified URL linking back to the subnetwork.
      */
     @Id
     @Output
@@ -193,6 +193,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
             NetworkResource.class,
             subnetwork.getNetwork()));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
+        setSelfLink(subnetwork.getSelfLink());
     }
 
     @Override

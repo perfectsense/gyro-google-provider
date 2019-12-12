@@ -109,7 +109,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     }
 
     /**
-     * The fully qualified url for the subnet.
+     * The fully-qualified URL linking back to the network.
      */
     @Id
     @Output
@@ -128,6 +128,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         setRoutingMode(network.getRoutingConfig().getRoutingMode());
         setDescription(network.getDescription());
         setName(network.getName());
+        setSelfLink(network.getSelfLink());
     }
 
     @Override
