@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Route;
-import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -214,9 +213,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         setDescription(route.getDescription());
         setDestRange(route.getDestRange());
         setNetwork(findById(NetworkResource.class, route.getNetwork()));
-        setNetwork(findById(
-            NetworkResource.class,
-            route.getNetwork().substring(route.getNetwork().lastIndexOf("/") + 1)));
         setPriority(route.getPriority());
         setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
         setNextHopGateway(route.getNextHopGateway());
@@ -241,7 +237,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         Route route = new Route();
         route.setName(getName());
         route.setDescription(getDescription());
-        route.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
+        route.setNetwork(getNetwork().getSelfLink());
         route.setDestRange(getDestRange());
         route.setNextHopGateway(getNextHopGateway());
         route.setNextHopVpnTunnel(getNextHopVpnTunnel());
