@@ -54,7 +54,7 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
     @Override
     public String primaryKey() {
         return Optional.ofNullable(getNetwork())
-            .map(NetworkResource::primaryKey)
+            .map(NetworkResource::getSelfLink)
             .orElse(super.primaryKey());
     }
 

@@ -55,7 +55,7 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
     @Override
     public String primaryKey() {
         return Optional.ofNullable(getNetwork())
-            .map(NetworkResource::primaryKey)
+            .map(NetworkResource::getSelfLink)
             .orElse(super.primaryKey());
     }
 
