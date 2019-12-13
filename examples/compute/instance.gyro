@@ -1,0 +1,18 @@
+google::instance gyro-dev-1
+    name: "gyro-development"
+    description: "Testing for Gyro"
+    zone: "us-west1-a"
+    machine-type: "zones/us-west1-a/machineTypes/n1-standard-2"
+
+    network-interfaces
+        network: $(external-query google::compute-network {name: "default"})
+    end
+
+    disks
+        boot: true
+
+        initialize-params
+           source-image: "projects/debian-cloud/global/images/family/debian-9"
+        end
+    end
+end
