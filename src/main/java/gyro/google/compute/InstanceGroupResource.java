@@ -25,7 +25,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroup;
 import com.google.api.services.compute.model.InstanceGroupsSetNamedPortsRequest;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -190,10 +189,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         Operation operation = client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         state.save();
 
@@ -215,10 +211,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         Operation operation = client.instanceGroups().delete(getProjectId(), getZone(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     @Override
@@ -273,9 +266,6 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         Operation operation = client.instanceGroups()
             .setNamedPorts(getProjectId(), getZone(), getName(), namedPortsRequest)
             .execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 }

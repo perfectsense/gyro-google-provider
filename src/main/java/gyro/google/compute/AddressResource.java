@@ -22,7 +22,6 @@ import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Address;
-import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -105,13 +104,9 @@ public class AddressResource extends AbstractAddressResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute compute = createClient(Compute.class);
-        Operation.Error error = waitForCompletion(
+        waitForCompletion(
             compute,
             compute.addresses().delete(getProjectId(), getRegion(), getName()).execute());
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
     }
 
     @Override
@@ -127,12 +122,9 @@ public class AddressResource extends AbstractAddressResource {
 
     private boolean createAddress(Compute compute, Address address) throws Exception {
         try {
-            Operation.Error error = waitForCompletion(
+            waitForCompletion(
                 compute,
                 compute.addresses().insert(getProjectId(), getRegion(), address).execute());
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
         } catch (GoogleJsonResponseException e) {
             if (e.getDetails()
                 .getErrors()
