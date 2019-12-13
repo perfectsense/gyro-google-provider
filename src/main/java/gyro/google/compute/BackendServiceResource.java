@@ -38,8 +38,36 @@ public abstract class BackendServiceResource extends ComputeResource implements 
 
     private List<ComputeBackend> backend;
 
+    /**
+     * Cloud CDN configuration for this BackendService.
+     *
+     private BackendServiceCdnPolicy cdnPolicy;
+     */
+    /**
+     * Settings controlling the volume of connections to a backend service.
+     *
+     * This field is applicable to either:   - A regional backend service with the service_protocol
+     * set to HTTP, HTTPS, or HTTP2, and load_balancing_scheme set to INTERNAL_MANAGED.  - A global
+     * backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED.
+     *
+     private CircuitBreakers circuitBreakers;
+     */
     private ComputeConnectionDraining connectionDraining;
 
+    /**
+     * Consistent Hash-based load balancing can be used to provide soft session affinity based on HTTP
+     * headers, cookies or other properties. This load balancing policy is applicable only for HTTP
+     * connections. The affinity to a particular destination host will be lost when one or more hosts
+     * are added/removed from the destination service. This field specifies parameters that control
+     * consistent hashing. This field is only applicable when localityLbPolicy is set to MAGLEV or
+     * RING_HASH.
+     *
+     * This field is applicable to either:   - A regional backend service with the service_protocol
+     * set to HTTP, HTTPS, or HTTP2, and load_balancing_scheme set to INTERNAL_MANAGED.  - A global
+     * backend service with the load_balancing_scheme set to INTERNAL_SELF_MANAGED.
+     *
+     private ConsistentHashLoadBalancerSettings consistentHash;
+     */
     private Map<String, String> customRequestHeaders;
 
     private String description;
@@ -50,11 +78,25 @@ public abstract class BackendServiceResource extends ComputeResource implements 
 
     private List<HealthCheckResource> healthCheck;
 
+    /**
+     *
+     private BackendServiceIAP iap;
+     */
     private String loadBalancingScheme;
 
     private String localityLbPolicy;
 
     private String name;
+
+    /**
+     * Settings controlling eviction of unhealthy hosts from the load balancing pool. This field is
+     * applicable to either: - A regional backend service with the service_protocol set to HTTP,
+     * HTTPS, or HTTP2, and load_balancing_scheme set to INTERNAL_MANAGED.  - A global backend service
+     * with the load_balancing_scheme set to INTERNAL_SELF_MANAGED.
+     *
+     private OutlierDetection outlierDetection;
+     */
+    //    private Integer port;
 
     private String portName;
 
@@ -236,6 +278,20 @@ public abstract class BackendServiceResource extends ComputeResource implements 
     public void setName(String name) {
         this.name = name;
     }
+
+    /**
+     * Deprecated in favor of portName. The TCP port to connect on the backend. The default value is
+     * 80.
+     *
+     * This cannot be used if the loadBalancingScheme is INTERNAL (Internal TCP/UDP Load Balancing).
+     */
+    //    public Integer getPort() {
+    //        return port;
+    //    }
+    //
+    //    public void setPort(Integer port) {
+    //        this.port = port;
+    //    }
 
     /**
      * A named port on a backend instance group representing the port for communication to the backend

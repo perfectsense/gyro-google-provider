@@ -38,6 +38,23 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     private List<String> paths;
 
     /**
+     * In response to a matching path, the load balancer performs advanced routing actions like URL
+     * rewrites, header transformations, etc. prior to forwarding the request to the selected backend.
+     * If routeAction specifies any  weightedBackendServices, service must not be set. Conversely if
+     * service is set, routeAction cannot contain any  weightedBackendServices. Only one of
+     * routeAction or urlRedirect must be set.
+     *
+     private ComputeHttpRouteAction routeAction;
+     */
+
+    /**
+     * When a path pattern is matched, the request is redirected to a URL specified by urlRedirect. If
+     * urlRedirect is specified, service or routeAction must not be set.
+     *
+     private ComputeHttpRedirectAction urlRedirect;
+     */
+
+    /**
      * The backend bucket resource to which traffic is directed if this
      * rule is matched. If routeAction is additionally specified, advanced routing actions like URL
      * Rewrites, etc. take effect prior to sending the request to the backend. However, if service is

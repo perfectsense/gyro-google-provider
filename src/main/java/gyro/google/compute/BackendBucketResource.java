@@ -39,6 +39,11 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
 
     private BucketResource bucket;
 
+    /**
+     * Cloud CDN configuration for this BackendBucket.
+     *
+     private BackendBucketCdnPolicy cdnPolicy;
+     */
     private String description;
 
     private Boolean enableCdn;

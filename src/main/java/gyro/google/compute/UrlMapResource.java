@@ -46,9 +46,15 @@ public class UrlMapResource extends ComputeResource implements Copyable<UrlMap> 
 
     private GlobalBackendServiceResource defaultBackendService;
 
+    private ComputeHttpRouteAction defaultRouteAction;
+
+    private ComputeHttpRedirectAction defaultUrlRedirect;
+
     private String description;
 
     private String fingerprint;
+
+    private ComputeHttpHeaderAction headerAction;
 
     private List<ComputeHostRule> hostRule;
 
@@ -97,6 +103,35 @@ public class UrlMapResource extends ComputeResource implements Copyable<UrlMap> 
     }
 
     /**
+     * defaultRouteAction takes effect when none of the  hostRules match. The load balancer performs
+     * advanced routing actions like URL rewrites, header transformations, etc. prior to forwarding
+     * the request to the selected backend. If defaultRouteAction specifies any
+     * weightedBackendServices, defaultService must not be set. Conversely if defaultService is set,
+     * defaultRouteAction cannot contain any  weightedBackendServices. Only one of defaultRouteAction
+     * or defaultUrlRedirect must be set.
+     */
+    public ComputeHttpRouteAction getDefaultRouteAction() {
+        return defaultRouteAction;
+    }
+
+    public void setDefaultRouteAction(ComputeHttpRouteAction defaultRouteAction) {
+        this.defaultRouteAction = defaultRouteAction;
+    }
+
+    /**
+     * When none of the specified hostRules match, the request is redirected to a URL specified by
+     * defaultUrlRedirect. If defaultUrlRedirect is specified, defaultService or defaultRouteAction
+     * must not be set.
+     */
+    public ComputeHttpRedirectAction getDefaultUrlRedirect() {
+        return defaultUrlRedirect;
+    }
+
+    public void setDefaultUrlRedirect(ComputeHttpRedirectAction defaultUrlRedirect) {
+        this.defaultUrlRedirect = defaultUrlRedirect;
+    }
+
+    /**
      * An optional description of this resource. Provide this property when you create the resource.
      */
     @Updatable
@@ -122,6 +157,19 @@ public class UrlMapResource extends ComputeResource implements Copyable<UrlMap> 
 
     public void setFingerprint(String fingerprint) {
         this.fingerprint = fingerprint;
+    }
+
+    /**
+     * Specifies changes to request and response headers that need to take effect for the selected
+     * backendService. The headerAction specified here take effect after headerAction specified under
+     * pathMatcher.
+     */
+    public ComputeHttpHeaderAction getHeaderAction() {
+        return headerAction;
+    }
+
+    public void setHeaderAction(ComputeHttpHeaderAction headerAction) {
+        this.headerAction = headerAction;
     }
 
     /**

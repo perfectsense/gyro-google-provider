@@ -35,14 +35,44 @@ public abstract class ForwardingRuleResource extends ComputeResource implements 
 
     private Boolean allPorts;
 
+    /**
+     * This field is only used for INTERNAL load balancing.
+     *
+     * For internal load balancing, this field identifies the BackendService resource to receive the
+     * matched traffic.
+     *
+     private String backendService;
+     */
     private String description;
 
     private String ipVersion;
 
     private String loadBalancingScheme;
 
+    /**
+     * Opaque filter criteria used by Loadbalancer to restrict routing configuration to a limited set
+     * xDS compliant clients. In their xDS requests to Loadbalancer, xDS clients present node
+     * metadata. If a match takes place, the relevant routing configuration is made available to those
+     * proxies. For each metadataFilter in this list, if its filterMatchCriteria is set to MATCH_ANY,
+     * at least one of the filterLabels must match the corresponding label provided in the metadata.
+     * If its filterMatchCriteria is set to MATCH_ALL, then all of its filterLabels must match with
+     * corresponding labels in the provided metadata. metadataFilters specified here can be overridden
+     * by those specified in the UrlMap that this ForwardingRule references. metadataFilters only
+     * applies to Loadbalancers that have their loadBalancingScheme set to INTERNAL_SELF_MANAGED.
+     *
+     private List<MetadataFilter> metadataFilters;
+     */
     private String name;
 
+    /**
+     * This field is not used for external load balancing.
+     *
+     * For INTERNAL and INTERNAL_SELF_MANAGED load balancing, this field identifies the network that
+     * the load balanced IP should belong to for this Forwarding Rule. If this field is not specified,
+     * the default network will be used.
+     *
+     private String network;
+     */
     private String networkTier;
 
     // TODO: provider better UI.
@@ -56,6 +86,26 @@ public abstract class ForwardingRuleResource extends ComputeResource implements 
 
     private String serviceName;
 
+    /**
+     * This field is only used for INTERNAL load balancing.
+     *
+     * For internal load balancing, this field identifies the subnetwork that the load balanced IP
+     * should belong to for this Forwarding Rule.
+     *
+     * If the network specified is in auto subnet mode, this field is optional. However, if the
+     * network is in custom subnet mode, a subnetwork must be specified.
+     *
+     private String subnetwork;
+     */
+    /**
+     * The URL of the target resource to receive the matched traffic. For regional forwarding rules,
+     * this target must live in the same region as the forwarding rule. For global forwarding rules,
+     * this target must be a global load balancing resource. The forwarded traffic must be of a type
+     * appropriate to the target object. For INTERNAL_SELF_MANAGED load balancing, only HTTP and HTTPS
+     * targets are valid.
+     */
+    // TODO: target can be any target resources.
+    //    private String target;
     protected abstract void doCopyFrom(ForwardingRule model);
 
     /**
