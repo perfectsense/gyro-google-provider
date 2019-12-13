@@ -128,7 +128,6 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         setRoutingMode(network.getRoutingConfig().getRoutingMode());
         setDescription(network.getDescription());
         setName(network.getName());
-        setSelfLink(network.getSelfLink());
     }
 
     @Override
