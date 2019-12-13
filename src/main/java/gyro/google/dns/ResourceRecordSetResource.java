@@ -90,7 +90,7 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     }
 
     /**
-     * For example, www.example.com.
+     * The name of the resource record set. For example, www.example.com.
      */
     @Updatable
     public String getName() {
@@ -132,7 +132,7 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     }
 
     /**
-     * Number of seconds that this ResourceRecordSet can be cached by resolvers.
+     * Number of seconds that this resource record set can be cached by resolvers.
      */
     @Updatable
     public Integer getTtl() {

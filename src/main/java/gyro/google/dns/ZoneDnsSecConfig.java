@@ -38,7 +38,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
     private String state;
 
     /**
-     * Specifies parameters for generating initial DnsKeys for this ManagedZone. Can only be changed while the state is ``off``.
+     * Specifies parameters for generating initial DnsKeys for this managed zone. Can only be changed while the state is ``off``.
      *
      * @subresource gyro.google.dns.KeySpec
      */
