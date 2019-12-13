@@ -52,23 +52,24 @@ import gyro.google.GoogleResource;
  *
  * .. code-block:: gyro
  *
- *     google::dns-managed-zone managed-zone-example-private
- *         name: "managed-zone-example-private"
+ *     google::dns-managed-zone private-managed-zone-example
+ *         name: "private-managed-zone-example"
  *         description: "Private Managed Zone Example"
  *         dns-name: "private.example.com."
  *         visibility: "private"
  *
  *         private-visibility-config
  *             network
- *                 network: $(google::compute-network network-example)
+ *                 network: $(google::compute-network managed-zone-network-example)
  *             end
  *         end
  *     end
  *
- *     google::dns-managed-zone managed-zone-example-public
- *         name: "managed-zone-example-public"
+ *     google::dns-managed-zone public-managed-zone-example
+ *         name: "public-managed-zone-example"
  *         description: "Public Managed Zone Example"
  *         dns-name: "p.example.com."
+ *
  *         dnssec-config
  *             state: "on"
  *         end

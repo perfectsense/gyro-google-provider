@@ -50,8 +50,9 @@ import gyro.google.GoogleResource;
  *     google::dns-policy dns-policy-example
  *         name: "dns-policy-example"
  *         description: "DNS Policy Example"
+ *
  *         network
- *             network: $(google::compute-network network-example)
+ *             network: $(google::compute-network managed-zone-network-example)
  *         end
  *     end
  */

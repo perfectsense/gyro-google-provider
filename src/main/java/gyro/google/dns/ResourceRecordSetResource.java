@@ -43,17 +43,15 @@ import gyro.google.GoogleResource;
  *
  * .. code-block:: gyro
  *
- *     google::dns-resource-record-set managed-zone-example-public-www-cname
- *         managed-zone: $(google::dns-managed-zone managed-zone-example-public)
- *
+ *     google::dns-resource-record-set public-managed-zone-www-cname-example
+ *         managed-zone: $(google::dns-managed-zone public-managed-zone-example)
  *         name: "www.p.example.com."
  *         type: "CNAME"
  *         rrdatas: [ "fe.p.example.com." ]
  *     end
  *
- *     google::dns-resource-record-set managed-zone-example-public-fe-a
- *         managed-zone: $(google::dns-managed-zone managed-zone-example-public)
- *
+ *     google::dns-resource-record-set public-managed-zone-fe-a-example
+ *         managed-zone: $(google::dns-managed-zone public-managed-zone-example)
  *         name: "fe.p.example.com."
  *         type: "A"
  *         rrdatas: [ "192.168.1.156", "192.168.1.158" ]
