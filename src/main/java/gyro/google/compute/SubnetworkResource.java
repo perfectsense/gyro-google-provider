@@ -26,6 +26,7 @@ import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -62,6 +63,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the subnet. (Required)
@@ -166,9 +168,19 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         this.id = id;
     }
 
+    @Id
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
     @Override
     public void copyFrom(Subnetwork subnetwork) {
         setId(subnetwork.getId().toString());
+        setSelfLink(subnetwork.getSelfLink());
         setDescription(subnetwork.getDescription());
         setIpCidrRange(subnetwork.getIpCidrRange());
         setEnableFlowLogs(subnetwork.getEnableFlowLogs());

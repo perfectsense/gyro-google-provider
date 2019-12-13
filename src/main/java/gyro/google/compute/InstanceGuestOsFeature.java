@@ -17,11 +17,12 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.GuestOsFeature;
+import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-public class InstanceGuestOsFeature implements Copyable<GuestOsFeature> {
+public class InstanceGuestOsFeature extends Diffable implements Copyable<GuestOsFeature> {
 
     private String type;
 
@@ -46,6 +47,10 @@ public class InstanceGuestOsFeature implements Copyable<GuestOsFeature> {
 
     @Override
     public void copyFrom(GuestOsFeature model) {
+        setType(model.getType());
+    }
 
+    public GuestOsFeature copyTo() {
+        return new GuestOsFeature().setType(getType());
     }
 }

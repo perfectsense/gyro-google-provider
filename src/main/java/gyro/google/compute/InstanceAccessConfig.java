@@ -17,10 +17,11 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.AccessConfig;
+import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
-public class InstanceAccessConfig implements Copyable<AccessConfig> {
+public class InstanceAccessConfig extends Diffable implements Copyable<AccessConfig> {
 
     private String name;
     private String natIP;
@@ -103,7 +104,21 @@ public class InstanceAccessConfig implements Copyable<AccessConfig> {
 
     @Override
     public void copyFrom(AccessConfig model) {
-
+         setName(model.getName());
+         setNatIP(model.getNatIP());
+         setNetworkTier(model.getNetworkTier());
+         setPublicPtrDomainName(model.getPublicPtrDomainName());
+         setSetPublicPtr(model.getSetPublicPtr());
+         setType(model.getType());
     }
 
+    public AccessConfig copyTo() {
+        return new AccessConfig()
+            .setName(getName())
+            .setNatIP(getNatIP())
+            .setNetworkTier(getNetworkTier())
+            .setPublicPtrDomainName(getPublicPtrDomainName())
+            .setSetPublicPtr(getSetPublicPtr())
+            .setType(getType());
+    }
 }

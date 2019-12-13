@@ -16,27 +16,48 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
+import com.google.api.services.compute.model.InstancesSetLabelsRequest;
+import com.google.api.services.compute.model.Operation;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.Type;
+import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
+import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Regex;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
+@Type("instance")
 public class InstanceResource extends ComputeResource implements Copyable<Instance> {
 
     private String name;
+    private String zone;
+    private String description;
     private String machineType;
     private List<InstanceNetworkInterface> networkInterfaces;
     private List<InstanceAttachedDisk> disks;
+    private String selfLink;
+    private Map<String, String> labels;
+    private String labelFingerprint;
+
+    private List<InstanceAttachedDisk> attachedDisks;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
      */
     @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
+    @Required
     public String getName() {
         return name;
     }
@@ -46,7 +67,27 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * Full or partial URL of the machine type resource to use for this instance, in the format: zones/zone/machineTypes/machine-type. See also `creating custom machine types <https://cloud.google.com/compute/docs/instances/creating-instance-with-custom-machine-type#specifications/>`_.
+     * Name of zone the where the instance resides, i.e., ``us-central1-a``. See `available region and zones<https://cloud.google.com/compute/docs/regions-zones/#available/>`_. for the current list of zones.
+     */
+    @Required
+    public String getZone() {
+        return zone;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * Full or partial URL of the machine type resource to use for this instance, in the format: zones/zone/machineTypes/machine-type. See `creating custom machine types <https://cloud.google.com/compute/docs/instances/creating-instance-with-custom-machine-type#specifications/>`_.
      */
     public String getMachineType() {
         return machineType;
@@ -59,7 +100,11 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     /**
      * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported.
      */
+    @Updatable
     public List<InstanceNetworkInterface> getNetworkInterfaces() {
+        if (networkInterfaces == null) {
+            networkInterfaces = new ArrayList<>();
+        }
         return networkInterfaces;
     }
 
@@ -70,7 +115,11 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     /**
      * List of disks associated with this instance. Persistent disks must be created before you can assign them.
      */
+    @Output
     public List<InstanceAttachedDisk> getDisks() {
+        if (disks == null) {
+            disks = new ArrayList<>();
+        }
         return disks;
     }
 
@@ -78,28 +127,175 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         this.disks = disks;
     }
 
+    /**
+     * URL to the instance.
+     */
+    @Id
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
+    @Updatable
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(Map<String, String> labels) {
+        this.labels = labels;
+    }
+
+    public String getLabelFingerprint() {
+        return labelFingerprint;
+    }
+
+    public void setLabelFingerprint(String labelFingerprint) {
+        this.labelFingerprint = labelFingerprint;
+    }
+
+    /**
+     * TODO
+     */
+    @Updatable
+    public List<InstanceAttachedDisk> getAttachedDisks() {
+        if (attachedDisks == null) {
+            attachedDisks = new ArrayList<>();
+        }
+
+        return attachedDisks;
+    }
+
+    public void setAttachedDisks(List<InstanceAttachedDisk> attachedDisks) {
+        this.attachedDisks = attachedDisks;
+    }
+
     @Override
     public boolean doRefresh() throws Exception {
-        return false;
+        Compute client = createComputeClient();
+        Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
+
+        copyFrom(instance);
+
+        return true;
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
+        Compute client = createComputeClient();
+        Instance content = new Instance();
 
+        content.setName(getName());
+        content.setDescription(getDescription());
+        content.setMachineType(getMachineType());
+        content.setNetworkInterfaces(getNetworkInterfaces().stream()
+            .map(InstanceNetworkInterface::copyTo)
+            .collect(Collectors.toList()));
+        content.setLabels(getLabels());
+
+        content.setDisks(getAttachedDisks().stream()
+            .map(InstanceAttachedDisk::copyTo)
+            .collect(Collectors.toList()));
+
+        Operation.Error error = waitForCompletion(
+            client,
+            client.instances().insert(getProjectId(), getZone(), content).execute());
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
+
+        refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        Compute client = createComputeClient();
 
+        if (changedFieldNames.contains("labels")) {
+            Operation.Error error = waitForCompletion(
+                client,
+                client.instances()
+                    .setLabels(
+                        getProjectId(),
+                        getZone(),
+                        getName(),
+                        new InstancesSetLabelsRequest()
+                            .setLabelFingerprint(getLabelFingerprint())
+                            .setLabels(getLabels()))
+                    .execute());
+
+            if (error != null) {
+                throw new GyroException(error.toPrettyString());
+            }
+        }
+
+        if (changedFieldNames.contains("attached-disks")) {
+            // Attach added disks.
+            for (InstanceAttachedDisk ad : getAttachedDisks()) {
+                if (getDisks().stream().noneMatch(disk -> disk.getSource().equals(ad.getSource()))) {
+                    Operation.Error error = waitForCompletion(client, client.instances()
+                        .attachDisk(getProjectId(), getZone(), getName(), ad.copyTo()).execute());
+
+                    if (error != null) {
+                        throw new GyroException(error.toPrettyString());
+                    }
+                }
+            }
+
+            // Detach removed disks.
+            for (InstanceAttachedDisk disk : getDisks()) {
+                if (getAttachedDisks().stream().noneMatch(ad -> disk.getSource().equals(ad.getSource()))) {
+                    Operation.Error error = waitForCompletion(client, client.instances()
+                        .detachDisk(getProjectId(), getZone(), getName(), disk.getDeviceName())
+                        .execute());
+
+                    if (error != null) {
+                        throw new GyroException(error.toPrettyString());
+                    }
+                }
+            }
+        }
+
+        refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-
+        Compute client = createComputeClient();
+        client.instances().delete(getProjectId(), getZone(), getName()).execute();
     }
 
     @Override
     public void copyFrom(Instance model) {
+        setName(model.getName());
+        setZone(model.getZone().substring(model.getZone().lastIndexOf("/") + 1));
+        setDescription(model.getDescription());
+        setMachineType(model.getMachineType());
+        setSelfLink(model.getSelfLink());
+        setLabelFingerprint(model.getLabelFingerprint());
 
+        getNetworkInterfaces().clear();
+        if (model.getNetworkInterfaces() != null) {
+            setNetworkInterfaces(model.getNetworkInterfaces().stream()
+                .map(networkInterface -> {
+                    InstanceNetworkInterface newNetworkInterface = newSubresource(InstanceNetworkInterface.class);
+                    newNetworkInterface.copyFrom(networkInterface);
+                    return newNetworkInterface;
+                })
+                .collect(Collectors.toList()));
+        }
+
+        getDisks().clear();
+        if (model.getDisks() != null) {
+            setDisks(model.getDisks().stream()
+                .map(disk -> {
+                    InstanceAttachedDisk instanceAttachedDisk = newSubresource(InstanceAttachedDisk.class);
+                    instanceAttachedDisk.copyFrom(disk);
+                    return instanceAttachedDisk;
+                })
+                .collect(Collectors.toList()));
+        }
     }
 }

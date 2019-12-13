@@ -17,10 +17,11 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.AliasIpRange;
+import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
-public class InstanceAliasIpRange implements Copyable<AliasIpRange> {
+public class InstanceAliasIpRange extends Diffable implements Copyable<AliasIpRange> {
 
     private String ipCidrRange;
     private String subnetworkRangeName;
@@ -51,6 +52,13 @@ public class InstanceAliasIpRange implements Copyable<AliasIpRange> {
 
     @Override
     public void copyFrom(AliasIpRange model) {
+        setIpCidrRange(model.getIpCidrRange());
+        setSubnetworkRangeName(model.getSubnetworkRangeName());
+    }
 
+    public AliasIpRange copyTo() {
+        return new AliasIpRange()
+            .setIpCidrRange(getIpCidrRange())
+            .setSubnetworkRangeName(getSubnetworkRangeName());
     }
 }

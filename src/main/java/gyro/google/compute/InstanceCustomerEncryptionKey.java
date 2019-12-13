@@ -17,10 +17,10 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.CustomerEncryptionKey;
-import gyro.core.resource.Updatable;
+import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 
-public class InstanceCustomerEncryptionKey implements Copyable<CustomerEncryptionKey> {
+public class InstanceCustomerEncryptionKey extends Diffable implements Copyable<CustomerEncryptionKey> {
 
     private String kmsKeyName;
     private String rawKey;
@@ -29,7 +29,6 @@ public class InstanceCustomerEncryptionKey implements Copyable<CustomerEncryptio
     /**
      * Name of the encryption key that is stored in Google Cloud KMS.
      */
-    @Updatable
     public String getKmsKeyName() {
         return kmsKeyName;
     }
@@ -41,7 +40,6 @@ public class InstanceCustomerEncryptionKey implements Copyable<CustomerEncryptio
     /**
      * Specifies a 256-bit customer-supplied encryption key, encoded in RFC 4648 base64 to either encrypt or decrypt this resource.
      */
-    @Updatable
     public String getRawKey() {
         return rawKey;
     }
@@ -53,7 +51,6 @@ public class InstanceCustomerEncryptionKey implements Copyable<CustomerEncryptio
     /**
      * The RFC 4648 base64 encoded SHA-256 hash of the customer-supplied encryption key that protects this resource.
      */
-    @Updatable
     public String getSha256() {
         return sha256;
     }
@@ -63,7 +60,21 @@ public class InstanceCustomerEncryptionKey implements Copyable<CustomerEncryptio
     }
 
     @Override
-    public void copyFrom(CustomerEncryptionKey model) {
+    public String primaryKey() {
+        return "";
+    }
 
+    @Override
+    public void copyFrom(CustomerEncryptionKey model) {
+        setKmsKeyName(model.getKmsKeyName());
+        setRawKey(model.getRawKey());
+        setSha256(model.getSha256());
+    }
+
+    public CustomerEncryptionKey copyTo() {
+        return new CustomerEncryptionKey()
+            .setKmsKeyName(getKmsKeyName())
+            .setRawKey(getRawKey())
+            .setSha256(getSha256());
     }
 }

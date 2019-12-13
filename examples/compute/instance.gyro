@@ -2,17 +2,22 @@ google::instance gyro-dev-1
     name: "gyro-development"
     description: "Testing for Gyro"
     zone: "us-west1-a"
-    machine-type: "zones/us-west1-a/machineTypes/n1-standard-2"
+    machine-type: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/machineTypes/n1-standard-2"
 
     network-interfaces
         network: $(external-query google::compute-network {name: "default"})
     end
 
-    disks
+    attached-disks
+        source: 'https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/disks/instance-test-1'
         boot: true
-
-        initialize-params
-           source-image: "projects/debian-cloud/global/images/family/debian-9"
-        end
     end
+
+    attached-disks
+        source: 'https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/disks/instance-test-2'
+    end
+
+    labels: {
+        "test": "two"
+    }
 end

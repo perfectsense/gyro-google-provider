@@ -16,14 +16,17 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.AttachedDisk;
-import gyro.core.resource.Updatable;
+import gyro.core.resource.Diffable;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
+public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedDisk> {
 
     private Boolean autoDelete;
     private Boolean boot;
@@ -33,13 +36,12 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     private InstanceAttachedDiskInitializeParams initializeParams;
     private String diskInterface; // model name is reserved 'interface'
     private String mode;
-    //    private String source;
+    private String source;
     private String type;
 
     /**
      * Whether the disk will be auto-deleted when the instance is deleted, but not when the disk is detached from the instance.
      */
-    @Updatable
     public Boolean getAutoDelete() {
         return autoDelete;
     }
@@ -51,7 +53,6 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     /**
      * This is a boot disk the virtual machine will use the first partition of the disk for its root filesystem.
      */
-    @Updatable
     public Boolean getBoot() {
         return boot;
     }
@@ -63,7 +64,6 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     /**
      * Only for persistent disks, the unique device name reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. The name can then be used to reference the device for mounting, resizing, etc... from within the instance. Unspecified the server chooses a default name in the form of ``persistent-disk-x``, where ``x`` is a number assigned by Google Compute Engine.
      */
-    @Updatable
     public String getDeviceName() {
         return deviceName;
     }
@@ -75,7 +75,6 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     /**
      * When creating a new disk this field encrypts the new disk using the supplied encryption key. If attaching an existing disk already encrypted, this decrypts the disk using the supplied encryption key.||If you encrypt a disk using a customer-supplied key, you must provide the same key again when you attempt to use this resource at a later time.||If you do not provide an encryption key, then the disk will be encrypted using an automatically generated key and you do not need to provide a key to use the disk later. Instance templates do not store customer-supplied encryption keys, so you cannot use your own keys to encrypt disks in a managed instance group.
      */
-    @Updatable
     public InstanceCustomerEncryptionKey getDiskEncryptionKey() {
         return diskEncryptionKey;
     }
@@ -87,8 +86,10 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     /**
      * List of features to enable on the guest operating system. Applicable only for bootable images. See `enabling guest operating system features<https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images#guest-os-features/>`_.
      */
-    @Updatable
     public List<InstanceGuestOsFeature> getGuestOsFeatures() {
+        if (guestOsFeatures == null) {
+            guestOsFeatures = new ArrayList<>();
+        }
         return guestOsFeatures;
     }
 
@@ -99,7 +100,7 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     /**
      * Parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.
      */
-    @Updatable
+    @ConflictsWith("source")
     public InstanceAttachedDiskInitializeParams getInitializeParams() {
         return initializeParams;
     }
@@ -111,7 +112,6 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     /**
      * Disk interface to use for attaching this disk. Valid values are ``SCSI`` or ``NVME``. Default is ``SCSI``. Persistent disks must always use ``SCSI`` and the request will fail if you attempt to attach a persistent disk in any other format than ``SCSI``.
      */
-    @Updatable
     @ValidStrings({ "SCSI", "NVME" })
     public String getDiskInterface() {
         return diskInterface;
@@ -124,7 +124,6 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     /**
      * The mode in which to attach this disk. Valid values are ``READ_WRITE`` or ``READ_ONLY``. Default is ``READ_WRITE``.
      */
-    @Updatable
     @ValidStrings({ "READ_WRITE", "READ_ONLY" })
     public String getMode() {
         return mode;
@@ -134,22 +133,21 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
         this.mode = mode;
     }
 
-    //    /**
-    //     * The Persistent Disk resource.
-    //     */
-    //    @Updatable
-    //    public String getSource() {
-    //        return source;
-    //    }
-    //
-    //    public void setSource(String source) {
-    //        this.source = source;
-    //    }
+    /**
+     * The Persistent Disk resource.
+     */
+    @ConflictsWith("initializeParams")
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
 
     /**
      * Type of the disk, valid values are ``SCRATCH`` or ``PERSISTENT``. Default is ``PERSISTENT``.
      */
-    @Updatable
     @ValidStrings({ "SCRATCH", "PERSISTENT" })
     public String getType() {
         return type;
@@ -160,7 +158,59 @@ public class InstanceAttachedDisk implements Copyable<AttachedDisk> {
     }
 
     @Override
-    public void copyFrom(AttachedDisk model) {
+    public String primaryKey() {
+        if (getSource() != null) {
+            return getSource();
+        } else {
+            return getDeviceName();
+        }
+    }
 
+    @Override
+    public void copyFrom(AttachedDisk model) {
+        setAutoDelete(model.getAutoDelete());
+        setBoot(model.getBoot());
+        setDeviceName(model.getDeviceName());
+        setDiskInterface(model.getInterface());
+        setMode(model.getMode());
+        setSource(model.getSource());
+        setType(model.getType());
+
+        setDiskEncryptionKey(null);
+        if (model.getDiskEncryptionKey() != null) {
+            InstanceCustomerEncryptionKey newDiskEncryptionKey = newSubresource(InstanceCustomerEncryptionKey.class);
+            newDiskEncryptionKey.copyFrom(model.getDiskEncryptionKey());
+            setDiskEncryptionKey(newDiskEncryptionKey);
+        }
+
+        getGuestOsFeatures().clear();
+        if (model.getGuestOsFeatures() != null) {
+            setGuestOsFeatures(model.getGuestOsFeatures().stream()
+                .map(feature -> {
+                    InstanceGuestOsFeature newFeature = newSubresource(InstanceGuestOsFeature.class);
+                    newFeature.copyFrom(feature);
+                    return newFeature;
+                })
+                .collect(Collectors.toList())
+            );
+        }
+    }
+
+    public AttachedDisk copyTo() {
+        AttachedDisk disk = new AttachedDisk();
+        disk.setAutoDelete(getAutoDelete());
+        disk.setBoot(getBoot());
+        disk.setDeviceName(getDeviceName());
+        disk.setInterface(getDiskInterface());
+        disk.setMode(getMode());
+        disk.setSource(getSource());
+        disk.setType(getType());
+        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null ? getDiskEncryptionKey().copyTo() : null);
+        disk.setGuestOsFeatures(getGuestOsFeatures() != null ? getGuestOsFeatures().stream()
+            .map(InstanceGuestOsFeature::copyTo)
+            .collect(Collectors.toList()) : null);
+        disk.setInitializeParams(getInitializeParams() != null ? getInitializeParams().copyTo() : null);
+
+        return disk;
     }
 }
