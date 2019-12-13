@@ -70,11 +70,14 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
     }
 
     public boolean isEqualTo(ManagedZonePrivateVisibilityConfigNetwork network) {
+        NetworkResource networkResource = getNetwork();
+
+        if (networkResource == null) {
+            return false;
+        }
         return Optional.ofNullable(network)
             .map(ManagedZonePrivateVisibilityConfigNetwork::getNetworkUrl)
-            .filter(networkUrl -> Optional.ofNullable(getNetwork())
-                .filter(e -> networkUrl.equals(e.getSelfLink()))
-                .isPresent())
+            .filter(networkUrl -> networkUrl.equals(networkResource.getSelfLink()))
             .isPresent();
     }
 }

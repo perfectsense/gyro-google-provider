@@ -17,9 +17,7 @@
 package gyro.google.dns;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.dns.model.ManagedZoneForwardingConfig;
@@ -49,15 +47,14 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
 
     @Override
     public void copyFrom(ManagedZoneForwardingConfig model) {
+        List<ZoneForwardingConfigNameServerTarget> diffableTargetNameServers = null;
         List<ManagedZoneForwardingConfigNameServerTarget> targetNameServers = model.getTargetNameServers();
 
         if (targetNameServers != null && !targetNameServers.isEmpty()) {
-            setTargetNameServer(targetNameServers
+            diffableTargetNameServers = targetNameServers
                 .stream()
                 .map(nameServerTarget -> {
-                    ZoneForwardingConfigNameServerTarget diffableNameServerTarget = Optional.ofNullable(
-                        getTargetNameServer())
-                        .orElse(Collections.emptyList())
+                    ZoneForwardingConfigNameServerTarget diffableNameServerTarget = getTargetNameServer()
                         .stream()
                         .filter(e -> e.isEqualTo(nameServerTarget))
                         .findFirst()
@@ -65,15 +62,16 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
                     diffableNameServerTarget.copyFrom(nameServerTarget);
                     return diffableNameServerTarget;
                 })
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
         }
+        setTargetNameServer(diffableTargetNameServers);
     }
 
     public ManagedZoneForwardingConfig copyTo() {
         ManagedZoneForwardingConfig managedZoneForwardingConfig = new ManagedZoneForwardingConfig();
         List<ZoneForwardingConfigNameServerTarget> targetNameServers = getTargetNameServer();
 
-        if (targetNameServers != null) {
+        if (!targetNameServers.isEmpty()) {
             managedZoneForwardingConfig.setTargetNameServers(
                 targetNameServers
                     .stream()

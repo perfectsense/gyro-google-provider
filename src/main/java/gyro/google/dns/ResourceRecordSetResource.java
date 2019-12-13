@@ -202,8 +202,16 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     @Override
     public void copyFrom(ResourceRecordSet model) {
         setName(model.getName());
-        setRrdatas(model.getRrdatas());
-        setSignatureRrdatas(model.getSignatureRrdatas());
+        List<String> rrdatas = model.getRrdatas();
+
+        if (rrdatas != null && !rrdatas.isEmpty()) {
+            setRrdatas(rrdatas);
+        }
+        List<String> signatureRrdatas = model.getSignatureRrdatas();
+
+        if (signatureRrdatas != null && !signatureRrdatas.isEmpty()) {
+            setSignatureRrdatas(signatureRrdatas);
+        }
         setTtl(model.getTtl());
         setType(model.getType());
     }
@@ -211,8 +219,16 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     public ResourceRecordSet copyTo() {
         ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
         resourceRecordSet.setName(getName());
-        resourceRecordSet.setRrdatas(getRrdatas());
-        resourceRecordSet.setSignatureRrdatas(getSignatureRrdatas());
+        List<String> rrdatas = getRrdatas();
+
+        if (!rrdatas.isEmpty()) {
+            resourceRecordSet.setRrdatas(rrdatas);
+        }
+        List<String> signatureRrdatas = getSignatureRrdatas();
+
+        if (!signatureRrdatas.isEmpty()) {
+            resourceRecordSet.setSignatureRrdatas(signatureRrdatas);
+        }
         resourceRecordSet.setTtl(getTtl());
         resourceRecordSet.setType(getType());
         return resourceRecordSet;

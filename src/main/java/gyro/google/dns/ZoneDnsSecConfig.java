@@ -17,9 +17,7 @@
 package gyro.google.dns;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.dns.model.DnsKeySpec;
@@ -81,14 +79,14 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
 
     @Override
     public void copyFrom(ManagedZoneDnsSecConfig model) {
+        List<KeySpec> diffableKeySpecs = null;
         List<DnsKeySpec> defaultKeySpecs = model.getDefaultKeySpecs();
 
         if (defaultKeySpecs != null && !defaultKeySpecs.isEmpty()) {
-            setDefaultKeySpec(defaultKeySpecs
+            diffableKeySpecs = defaultKeySpecs
                 .stream()
                 .map(defaultKeySpec -> {
-                    KeySpec diffableKeySpec = Optional.ofNullable(getDefaultKeySpec())
-                        .orElse(Collections.emptyList())
+                    KeySpec diffableKeySpec = getDefaultKeySpec()
                         .stream()
                         .filter(e -> e.isEqualTo(defaultKeySpec))
                         .findFirst()
@@ -96,8 +94,9 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
                     diffableKeySpec.copyFrom(defaultKeySpec);
                     return diffableKeySpec;
                 })
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
         }
+        setDefaultKeySpec(diffableKeySpecs);
         setNonExistence(model.getNonExistence());
         setState(model.getState());
     }
@@ -106,7 +105,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
         ManagedZoneDnsSecConfig managedZoneDnsSecConfig = new ManagedZoneDnsSecConfig();
         List<KeySpec> defaultKeySpec = getDefaultKeySpec();
 
-        if (defaultKeySpec != null) {
+        if (!defaultKeySpec.isEmpty()) {
             managedZoneDnsSecConfig.setDefaultKeySpecs(defaultKeySpec
                 .stream()
                 .map(KeySpec::copyTo)

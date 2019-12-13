@@ -44,11 +44,13 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
 
     @Override
     public void copyFrom(PolicyNetwork model) {
+        NetworkResource network = null;
         String networkUrl = model.getNetworkUrl();
 
         if (networkUrl != null) {
-            setNetwork(findById(NetworkResource.class, networkUrl));
+            network = findById(NetworkResource.class, networkUrl);
         }
+        setNetwork(network);
     }
 
     @Override
@@ -69,11 +71,14 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
     }
 
     public boolean isEqualTo(PolicyNetwork network) {
+        NetworkResource networkResource = getNetwork();
+
+        if (networkResource == null) {
+            return false;
+        }
         return Optional.ofNullable(network)
             .map(PolicyNetwork::getNetworkUrl)
-            .filter(networkUrl -> Optional.ofNullable(getNetwork())
-                .filter(e -> networkUrl.equals(e.getSelfLink()))
-                .isPresent())
+            .filter(networkUrl -> networkUrl.equals(networkResource.getSelfLink()))
             .isPresent();
     }
 }

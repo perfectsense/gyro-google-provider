@@ -17,7 +17,6 @@
 package gyro.google.dns;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -163,7 +162,6 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Dns client = createClient(Dns.class);
         Policy policy = new Policy();
         DnsPolicyAlternativeNameServerConfig alternativeNameServerConfig = getAlternativeNameServerConfig();
 
@@ -176,12 +174,13 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
         policy.setName(getName());
         List<DnsPolicyNetwork> network = getNetwork();
 
-        if (network != null) {
+        if (!network.isEmpty()) {
             policy.setNetworks(network
                 .stream()
                 .map(DnsPolicyNetwork::copyTo)
                 .collect(Collectors.toList()));
         }
+        Dns client = createClient(Dns.class);
         Policy response = client.policies().create(getProjectId(), policy).execute();
         copyFrom(response);
     }
@@ -240,15 +239,14 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
         setEnableInboundForwarding(model.getEnableInboundForwarding());
         setEnableLogging(model.getEnableLogging());
         setName(model.getName());
+        List<DnsPolicyNetwork> diffablePolicyNetworks = null;
         List<PolicyNetwork> networks = model.getNetworks();
 
         if (networks != null && !networks.isEmpty()) {
-            setNetwork(networks
+            diffablePolicyNetworks = networks
                 .stream()
                 .map(network -> {
-                    DnsPolicyNetwork diffablePolicyNetwork = Optional.ofNullable(
-                        getNetwork())
-                        .orElse(Collections.emptyList())
+                    DnsPolicyNetwork diffablePolicyNetwork = getNetwork()
                         .stream()
                         .filter(e -> e.isEqualTo(network))
                         .findFirst()
@@ -256,7 +254,8 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                     diffablePolicyNetwork.copyFrom(network);
                     return diffablePolicyNetwork;
                 })
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
         }
+        setNetwork(diffablePolicyNetworks);
     }
 }

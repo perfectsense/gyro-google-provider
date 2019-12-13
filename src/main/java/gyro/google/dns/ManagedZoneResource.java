@@ -245,8 +245,8 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Dns client = createClient(Dns.class);
         ManagedZone managedZone = createManagedZone();
+        Dns client = createClient(Dns.class);
         ManagedZone response = client.managedZones().create(getProjectId(), managedZone).execute();
         copyFrom(response);
     }
@@ -301,31 +301,37 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     public void copyFrom(ManagedZone model) {
         setDescription(model.getDescription());
         setDnsName(model.getDnsName());
+        ZoneDnsSecConfig diffableDnsSecConfig = null;
         ManagedZoneDnsSecConfig dnssecConfig = model.getDnssecConfig();
 
         if (dnssecConfig != null) {
-            ZoneDnsSecConfig zoneDnsSecConfig = Optional.ofNullable(getDnssecConfig())
+            diffableDnsSecConfig = Optional.ofNullable(getDnssecConfig())
                 .orElse(newSubresource(ZoneDnsSecConfig.class));
-            zoneDnsSecConfig.copyFrom(dnssecConfig);
+            diffableDnsSecConfig.copyFrom(dnssecConfig);
         }
+        setDnssecConfig(diffableDnsSecConfig);
+        ZoneForwardingConfig diffableForwardingConfig = null;
         ManagedZoneForwardingConfig forwardingConfig = model.getForwardingConfig();
 
         if (forwardingConfig != null) {
-            ZoneForwardingConfig zoneForwardingConfig = Optional.ofNullable(getForwardingConfig())
+            diffableForwardingConfig = Optional.ofNullable(getForwardingConfig())
                 .orElse(newSubresource(ZoneForwardingConfig.class));
-            zoneForwardingConfig.copyFrom(forwardingConfig);
+            diffableForwardingConfig.copyFrom(forwardingConfig);
         }
+        setForwardingConfig(diffableForwardingConfig);
         setLabels(model.getLabels());
         setName(model.getName());
         setNameServerSet(model.getNameServerSet());
         setNameServers(model.getNameServers());
+        ZonePrivateVisibilityConfig diffablePrivateVisibilityConfig = null;
         ManagedZonePrivateVisibilityConfig privateVisibilityConfig = model.getPrivateVisibilityConfig();
 
         if (privateVisibilityConfig != null) {
-            ZonePrivateVisibilityConfig zonePrivateVisibilityConfig = Optional.ofNullable(getPrivateVisibilityConfig())
+            diffablePrivateVisibilityConfig = Optional.ofNullable(getPrivateVisibilityConfig())
                 .orElse(newSubresource(ZonePrivateVisibilityConfig.class));
-            zonePrivateVisibilityConfig.copyFrom(privateVisibilityConfig);
+            diffablePrivateVisibilityConfig.copyFrom(privateVisibilityConfig);
         }
+        setPrivateVisibilityConfig(diffablePrivateVisibilityConfig);
         setVisibility(model.getVisibility());
     }
 

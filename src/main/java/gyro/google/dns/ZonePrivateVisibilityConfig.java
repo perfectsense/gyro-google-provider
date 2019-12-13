@@ -17,9 +17,7 @@
 package gyro.google.dns;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.dns.model.ManagedZonePrivateVisibilityConfig;
@@ -51,15 +49,14 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
 
     @Override
     public void copyFrom(ManagedZonePrivateVisibilityConfig model) {
+        List<ZonePrivateVisibilityConfigNetwork> diffableNetworks = null;
         List<ManagedZonePrivateVisibilityConfigNetwork> networks = model.getNetworks();
 
         if (networks != null && !networks.isEmpty()) {
-            setNetwork(networks
+            diffableNetworks = networks
                 .stream()
                 .map(network -> {
-                    ZonePrivateVisibilityConfigNetwork diffableConfigNetwork = Optional.ofNullable(
-                        getNetwork())
-                        .orElse(Collections.emptyList())
+                    ZonePrivateVisibilityConfigNetwork diffableConfigNetwork = getNetwork()
                         .stream()
                         .filter(e -> e.isEqualTo(network))
                         .findFirst()
@@ -67,15 +64,16 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
                     diffableConfigNetwork.copyFrom(network);
                     return diffableConfigNetwork;
                 })
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
         }
+        setNetwork(diffableNetworks);
     }
 
     public ManagedZonePrivateVisibilityConfig copyTo() {
         ManagedZonePrivateVisibilityConfig managedZonePrivateVisibilityConfig = new ManagedZonePrivateVisibilityConfig();
         List<ZonePrivateVisibilityConfigNetwork> networks = getNetwork();
 
-        if (networks != null && !networks.isEmpty()) {
+        if (!networks.isEmpty()) {
             managedZonePrivateVisibilityConfig.setNetworks(networks
                 .stream()
                 .map(ZonePrivateVisibilityConfigNetwork::copyTo)
