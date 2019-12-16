@@ -16,8 +16,6 @@
 
 package gyro.google.dns;
 
-import java.util.Optional;
-
 import com.google.api.services.dns.model.PolicyAlternativeNameServerConfigTargetNameServer;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
@@ -55,12 +53,5 @@ public class DnsPolicyTargetNameServer extends Diffable
         PolicyAlternativeNameServerConfigTargetNameServer policyAlternativeNameServerConfigTargetNameServer = new PolicyAlternativeNameServerConfigTargetNameServer();
         policyAlternativeNameServerConfigTargetNameServer.setIpv4Address(getIpv4Address());
         return policyAlternativeNameServerConfigTargetNameServer;
-    }
-
-    public boolean isEqualTo(PolicyAlternativeNameServerConfigTargetNameServer policyAlternativeNameServerConfigTargetNameServer) {
-        return Optional.ofNullable(policyAlternativeNameServerConfigTargetNameServer)
-            .map(PolicyAlternativeNameServerConfigTargetNameServer::getIpv4Address)
-            .filter(ipv4Address -> ipv4Address.equals(getIpv4Address()))
-            .isPresent();
     }
 }

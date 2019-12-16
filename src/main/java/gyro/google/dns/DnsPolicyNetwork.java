@@ -57,7 +57,7 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
     public String primaryKey() {
         return Optional.ofNullable(getNetwork())
             .map(NetworkResource::getSelfLink)
-            .orElse(super.primaryKey());
+            .orElse("");
     }
 
     public PolicyNetwork copyTo() {
@@ -68,17 +68,5 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
             policyNetwork.setNetworkUrl(network.getSelfLink());
         }
         return policyNetwork;
-    }
-
-    public boolean isEqualTo(PolicyNetwork network) {
-        NetworkResource networkResource = getNetwork();
-
-        if (networkResource == null) {
-            return false;
-        }
-        return Optional.ofNullable(network)
-            .map(PolicyNetwork::getNetworkUrl)
-            .filter(networkUrl -> networkUrl.equals(networkResource.getSelfLink()))
-            .isPresent();
     }
 }

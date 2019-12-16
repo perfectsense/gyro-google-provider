@@ -17,14 +17,14 @@
 package gyro.google.dns;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.dns.model.PolicyAlternativeNameServerConfig;
 import com.google.api.services.dns.model.PolicyAlternativeNameServerConfigTargetNameServer;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class DnsPolicyAlternativeNameServerConfig extends Diffable
@@ -37,6 +37,8 @@ public class DnsPolicyAlternativeNameServerConfig extends Diffable
      *
      * @subresource gyro.google.dns.DnsPolicyTargetNameServer
      */
+    @Required
+    @Updatable
     public List<DnsPolicyTargetNameServer> getTargetNameServer() {
         if (targetNameServer == null) {
             targetNameServer = new ArrayList<>();
@@ -49,23 +51,23 @@ public class DnsPolicyAlternativeNameServerConfig extends Diffable
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(PolicyAlternativeNameServerConfig model) {
         List<PolicyAlternativeNameServerConfigTargetNameServer> targetNameServers = model
             .getTargetNameServers();
 
+        getTargetNameServer().clear();
         if (targetNameServers != null && !targetNameServers.isEmpty()) {
             setTargetNameServer(targetNameServers
                 .stream()
                 .map(nameServerTarget -> {
-                    DnsPolicyTargetNameServer diffableNameServerTarget = Optional.ofNullable(
-                        getTargetNameServer())
-                        .orElse(Collections.emptyList())
-                        .stream()
-                        .filter(e -> e.isEqualTo(nameServerTarget))
-                        .findFirst()
-                        .orElse(newSubresource(DnsPolicyTargetNameServer.class));
-                    diffableNameServerTarget.copyFrom(nameServerTarget);
-                    return diffableNameServerTarget;
+                    DnsPolicyTargetNameServer nameServer = newSubresource(DnsPolicyTargetNameServer.class);
+                    nameServer.copyFrom(nameServerTarget);
+                    return nameServer;
                 })
                 .collect(Collectors.toList()));
         }

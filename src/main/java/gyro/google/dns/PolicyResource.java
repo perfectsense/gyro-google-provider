@@ -28,7 +28,6 @@ import com.google.api.services.dns.model.PoliciesPatchResponse;
 import com.google.api.services.dns.model.Policy;
 import com.google.api.services.dns.model.PolicyAlternativeNameServerConfig;
 import com.google.api.services.dns.model.PolicyNetwork;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -53,6 +52,12 @@ import gyro.google.GoogleResource;
  *         network
  *             network: $(google::compute-network managed-zone-network-example)
  *         end
+ *
+ *         alternative-name-server-config
+ *             target-name-server
+ *                 ipv4-address: "10.0.0.1"
+ *             end
+ *         end
  *     end
  */
 @Type("dns-policy")
@@ -75,7 +80,6 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
      *
      * @subresource gyro.google.dns.DnsPolicyAlternativeNameServerConfig
      */
-    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public DnsPolicyAlternativeNameServerConfig getAlternativeNameServerConfig() {
         return alternativeNameServerConfig;
@@ -139,7 +143,6 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
      *
      * @subresource gyro.google.dns.DnsPolicyNetwork
      */
-    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public List<DnsPolicyNetwork> getNetwork() {
         if (network == null) {
@@ -188,9 +191,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        if (!(current instanceof PolicyResource)) {
-            throw new GyroException("Incompatible resource type! " + current.getClass().getName());
-        }
+        Dns client = createClient(Dns.class);
         Policy policy = new Policy();
 
         for (String changedFieldName : changedFieldNames) {
@@ -214,7 +215,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                         .collect(Collectors.toList()));
             }
         }
-        Dns client = createClient(Dns.class);
+
         PoliciesPatchResponse response = client.policies().patch(getProjectId(), getName(), policy).execute();
         copyFrom(response.getPolicy());
     }
@@ -235,10 +236,12 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                     .orElse(newSubresource(DnsPolicyAlternativeNameServerConfig.class));
             alternativeNameServerConfig.copyFrom(policyAlternativeNameServerConfig);
         }
+
         setDescription(model.getDescription());
         setEnableInboundForwarding(model.getEnableInboundForwarding());
         setEnableLogging(model.getEnableLogging());
         setName(model.getName());
+
         List<DnsPolicyNetwork> diffablePolicyNetworks = null;
         List<PolicyNetwork> networks = model.getNetworks();
 
@@ -246,13 +249,9 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
             diffablePolicyNetworks = networks
                 .stream()
                 .map(network -> {
-                    DnsPolicyNetwork diffablePolicyNetwork = getNetwork()
-                        .stream()
-                        .filter(e -> e.isEqualTo(network))
-                        .findFirst()
-                        .orElse(newSubresource(DnsPolicyNetwork.class));
-                    diffablePolicyNetwork.copyFrom(network);
-                    return diffablePolicyNetwork;
+                    DnsPolicyNetwork policyNetwork = newSubresource(DnsPolicyNetwork.class);
+                    policyNetwork.copyFrom(network);
+                    return policyNetwork;
                 })
                 .collect(Collectors.toList());
         }
