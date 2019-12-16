@@ -103,14 +103,14 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
         setState(model.getState());
     }
 
-    public ManagedZoneDnsSecConfig copyTo() {
+    public ManagedZoneDnsSecConfig toManagedZoneDnsSecConfig() {
         ManagedZoneDnsSecConfig managedZoneDnsSecConfig = new ManagedZoneDnsSecConfig();
         List<KeySpec> defaultKeySpec = getDefaultKeySpec();
 
         if (!defaultKeySpec.isEmpty()) {
             managedZoneDnsSecConfig.setDefaultKeySpecs(defaultKeySpec
                 .stream()
-                .map(KeySpec::copyTo)
+                .map(KeySpec::toKeySpec)
                 .collect(Collectors.toList()));
         }
         managedZoneDnsSecConfig.setNonExistence(getNonExistence());

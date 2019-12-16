@@ -74,7 +74,7 @@ public class DnsPolicyAlternativeNameServerConfig extends Diffable
 
     }
 
-    public PolicyAlternativeNameServerConfig copyTo() {
+    public PolicyAlternativeNameServerConfig toPolicyAlternativeNameServerConfig() {
         PolicyAlternativeNameServerConfig policyAlternativeNameServerConfig = new PolicyAlternativeNameServerConfig();
         List<DnsPolicyTargetNameServer> targetNameServers = getTargetNameServer();
 
@@ -82,7 +82,7 @@ public class DnsPolicyAlternativeNameServerConfig extends Diffable
             policyAlternativeNameServerConfig.setTargetNameServers(
                 targetNameServers
                     .stream()
-                    .map(DnsPolicyTargetNameServer::copyTo)
+                    .map(DnsPolicyTargetNameServer::toPolicyAlternativeNameServerConfigTargetNameServer)
                     .collect(Collectors.toList()));
         }
         return policyAlternativeNameServerConfig;

@@ -49,7 +49,7 @@ public class DnsPolicyTargetNameServer extends Diffable
         return getIpv4Address();
     }
 
-    public PolicyAlternativeNameServerConfigTargetNameServer copyTo() {
+    public PolicyAlternativeNameServerConfigTargetNameServer toPolicyAlternativeNameServerConfigTargetNameServer() {
         PolicyAlternativeNameServerConfigTargetNameServer policyAlternativeNameServerConfigTargetNameServer = new PolicyAlternativeNameServerConfigTargetNameServer();
         policyAlternativeNameServerConfigTargetNameServer.setIpv4Address(getIpv4Address());
         return policyAlternativeNameServerConfigTargetNameServer;

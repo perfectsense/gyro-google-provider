@@ -176,7 +176,7 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         Change change = new Change();
-        change.setAdditions(Collections.singletonList(copyTo()));
+        change.setAdditions(Collections.singletonList(toResourceRecordSet()));
         process(change);
 
         refresh();
@@ -187,8 +187,8 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
         Change change = new Change();
-        change.setDeletions(Collections.singletonList(((ResourceRecordSetResource) current).copyTo()));
-        change.setAdditions(Collections.singletonList(copyTo()));
+        change.setDeletions(Collections.singletonList(((ResourceRecordSetResource) current).toResourceRecordSet()));
+        change.setAdditions(Collections.singletonList(toResourceRecordSet()));
         process(change);
 
         refresh();
@@ -197,7 +197,7 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Change change = new Change();
-        change.setDeletions(Collections.singletonList(copyTo()));
+        change.setDeletions(Collections.singletonList(toResourceRecordSet()));
         process(change);
     }
 
@@ -218,7 +218,7 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
         setType(model.getType());
     }
 
-    public ResourceRecordSet copyTo() {
+    public ResourceRecordSet toResourceRecordSet() {
         ResourceRecordSet resourceRecordSet = new ResourceRecordSet();
         resourceRecordSet.setName(getName());
         List<String> rrdatas = getRrdatas();

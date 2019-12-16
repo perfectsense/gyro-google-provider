@@ -73,7 +73,7 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
         setTargetNameServer(diffableTargetNameServers);
     }
 
-    public ManagedZoneForwardingConfig copyTo() {
+    public ManagedZoneForwardingConfig toManagedZoneForwardingConfig() {
         ManagedZoneForwardingConfig managedZoneForwardingConfig = new ManagedZoneForwardingConfig();
         List<ZoneForwardingConfigNameServerTarget> targetNameServers = getTargetNameServer();
 
@@ -81,7 +81,7 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
             managedZoneForwardingConfig.setTargetNameServers(
                 targetNameServers
                     .stream()
-                    .map(ZoneForwardingConfigNameServerTarget::copyTo)
+                    .map(ZoneForwardingConfigNameServerTarget::toManagedZoneForwardingConfigNameServerTarget)
                     .collect(Collectors.toList()));
         }
         return managedZoneForwardingConfig;

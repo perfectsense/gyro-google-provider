@@ -48,7 +48,7 @@ public class ZoneForwardingConfigNameServerTarget extends Diffable
         return getIpv4Address();
     }
 
-    public ManagedZoneForwardingConfigNameServerTarget copyTo() {
+    public ManagedZoneForwardingConfigNameServerTarget toManagedZoneForwardingConfigNameServerTarget() {
         ManagedZoneForwardingConfigNameServerTarget managedZoneForwardingConfigNameServerTarget = new ManagedZoneForwardingConfigNameServerTarget();
         managedZoneForwardingConfigNameServerTarget.setIpv4Address(getIpv4Address());
         return managedZoneForwardingConfigNameServerTarget;

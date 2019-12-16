@@ -72,14 +72,14 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
         setNetwork(diffableNetworks);
     }
 
-    public ManagedZonePrivateVisibilityConfig copyTo() {
+    public ManagedZonePrivateVisibilityConfig toManagedZonePrivateVisibilityConfig() {
         ManagedZonePrivateVisibilityConfig managedZonePrivateVisibilityConfig = new ManagedZonePrivateVisibilityConfig();
         List<ZonePrivateVisibilityConfigNetwork> networks = getNetwork();
 
         if (!networks.isEmpty()) {
             managedZonePrivateVisibilityConfig.setNetworks(networks
                 .stream()
-                .map(ZonePrivateVisibilityConfigNetwork::copyTo)
+                .map(ZonePrivateVisibilityConfigNetwork::toManagedZonePrivateVisibilityConfigNetwork)
                 .collect(Collectors.toList()));
         }
         return managedZonePrivateVisibilityConfig;

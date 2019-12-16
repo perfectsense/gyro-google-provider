@@ -59,7 +59,7 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
             .orElse("");
     }
 
-    public ManagedZonePrivateVisibilityConfigNetwork copyTo() {
+    public ManagedZonePrivateVisibilityConfigNetwork toManagedZonePrivateVisibilityConfigNetwork() {
         ManagedZonePrivateVisibilityConfigNetwork managedZonePrivateVisibilityConfigNetwork = new ManagedZonePrivateVisibilityConfigNetwork();
         NetworkResource network = getNetwork();
 

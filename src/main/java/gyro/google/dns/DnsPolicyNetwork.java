@@ -60,7 +60,7 @@ public class DnsPolicyNetwork extends Diffable implements Copyable<PolicyNetwork
             .orElse("");
     }
 
-    public PolicyNetwork copyTo() {
+    public PolicyNetwork toPolicyNetwork() {
         PolicyNetwork policyNetwork = new PolicyNetwork();
         NetworkResource network = getNetwork();
 

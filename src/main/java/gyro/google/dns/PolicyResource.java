@@ -169,7 +169,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
         DnsPolicyAlternativeNameServerConfig alternativeNameServerConfig = getAlternativeNameServerConfig();
 
         if (alternativeNameServerConfig != null) {
-            policy.setAlternativeNameServerConfig(alternativeNameServerConfig.copyTo());
+            policy.setAlternativeNameServerConfig(alternativeNameServerConfig.toPolicyAlternativeNameServerConfig());
         }
         policy.setDescription(getDescription());
         policy.setEnableInboundForwarding(getEnableInboundForwarding());
@@ -180,7 +180,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
         if (!network.isEmpty()) {
             policy.setNetworks(network
                 .stream()
-                .map(DnsPolicyNetwork::copyTo)
+                .map(DnsPolicyNetwork::toPolicyNetwork)
                 .collect(Collectors.toList()));
         }
         Dns client = createClient(Dns.class);
@@ -201,7 +201,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                 DnsPolicyAlternativeNameServerConfig alternativeNameServerConfig = getAlternativeNameServerConfig();
                 policy.setAlternativeNameServerConfig(alternativeNameServerConfig == null
                     ? Data.nullOf(PolicyAlternativeNameServerConfig.class)
-                    : alternativeNameServerConfig.copyTo());
+                    : alternativeNameServerConfig.toPolicyAlternativeNameServerConfig());
             } else if (changedFieldName.equals("enable-inbound-forwarding")) {
                 policy.setEnableInboundForwarding(getEnableInboundForwarding());
             } else if (changedFieldName.equals("enable-logging")) {
@@ -211,7 +211,7 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
                 policy.setNetworks(networks == null
                     ? Data.nullOf(ArrayList.class)
                     : networks.stream()
-                        .map(DnsPolicyNetwork::copyTo)
+                        .map(DnsPolicyNetwork::toPolicyNetwork)
                         .collect(Collectors.toList()));
             }
         }

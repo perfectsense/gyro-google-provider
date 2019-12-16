@@ -80,7 +80,7 @@ public class KeySpec extends Diffable implements Copyable<DnsKeySpec> {
         return getKeyType();
     }
 
-    public DnsKeySpec copyTo() {
+    public DnsKeySpec toKeySpec() {
         DnsKeySpec dnsKeySpec = new DnsKeySpec();
         dnsKeySpec.setAlgorithm(getAlgorithm());
         dnsKeySpec.setKeyLength(getKeyLength());

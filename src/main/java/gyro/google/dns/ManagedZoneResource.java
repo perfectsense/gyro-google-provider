@@ -265,14 +265,14 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
                 if (dnssecConfig == null) {
                     throw new GyroException("'dnssec-config' can't be removed once set.");
                 }
-                managedZone.setDnssecConfig(dnssecConfig.copyTo());
+                managedZone.setDnssecConfig(dnssecConfig.toManagedZoneDnsSecConfig());
             } else if (changedFieldName.equals("forwarding-config")) {
                 ZoneForwardingConfig forwardingConfig = getForwardingConfig();
 
                 if (forwardingConfig == null) {
                     throw new GyroException("'forwarding-config' can't be removed once set.");
                 }
-                managedZone.setForwardingConfig(forwardingConfig.copyTo());
+                managedZone.setForwardingConfig(forwardingConfig.toManagedZoneForwardingConfig());
             } else if (changedFieldName.equals("labels")) {
                 managedZone.setLabels(Data.nullOf(HashMap.class));
                 patch(managedZone, false);
@@ -283,7 +283,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
                 if (privateVisibilityConfig == null) {
                     throw new GyroException("'private-visibility-config' can't be removed once set.");
                 }
-                managedZone.setPrivateVisibilityConfig(privateVisibilityConfig.copyTo());
+                managedZone.setPrivateVisibilityConfig(privateVisibilityConfig.toManagedZonePrivateVisibilityConfig());
             }
         }
         patch(managedZone, true);
@@ -370,19 +370,19 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         ZoneDnsSecConfig dnssecConfig = getDnssecConfig();
 
         if (dnssecConfig != null) {
-            managedZone.setDnssecConfig(dnssecConfig.copyTo());
+            managedZone.setDnssecConfig(dnssecConfig.toManagedZoneDnsSecConfig());
         }
         ZoneForwardingConfig forwardingConfig = getForwardingConfig();
 
         if (forwardingConfig != null) {
-            managedZone.setForwardingConfig(forwardingConfig.copyTo());
+            managedZone.setForwardingConfig(forwardingConfig.toManagedZoneForwardingConfig());
         }
         managedZone.setLabels(getLabels());
         managedZone.setName(getName());
         ZonePrivateVisibilityConfig privateVisibilityConfig = getPrivateVisibilityConfig();
 
         if (privateVisibilityConfig != null) {
-            managedZone.setPrivateVisibilityConfig(privateVisibilityConfig.copyTo());
+            managedZone.setPrivateVisibilityConfig(privateVisibilityConfig.toManagedZonePrivateVisibilityConfig());
         }
         managedZone.setVisibility(getVisibility());
         return managedZone;
