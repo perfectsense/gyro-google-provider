@@ -1,0 +1,11 @@
+google::compute-disk disk-example
+    name: "disk-example"
+    description: "disk-example-desc"
+    zone: "us-central1-a"
+    size-gb: 32
+    type: "pd-standard"
+    labels: {
+        label-key: 'label-value'
+    }
+    physical-block-size-bytes: 4096
+end
