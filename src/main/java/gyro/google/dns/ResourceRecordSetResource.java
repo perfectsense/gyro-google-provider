@@ -89,7 +89,6 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     /**
      * The name of the resource record set. For example, www.example.com.
      */
-    @Updatable
     @Required
     public String getName() {
         return name;
@@ -141,7 +140,6 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
         this.ttl = ttl;
     }
 
-    @Updatable
     /**
      * The identifier of a supported record type. See the list of Supported DNS record types.
      */
