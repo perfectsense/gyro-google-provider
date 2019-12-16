@@ -343,10 +343,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             Compute.Disks.CreateSnapshot insert =
                 client.disks().createSnapshot(getProjectId(), zoneDisk.getZone(), zoneDisk.getDisk(), snapshot);
             Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
 
             refresh();
         } else if (getSourceRegionDisk() != null) {
@@ -361,10 +358,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             Compute.RegionDisks.CreateSnapshot insert = client.regionDisks()
                 .createSnapshot(getProjectId(), regionDisk.getRegion(), regionDisk.getDisk(), snapshot);
             Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
 
             refresh();
         }
@@ -378,10 +372,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         labelsRequest.setLabels(getLabels());
         labelsRequest.setLabelFingerprint(getLabelFingerprint());
         Operation operation = client.snapshots().setLabels(getProjectId(), getName(), labelsRequest).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -391,10 +382,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         Compute client = createComputeClient();
 
         Operation operation = client.snapshots().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     @Override
