@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.Change;
@@ -28,6 +29,7 @@ import com.google.api.services.dns.model.ResourceRecordSetsListResponse;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.Wait;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -70,15 +72,10 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
 
     private Integer ttl;
 
-    /**
-     * The identifier of a supported record type. See the list of Supported DNS record types.
-     */
     private String type;
 
     /**
-     * The managed zone this resource should be bound to.
-     *
-     * @resource gyro.google.dns.ManagedZoneResource
+     * The managed zone to create this record set in.
      */
     @Required
     public ManagedZoneResource getManagedZone() {
@@ -93,6 +90,7 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
      * The name of the resource record set. For example, www.example.com.
      */
     @Updatable
+    @Required
     public String getName() {
         return name;
     }
@@ -144,6 +142,10 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     }
 
     @Updatable
+    /**
+     * The identifier of a supported record type. See the list of Supported DNS record types.
+     */
+    @Required
     public String getType() {
         return type;
     }
@@ -169,6 +171,7 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
                 String.format("Multiple records found! [%s] [%s] [%s]", managedZoneName, getName(), getType()));
         }
         copyFrom(rrsets.get(0));
+
         return true;
     }
 
@@ -176,27 +179,28 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
     public void doCreate(GyroUI ui, State state) throws Exception {
         Change change = new Change();
         change.setAdditions(Collections.singletonList(copyTo()));
-        process(ui, change);
+        process(change);
+
+        refresh();
     }
 
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
-        if (!(current instanceof ResourceRecordSetResource)) {
-            throw new GyroException("Incompatible resource type! " + current.getClass().getName());
-        }
         Change change = new Change();
         change.setDeletions(Collections.singletonList(((ResourceRecordSetResource) current).copyTo()));
         change.setAdditions(Collections.singletonList(copyTo()));
-        process(ui, change);
+        process(change);
+
+        refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Change change = new Change();
         change.setDeletions(Collections.singletonList(copyTo()));
-        process(ui, change);
+        process(change);
     }
 
     @Override
@@ -234,21 +238,23 @@ public class ResourceRecordSetResource extends GoogleResource implements Copyabl
         return resourceRecordSet;
     }
 
-    private void process(GyroUI ui, Change change) throws Exception {
+    private void process(Change change) throws Exception {
         Dns client = createClient(Dns.class);
-        Change response = client.changes().create(getProjectId(), getManagedZone().getName(), change).execute();
-        Dns.Changes.Get getRequest = client
-            .changes()
-            .get(getProjectId(), getManagedZone().getName(), response.getId());
+        Change operation = client.changes().create(getProjectId(), getManagedZone().getName(), change).execute();
 
-        // TODO: limit retry?
-        long count = 1;
+        boolean success = Wait.atMost(1, TimeUnit.MINUTES)
+            .checkEvery(20, TimeUnit.SECONDS)
+            .prompt(false)
+            .until(() -> isChangeDone(client, operation));
 
-        while (response.getStatus().equals("pending")) {
-            ui.write("\nWaiting to be updated.");
-            Thread.sleep(1000L * count++);
-            response = getRequest.execute();
+        if (!success) {
+            throw new InterruptedException("Timed out waiting for operation to complete");
         }
-        refresh();
+    }
+
+    private boolean isChangeDone(Dns client, Change operation) throws Exception {
+        Change change = client.changes().get(getProjectId(), getManagedZone().getName(), operation.getId()).execute();
+
+        return change.getStatus().equals("done");
     }
 }

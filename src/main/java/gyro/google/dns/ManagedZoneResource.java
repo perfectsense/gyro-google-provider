@@ -395,7 +395,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         boolean success = Wait.atMost(1, TimeUnit.MINUTES)
             .checkEvery(20, TimeUnit.SECONDS)
             .prompt(false)
-            .until(() -> isPathReady(client, operation));
+            .until(() -> isOperationDone(client, operation));
 
         if (!success) {
             throw new InterruptedException("Timed out waiting for operation to complete");
@@ -406,7 +406,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         }
     }
 
-    private boolean isPathReady(Dns client, Operation operation) throws Exception {
+    private boolean isOperationDone(Dns client, Operation operation) throws Exception {
         Operation response = client
             .managedZoneOperations()
             .get(getProjectId(), getName(), operation.getId()).execute();
