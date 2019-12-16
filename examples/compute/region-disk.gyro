@@ -16,7 +16,7 @@ google::compute-region-disk region-disk-example
     physical-block-size-bytes: 16384
 
     disk-encryption-key
-        raw-key: "disk-256-bit-raw-key"
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
     end
 end
 
@@ -25,11 +25,11 @@ google::compute-snapshot region-snapshot-example
     source-region-disk: $(google::compute-region-disk region-disk-example)
 
     source-disk-encryption-key
-        raw-key: "disk-256-bit-raw-key"
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
     end
 
     snapshot-encryption-key
-        raw-key: "snapshot-256-bit-raw-key"
+        raw-key: "AGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
     end
 end
 
@@ -45,6 +45,6 @@ google::compute-region-disk region-disk-snapshot-example
     source-snapshot: $(google::compute-snapshot region-snapshot-example)
 
     source-snapshot-encryption-key
-        raw-key: "snapshot-256-bit-raw-key"
+        raw-key: "AGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
     end
 end

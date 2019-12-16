@@ -62,11 +62,11 @@ import gyro.google.Copyable;
  *         }
  *
  *         source-disk-encryption-key
- *             raw-key: "disk-256-bit-raw-key"
+ *             raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
  *         end
  *
  *         snapshot-encryption-key
- *             raw-key: "snapshot-256-bit-raw-key"
+ *             raw-key: "AGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
  *         end
  *
  *         storage-locations: [

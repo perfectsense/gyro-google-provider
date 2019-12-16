@@ -77,7 +77,7 @@ import gyro.core.validation.ValidationError;
  *         source-snapshot: $(google::compute-snapshot region-snapshot-example)
  *
  *         source-snapshot-encryption-key
- *             raw-key: "snapshot-256-bit-raw-key"
+ *             raw-key: "AGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
  *         end
  *     end
  */
