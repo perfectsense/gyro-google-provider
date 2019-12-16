@@ -40,6 +40,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
      *
      * @subresource gyro.google.dns.KeySpec
      */
+    @Updatable
     public List<KeySpec> getDefaultKeySpec() {
         if (defaultKeySpec == null) {
             defaultKeySpec = new ArrayList<>();
@@ -78,6 +79,11 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(ManagedZoneDnsSecConfig model) {
         List<KeySpec> diffableKeySpecs = null;
         List<DnsKeySpec> defaultKeySpecs = model.getDefaultKeySpecs();
@@ -86,11 +92,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
             diffableKeySpecs = defaultKeySpecs
                 .stream()
                 .map(defaultKeySpec -> {
-                    KeySpec diffableKeySpec = getDefaultKeySpec()
-                        .stream()
-                        .filter(e -> e.isEqualTo(defaultKeySpec))
-                        .findFirst()
-                        .orElse(newSubresource(KeySpec.class));
+                    KeySpec diffableKeySpec = newSubresource(KeySpec.class);
                     diffableKeySpec.copyFrom(defaultKeySpec);
                     return diffableKeySpec;
                 })

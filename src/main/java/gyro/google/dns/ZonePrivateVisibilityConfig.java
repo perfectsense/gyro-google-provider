@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.dns.model.ManagedZonePrivateVisibilityConfig;
 import com.google.api.services.dns.model.ManagedZonePrivateVisibilityConfigNetwork;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -36,6 +37,7 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
      * @subresource gyro.google.dns.ZonePrivateVisibilityConfigNetwork
      */
     @Required
+    @Updatable
     public List<ZonePrivateVisibilityConfigNetwork> getNetwork() {
         if (network == null) {
             network = new ArrayList<>();
@@ -48,6 +50,11 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(ManagedZonePrivateVisibilityConfig model) {
         List<ZonePrivateVisibilityConfigNetwork> diffableNetworks = null;
         List<ManagedZonePrivateVisibilityConfigNetwork> networks = model.getNetworks();
@@ -56,11 +63,7 @@ public class ZonePrivateVisibilityConfig extends Diffable implements Copyable<Ma
             diffableNetworks = networks
                 .stream()
                 .map(network -> {
-                    ZonePrivateVisibilityConfigNetwork diffableConfigNetwork = getNetwork()
-                        .stream()
-                        .filter(e -> e.isEqualTo(network))
-                        .findFirst()
-                        .orElse(newSubresource(ZonePrivateVisibilityConfigNetwork.class));
+                    ZonePrivateVisibilityConfigNetwork diffableConfigNetwork = newSubresource(ZonePrivateVisibilityConfigNetwork.class);
                     diffableConfigNetwork.copyFrom(network);
                     return diffableConfigNetwork;
                 })

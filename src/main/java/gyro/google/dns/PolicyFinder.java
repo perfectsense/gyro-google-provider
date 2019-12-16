@@ -28,7 +28,7 @@ import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 /**
- * Query DNS Policy.
+ * Query dns policy.
  *
  * Example
  * -------
@@ -43,7 +43,7 @@ public class PolicyFinder extends GoogleFinder<Dns, Policy, PolicyResource> {
     private String name;
 
     /**
-     * User given friendly name of the policy.
+     * Name of the policy.
      */
     public String getName() {
         return name;

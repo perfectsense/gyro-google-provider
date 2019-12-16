@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import com.google.api.client.util.Data;
 import com.google.api.services.dns.Dns;
@@ -33,6 +34,7 @@ import com.google.api.services.dns.model.Operation;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.Wait;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -128,7 +130,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      * @subresource gyro.google.dns.ZoneDnsSecConfig
      */
     @ConflictsWith({ "forwarding-config", "private-visibility-config" })
-    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public ZoneDnsSecConfig getDnssecConfig() {
         return dnssecConfig;
@@ -144,7 +145,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      * @subresource gyro.google.dns.ZoneForwardingConfig
      */
     @ConflictsWith("dnssec-config")
-    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public ZoneForwardingConfig getForwardingConfig() {
         return forwardingConfig;
@@ -213,7 +213,6 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
      * @subresource gyro.google.dns.ZonePrivateVisibilityConfig
      */
     @ConflictsWith("dnssec-config")
-    // XXX: https://github.com/perfectsense/gyro/issues/190
     @Updatable
     public ZonePrivateVisibilityConfig getPrivateVisibilityConfig() {
         return privateVisibilityConfig;
@@ -240,22 +239,21 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         Dns client = createClient(Dns.class);
         ManagedZone managedZone = client.managedZones().get(getProjectId(), getName()).execute();
         copyFrom(managedZone);
+
         return true;
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        ManagedZone managedZone = createManagedZone();
         Dns client = createClient(Dns.class);
+
+        ManagedZone managedZone = createManagedZone();
         ManagedZone response = client.managedZones().create(getProjectId(), managedZone).execute();
         copyFrom(response);
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        if (!(current instanceof ManagedZoneResource)) {
-            throw new GyroException("Incompatible resource type! " + current.getClass().getName());
-        }
         ManagedZone managedZone = new ManagedZone();
 
         for (String changedFieldName : changedFieldNames) {
@@ -277,7 +275,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
                 managedZone.setForwardingConfig(forwardingConfig.copyTo());
             } else if (changedFieldName.equals("labels")) {
                 managedZone.setLabels(Data.nullOf(HashMap.class));
-                patch(ui, managedZone, false);
+                patch(managedZone, false);
                 managedZone.setLabels(getLabels());
             } else if (changedFieldName.equals("private-visibility-config")) {
                 ZonePrivateVisibilityConfig privateVisibilityConfig = getPrivateVisibilityConfig();
@@ -288,7 +286,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
                 managedZone.setPrivateVisibilityConfig(privateVisibilityConfig.copyTo());
             }
         }
-        patch(ui, managedZone, true);
+        patch(managedZone, true);
     }
 
     @Override
@@ -390,23 +388,29 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
         return managedZone;
     }
 
-    private void patch(GyroUI ui, ManagedZone managedZone, boolean shouldRefresh) throws Exception {
+    private void patch(ManagedZone managedZone, boolean shouldRefresh) throws Exception {
         Dns client = createClient(Dns.class);
-        Operation response = client.managedZones().patch(getProjectId(), getName(), managedZone).execute();
-        Dns.ManagedZoneOperations.Get getRequest = client
-            .managedZoneOperations()
-            .get(getProjectId(), getName(), response.getId());
+        final Operation operation = client.managedZones().patch(getProjectId(), getName(), managedZone).execute();
 
-        // TODO: limit retry?
-        long count = 1;
+        boolean success = Wait.atMost(1, TimeUnit.MINUTES)
+            .checkEvery(20, TimeUnit.SECONDS)
+            .prompt(false)
+            .until(() -> isPathReady(client, operation));
 
-        while (response.getStatus().equals("pending")) {
-            ui.write("\nWaiting to be updated.");
-            Thread.sleep(1000L * count++);
-            response = getRequest.execute();
+        if (!success) {
+            throw new InterruptedException("Timed out waiting for operation to complete");
         }
+
         if (shouldRefresh) {
-            copyFrom(response.getZoneContext().getNewValue());
+            copyFrom(operation.getZoneContext().getNewValue());
         }
+    }
+
+    private boolean isPathReady(Dns client, Operation operation) throws Exception {
+        Operation response = client
+            .managedZoneOperations()
+            .get(getProjectId(), getName(), operation.getId()).execute();
+
+        return response.getStatus().equals("done");
     }
 }

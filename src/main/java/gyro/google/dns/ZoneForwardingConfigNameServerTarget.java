@@ -16,10 +16,9 @@
 
 package gyro.google.dns;
 
-import java.util.Optional;
-
 import com.google.api.services.dns.model.ManagedZoneForwardingConfigNameServerTarget;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ZoneForwardingConfigNameServerTarget extends Diffable
@@ -30,6 +29,7 @@ public class ZoneForwardingConfigNameServerTarget extends Diffable
     /**
      * IPv4 address of a target name server.
      */
+    @Required
     public String getIpv4Address() {
         return ipv4Address;
     }
@@ -52,12 +52,5 @@ public class ZoneForwardingConfigNameServerTarget extends Diffable
         ManagedZoneForwardingConfigNameServerTarget managedZoneForwardingConfigNameServerTarget = new ManagedZoneForwardingConfigNameServerTarget();
         managedZoneForwardingConfigNameServerTarget.setIpv4Address(getIpv4Address());
         return managedZoneForwardingConfigNameServerTarget;
-    }
-
-    public boolean isEqualTo(ManagedZoneForwardingConfigNameServerTarget managedZoneForwardingConfigNameServerTarget) {
-        return Optional.ofNullable(managedZoneForwardingConfigNameServerTarget)
-            .map(ManagedZoneForwardingConfigNameServerTarget::getIpv4Address)
-            .filter(ipv4Address -> ipv4Address.equals(getIpv4Address()))
-            .isPresent();
     }
 }

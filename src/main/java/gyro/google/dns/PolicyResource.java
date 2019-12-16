@@ -38,7 +38,7 @@ import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
 /**
- * Creates a DNS Policy.
+ * Creates a dns policy.
  *
  * Example
  * -------

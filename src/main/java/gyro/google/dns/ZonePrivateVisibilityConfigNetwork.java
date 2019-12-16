@@ -56,7 +56,7 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
     public String primaryKey() {
         return Optional.ofNullable(getNetwork())
             .map(NetworkResource::getSelfLink)
-            .orElse(super.primaryKey());
+            .orElse("");
     }
 
     public ManagedZonePrivateVisibilityConfigNetwork copyTo() {
@@ -67,17 +67,5 @@ public class ZonePrivateVisibilityConfigNetwork extends Diffable
             managedZonePrivateVisibilityConfigNetwork.setNetworkUrl(network.getSelfLink());
         }
         return managedZonePrivateVisibilityConfigNetwork;
-    }
-
-    public boolean isEqualTo(ManagedZonePrivateVisibilityConfigNetwork network) {
-        NetworkResource networkResource = getNetwork();
-
-        if (networkResource == null) {
-            return false;
-        }
-        return Optional.ofNullable(network)
-            .map(ManagedZonePrivateVisibilityConfigNetwork::getNetworkUrl)
-            .filter(networkUrl -> networkUrl.equals(networkResource.getSelfLink()))
-            .isPresent();
     }
 }

@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import com.google.api.services.dns.model.ManagedZoneForwardingConfig;
 import com.google.api.services.dns.model.ManagedZoneForwardingConfigNameServerTarget;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZoneForwardingConfig> {
@@ -34,6 +36,8 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
      *
      * @subresource gyro.google.dns.ZoneForwardingConfigNameServerTarget
      */
+    @Required
+    @Updatable
     public List<ZoneForwardingConfigNameServerTarget> getTargetNameServer() {
         if (targetNameServer == null) {
             targetNameServer = new ArrayList<>();
@@ -46,6 +50,11 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(ManagedZoneForwardingConfig model) {
         List<ZoneForwardingConfigNameServerTarget> diffableTargetNameServers = null;
         List<ManagedZoneForwardingConfigNameServerTarget> targetNameServers = model.getTargetNameServers();
@@ -54,11 +63,8 @@ public class ZoneForwardingConfig extends Diffable implements Copyable<ManagedZo
             diffableTargetNameServers = targetNameServers
                 .stream()
                 .map(nameServerTarget -> {
-                    ZoneForwardingConfigNameServerTarget diffableNameServerTarget = getTargetNameServer()
-                        .stream()
-                        .filter(e -> e.isEqualTo(nameServerTarget))
-                        .findFirst()
-                        .orElse(newSubresource(ZoneForwardingConfigNameServerTarget.class));
+                    ZoneForwardingConfigNameServerTarget diffableNameServerTarget = newSubresource(
+                        ZoneForwardingConfigNameServerTarget.class);
                     diffableNameServerTarget.copyFrom(nameServerTarget);
                     return diffableNameServerTarget;
                 })
