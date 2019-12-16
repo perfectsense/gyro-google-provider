@@ -274,17 +274,17 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         return disk;
     }
 
-    void retryCreate(Compute client, ComputeRequest<Operation> insert) throws Exception {
+    void createDisk(Compute client, ComputeRequest<Operation> insert) throws Exception {
         boolean success = Wait.atMost(30, TimeUnit.SECONDS)
             .prompt(false)
             .checkEvery(10, TimeUnit.SECONDS)
-            .until(() -> createDisk(client, insert));
+            .until(() -> executeCreateDisk(client, insert));
         if (!success) {
             throw new GyroException(String.format("The resource '%s' is not ready", getSourceSnapshot().getSelfLink()));
         }
     }
 
-    private boolean createDisk(Compute client, ComputeRequest<Operation> insert) throws Exception {
+    private boolean executeCreateDisk(Compute client, ComputeRequest<Operation> insert) throws Exception {
         try {
             Operation operation = insert.execute();
             Operation.Error error = waitForCompletion(client, operation);

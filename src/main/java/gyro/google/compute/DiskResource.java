@@ -110,7 +110,7 @@ public class DiskResource extends AbstractDiskResource {
         disk.setType(getType());
 
         Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
-        retryCreate(client, insert);
+        createDisk(client, insert);
 
         refresh();
     }

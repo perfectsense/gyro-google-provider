@@ -160,7 +160,7 @@ public class RegionDiskResource extends AbstractDiskResource {
         disk.setType(getType());
 
         Compute.RegionDisks.Insert insert = client.regionDisks().insert(getProjectId(), getRegion(), disk);
-        retryCreate(client, insert);
+        createDisk(client, insert);
 
         refresh();
     }
