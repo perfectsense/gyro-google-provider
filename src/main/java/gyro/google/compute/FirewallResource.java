@@ -27,7 +27,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Firewall;
 import com.google.api.services.compute.model.FirewallLogConfig;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -433,10 +432,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
         Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall());
         Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -446,10 +442,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         Compute client = createComputeClient();
 
         Operation operation = client.firewalls().patch(getProjectId(), getName(), toFirewall()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -459,10 +452,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         Compute client = createComputeClient();
 
         Operation operation = client.firewalls().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     @Override

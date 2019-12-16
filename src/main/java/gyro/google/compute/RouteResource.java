@@ -28,7 +28,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Route;
 import gyro.core.GyroCore;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Output;
@@ -247,10 +246,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         route.setTags(new ArrayList<>(getTags()));
 
         Operation operation = client.routes().insert(getProjectId(), route).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         route = client.routes().get(getProjectId(), getName()).execute();
         copyFrom(route);
@@ -271,10 +267,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         Compute client = createComputeClient();
 
         Operation operation = client.routes().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     @Override

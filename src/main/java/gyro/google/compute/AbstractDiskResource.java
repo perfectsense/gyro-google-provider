@@ -287,10 +287,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private boolean executeCreateDisk(Compute client, ComputeRequest<Operation> insert) throws Exception {
         try {
             Operation operation = insert.execute();
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
         } catch (GoogleJsonResponseException je) {
             if (je.getDetails()
                 .getErrors()

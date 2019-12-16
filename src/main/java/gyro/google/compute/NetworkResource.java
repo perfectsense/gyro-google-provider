@@ -22,7 +22,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
 import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -156,10 +155,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
         Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
         Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -174,14 +170,16 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         Network network = client.networks().get(getProjectId(), getName()).execute();
         network.setRoutingConfig(networkRoutingConfig);
 
-        client.networks().patch(getProjectId(), getName(), network).execute();
+        Operation operation = client.networks().patch(getProjectId(), getName(), network).execute();
+        waitForCompletion(client, operation);
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createComputeClient();
+        Compute client = createComputeClient();
 
-        compute.networks().delete(getProjectId(), getName()).execute();
+        Operation operation = client.networks().delete(getProjectId(), getName()).execute();
+        waitForCompletion(client, operation);
     }
 }

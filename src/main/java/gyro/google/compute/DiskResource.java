@@ -135,10 +135,7 @@ public class DiskResource extends AbstractDiskResource {
         Compute client = createComputeClient();
 
         Operation operation = client.disks().delete(getProjectId(), getZone(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     private void saveSizeGb(Compute client, DiskResource oldDiskResource) throws Exception {
@@ -151,10 +148,7 @@ public class DiskResource extends AbstractDiskResource {
         DisksResizeRequest resizeRequest = new DisksResizeRequest();
         resizeRequest.setSizeGb(getSizeGb());
         Operation operation = client.disks().resize(getProjectId(), getZone(), getName(), resizeRequest).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     private void saveLabels(Compute client) throws Exception {
@@ -162,10 +156,7 @@ public class DiskResource extends AbstractDiskResource {
         labelsRequest.setLabels(getLabels());
         labelsRequest.setLabelFingerprint(getLabelFingerprint());
         Operation operation = client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     static ProjectZoneDiskName parseDisk(String projectId, String selfLink) {

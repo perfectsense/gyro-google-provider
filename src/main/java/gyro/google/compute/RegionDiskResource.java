@@ -185,10 +185,7 @@ public class RegionDiskResource extends AbstractDiskResource {
         Compute client = createComputeClient();
 
         Operation operation = client.regionDisks().delete(getProjectId(), getRegion(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     @Override
@@ -217,10 +214,7 @@ public class RegionDiskResource extends AbstractDiskResource {
         Operation operation = client.regionDisks()
             .resize(getProjectId(), getRegion(), getName(), resizeRequest)
             .execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     private void saveLabels(Compute client) throws Exception {
@@ -230,10 +224,7 @@ public class RegionDiskResource extends AbstractDiskResource {
         Operation operation = client.regionDisks()
             .setLabels(getProjectId(), getRegion(), getName(), labelsRequest)
             .execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     static ProjectRegionDiskName parseRegionDisk(String projectId, String selfLink) {
