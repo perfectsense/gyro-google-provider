@@ -265,6 +265,16 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
                 if (dnssecConfig == null) {
                     throw new GyroException("'dnssec-config' can't be removed once set.");
                 }
+
+                // Check if modification is on an existing dns config with 'on' state
+                // Turn off dns config before update and then turn back on after update
+                if (((ManagedZoneResource) current).getDnssecConfig() != null && dnssecConfig.getState().equals("on")) {
+                    dnssecConfig.setState("off");
+                    managedZone.setDnssecConfig(dnssecConfig.toManagedZoneDnsSecConfig());
+                    patch(managedZone, false);
+                    dnssecConfig.setState("on");
+                }
+
                 managedZone.setDnssecConfig(dnssecConfig.toManagedZoneDnsSecConfig());
             } else if (changedFieldName.equals("forwarding-config")) {
                 ZoneForwardingConfig forwardingConfig = getForwardingConfig();
