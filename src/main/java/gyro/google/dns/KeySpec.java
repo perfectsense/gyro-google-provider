@@ -47,6 +47,7 @@ public class KeySpec extends Diffable implements Copyable<DnsKeySpec> {
     /**
      * Length of the keys in bits.
      */
+    @Updatable
     public Long getKeyLength() {
         return keyLength;
     }
