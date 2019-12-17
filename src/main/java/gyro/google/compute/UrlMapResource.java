@@ -26,7 +26,6 @@ import com.google.api.services.compute.model.HostRule;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.PathMatcher;
 import com.google.api.services.compute.model.UrlMap;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -239,11 +238,8 @@ public class UrlMapResource extends ComputeResource implements Copyable<UrlMap> 
 
         Compute client = createComputeClient();
         Operation response = client.urlMaps().insert(getProjectId(), urlMap).execute();
-        Operation.Error error = waitForCompletion(client, response);
+        waitForCompletion(client, response);
 
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
         refresh();
     }
 
@@ -257,11 +253,7 @@ public class UrlMapResource extends ComputeResource implements Copyable<UrlMap> 
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         Operation response = client.urlMaps().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
     }
 
     @Override

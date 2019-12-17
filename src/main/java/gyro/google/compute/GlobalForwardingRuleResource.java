@@ -24,7 +24,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.ForwardingRule;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -84,11 +83,7 @@ public class GlobalForwardingRuleResource extends ForwardingRuleResource {
 
         Compute client = createComputeClient();
         Operation response = client.globalForwardingRules().insert(getProjectId(), forwardingRule).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
         refresh();
     }
 
@@ -102,11 +97,7 @@ public class GlobalForwardingRuleResource extends ForwardingRuleResource {
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         Operation response = client.globalForwardingRules().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
     }
 
     @Override

@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.BackendService;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -85,11 +84,7 @@ public class GlobalBackendServiceResource extends BackendServiceResource {
 
         Compute client = createComputeClient();
         Operation response = client.backendServices().insert(getProjectId(), backendService).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
         refresh();
     }
 
@@ -103,10 +98,6 @@ public class GlobalBackendServiceResource extends BackendServiceResource {
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         Operation response = client.backendServices().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
     }
 }

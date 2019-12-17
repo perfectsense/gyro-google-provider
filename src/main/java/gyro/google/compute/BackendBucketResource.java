@@ -22,7 +22,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.BackendBucket;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -145,11 +144,7 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
 
         Compute client = createComputeClient();
         Operation response = client.backendBuckets().insert(getProjectId(), backendBucket).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
         refresh();
     }
 
@@ -163,10 +158,6 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         Operation response = client.backendBuckets().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
     }
 }

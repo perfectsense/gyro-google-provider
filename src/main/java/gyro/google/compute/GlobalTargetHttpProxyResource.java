@@ -22,7 +22,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.TargetHttpProxy;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -47,11 +46,7 @@ public class GlobalTargetHttpProxyResource extends TargetHttpProxyResource {
 
         Compute client = createComputeClient();
         Operation response = client.targetHttpProxies().insert(getProjectId(), targetHttpProxy).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
         refresh();
     }
 
@@ -65,10 +60,6 @@ public class GlobalTargetHttpProxyResource extends TargetHttpProxyResource {
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
         Operation response = client.targetHttpProxies().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, response);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, response);
     }
 }
