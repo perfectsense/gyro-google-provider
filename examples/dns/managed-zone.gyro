@@ -24,5 +24,17 @@ google::dns-managed-zone public-managed-zone-example
 
     dnssec-config
         state: "on"
+
+        default-key-spec
+            algorithm: "rsasha256"
+            key-length: "2048"
+            key-type: "keySigning"
+        end
+
+        default-key-spec
+            algorithm: "rsasha256"
+            key-length: "1024"
+            key-type: "zoneSigning"
+        end
     end
 end
