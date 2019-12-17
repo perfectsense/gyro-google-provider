@@ -16,6 +16,34 @@
 
 package gyro.google.compute;
 
-public class InstanceFinder {
+import java.util.List;
+import java.util.Map;
 
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Instance;
+import gyro.core.Type;
+import gyro.google.GoogleFinder;
+
+/**
+ * Query instance.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *    instance: $(external-query google::instance { name: 'gyro-dev-instance'})
+ */
+@Type("instance")
+public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceResource> {
+
+    @Override
+    protected List<Instance> findAllGoogle(Compute client) throws Exception {
+        return null;
+    }
+
+    @Override
+    protected List<Instance> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        return null;
+    }
 }
