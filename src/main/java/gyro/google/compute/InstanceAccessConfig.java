@@ -103,6 +103,11 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(AccessConfig model) {
          setName(model.getName());
          setNatIP(model.getNatIP());

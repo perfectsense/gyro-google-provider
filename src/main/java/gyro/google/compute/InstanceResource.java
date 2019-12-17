@@ -51,11 +51,12 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     private Map<String, String> labels;
     private String labelFingerprint;
 
-    private List<InstanceAttachedDisk> attachedDisks;
+    private List<InstanceAttachedDisk> initializeDisks;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
      */
+    @Id
     @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
     @Required
     public String getName() {
@@ -78,6 +79,10 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         this.zone = zone;
     }
 
+    /**
+     * TODO
+     */
+    @Output
     public String getDescription() {
         return description;
     }
@@ -130,7 +135,6 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     /**
      * URL to the instance.
      */
-    @Id
     public String getSelfLink() {
         return selfLink;
     }
@@ -139,6 +143,9 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         this.selfLink = selfLink;
     }
 
+    /**
+     * TODO
+     */
     @Updatable
     public Map<String, String> getLabels() {
         return labels;
@@ -148,10 +155,17 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         this.labels = labels;
     }
 
+    /**
+     * TODO
+     */
+    @Output
     public String getLabelFingerprint() {
         return labelFingerprint;
     }
 
+    /**
+     * TODO
+     */
     public void setLabelFingerprint(String labelFingerprint) {
         this.labelFingerprint = labelFingerprint;
     }
@@ -159,17 +173,16 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     /**
      * TODO
      */
-    @Updatable
-    public List<InstanceAttachedDisk> getAttachedDisks() {
-        if (attachedDisks == null) {
-            attachedDisks = new ArrayList<>();
+    public List<InstanceAttachedDisk> getInitializeDisks() {
+        if (initializeDisks == null) {
+            initializeDisks = new ArrayList<>();
         }
 
-        return attachedDisks;
+        return initializeDisks;
     }
 
-    public void setAttachedDisks(List<InstanceAttachedDisk> attachedDisks) {
-        this.attachedDisks = attachedDisks;
+    public void setInitializeDisks(List<InstanceAttachedDisk> initializeDisks) {
+        this.initializeDisks = initializeDisks;
     }
 
     @Override
@@ -195,7 +208,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
             .collect(Collectors.toList()));
         content.setLabels(getLabels());
 
-        content.setDisks(getAttachedDisks().stream()
+        content.setDisks(getInitializeDisks().stream()
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
 
@@ -228,33 +241,6 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
 
             if (error != null) {
                 throw new GyroException(error.toPrettyString());
-            }
-        }
-
-        if (changedFieldNames.contains("attached-disks")) {
-            // Attach added disks.
-            for (InstanceAttachedDisk ad : getAttachedDisks()) {
-                if (getDisks().stream().noneMatch(disk -> disk.getSource().equals(ad.getSource()))) {
-                    Operation.Error error = waitForCompletion(client, client.instances()
-                        .attachDisk(getProjectId(), getZone(), getName(), ad.copyTo()).execute());
-
-                    if (error != null) {
-                        throw new GyroException(error.toPrettyString());
-                    }
-                }
-            }
-
-            // Detach removed disks.
-            for (InstanceAttachedDisk disk : getDisks()) {
-                if (getAttachedDisks().stream().noneMatch(ad -> disk.getSource().equals(ad.getSource()))) {
-                    Operation.Error error = waitForCompletion(client, client.instances()
-                        .detachDisk(getProjectId(), getZone(), getName(), disk.getDeviceName())
-                        .execute());
-
-                    if (error != null) {
-                        throw new GyroException(error.toPrettyString());
-                    }
-                }
             }
         }
 
