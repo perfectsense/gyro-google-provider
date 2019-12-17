@@ -158,10 +158,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
                 client.projects().setCommonInstanceMetadata(getProjectId(), metadata);
             Operation operation = metadataRequest.execute();
 
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
         } catch (GoogleJsonResponseException je) {
             String message = je.getDetails().getMessage();
             if (message.contains("Metadata has duplicate keys")) {

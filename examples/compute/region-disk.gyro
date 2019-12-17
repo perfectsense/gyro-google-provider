@@ -1,0 +1,50 @@
+google::compute-region-disk region-disk-example
+    name: "region-disk-example"
+    description: "region-disk-example-desc"
+    region: "us-central1"
+
+    replica-zones: [
+         "us-central1-c",
+         "us-central1-a"
+    ]
+
+    size-gb: 32
+    type: "pd-ssd"
+    labels: {
+        label-key: 'label-value'
+    }
+    physical-block-size-bytes: 16384
+
+    disk-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
+
+google::compute-snapshot region-snapshot-example
+    name: "region-snapshot-example"
+    source-region-disk: $(google::compute-region-disk region-disk-example)
+
+    source-disk-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+
+    snapshot-encryption-key
+        raw-key: "AGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
+
+google::compute-region-disk region-disk-snapshot-example
+    name: "region-disk-snapshot-example"
+    region: "us-central1"
+
+    replica-zones: [
+         "us-central1-c",
+         "us-central1-a"
+    ]
+
+    source-snapshot: $(google::compute-snapshot region-snapshot-example)
+
+    source-snapshot-encryption-key
+        raw-key: "AGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
