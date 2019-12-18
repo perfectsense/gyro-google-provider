@@ -160,6 +160,10 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     static ProjectZoneDiskName parseDisk(String projectId, String selfLink) {
+        if (selfLink == null) {
+            return null;
+        }
+
         String parseDiskName = formatResource(projectId, selfLink);
         if (ProjectZoneDiskName.isParsableFrom(parseDiskName)) {
             return ProjectZoneDiskName.parse(parseDiskName);
