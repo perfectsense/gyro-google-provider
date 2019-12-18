@@ -45,6 +45,41 @@ import gyro.google.Copyable;
 
 /**
  * Creates an image, which is used to create boot disks. You must provide either a source image, source snapshot, source disk, or raw disk when creating an image.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-image image-disk-example
+ *         name: "image-disk-example"
+ *         description: "image-disk-example-desc"
+ *         source-disk: $(google::compute-disk disk-example)
+ *         family: "image-disk-example-family"
+ *         labels: {
+ *             label-key: 'label-value'
+ *         }
+ *
+ *         source-disk-encryption-key
+ *             raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+ *         end
+ *
+ *         storage-locations: [
+ *             "us-central1"
+ *         ]
+ *     end
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-image image-image-example
+ *         name: "image-image-example"
+ *         description: "image-image-example-desc"
+ *         source-image: $(google::compute-image image-disk-example)
+ *
+ *         storage-locations: [
+ *             "us"
+ *         ]
+ *     end
  */
 @Type("compute-image")
 public class ImageResource extends ComputeResource implements Copyable<Image> {
