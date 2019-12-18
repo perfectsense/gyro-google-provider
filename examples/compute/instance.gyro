@@ -5,7 +5,8 @@ google::instance gyro-dev-1
     machine-type: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/machineTypes/n1-standard-2"
 
     network-interfaces
-        network: $(external-query google::compute-network {name: "default"})
+        #network: $(external-query google::compute-network {name: "default"})
+        network: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/global/networks/default"
     end
 
     initialize-disks
@@ -29,9 +30,35 @@ google::instance gyro-dev-1
     }
 end
 
+google::instance gyro-dev-2
+    name: "gyro-development-2"
+    description: "Testing for Gyro"
+    zone: "us-west1-a"
+    machine-type: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/machineTypes/n1-standard-2"
+
+    network-interfaces
+        #network: $(external-query google::compute-network {name: "default"})
+        network: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/global/networks/default"
+    end
+
+    initialize-disks
+        boot: true
+
+        initialize-params
+            disk-name: "gyro-boot-disk-2"
+            source-image: "projects/debian-cloud/global/images/family/debian-9"
+        end
+    end
+
+    labels: {
+        "gyro": "install"
+    }
+end
+
 google::instance-attached-disk gyro-disk-1
     instance: $(google::instance gyro-dev-1)
     attached-disk
-        source: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/disks/instance-test-2"
+        auto-delete: false
+        source: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/disks/instance-test-1"
     end
 end

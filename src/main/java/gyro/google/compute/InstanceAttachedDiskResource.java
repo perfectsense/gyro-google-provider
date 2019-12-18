@@ -32,10 +32,27 @@ import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
 import gyro.core.resource.Resource;
+import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
+/**
+ * Creates a network.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *      google::instance-attached-disk gyro-disk-1
+ *          instance: $(google::instance gyro-dev-1)
+ *          attached-disk
+ *              auto-delete: false
+ *              source: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/disks/instance-test-1"
+ *          end
+ *      end
+ */
 @Type("instance-attached-disk")
 public class InstanceAttachedDiskResource extends ComputeResource implements Copyable<AttachedDisk> {
 
@@ -43,9 +60,10 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     private InstanceAttachedDisk attachedDisk;
 
     /**
-     * TODO
+     * Gyro instance resource.
      */
     @Required
+    @Updatable
     public InstanceResource getInstance() {
         return instance;
     }
@@ -55,9 +73,10 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     }
 
     /**
-     * TODO
+     * Configuration for attached disk.
      */
     @Required
+    @Updatable
     public InstanceAttachedDisk getAttachedDisk() {
         return attachedDisk;
     }
@@ -89,13 +108,41 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        Compute compute = createClient(Compute.class);
+        InstanceAttachedDiskResource currentResource = (InstanceAttachedDiskResource) current;
 
         if (changedFieldNames.contains("instance")) {
-            // TODO
-        }
-
-        if (changedFieldNames.contains("attached-disk")) {
+            detachDisk(currentResource);
             attachDisk();
+
+        } else if (changedFieldNames.contains("attached-disk")) {
+
+            if (!currentResource.getAttachedDisk().getSource().equals(getAttachedDisk().getSource())) {
+                attachDisk();
+                detachDisk(currentResource);
+
+                // Since current has now changed reflect in currentResource for any future calls. This is mainly
+                // to get the correct new deviceName.
+                AttachedDisk currentAttachedDisk = currentAttachedDisk();
+                currentResource.copyFrom(currentAttachedDisk);
+            }
+
+            if (currentResource.getAttachedDisk().getAutoDelete() != getAttachedDisk().getAutoDelete()) {
+                Operation.Error error = waitForCompletion(
+                    compute,
+                    compute.instances()
+                        .setDiskAutoDelete(
+                            getProjectId(),
+                            getInstance().getZone(),
+                            getInstance().getName(),
+                            Boolean.TRUE.equals(getAttachedDisk().getAutoDelete()),
+                            currentResource.getAttachedDisk().getDeviceName())
+                        .execute());
+
+                if (error != null) {
+                    throw new GyroException(error.toPrettyString());
+                }
+            }
         }
 
         refresh();
@@ -103,19 +150,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createClient(Compute.class);
-        Operation.Error error = waitForCompletion(
-            compute,
-            compute.instances()
-                .detachDisk(getProjectId(),
-                    getInstance().getZone(),
-                    getInstance().getName(),
-                    getAttachedDisk().getDeviceName())
-                .execute());
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        detachDisk(this);
     }
 
     @Override
@@ -162,13 +197,31 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
         return null;
     }
 
+    private void detachDisk(InstanceAttachedDiskResource resource) throws Exception {
+        Compute compute = createClient(Compute.class);
+        Operation.Error error = waitForCompletion(
+            compute,
+            compute.instances()
+                .detachDisk(
+                    resource.getProjectId(),
+                    resource.getInstance().getZone(),
+                    resource.getInstance().getName(),
+                    resource.getAttachedDisk().getDeviceName())
+                .execute());
+
+        if (error != null) {
+            throw new GyroException(error.toPrettyString());
+        }
+    }
+
     private void attachDisk() throws Exception {
         Compute compute = createClient(Compute.class);
 
         Operation.Error error = waitForCompletion(
             compute,
             compute.instances()
-                .attachDisk(getProjectId(),
+                .attachDisk(
+                    getProjectId(),
                     getInstance().getZone(),
                     getInstance().getName(),
                     getAttachedDisk().copyTo())

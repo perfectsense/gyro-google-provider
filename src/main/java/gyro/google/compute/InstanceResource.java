@@ -38,6 +38,45 @@ import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
+/**
+ * Creates a network.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *      google::instance gyro-dev-1
+ *          name: "gyro-development"
+ *          description: "Testing for Gyro"
+ *          zone: "us-west1-a"
+ *          machine-type: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/machineTypes/n1-standard-2"
+ *
+ *          network-interfaces
+ *              network: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/global/networks/default"
+ *          end
+ *
+ *          initialize-disks
+ *              boot: true
+ *
+ *              initialize-params
+ *                  disk-name: "gyro-boot-disk"
+ *                  source-image: "projects/debian-cloud/global/images/family/debian-9"
+ *              end
+ *          end
+ *
+ *          initialize-disks
+ *              initialize-params
+ *                  disk-name: "gyro-secondary-disk"
+ *                  source-image: "projects/debian-cloud/global/images/family/debian-9"
+ *              end
+ *          end
+ *
+ *          labels: {
+ *              "gyro": "install"
+ *          }
+ *      end
+ */
 @Type("instance")
 public class InstanceResource extends ComputeResource implements Copyable<Instance> {
 
@@ -56,7 +95,6 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
      */
-    @Id
     @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
     @Required
     public String getName() {
@@ -80,7 +118,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * TODO
+     * An optional description for the resource.
      */
     @Output
     public String getDescription() {
@@ -135,6 +173,8 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     /**
      * URL to the instance.
      */
+    @Id
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -144,7 +184,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * TODO
+     * Map of key-value pairs to apply to this instance. May be updated after creation.
      */
     @Updatable
     public Map<String, String> getLabels() {
@@ -156,22 +196,19 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * TODO
+     * Hash of the label's contents used for locking.
      */
     @Output
     public String getLabelFingerprint() {
         return labelFingerprint;
     }
 
-    /**
-     * TODO
-     */
     public void setLabelFingerprint(String labelFingerprint) {
         this.labelFingerprint = labelFingerprint;
     }
 
     /**
-     * TODO
+     * Parameters for a new disk that will be created alongside the new instance. Use to create boot disks or local SSDs attached to the new instance.
      */
     public List<InstanceAttachedDisk> getInitializeDisks() {
         if (initializeDisks == null) {
