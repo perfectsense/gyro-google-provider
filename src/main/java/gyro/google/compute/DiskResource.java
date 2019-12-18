@@ -18,7 +18,9 @@ package gyro.google.compute;
 
 import java.util.Set;
 
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.CustomerEncryptionKey;
 import com.google.api.services.compute.model.Disk;
 import com.google.api.services.compute.model.DisksResizeRequest;
 import com.google.api.services.compute.model.Operation;
@@ -30,6 +32,7 @@ import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
 
 /**
@@ -51,12 +54,27 @@ import gyro.core.validation.Required;
  *         }
  *         physical-block-size-bytes: 4096
  *     end
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-disk disk-image-example
+ *         name: "disk-image-example"
+ *         description: "disk-image-example-desc"
+ *         zone: "us-west1-a"
+ *         source-image: $(google::compute-image image-example)
+ *
+ *         source-image-encryption-key
+ *             raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+ *         end
+ *     end
  */
 @Type("compute-disk")
 public class DiskResource extends AbstractDiskResource {
 
     private String zone;
     private String type;
+    private ImageResource sourceImage;
+    private EncryptionKey sourceImageEncryptionKey;
 
     /**
      * The zone where the disk resides. (Required)
@@ -83,12 +101,43 @@ public class DiskResource extends AbstractDiskResource {
         this.type = type != null ? toZoneDiskTypeUrl(getProjectId(), type, getZone()) : null;
     }
 
+    /**
+     * The source image used to create this disk. Conflicts with ``source-snapshot``.
+     */
+    @ConflictsWith("source-snapshot")
+    public ImageResource getSourceImage() {
+        return sourceImage;
+    }
+
+    public void setSourceImage(ImageResource sourceImage) {
+        this.sourceImage = sourceImage;
+    }
+
+    /**
+     * The encryption key of the source image. This is required if the source image is protected by a customer-supplied encryption key.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
+     */
+    public EncryptionKey getSourceImageEncryptionKey() {
+        return sourceImageEncryptionKey;
+    }
+
+    public void setSourceDiskEncryptionKey(EncryptionKey sourceImageEncryptionKey) {
+        this.sourceImageEncryptionKey = sourceImageEncryptionKey;
+    }
+
     @Override
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
         setZone(disk.getZone());
         setType(disk.getType());
+
+        setSourceImage(null);
+        if (ImageResource.parseImage(getProjectId(), disk.getSourceImage()) != null
+            || ImageResource.parseFamilyImage(getProjectId(), disk.getSourceImage()) != null) {
+            setSourceImage(findById(ImageResource.class, disk.getSourceImage()));
+        }
     }
 
     @Override
@@ -108,6 +157,10 @@ public class DiskResource extends AbstractDiskResource {
         Disk disk = toDisk();
         disk.setZone(getZone());
         disk.setType(getType());
+        disk.setSourceImage(getSourceImage() != null ? getSourceImage().getSelfLink() : null);
+        disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
+            ? getSourceImageEncryptionKey().toCustomerEncryptionKey()
+            : Data.nullOf(CustomerEncryptionKey.class));
 
         Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
         createDisk(client, insert);
