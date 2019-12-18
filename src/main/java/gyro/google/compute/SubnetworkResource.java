@@ -22,8 +22,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Subnetwork;
 import com.google.api.services.compute.model.SubnetworksSetPrivateIpGoogleAccessRequest;
-import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -168,7 +166,11 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         this.id = id;
     }
 
+    /**
+     * The fully-qualified URL linking back to the subnetwork.
+     */
     @Id
+    @Output
     public String getSelfLink() {
         return selfLink;
     }
@@ -188,8 +190,9 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         setName(subnetwork.getName());
         setNetwork(findById(
             NetworkResource.class,
-            subnetwork.getNetwork().substring(subnetwork.getNetwork().lastIndexOf("/") + 1)));
+            subnetwork.getNetwork()));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
+        setSelfLink(subnetwork.getSelfLink());
     }
 
     @Override
@@ -208,7 +211,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
         Subnetwork subnetwork = new Subnetwork();
         subnetwork.setName(getName());
-        subnetwork.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
+        subnetwork.setNetwork(getNetwork().getSelfLink());
         subnetwork.setDescription(getDescription());
         subnetwork.setIpCidrRange(getIpCidrRange());
         subnetwork.setEnableFlowLogs(getEnableFlowLogs());
@@ -216,10 +219,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
         Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
         Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -228,16 +228,19 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
+        Operation operation;
         if (changedFieldNames.contains("enable-flow-logs")) {
             Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
             subnetwork.setEnableFlowLogs(getEnableFlowLogs());
-            client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
+            operation = client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
+            waitForCompletion(client, operation);
         }
 
         if (changedFieldNames.contains("private-ip-google-access")) {
             SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
             flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
-            client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
+            operation = client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
+            waitForCompletion(client, operation);
         }
     }
 
@@ -246,10 +249,6 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         Compute client = createComputeClient();
 
         Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
-
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 }

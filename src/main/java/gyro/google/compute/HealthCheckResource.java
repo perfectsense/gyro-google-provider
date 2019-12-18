@@ -21,7 +21,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -130,10 +129,7 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
         HealthCheck healthCheck = getHealthCheck(null);
         Compute.HealthChecks.Insert insert = client.healthChecks().insert(getProjectId(), healthCheck);
         Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -143,10 +139,7 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
         Compute client = createComputeClient();
         HealthCheck healthCheck = getHealthCheck(changedFieldNames);
         Operation operation = client.healthChecks().patch(getProjectId(), getName(), healthCheck).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -156,9 +149,6 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
         Compute client = createComputeClient();
         HealthCheck healthCheck = client.healthChecks().get(getProjectId(), getName()).execute();
         Operation operation = client.healthChecks().delete(getProjectId(), healthCheck.getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 }

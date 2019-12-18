@@ -27,8 +27,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Firewall;
 import com.google.api.services.compute.model.FirewallLogConfig;
 import com.google.api.services.compute.model.Operation;
-import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -374,7 +372,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         setName(firewall.getName());
         setNetwork(findById(
             NetworkResource.class,
-            firewall.getNetwork().substring(firewall.getNetwork().lastIndexOf("/") + 1)));
+            firewall.getNetwork()));
         setDescription(firewall.getDescription());
 
         setDestinationRanges(
@@ -434,10 +432,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
         Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall());
         Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -447,10 +442,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         Compute client = createComputeClient();
 
         Operation operation = client.firewalls().patch(getProjectId(), getName(), toFirewall()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -460,10 +452,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         Compute client = createComputeClient();
 
         Operation operation = client.firewalls().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     @Override
@@ -533,7 +522,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         Firewall firewall = new Firewall();
 
         firewall.setName(getName());
-        firewall.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
+        firewall.setNetwork(getNetwork().getSelfLink());
         firewall.setDirection(getDirection());
         firewall.setDescription(getDescription());
         firewall.setDisabled(getDisabled());

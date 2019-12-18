@@ -5,7 +5,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.HealthCheck;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -141,10 +140,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
         Compute.RegionHealthChecks.Insert insert = client.regionHealthChecks()
             .insert(getProjectId(), healthCheck.getRegion(), healthCheck);
         Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -161,11 +157,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
         Operation operation = client.regionHealthChecks()
             .patch(getProjectId(), getRegion(), getName(), healthCheck)
             .execute();
-        Operation.Error error = waitForCompletion(client, operation);
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -177,9 +169,6 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
         Operation operation = client.regionHealthChecks()
             .delete(getProjectId(), region, healthCheck.getName())
             .execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 }
