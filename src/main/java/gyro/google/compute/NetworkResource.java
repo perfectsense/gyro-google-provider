@@ -70,15 +70,6 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         this.name = name;
     }
 
-    @Id
-    public String getSelfLink() {
-        return selfLink;
-    }
-
-    public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink;
-    }
-
     /**
      * The description of the network.
      */
