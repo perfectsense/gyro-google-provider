@@ -62,3 +62,6 @@ google::instance-attached-disk gyro-disk-1
         source: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/disks/instance-test-1"
     end
 end
+
+instance: $(external-query google::instance {zone: 'us-west1-a', filter: 'name = gyro-development'})
+instances: $(external-query google::instance)

@@ -16,11 +16,15 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
+import com.google.api.services.compute.model.InstanceList;
+import com.google.api.services.compute.model.Zone;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -32,18 +36,54 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    instance: $(external-query google::instance { name: 'gyro-dev-instance'})
+ *    instance: $(external-query google::instance {zone: 'us-west1-a', filter: 'name = gyro-development'})
  */
 @Type("instance")
 public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceResource> {
 
     @Override
     protected List<Instance> findAllGoogle(Compute client) throws Exception {
-        return null;
+        List<Instance> instances = new ArrayList<>();
+        String pageToken;
+        List<String> zones = client.zones().list(getProjectId()).execute().getItems()
+            .stream()
+            .map(Zone::getName)
+            .collect(Collectors.toList());
+
+        for (String zone : zones) {
+            do {
+                InstanceList results = client.instances().list(getProjectId(), zone).execute();
+                pageToken = results.getNextPageToken();
+
+                if (results.getItems() != null) {
+                    instances.addAll(results.getItems());
+                }
+            } while (pageToken != null);
+        }
+
+        return instances;
     }
 
     @Override
     protected List<Instance> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return null;
+        List<Instance> instances = new ArrayList<>();
+
+        if (filters.containsKey("zone")) {
+            String pageToken;
+
+            do {
+                InstanceList results = client.instances().list(getProjectId(), filters.get("zone"))
+                    .setFilter(filters.get("filter"))
+                    .execute();
+                pageToken = results.getNextPageToken();
+
+                if (results.getItems() != null) {
+                    instances.addAll(results.getItems());
+                }
+
+            } while (pageToken != null);
+        }
+
+        return instances;
     }
 }
