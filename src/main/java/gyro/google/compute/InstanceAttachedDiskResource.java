@@ -26,8 +26,6 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
@@ -128,7 +126,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
             }
 
             if (currentResource.getAttachedDisk().getAutoDelete() != getAttachedDisk().getAutoDelete()) {
-                Operation.Error error = waitForCompletion(
+                waitForCompletion(
                     compute,
                     compute.instances()
                         .setDiskAutoDelete(
@@ -138,10 +136,6 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                             Boolean.TRUE.equals(getAttachedDisk().getAutoDelete()),
                             currentResource.getAttachedDisk().getDeviceName())
                         .execute());
-
-                if (error != null) {
-                    throw new GyroException(error.toPrettyString());
-                }
             }
         }
 
@@ -199,7 +193,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
 
     private void detachDisk(InstanceAttachedDiskResource resource) throws Exception {
         Compute compute = createClient(Compute.class);
-        Operation.Error error = waitForCompletion(
+        waitForCompletion(
             compute,
             compute.instances()
                 .detachDisk(
@@ -208,16 +202,11 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                     resource.getInstance().getName(),
                     resource.getAttachedDisk().getDeviceName())
                 .execute());
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
     }
 
     private void attachDisk() throws Exception {
         Compute compute = createClient(Compute.class);
-
-        Operation.Error error = waitForCompletion(
+        waitForCompletion(
             compute,
             compute.instances()
                 .attachDisk(
@@ -226,9 +215,5 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                     getInstance().getName(),
                     getAttachedDisk().copyTo())
                 .execute());
-
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
     }
 }

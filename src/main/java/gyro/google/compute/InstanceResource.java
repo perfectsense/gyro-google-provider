@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstancesSetLabelsRequest;
-import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -249,12 +247,9 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
 
-        Operation.Error error = waitForCompletion(
+        waitForCompletion(
             client,
             client.instances().insert(getProjectId(), getZone(), content).execute());
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
 
         refresh();
     }
@@ -264,7 +259,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         Compute client = createComputeClient();
 
         if (changedFieldNames.contains("labels")) {
-            Operation.Error error = waitForCompletion(
+            waitForCompletion(
                 client,
                 client.instances()
                     .setLabels(
@@ -275,10 +270,6 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
                             .setLabelFingerprint(getLabelFingerprint())
                             .setLabels(getLabels()))
                     .execute());
-
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
         }
 
         refresh();
