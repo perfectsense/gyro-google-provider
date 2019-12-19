@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.AliasIpRange;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class InstanceAliasIpRange extends Diffable implements Copyable<AliasIpRange> {
@@ -29,7 +28,6 @@ public class InstanceAliasIpRange extends Diffable implements Copyable<AliasIpRa
     /**
      * The IP alias ranges to allocate for this interface. This IP CIDR range must belong to the specified subnetwork and cannot contain IP addresses reserved by system or used by other network interfaces. This range may be a single IP address (e.g. 10.2.3.4), a netmask (e.g. /24) or a CIDR-formatted string (e.g. 10.1.2.0/24).
      */
-    @Updatable
     public String getIpCidrRange() {
         return ipCidrRange;
     }
@@ -41,7 +39,6 @@ public class InstanceAliasIpRange extends Diffable implements Copyable<AliasIpRa
     /**
      * Name given to a subnetwork secondary IP range for use in allocating the IP alias range. Unspecified the primary range of the subnetwork is used.
      */
-    @Updatable
     public String getSubnetworkRangeName() {
         return subnetworkRangeName;
     }

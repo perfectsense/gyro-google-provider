@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.AccessConfig;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class InstanceAccessConfig extends Diffable implements Copyable<AccessConfig> {
@@ -33,7 +32,6 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * Name of this access configuration. Default and recommended name is ``External NAT``, but can be any arbitrary string.
      */
-    @Updatable
     public String getName() {
         return name;
     }
@@ -45,7 +43,6 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * An unused static external IP address available to the project. Leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.
      */
-    @Updatable
     public String getNatIP() {
         return natIP;
     }
@@ -57,7 +54,6 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * Signifies the networking tier used for configuring this access configuration. Valid values are ``PREMIUM`` or ``STANDARD``. If specified without a valid external IP address, an ephemeral IP will be created with this networkTier. If a valid external IP address is specified, it must match that of the networkTier associated with the Address resource owning that IP.
      */
-    @Updatable
     public String getNetworkTier() {
         return networkTier;
     }
@@ -69,7 +65,6 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * The DNS domain name for the public PTR record. Can only be set if the ``setPublicPtr`` field is set to ``true``.
      */
-    @Updatable
     public String getPublicPtrDomainName() {
         return publicPtrDomainName;
     }
@@ -81,7 +76,6 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * if ``true`` a public DNS 'PTR' record should be created to map the external IP address of the instance to a DNS domain name.
      */
-    @Updatable
     public Boolean getSetPublicPtr() {
         return setPublicPtr;
     }
@@ -93,7 +87,6 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * The type of configuration. The default and only valid value is ``ONE_TO_ONE_NAT``.
      */
-    @Updatable
     public String getType() {
         return type;
     }

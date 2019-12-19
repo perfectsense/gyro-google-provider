@@ -39,7 +39,7 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     private InstanceCustomerEncryptionKey sourceSnapshotEncryptionKey;
 
     /**
-     * TODO
+     * The source image to create this disk in the form of a URL path. See `Images <https://cloud.google.com/compute/docs/images/>`_.
      */
     public String getSourceImage() {
         return sourceImage;
