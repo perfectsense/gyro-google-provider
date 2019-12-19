@@ -76,6 +76,3 @@ google::instance-attached-disk gyro-disk-1
         source: $(google::compute-disk instance-disk-example)
     end
 end
-
-instance: $(external-query google::instance {zone: $zone, filter: 'name = gyro-development'})
-instances: $(external-query google::instance)
