@@ -36,7 +36,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     private InstanceAttachedDiskInitializeParams initializeParams;
     private String diskInterface; // model name is reserved 'interface'
     private String mode;
-    private String source;
+    private DiskResource source;
     private String type;
 
     /**
@@ -137,11 +137,11 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
      * The Persistent Disk resource.
      */
     @ConflictsWith("initializeParams")
-    public String getSource() {
+    public DiskResource getSource() {
         return source;
     }
 
-    public void setSource(String source) {
+    public void setSource(DiskResource source) {
         this.source = source;
     }
 
@@ -181,7 +181,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
             return key.stream().collect(Collectors.joining(","));
         }
 
-        return String.format("source=%s", getSource());
+        return getSource() != null ? getSource().getSelfLink() : "";
     }
 
     @Override
@@ -191,7 +191,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         setDeviceName(model.getDeviceName());
         setDiskInterface(model.getInterface());
         setMode(model.getMode());
-        setSource(model.getSource());
+        setSource(findById(DiskResource.class, model.getSource()));
         setType(model.getType());
 
         setDiskEncryptionKey(null);
@@ -221,7 +221,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         disk.setDeviceName(getDeviceName());
         disk.setInterface(getDiskInterface());
         disk.setMode(getMode());
-        disk.setSource(getSource());
+        disk.setSource(getSource() != null ? getSource().getSelfLink() : null);
         disk.setType(getType());
         disk.setDiskEncryptionKey(getDiskEncryptionKey() != null ? getDiskEncryptionKey().copyTo() : null);
         disk.setGuestOsFeatures(getGuestOsFeatures() != null ? getGuestOsFeatures().stream()

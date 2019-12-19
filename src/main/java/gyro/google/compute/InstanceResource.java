@@ -44,14 +44,16 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
+ *      zone: "us-west1-a"
+ *
  *      google::instance gyro-dev-1
  *          name: "gyro-development"
  *          description: "Testing for Gyro"
- *          zone: "us-west1-a"
- *          machine-type: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/machineTypes/n1-standard-2"
+ *          zone: $zone
+ *          machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
  *
  *          network-interfaces
- *              network: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/global/networks/default"
+ *              network: $(external-query google::compute-network {name: "default"})
  *          end
  *
  *          initialize-disks
@@ -135,7 +137,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     public void setMachineType(String machineType) {
-        this.machineType = machineType;
+        this.machineType = machineType != null ? machineType.substring(machineType.lastIndexOf("zones/")) : null;
     }
 
     /**

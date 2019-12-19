@@ -47,7 +47,7 @@ import gyro.google.Copyable;
  *          instance: $(google::instance gyro-dev-1)
  *          attached-disk
  *              auto-delete: false
- *              source: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/zones/us-west1-a/disks/instance-test-1"
+ *              source: $(google::compute-disk instance-disk-example)
  *          end
  *      end
  */
@@ -157,6 +157,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     private AttachedDisk currentAttachedDisk() {
         Compute compute = createClient(Compute.class);
         AtomicReference<Instance> instanceResult = new AtomicReference<>();
+        String attachedDiskSourceSelfLink = formatResource(getProjectId(), attachedDisk.getSource().getSelfLink());
 
         Wait.atMost(30, TimeUnit.SECONDS)
             .prompt(false)
@@ -183,7 +184,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
 
         if (disks != null) {
             return disks.stream()
-                .filter(disk -> disk.getSource().equals(attachedDisk.getSource()))
+                .filter(disk -> formatResource(getProjectId(), disk.getSource()).equals(attachedDiskSourceSelfLink))
                 .findFirst()
                 .orElse(null);
         }
