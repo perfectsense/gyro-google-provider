@@ -36,7 +36,7 @@ import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 /**
- * Creates a network.
+ * Attaches a disk to an instance.
  *
  * Example
  * -------
@@ -58,7 +58,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     private InstanceAttachedDisk attachedDisk;
 
     /**
-     * Gyro instance resource.
+     * Gyro instance resource. (Required)
      */
     @Required
     @Updatable
@@ -71,7 +71,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     }
 
     /**
-     * Configuration for attached disk.
+     * Configuration for attached disk. (Required)
      */
     @Required
     @Updatable

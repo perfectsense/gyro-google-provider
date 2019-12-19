@@ -27,7 +27,7 @@ public class InstanceGuestOsFeature extends Diffable implements Copyable<GuestOs
     private String type;
 
     /**
-     * Valid values are ``FEATURE_TYPE_UNSPECIFIED``, ``MULTI_IP_SUBNET``, ``SECURE_BOOT``, ``UEFI_COMPATIBLE``, ``VIRTIO_SCSI_MULTIQUEUE`` or ``WINDOWS``.
+     * Enables one or more features for VM instances that use the image for their boot disks. Valid values are ``FEATURE_TYPE_UNSPECIFIED``, ``MULTI_IP_SUBNET``, ``SECURE_BOOT``, ``UEFI_COMPATIBLE``, ``VIRTIO_SCSI_MULTIQUEUE`` or ``WINDOWS``. See `Enabling guest operating system features <https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images?authuser=1#guest-os-features/>`_.
      */
     @Updatable
     @ValidStrings({

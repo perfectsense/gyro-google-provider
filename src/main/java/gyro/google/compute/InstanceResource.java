@@ -37,7 +37,7 @@ import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 /**
- * Creates a network.
+ * Creates an instance.
  *
  * Example
  * -------
@@ -89,13 +89,12 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     private String selfLink;
     private Map<String, String> labels;
     private String labelFingerprint;
-
     private List<InstanceAttachedDisk> initializeDisks;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
      */
-    @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
+    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
     @Required
     public String getName() {
         return name;
@@ -155,7 +154,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * List of disks associated with this instance. Persistent disks must be created before you can assign them.
+     * List of disks associated with this instance.
      */
     @Output
     public List<InstanceAttachedDisk> getDisks() {
@@ -170,7 +169,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * URL to the instance.
+     * URL of the instance.
      */
     @Id
     @Output
@@ -183,7 +182,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * Map of key-value pairs to apply to this instance. May be updated after creation.
+     * Map of key-value pairs to apply to the instance.
      */
     @Updatable
     public Map<String, String> getLabels() {
@@ -278,7 +277,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
-        client.instances().delete(getProjectId(), getZone(), getName()).execute();
+        waitForCompletion(client, client.instances().delete(getProjectId(), getZone(), getName()).execute());
     }
 
     @Override

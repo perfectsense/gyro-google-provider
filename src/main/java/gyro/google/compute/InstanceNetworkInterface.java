@@ -33,7 +33,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     private String fingerprint;
 
     /**
-     * Network resource for this instance. If neither the network or subnetwork is specified, the default network ``global/networks/default`` is used and if the network is not specified but the subnetwork is specified, the network is inferred.
+     * Network for this instance. If neither the network or subnetwork is specified, the default network ``global/networks/default`` is used and if the network is not specified but the subnetwork is specified, the network is inferred.
      */
     public NetworkResource getNetwork() {
         return network;
@@ -44,7 +44,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     }
 
     /**
-     * Subnetwork resource for this instance. If the network resource is in legacy mode, do not specify this field. If the network is in auto subnet mode, specifying the subnetwork is optional. If the network is in custom subnet mode, specifying the subnetwork is required.
+     * Subnetwork for this instance. If the network resource is in legacy mode, do not specify this field. If the network is in auto subnet mode, specifying the subnetwork is optional. If the network is in custom subnet mode, specifying the subnetwork is required.
      */
     public SubnetworkResource getSubnetwork() {
         return subnetwork;
@@ -66,7 +66,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     }
 
     /**
-     * Array of configurations for this interface. Currently, only ``NE_TO_ONE_NAT`` is supported. If unspecified this instance will have no external internet access.
+     * A list of access configurations for this interface. Currently, only ``NE_TO_ONE_NAT`` is supported. If unspecified this instance will have no external internet access.
      */
     public List<InstanceAccessConfig> getAccessConfigs() {
         return accessConfigs;
@@ -77,7 +77,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     }
 
     /**
-     * Array of alias IP ranges for this network interface. Can only specify this for network interfaces in VPC networks.
+     * A list of alias IP ranges for this network interface. Can only specify this for network interfaces in VPC networks.
      */
     public List<InstanceAliasIpRange> getAliasIpRanges() {
         return aliasIpRanges;

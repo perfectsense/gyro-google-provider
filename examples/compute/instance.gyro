@@ -21,6 +21,7 @@ google::instance gyro-dev-1
 
     initialize-disks
         boot: true
+        auto-delete: true
 
         initialize-params
             disk-name: "gyro-boot-disk"
@@ -29,6 +30,8 @@ google::instance gyro-dev-1
     end
 
     initialize-disks
+        auto-delete: true
+
         initialize-params
             disk-name: "gyro-secondary-disk"
             source-image: "projects/debian-cloud/global/images/family/debian-9"
@@ -52,6 +55,7 @@ google::instance gyro-dev-2
 
     initialize-disks
         boot: true
+        auto-delete: true
 
         initialize-params
             disk-name: "gyro-boot-disk-2"
@@ -66,8 +70,9 @@ end
 
 google::instance-attached-disk gyro-disk-1
     instance: $(google::instance gyro-dev-1)
+
     attached-disk
-        auto-delete: false
+        auto-delete: true
         source: $(google::compute-disk instance-disk-example)
     end
 end

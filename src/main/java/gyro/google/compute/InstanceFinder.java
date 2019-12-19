@@ -41,6 +41,31 @@ import gyro.google.GoogleFinder;
 @Type("instance")
 public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceResource> {
 
+    private String zone;
+    private String filter;
+
+    /**
+     * Zone for an instance.
+     */
+    public String getZone() {
+        return zone;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
+
+    /**
+     * A filter expression that filters results returned. See `example filter rules <https://cloud.google.com/compute/docs/reference/rest/v1/instances/list#body.QUERY_PARAMETERS.filter/>`_.
+     */
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
     @Override
     protected List<Instance> findAllGoogle(Compute client) throws Exception {
         List<Instance> instances = new ArrayList<>();

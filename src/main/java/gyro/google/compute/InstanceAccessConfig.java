@@ -23,7 +23,7 @@ import gyro.google.Copyable;
 public class InstanceAccessConfig extends Diffable implements Copyable<AccessConfig> {
 
     private String name;
-    private String natIP;
+    private String natIp;
     private String networkTier;
     private String publicPtrDomainName;
     private Boolean setPublicPtr;
@@ -43,12 +43,12 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * An unused static external IP address available to the project. Leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.
      */
-    public String getNatIP() {
-        return natIP;
+    public String getNatIp() {
+        return natIp;
     }
 
-    public void setNatIP(String natIP) {
-        this.natIP = natIP;
+    public void setNatIp(String natIp) {
+        this.natIp = natIp;
     }
 
     /**
@@ -103,7 +103,7 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     @Override
     public void copyFrom(AccessConfig model) {
          setName(model.getName());
-         setNatIP(model.getNatIP());
+         setNatIp(model.getNatIP());
          setNetworkTier(model.getNetworkTier());
          setPublicPtrDomainName(model.getPublicPtrDomainName());
          setSetPublicPtr(model.getSetPublicPtr());
@@ -113,7 +113,7 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     public AccessConfig copyTo() {
         return new AccessConfig()
             .setName(getName())
-            .setNatIP(getNatIP())
+            .setNatIP(getNatIp())
             .setNetworkTier(getNetworkTier())
             .setPublicPtrDomainName(getPublicPtrDomainName())
             .setSetPublicPtr(getSetPublicPtr())
