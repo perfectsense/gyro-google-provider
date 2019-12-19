@@ -143,7 +143,6 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     /**
      * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported.
      */
-    @Updatable
     public List<InstanceNetworkInterface> getNetworkInterfaces() {
         if (networkInterfaces == null) {
             networkInterfaces = new ArrayList<>();
@@ -244,7 +243,6 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
             .map(InstanceNetworkInterface::copyTo)
             .collect(Collectors.toList()));
         content.setLabels(getLabels());
-
         content.setDisks(getInitializeDisks().stream()
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
@@ -291,6 +289,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         setMachineType(model.getMachineType());
         setSelfLink(model.getSelfLink());
         setLabelFingerprint(model.getLabelFingerprint());
+        setLabels(model.getLabels());
 
         getNetworkInterfaces().clear();
         if (model.getNetworkInterfaces() != null) {
