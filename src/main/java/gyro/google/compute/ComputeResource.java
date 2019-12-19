@@ -63,8 +63,8 @@ public abstract class ComputeResource extends GoogleResource {
             }
         }
 
-        if (operation != null) {
-            throw new GyroException(operation.getError().toPrettyString());
+        if (operation != null && operation.getError() != null) {
+            throw new GyroException(formatOperationErrorMessage(operation));
         }
     }
 

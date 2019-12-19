@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
+import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
@@ -111,6 +112,12 @@ public abstract class GoogleResource extends Resource {
     protected static String formatGoogleExceptionMessage(GoogleJsonResponseException je) {
         return je.getDetails().getErrors().stream()
             .map(GoogleJsonError.ErrorInfo::getMessage)
+            .collect(Collectors.joining("\n"));
+    }
+
+    protected static String formatOperationErrorMessage(Operation operation) {
+        return operation.getError().getErrors().stream()
+            .map(Operation.Error.Errors::getMessage)
             .collect(Collectors.joining("\n"));
     }
 
