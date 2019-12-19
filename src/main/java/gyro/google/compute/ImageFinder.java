@@ -88,11 +88,11 @@ public class ImageFinder extends GoogleFinder<Compute, Image, ImageResource> {
     protected List<Image> findGoogle(Compute client, Map<String, String> filters) throws Exception {
         if (filters.containsKey("name")) {
             return Collections.singletonList(client.images().get(
-                filters.get("project") != null ? filters.get("project") : getProjectId(), filters.get("name"))
+                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("name"))
                 .execute());
         } else if (filters.containsKey("family")) {
             return Collections.singletonList(client.images().getFromFamily(
-                filters.get("project") != null ? filters.get("project") : getProjectId(), filters.get("family"))
+                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("family"))
                 .execute());
         } else {
             List<Image> images = new ArrayList<>();

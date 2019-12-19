@@ -28,22 +28,10 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ImageRawDisk extends Diffable implements Copyable<Image.RawDisk> {
 
-    private String containerType;
     private BucketResource source;
 
     /**
-     * The format used to encode and transmit the block device, which should be ``TAR``.
-     */
-    public String getContainerType() {
-        return containerType;
-    }
-
-    public void setContainerType(String containerType) {
-        this.containerType = containerType;
-    }
-
-    /**
-     * The storage file that should be the source of the image. File must use ``.tar.gz`` extension and the file inside the archive must be named ``disk.raw``. (Required)
+     * The storage file that should be the source of the image. File must use ``.tar.gz`` extension and the file inside the archive must be named ``disk.raw``. See `Manually importing virtual disks  <https://cloud.google.com/compute/docs/import/import-existing-image>`_ for instructions on how to create the file. (Required)
      */
     @Required
     public BucketResource getSource() {
@@ -56,7 +44,6 @@ public class ImageRawDisk extends Diffable implements Copyable<Image.RawDisk> {
 
     @Override
     public void copyFrom(Image.RawDisk model) {
-        setContainerType(model.getContainerType());
         if (StringUtils.isNotBlank(model.getSource())) {
             setSource(findById(BucketResource.class, model.getSource()));
         }
@@ -64,7 +51,6 @@ public class ImageRawDisk extends Diffable implements Copyable<Image.RawDisk> {
 
     Image.RawDisk toRawDisk() {
         return new Image.RawDisk()
-            .setContainerType(getContainerType())
             .setSource(getSource().getSelfLink());
     }
 }
