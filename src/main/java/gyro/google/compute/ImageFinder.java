@@ -29,6 +29,24 @@ import com.google.api.services.compute.model.ImageList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
+/**
+ * Query image.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *    compute-image: $(external-query google::compute-image { name: 'image-example' })
+ *
+ * .. code-block:: gyro
+ *
+ *    compute-image: $(external-query google::compute-image { family: 'image-family-example' })
+ *
+ * .. code-block:: gyro
+ *
+ *    compute-image: $(external-query google::compute-image { project: 'centos-cloud', family: 'centos-6' })
+ */
 @Type("compute-image")
 public class ImageFinder extends GoogleFinder<Compute, Image, ImageResource> {
 
