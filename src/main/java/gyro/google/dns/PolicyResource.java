@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.PoliciesPatchResponse;
@@ -223,7 +224,26 @@ public class PolicyResource extends GoogleResource implements Copyable<Policy> {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Dns client = createClient(Dns.class);
-        client.policies().delete(getProjectId(), getName()).execute();
+
+        try {
+            Policy policy = client.policies().get(getProjectId(), getName()).execute();
+
+            // Check for networks attached to this policy
+            // Remove them prior to deleting
+            // Handles error when deleting a policy with attached network
+            if (!policy.getNetworks().isEmpty()) {
+                Policy updatePolicy = new Policy();
+
+                updatePolicy.setNetworks(Data.nullOf(ArrayList.class));
+                client.policies().patch(getProjectId(), getName(), updatePolicy).execute();
+            }
+
+            client.policies().delete(getProjectId(), getName()).execute();
+        } catch (GoogleJsonResponseException je) {
+            if (je.getDetails().getCode() != 404) {
+                throw je;
+            }
+        }
     }
 
     @Override
