@@ -388,13 +388,6 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
         setSourceSnapshotId(image.getSourceSnapshotId());
         setStatus(image.getStatus());
 
-        setRawDisk(null);
-        if (image.getRawDisk() != null) {
-            ImageRawDisk rawDisk = newSubresource(ImageRawDisk.class);
-            rawDisk.copyFrom(image.getRawDisk());
-            setRawDisk(rawDisk);
-        }
-
         // Image doesn't currently have an API for storageLocations so manually get it
         setStorageLocations(null);
         if (image.get("storageLocations") instanceof List) {
