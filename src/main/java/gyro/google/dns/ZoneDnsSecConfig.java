@@ -36,7 +36,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
     private String state;
 
     /**
-     * Specifies parameters for generating initial DnsKeys for this managed zone. Can only be changed while the state is ``off``.
+     * Specifies parameters for generating initial DnsKeys for this managed zone.
      *
      * @subresource gyro.google.dns.KeySpec
      */
@@ -53,7 +53,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
     }
 
     /**
-     * Specifies the mechanism for authenticated denial-of-existence responses. Can only be changed while the state is ``off``.
+     * Specifies the mechanism for authenticated denial-of-existence responses. Valid values are ``nsec`` or ``nsec3``.
      */
     @Updatable
     @ValidStrings({ "nsec", "nsec3" })
@@ -66,7 +66,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
     }
 
     /**
-     * Specifies whether DNSSEC is enabled, and what mode it is in.
+     * Specifies whether DNSSEC is enabled, and what mode it is in. Valid values are ``on``, ``off`` or ``transfer``.
      */
     @Updatable
     @ValidStrings({ "on", "off", "transfer" })

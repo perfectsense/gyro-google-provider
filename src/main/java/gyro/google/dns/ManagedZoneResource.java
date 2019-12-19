@@ -223,7 +223,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources.
+     * The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources. Valid values are ``private`` or ``public``.
      */
     @ValidStrings({ "private", "public" })
     public String getVisibility() {
