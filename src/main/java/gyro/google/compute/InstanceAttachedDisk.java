@@ -160,25 +160,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     @Override
     public String primaryKey() {
         if (getInitializeParams() != null) {
-            List<String> key = new ArrayList<>();
-
-            if (getDeviceName() != null) {
-                key.add(String.format("device-name::%s", getDeviceName()));
-            }
-
-            if (getBoot() != null) {
-                key.add(String.format("boot::%s", getBoot()));
-            }
-
-            if (getAutoDelete() != null) {
-                key.add(String.format("auto-delete::%s", getAutoDelete()));
-            }
-
-            if (getSource() != null) {
-                key.add(String.format("source::%s", getSource()));
-            }
-
-            return key.stream().collect(Collectors.joining(","));
+            return super.primaryKey();
         }
 
         return getSource() != null ? getSource().getSelfLink() : "";
