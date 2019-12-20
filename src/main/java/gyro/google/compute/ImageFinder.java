@@ -89,41 +89,39 @@ public class ImageFinder extends GoogleFinder<Compute, Image, ImageResource> {
 
     @Override
     protected List<Image> findAllGoogle(Compute client) throws Exception {
+        return listImages(client, getProjectId());
+    }
+
+    @Override
+    protected List<Image> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        List<Image> images;
+
+        if (filters.containsKey("name")) {
+            images = Collections.singletonList(client.images().get(
+                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("name"))
+                .execute());
+        } else if (filters.containsKey("family")) {
+            images = Collections.singletonList(client.images().getFromFamily(
+                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("family"))
+                .execute());
+        } else {
+            images = listImages(client, filters.get("project"));
+        }
+
+        return images;
+    }
+
+    private static List<Image> listImages(Compute client, String project) throws Exception {
         List<Image> images = new ArrayList<>();
         ImageList imageList;
         String nextPageToken = null;
 
         do {
-            imageList = client.images().list(getProjectId()).setPageToken(nextPageToken).execute();
+            imageList = client.images().list(project).setPageToken(nextPageToken).execute();
             images.addAll(imageList.getItems().stream().filter(Objects::nonNull).collect(Collectors.toList()));
             nextPageToken = imageList.getNextPageToken();
         } while (nextPageToken != null);
 
         return images;
-    }
-
-    @Override
-    protected List<Image> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        if (filters.containsKey("name")) {
-            return Collections.singletonList(client.images().get(
-                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("name"))
-                .execute());
-        } else if (filters.containsKey("family")) {
-            return Collections.singletonList(client.images().getFromFamily(
-                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("family"))
-                .execute());
-        } else {
-            List<Image> images = new ArrayList<>();
-            ImageList imageList;
-            String nextPageToken = null;
-
-            do {
-                imageList = client.images().list(filters.get("project")).setPageToken(nextPageToken).execute();
-                images.addAll(imageList.getItems().stream().filter(Objects::nonNull).collect(Collectors.toList()));
-                nextPageToken = imageList.getNextPageToken();
-            } while (nextPageToken != null);
-
-            return images;
-        }
     }
 }
