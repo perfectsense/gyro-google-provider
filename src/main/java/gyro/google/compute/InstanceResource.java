@@ -34,6 +34,7 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 /**
@@ -90,6 +91,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     private Map<String, String> labels;
     private String labelFingerprint;
     private List<InstanceAttachedDisk> initializeDisks;
+    private String status;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
@@ -220,6 +222,19 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         this.initializeDisks = initializeDisks;
     }
 
+    /**
+     * The status of the instance. Setting a value of `TERMINATED`` will stop the instance while setting the value to ``RUNNING`` will start an instance. See also `instance status <https://cloud.google.com/compute/docs/instances/instance-life-cycle#instance_statuses/>`_.
+     */
+    @Updatable
+    @ValidStrings({ "RUNNING", "TERMINATED" })
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
@@ -274,6 +289,15 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
                     .execute());
         }
 
+        if (changedFieldNames.contains("status")) {
+            if ("RUNNING".equals(getStatus())) {
+                waitForCompletion(client, client.instances().start(getProjectId(), getZone(), getName()).execute());
+            } else if ("TERMINATED".equals(getStatus())) {
+                // These take a considerable amount of time so don't wait.
+                client.instances().stop(getProjectId(), getZone(), getName()).execute();
+            }
+        }
+
         refresh();
     }
 
@@ -292,6 +316,11 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         setSelfLink(model.getSelfLink());
         setLabelFingerprint(model.getLabelFingerprint());
         setLabels(model.getLabels());
+
+        // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
+        if ("RUNNING".equals(getStatus()) || "TERMINATED".equals(getStatus())) {
+            setStatus(model.getStatus());
+        }
 
         getNetworkInterfaces().clear();
         if (model.getNetworkInterfaces() != null) {
