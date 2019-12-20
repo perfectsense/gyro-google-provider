@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.util.stream.Collectors;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
@@ -63,9 +65,15 @@ public abstract class ComputeResource extends GoogleResource {
             }
         }
 
-        if (operation != null && !operation.getStatus().equals("DONE")) {
-            throw new GyroException(operation.getError().toPrettyString());
+        if (operation != null && operation.getError() != null) {
+            throw new GyroException(formatOperationErrorMessage(operation.getError()));
         }
+    }
+
+    protected static String formatOperationErrorMessage(Operation.Error error) {
+        return error.getErrors().stream()
+            .map(Operation.Error.Errors::getMessage)
+            .collect(Collectors.joining("\n"));
     }
 
     protected Compute createComputeClient() {
