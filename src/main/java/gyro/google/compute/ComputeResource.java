@@ -41,7 +41,7 @@ public abstract class ComputeResource extends GoogleResource {
         }
 
         try {
-            while (operation != null) {
+            while (operation != null && !operation.getStatus().equals("DONE")) {
                 Thread.sleep(pollInterval);
 
                 long elapsed = System.currentTimeMillis() - start;
