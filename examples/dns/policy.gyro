@@ -1,0 +1,20 @@
+google::compute-network network-example-dns-policy
+    name: "network-example-dns-policy"
+    description: "network-example-dns-policy-desc"
+    routing-mode: "Regional"
+end
+
+google::dns-policy dns-policy-example
+    name: "dns-policy-example"
+    description: "DNS Policy Example"
+
+    network
+        network: $(google::compute-network network-example-dns-policy)
+    end
+
+    alternative-name-server-config
+        target-name-server
+            ipv4-address: "10.0.0.1"
+        end
+    end
+end
