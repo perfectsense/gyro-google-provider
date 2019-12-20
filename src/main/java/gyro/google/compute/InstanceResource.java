@@ -256,8 +256,11 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
+        InstanceResource currentResource = (InstanceResource) current;
 
         if (changedFieldNames.contains("labels")) {
+            // Always use the currentResoure#labelFingerprint in case updated via console. API will neither error or
+            // update if an older fingerprint is used.
             waitForCompletion(
                 client,
                 client.instances()
@@ -266,7 +269,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
                         getZone(),
                         getName(),
                         new InstancesSetLabelsRequest()
-                            .setLabelFingerprint(getLabelFingerprint())
+                            .setLabelFingerprint(currentResource.getLabelFingerprint())
                             .setLabels(getLabels()))
                     .execute());
         }
