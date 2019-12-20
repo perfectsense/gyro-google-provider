@@ -31,7 +31,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     private Boolean autoDelete;
     private Boolean boot;
     private String deviceName;
-    private InstanceCustomerEncryptionKey diskEncryptionKey;
+    private EncryptionKey diskEncryptionKey;
     private List<InstanceGuestOsFeature> guestOsFeatures;
     private InstanceAttachedDiskInitializeParams initializeParams;
     private String diskInterface; // model name is reserved 'interface'
@@ -75,11 +75,11 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     /**
      * When creating a new disk this field encrypts the new disk using the supplied encryption key. If attaching an existing disk already encrypted, this decrypts the disk using the supplied encryption key.||If you encrypt a disk using a customer-supplied key, you must provide the same key again when you attempt to use this resource at a later time.||If you do not provide an encryption key, then the disk will be encrypted using an automatically generated key and you do not need to provide a key to use the disk later. Instance templates do not store customer-supplied encryption keys, so you cannot use your own keys to encrypt disks in a managed instance group.
      */
-    public InstanceCustomerEncryptionKey getDiskEncryptionKey() {
+    public EncryptionKey getDiskEncryptionKey() {
         return diskEncryptionKey;
     }
 
-    public void setDiskEncryptionKey(InstanceCustomerEncryptionKey diskEncryptionKey) {
+    public void setDiskEncryptionKey(EncryptionKey diskEncryptionKey) {
         this.diskEncryptionKey = diskEncryptionKey;
     }
 
@@ -196,7 +196,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
         setDiskEncryptionKey(null);
         if (model.getDiskEncryptionKey() != null) {
-            InstanceCustomerEncryptionKey newDiskEncryptionKey = newSubresource(InstanceCustomerEncryptionKey.class);
+            EncryptionKey newDiskEncryptionKey = newSubresource(EncryptionKey.class);
             newDiskEncryptionKey.copyFrom(model.getDiskEncryptionKey());
             setDiskEncryptionKey(newDiskEncryptionKey);
         }
@@ -223,7 +223,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         disk.setMode(getMode());
         disk.setSource(getSource() != null ? getSource().getSelfLink() : null);
         disk.setType(getType());
-        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null ? getDiskEncryptionKey().copyTo() : null);
+        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
         disk.setGuestOsFeatures(getGuestOsFeatures() != null ? getGuestOsFeatures().stream()
             .map(InstanceGuestOsFeature::copyTo)
             .collect(Collectors.toList()) : null);

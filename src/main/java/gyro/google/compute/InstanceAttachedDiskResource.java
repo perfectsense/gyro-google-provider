@@ -43,15 +43,15 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *      google::instance-attached-disk gyro-disk-1
- *          instance: $(google::instance gyro-dev-1)
+ *      google::compute-instance-attached-disk gyro-disk-1
+ *          instance: $(google::compute-instance gyro-dev-1)
  *          attached-disk
  *              auto-delete: false
  *              source: $(google::compute-disk instance-disk-example)
  *          end
  *      end
  */
-@Type("instance-attached-disk")
+@Type("compute-instance-attached-disk")
 public class InstanceAttachedDiskResource extends ComputeResource implements Copyable<AttachedDisk> {
 
     private InstanceResource instance;

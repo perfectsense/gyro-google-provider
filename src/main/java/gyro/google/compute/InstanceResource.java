@@ -47,7 +47,7 @@ import gyro.google.Copyable;
  *
  *      zone: "us-west1-a"
  *
- *      google::instance gyro-dev-1
+ *      google::compute-instance gyro-dev-1
  *          name: "gyro-development"
  *          description: "Testing for Gyro"
  *          zone: $zone
@@ -78,7 +78,7 @@ import gyro.google.Copyable;
  *          }
  *      end
  */
-@Type("instance")
+@Type("compute-instance")
 public class InstanceResource extends ComputeResource implements Copyable<Instance> {
 
     private String name;

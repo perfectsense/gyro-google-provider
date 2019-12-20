@@ -9,7 +9,7 @@ google::compute-disk instance-disk-example
     physical-block-size-bytes: 4096
 end
 
-google::instance gyro-dev-1
+google::compute-instance gyro-dev-1
     name: "gyro-development"
     description: "Testing for Gyro"
     zone: $zone
@@ -43,7 +43,7 @@ google::instance gyro-dev-1
     }
 end
 
-google::instance gyro-dev-2
+google::compute-instance gyro-dev-2
     name: "gyro-development-2"
     description: "Testing for Gyro"
     zone: $zone
@@ -68,8 +68,8 @@ google::instance gyro-dev-2
     }
 end
 
-google::instance-attached-disk gyro-disk-1
-    instance: $(google::instance gyro-dev-1)
+google::compute-instance-attached-disk gyro-disk-1
+    instance: $(google::compute-instance gyro-dev-1)
 
     attached-disk
         auto-delete: true

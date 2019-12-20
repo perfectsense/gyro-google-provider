@@ -36,9 +36,9 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    instance: $(external-query google::instance {zone: 'us-west1-a', filter: 'name = gyro-development'})
+ *    instance: $(external-query google::compute-instance {zone: 'us-west1-a', filter: 'name = gyro-development'})
  */
-@Type("instance")
+@Type("compute-instance")
 public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceResource> {
 
     private String zone;

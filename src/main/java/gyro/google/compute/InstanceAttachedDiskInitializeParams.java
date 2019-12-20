@@ -35,8 +35,8 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     private Long diskSizeGb;
     private String diskType;
     private Map<String, String> labels;
-    private InstanceCustomerEncryptionKey sourceImageEncryptionKey;
-    private InstanceCustomerEncryptionKey sourceSnapshotEncryptionKey;
+    private EncryptionKey sourceImageEncryptionKey;
+    private EncryptionKey sourceSnapshotEncryptionKey;
 
     /**
      * The source image to create this disk in the form of a URL path. See `Images <https://cloud.google.com/compute/docs/images/>`_.
@@ -111,22 +111,22 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     /**
      * Encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. Instance templates do not store customer-supplied encryption keys, so you cannot create disks or instances in a managed instance group if the source images are encrypted with your own keys.
      */
-    public InstanceCustomerEncryptionKey getSourceImageEncryptionKey() {
+    public EncryptionKey getSourceImageEncryptionKey() {
         return sourceImageEncryptionKey;
     }
 
-    public void setSourceImageEncryptionKey(InstanceCustomerEncryptionKey sourceImageEncryptionKey) {
+    public void setSourceImageEncryptionKey(EncryptionKey sourceImageEncryptionKey) {
         this.sourceImageEncryptionKey = sourceImageEncryptionKey;
     }
 
     /**
      * Encryption key of the source snapshot.
      */
-    public InstanceCustomerEncryptionKey getSourceSnapshotEncryptionKey() {
+    public EncryptionKey getSourceSnapshotEncryptionKey() {
         return sourceSnapshotEncryptionKey;
     }
 
-    public void setSourceSnapshotEncryptionKey(InstanceCustomerEncryptionKey sourceSnapshotEncryptionKey) {
+    public void setSourceSnapshotEncryptionKey(EncryptionKey sourceSnapshotEncryptionKey) {
         this.sourceSnapshotEncryptionKey = sourceSnapshotEncryptionKey;
     }
 
@@ -164,14 +164,14 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
 
         setSourceImageEncryptionKey(null);
         if (model.getSourceImageEncryptionKey() != null) {
-            InstanceCustomerEncryptionKey imageEncryptionKey = newSubresource(InstanceCustomerEncryptionKey.class);
+            EncryptionKey imageEncryptionKey = newSubresource(EncryptionKey.class);
             imageEncryptionKey.copyFrom(model.getSourceImageEncryptionKey());
             setSourceImageEncryptionKey(imageEncryptionKey);
         }
 
         setSourceSnapshotEncryptionKey(null);
         if (model.getSourceSnapshotEncryptionKey() != null) {
-            InstanceCustomerEncryptionKey snapshotEncryptionKey = newSubresource(InstanceCustomerEncryptionKey.class);
+            EncryptionKey snapshotEncryptionKey = newSubresource(EncryptionKey.class);
             snapshotEncryptionKey.copyFrom(model.getSourceImageEncryptionKey());
             setSourceSnapshotEncryptionKey(snapshotEncryptionKey);
         }
@@ -185,9 +185,11 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
         initializeParams.setDiskSizeGb(getDiskSizeGb());
         initializeParams.setDiskType(getDiskType());
         initializeParams.setSourceImageEncryptionKey(
-            getSourceImageEncryptionKey() != null ? getSourceImageEncryptionKey().copyTo() : null);
+            getSourceImageEncryptionKey() != null ? getSourceImageEncryptionKey().toCustomerEncryptionKey() : null);
         initializeParams.setSourceSnapshotEncryptionKey(
-            getSourceSnapshotEncryptionKey() != null ? getSourceSnapshotEncryptionKey().copyTo() : null);
+            getSourceSnapshotEncryptionKey() != null
+                ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
+                : null);
 
         return initializeParams;
     }
