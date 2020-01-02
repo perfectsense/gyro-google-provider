@@ -1,0 +1,118 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package gyro.google.compute;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.ForwardingRule;
+import com.google.api.services.compute.model.Operation;
+import gyro.core.GyroUI;
+import gyro.core.Type;
+import gyro.core.resource.Resource;
+import gyro.core.scope.State;
+import gyro.core.validation.ValidationError;
+
+@Type("compute-global-forwarding-rule")
+public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource {
+
+    // TODO: this can be any target resources.
+    private TargetHttpProxyResource targetHttpProxy;
+
+    /**
+     * The target http proxy to receive the matched traffic.
+     */
+    public TargetHttpProxyResource getTargetHttpProxy() {
+        return targetHttpProxy;
+    }
+
+    public void setTargetHttpProxy(TargetHttpProxyResource targetHttpProxy) {
+        this.targetHttpProxy = targetHttpProxy;
+    }
+
+    @Override
+    public void copyFrom(ForwardingRule forwardingRule) {
+        super.copyFrom(forwardingRule);
+
+        // Multiple type of targets needs to checked when multiple targets are defined.
+
+        setTargetHttpProxy(findById(TargetHttpProxyResource.class, forwardingRule.getTarget()));
+    }
+
+    @Override
+    protected boolean doRefresh() throws Exception {
+        Compute client = createComputeClient();
+        copyFrom(client.globalForwardingRules().get(getProjectId(), getName()).execute());
+        return true;
+    }
+
+    @Override
+    protected void doCreate(GyroUI ui, State state) throws Exception {
+        Compute client = createComputeClient();
+        Operation response = client.globalForwardingRules().insert(getProjectId(), toForwardingRule()).execute();
+        waitForCompletion(client, response);
+        refresh();
+    }
+
+    @Override
+    public void doUpdate(
+        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        // TODO:
+    }
+
+    @Override
+    public void doDelete(GyroUI ui, State state) throws Exception {
+        Compute client = createComputeClient();
+        Operation response = client.globalForwardingRules().delete(getProjectId(), getName()).execute();
+        waitForCompletion(client, response);
+    }
+
+    @Override
+    public List<ValidationError> validate() {
+        List<ValidationError> errors = new ArrayList<>();
+
+        // make 'target-http-proxy' effectively required.
+        if (getTargetHttpProxy() == null) {
+            errors.add(new ValidationError(
+                this,
+                "target-http-proxy",
+                "target-http-proxy is required!"));
+        }
+
+        //        if (getTargetHttpProxyResource() != null) {
+        //            List<String> ports = getPorts();
+        //
+        //            if (ports.size() != 1 || !ports.contains("80")) {
+        //                errors.add(new ValidationError(this, "ports", "Must be '80'"));
+        //            }
+        //        }
+        return errors;
+    }
+
+    @Override
+    ForwardingRule toForwardingRule() {
+        ForwardingRule forwardingRule = super.toForwardingRule();
+
+        Optional.ofNullable(getTargetHttpProxy())
+            .ifPresent(targetHttpProxyResource -> forwardingRule.setTarget(targetHttpProxyResource.getSelfLink()));
+
+        return forwardingRule;
+    }
+}
