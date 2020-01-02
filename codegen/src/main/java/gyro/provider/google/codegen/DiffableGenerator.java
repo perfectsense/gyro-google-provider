@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package gyro.provider.google.codegen;
+
+import java.io.File;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.lang.model.element.Modifier;
 
 import com.google.api.services.discovery.model.JsonSchema;
 import com.google.api.services.discovery.model.RestDescription;
@@ -29,14 +38,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import gyro.core.resource.Diffable;
-import java.io.File;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.lang.model.element.Modifier;
-
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
@@ -44,6 +45,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
 public class DiffableGenerator {
+
     private static final String PROVIDER_PACKAGE = "gyro.provider.google";
 
     protected String schemaName;
@@ -248,7 +250,9 @@ public class DiffableGenerator {
         // Add @Regex annotation
         // Ignore if output type attribute
         if (!isOutput(property) && !ObjectUtils.isBlank(property.getPattern())) {
-            builder.addAnnotation(AnnotationSpec.builder(Regex.class).addMember("value", "$S", property.getPattern()).build());
+            builder.addAnnotation(AnnotationSpec.builder(Regex.class)
+                .addMember("value", "$S", property.getPattern())
+                .build());
         }
 
         resourceBuilder.addMethod(builder
@@ -269,7 +273,8 @@ public class DiffableGenerator {
 
     // Sorts the properties based on name, with required fields on top and output fields at the bottom
     private List<String> getSortedPropertyNames() {
-        Comparator<Map.Entry<String, JsonSchema>> alphabeticComparator = Comparator.comparing(entry -> entry.getKey().toLowerCase());
+        Comparator<Map.Entry<String, JsonSchema>> alphabeticComparator = Comparator.comparing(entry -> entry.getKey()
+            .toLowerCase());
         Comparator<Map.Entry<String, JsonSchema>> requiredComparator = Comparator.comparing(a -> !isRequired(a.getValue()));
         Comparator<Map.Entry<String, JsonSchema>> outputComparator = Comparator.comparing(a -> isOutput(a.getValue()));
 
