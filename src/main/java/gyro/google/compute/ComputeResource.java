@@ -16,18 +16,21 @@
 
 package gyro.google.compute;
 
+import java.util.stream.Collectors;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
+import gyro.core.GyroException;
 import gyro.google.GoogleResource;
 
 public abstract class ComputeResource extends GoogleResource {
 
-    public Operation.Error waitForCompletion(Compute compute, Operation operation) throws Exception {
-        return waitForCompletion(compute, operation, 60000);
+    public void waitForCompletion(Compute compute, Operation operation) throws Exception {
+        waitForCompletion(compute, operation, 60000);
     }
 
-    public Operation.Error waitForCompletion(Compute compute, Operation operation, long timeout) throws Exception {
+    public void waitForCompletion(Compute compute, Operation operation, long timeout) throws Exception {
         long start = System.currentTimeMillis();
         final long pollInterval = 1000;
 
@@ -47,22 +50,30 @@ public abstract class ComputeResource extends GoogleResource {
                 }
 
                 if (zone != null) {
-                    Compute.ZoneOperations.Get get = compute.zoneOperations().get(getProjectId(), zone, operation.getName());
+                    Compute.ZoneOperations.Get get = compute.zoneOperations()
+                        .get(getProjectId(), zone, operation.getName());
                     operation = get.execute();
                 } else {
-                    Compute.GlobalOperations.Get get = compute.globalOperations().get(getProjectId(), operation.getName());
+                    Compute.GlobalOperations.Get get = compute.globalOperations()
+                        .get(getProjectId(), operation.getName());
                     operation = get.execute();
                 }
             }
         } catch (GoogleJsonResponseException ex) {
-            if (ex.getStatusCode() == 404) {
-                return null;
+            if (ex.getStatusCode() != 404) {
+                throw ex;
             }
-
-            throw ex;
         }
 
-        return operation == null ? null : operation.getError();
+        if (operation != null && operation.getError() != null) {
+            throw new GyroException(formatOperationErrorMessage(operation.getError()));
+        }
+    }
+
+    protected static String formatOperationErrorMessage(Operation.Error error) {
+        return error.getErrors().stream()
+            .map(Operation.Error.Errors::getMessage)
+            .collect(Collectors.joining("\n"));
     }
 
     protected Compute createComputeClient() {
