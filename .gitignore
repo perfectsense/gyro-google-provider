@@ -6,3 +6,4 @@
 target/
 build/
 out/
+src/main/java/gyro/provider/google/compute/**
