@@ -291,7 +291,9 @@ public class DiffableGenerator {
     }
 
     private boolean isOutput(JsonSchema property) {
-        return property.getDescription() != null && property.getDescription().startsWith("[Output Only]");
+        return property.getDescription() != null
+            && property.getDescription().startsWith("[Output Only]")
+            && !property.getDescription().contains("You must specify this field as part of the HTTP request URL");
     }
 
     private boolean isDeprecated(JsonSchema property) {
