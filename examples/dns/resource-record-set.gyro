@@ -1,0 +1,23 @@
+google::dns-managed-zone public-managed-zone-example
+    name: "public-managed-zone-example"
+    description: "Public Managed Zone Example"
+    dns-name: "p.example.com."
+
+    dnssec-config
+        state: "on"
+    end
+end
+
+google::dns-resource-record-set public-managed-zone-www-cname-example
+    managed-zone: $(google::dns-managed-zone public-managed-zone-example)
+    name: "www.p.example.com."
+    type: "CNAME"
+    rrdatas: [ "fe.p.example.com." ]
+end
+
+google::dns-resource-record-set public-managed-zone-fe-a-example
+    managed-zone: $(google::dns-managed-zone public-managed-zone-example)
+    name: "fe.p.example.com."
+    type: "A"
+    rrdatas: [ "192.168.1.156", "192.168.1.158" ]
+end

@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package gyro.provider.google.codegen;
+
+import javax.lang.model.element.Modifier;
 
 import com.google.api.services.discovery.model.RestDescription;
 import com.google.api.services.discovery.model.RestMethod;
@@ -23,8 +26,6 @@ import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.TypeSpec;
 import gyro.core.Type;
 import gyro.core.resource.Diffable;
-import javax.lang.model.element.Modifier;
-import org.apache.commons.lang.StringUtils;
 
 public class ResourceGenerator extends DiffableGenerator {
 
