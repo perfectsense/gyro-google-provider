@@ -41,6 +41,7 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
@@ -253,6 +254,17 @@ public class DiffableGenerator {
             builder.addAnnotation(AnnotationSpec.builder(Regex.class)
                 .addMember("value", "$S", property.getPattern())
                 .build());
+        }
+
+        // Add @ValidStrings annotation
+        if (!isOutput(property) && !ObjectUtils.isBlank(property.getEnum()) && !property.getEnum().isEmpty()) {
+            AnnotationSpec.Builder validStringAnnoation = AnnotationSpec.builder(ValidStrings.class);
+
+            for (String validValue : property.getEnum()) {
+                validStringAnnoation.addMember("value", "$S", validValue);
+            }
+
+            builder.addAnnotation(validStringAnnoation.build());
         }
 
         resourceBuilder.addMethod(builder
