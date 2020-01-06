@@ -1,101 +1,13 @@
-google::bucket logs-by-andrew
-    name: 'example-logging-by-andrew'
-    location: 'US-CENTRAL1'
+google::bucket bucket-example-one
+    name: "bucket-example-one"
+    location: "US-CENTRAL1"
 end
 
-google::bucket bucket-1-by-andrew
-    name: 'example-one-by-andrew'
-    location: 'US-CENTRAL1'
-    predefined-acl: 'publicRead'
-    predefined-default-object-acl: 'bucketOwnerFullControl'
-    default-event-based-hold: true
-    storage-class: 'STANDARD'
-
-    labels: {
-        foo: 'bar_1900',
-        bar: 'foo_1800'
-    }
-
-    cors
-        max-age-seconds: 3200
-        method: ['GET']
-        origin: ['*']
-        response-header: ['application-x-test']
-    end
-
-    cors
-        max-age-seconds: 3300
-        method: ['POST']
-        origin: ['*']
-        response-header: ['application-x-test']
-    end
-
-    billing
-        requester-pays: false
-    end
-
-    iam-configuration
-        uniform-bucket-level-access
-            enabled: false
-        end
-    end
-
-    lifecycle
-        rule
-            action
-                type: 'Delete'
-            end
-            condition
-                age: 7
-           end
-        end
-
-        rule
-            action
-                type: 'Delete'
-            end
-
-            condition
-                num-newer-versions: 10
-            end
-        end
-
-        rule
-            action
-               type: 'Delete'
-            end
-
-            condition
-                is-live: true
-                age: 15
-            end
-        end
-    end
-
-    logging
-        log-bucket: $(google::bucket logs-by-andrew)
-        log-object-prefix: 'gyro'
-    end
-
-    retention-policy
-        retention-period: 3200
-    end
-
-    versioning
-        enabled: false
-    end
-
-    website
-        main-page-suffix: 'index.html'
-        not-found-page: '404.jpg'
-    end
-end
-
-google::compute-health-check health-check-example-test-by-andrew
+google::compute-health-check health-check-example
+    name: "health-check-example"
     check-interval-sec: 30
     description: "The description goes here."
     healthy-threshold: 8
-    name: "http-hc1-test-by-andrew"
     timeout-sec: 29
     unhealthy-threshold: 6
 
@@ -106,10 +18,10 @@ google::compute-health-check health-check-example-test-by-andrew
     end
 end
 
-google::compute-backend-bucket gyro-backend-bucket-test
-    name: 'gyro-backend-bucket-test'
-    description: 'Global backend bucket test by Andrew'
-    bucket: $(google::bucket bucket-1-by-andrew)
+google::compute-backend-bucket backend-bucket-example
+    name: "backend-bucket-example"
+    description: "Global backend bucket."
+    bucket: $(google::bucket bucket-example-one)
 end
 
 google::compute-network lb-ig-network-example
@@ -135,45 +47,34 @@ google::compute-instance-group lb-instance-group-example
     end
 end
 
-google::compute-backend-service gyro-backend-service-test
-    name: 'gyro-backend-service-test'
-    description: 'Global backend service test by Andrew'
+google::compute-backend-service backend-service-example
+    name: "backend-service-example"
+    description: "Global backend service description."
+    health-check: [ $(google::compute-health-check health-check-example) ]
+
     backend
         group: $(google::compute-instance-group lb-instance-group-example)
+        balancing-mode: "UTILIZATION"
     end
-    health-check: [ $(google::compute-health-check health-check-example-test-by-andrew) ]
 end
 
-google::compute-url-map gyro-url-map-test
-    name: 'gyro-url-map-test'
-    description: 'URL map test by Andrew'
-    default-backend-service: $(google::compute-backend-service gyro-backend-service-test)
+google::compute-url-map url-map-example
+    name: "url-map-example"
+    description: "URL map description."
+    default-backend-service: $(google::compute-backend-service backend-service-example)
+
     host-rule
-        hosts: [ 'example.com' ]
-        path-matcher: 'abc-path'
+        hosts: [ "example.com" ]
+        path-matcher: "abc-path"
     end
+
     path-matcher
-        name: 'abc-path'
-        default-backend-service: $(google::compute-backend-service gyro-backend-service-test)
+        name: "abc-path"
+        default-backend-service: $(google::compute-backend-service backend-service-example)
         path-rule
-            backend-bucket: $(google::compute-backend-bucket gyro-backend-bucket-test)
-            paths: [ '/abc' ]
+            backend-bucket: $(google::compute-backend-bucket backend-bucket-example)
+            paths: [ "/abc" ]
         end
     end
-end
-
-google::compute-target-http-proxy gyro-target-http-test
-    name: 'gyro-target-http-test'
-    description: 'URL target http test by Andrew'
-    url-map: $(google::compute-url-map gyro-url-map-test)
-end
-
-google::compute-global-forwarding-rule gyro-global-forwarding-rule-test
-    name: 'gyro-global-forwarding-rule-test'
-    description: 'URL global forwarding rule test by Andrew'
-    ip-protocol: 'TCP'
-    load-balancing-scheme: 'EXTERNAL'
-    port-range: '80-80'
-    target-http-proxy-resource: $(google::compute-target-http-proxy gyro-target-http-test)
 end
 
