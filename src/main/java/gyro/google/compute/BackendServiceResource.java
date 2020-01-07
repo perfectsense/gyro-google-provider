@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.BackendService;
 import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.ProjectGlobalBackendServiceName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -210,5 +211,13 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         Compute client = createComputeClient();
         Operation response = client.backendServices().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, response);
+    }
+
+    static ProjectGlobalBackendServiceName parseBackendService(String projectId, String selfLink) {
+        String parseBackendService = formatResource(projectId, selfLink);
+        if (ProjectGlobalBackendServiceName.isParsableFrom(parseBackendService)) {
+            return ProjectGlobalBackendServiceName.parse(parseBackendService);
+        }
+        return null;
     }
 }

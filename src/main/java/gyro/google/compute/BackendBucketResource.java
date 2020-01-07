@@ -26,6 +26,7 @@ import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.BackendBucket;
 import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.ProjectGlobalBackendBucketName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -314,5 +315,13 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
         Compute client = createComputeClient();
         Operation response = client.backendBuckets().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, response);
+    }
+
+    static ProjectGlobalBackendBucketName parseBackendBucket(String projectId, String selfLink) {
+        String parseBackendBucket = formatResource(projectId, selfLink);
+        if (ProjectGlobalBackendBucketName.isParsableFrom(parseBackendBucket)) {
+            return ProjectGlobalBackendBucketName.parse(parseBackendBucket);
+        }
+        return null;
     }
 }
