@@ -17,9 +17,12 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.model.HostRule;
 import com.google.api.services.compute.model.PathMatcher;
 import com.google.api.services.compute.model.UrlMap;
@@ -113,6 +116,7 @@ public abstract class AbstractUrlMap extends ComputeResource implements Copyable
      *
      * @subresource gyro.google.compute.ComputeHostRule
      */
+    @Updatable
     public List<ComputeHostRule> getHostRule() {
         if (hostRule == null) {
             hostRule = new ArrayList();
@@ -129,6 +133,7 @@ public abstract class AbstractUrlMap extends ComputeResource implements Copyable
      *
      * @subresource gyro.google.compute.ComputePathMatcher
      */
+    @Updatable
     public List<ComputePathMatcher> getPathMatcher() {
         if (pathMatcher == null) {
             pathMatcher = new ArrayList();
@@ -214,42 +219,52 @@ public abstract class AbstractUrlMap extends ComputeResource implements Copyable
             computePathMatchers = pathMatchers
                 .stream()
                 .map(pathMatcher -> {
-                    ComputePathMatcher diffableHostRules = getPathMatcher()
+                    ComputePathMatcher diffablePathMatchers = getPathMatcher()
                         .stream()
                         .filter(e -> e.isEqualTo(pathMatcher))
                         .findFirst()
                         .orElse(newSubresource(ComputePathMatcher.class));
-                    diffableHostRules.copyFrom(pathMatcher);
-                    return diffableHostRules;
+                    diffablePathMatchers.copyFrom(pathMatcher);
+                    return diffablePathMatchers;
                 })
                 .collect(Collectors.toList());
         }
         setPathMatcher(computePathMatchers);
     }
 
-    protected UrlMap toUrlMap() {
+    protected UrlMap toUrlMap(Set<String> changedFieldNames) {
+        boolean isUpdate = changedFieldNames != null && (changedFieldNames.size() > 0);
+
         UrlMap urlMap = new UrlMap();
-        urlMap.setName(getName());
-        urlMap.setDescription(getDescription());
 
-        String defaultService;
-        if (getDefaultBackendBucket() != null) {
-            defaultService = getDefaultBackendBucket().getSelfLink();
-        } else if (getDefaultBackendService() != null) {
-            defaultService = getDefaultBackendService().getSelfLink();
-        } else if (getDefaultRegionBackendService() != null) {
-            defaultService = getDefaultRegionBackendService().getSelfLink();
-        } else {
-            throw new GyroException(
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!");
+        if (!isUpdate) {
+            urlMap.setName(getName());
+
+            String defaultService;
+            if (getDefaultBackendBucket() != null) {
+                defaultService = getDefaultBackendBucket().getSelfLink();
+            } else if (getDefaultBackendService() != null) {
+                defaultService = getDefaultBackendService().getSelfLink();
+            } else if (getDefaultRegionBackendService() != null) {
+                defaultService = getDefaultRegionBackendService().getSelfLink();
+            } else {
+                throw new GyroException(
+                    "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!");
+            }
+            urlMap.setDefaultService(defaultService);
         }
-        urlMap.setDefaultService(defaultService);
 
+        if (!isUpdate || changedFieldNames.contains("description")) {
+            urlMap.setDescription(getDescription());
+        }
+
+        urlMap.setHostRules(Collections.singletonList(Data.nullOf(HostRule.class)));
         List<ComputeHostRule> hostRules = getHostRule();
         if (!hostRules.isEmpty()) {
             urlMap.setHostRules(hostRules.stream().map(ComputeHostRule::copyTo).collect(Collectors.toList()));
         }
 
+        urlMap.setPathMatchers(Collections.singletonList(Data.nullOf(PathMatcher.class)));
         List<ComputePathMatcher> pathMatchers = getPathMatcher();
         if (!pathMatchers.isEmpty()) {
             urlMap.setPathMatchers(pathMatchers.stream().map(ComputePathMatcher::copyTo).collect(Collectors.toList()));

@@ -49,6 +49,7 @@ public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
      * The list of host patterns to match. They must be valid hostnames, except ``*`` will match any string of lowercase letters, numbers, ``-``, and ``.``. In that case, ``*`` must be the first character and must be followed in the pattern by either ``-`` or ``.``.
      */
     @Required
+    @Updatable
     public List<String> getHosts() {
         if (hosts == null) {
             hosts = new ArrayList<>();
@@ -64,6 +65,7 @@ public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
      * The name of the path matcher to use to match the path portion of the URL if the host rule matches the URL's host portion.
      */
     @Required
+    @Updatable
     public String getPathMatcher() {
         return pathMatcher;
     }

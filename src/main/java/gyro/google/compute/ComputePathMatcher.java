@@ -106,6 +106,7 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
      *
      * @subresource gyro.google.compute.ComputePathRule
      */
+    @Updatable
     public List<ComputePathRule> getPathRule() {
         if (pathRule == null) {
             pathRule = new ArrayList();

@@ -20,6 +20,7 @@ import java.util.Set;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.UrlMap;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -67,7 +68,7 @@ public class UrlMapResource extends AbstractUrlMap {
     public void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        Operation response = client.urlMaps().insert(getProjectId(), toUrlMap()).execute();
+        Operation response = client.urlMaps().insert(getProjectId(), toUrlMap(null)).execute();
         waitForCompletion(client, response);
 
         refresh();
@@ -76,7 +77,13 @@ public class UrlMapResource extends AbstractUrlMap {
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        // TODO:
+        Compute client = createComputeClient();
+
+        UrlMap urlMap = toUrlMap(changedFieldNames);
+        Operation operation = client.urlMaps().patch(getProjectId(), getName(), urlMap).execute();
+        waitForCompletion(client, operation);
+
+        refresh();
     }
 
     @Override

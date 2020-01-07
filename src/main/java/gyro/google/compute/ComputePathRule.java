@@ -24,6 +24,7 @@ import java.util.Optional;
 import com.google.api.services.compute.model.PathRule;
 import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
@@ -75,6 +76,7 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     /**
      * The list of path patterns to match. Each must start with ``/`` and the only place a ``*`` is allowed is at the end following a ``/``. The string fed to the path matcher does not include any text after the first ``?`` or ``#```, and those chars are not allowed here.
      */
+    @Updatable
     public List<String> getPaths() {
         if (paths == null) {
             paths = new ArrayList();

@@ -86,7 +86,7 @@ public class RegionUrlMapResource extends AbstractUrlMap {
     protected void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        UrlMap urlMap = toUrlMap();
+        UrlMap urlMap = toUrlMap(null);
         urlMap.setRegion(getRegion());
 
         Operation response = client.regionUrlMaps().insert(getProjectId(), getRegion(), urlMap).execute();
@@ -98,7 +98,13 @@ public class RegionUrlMapResource extends AbstractUrlMap {
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        // TODO
+        Compute client = createComputeClient();
+
+        UrlMap urlMap = toUrlMap(changedFieldNames);
+        Operation operation = client.regionUrlMaps().patch(getProjectId(), getRegion(), getName(), urlMap).execute();
+        waitForCompletion(client, operation);
+
+        refresh();
     }
 
     @Override
