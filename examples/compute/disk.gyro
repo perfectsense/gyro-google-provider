@@ -9,3 +9,23 @@ google::compute-disk disk-example
     }
     physical-block-size-bytes: 4096
 end
+
+google::compute-image image-example
+    name: "image-example"
+    source-disk: $(google::compute-disk disk-example)
+
+    image-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
+
+google::compute-disk disk-image-example
+    name: "disk-image-example"
+    description: "disk-image-example-desc"
+    zone: "us-west1-a"
+    source-image: $(google::compute-image image-example)
+
+    source-image-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
