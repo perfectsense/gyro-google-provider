@@ -20,22 +20,24 @@ import java.util.Set;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.UrlMap;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 
 /**
- * Creates a global URL map.
+ * Creates a regional URL map.
  *
  * Example
  * -------
  *
  * .. code-block:: gyro
  *
- *     google::compute-url-map url-map-example
- *         name: "url-map-example"
- *         description: "URL map description."
+ *     google::compute-region-url-map region-url-map-example
+ *         name: "region-url-map-example"
+ *         region: "us-east1"
+ *         description: "Region URL map description."
  *         default-backend-service: $(google::compute-backend-service backend-service-example)
  *
  *         host-rule
@@ -53,21 +55,41 @@ import gyro.core.scope.State;
  *         end
  *     end
  */
-@Type("compute-url-map")
-public class UrlMapResource extends AbstractUrlMap {
+@Type("compute-region-url-map")
+public class RegionUrlMapResource extends AbstractUrlMap {
+
+    private String region;
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
 
     @Override
-    public boolean doRefresh() throws Exception {
+    public void copyFrom(UrlMap urlMap) {
+        super.copyFrom(urlMap);
+
+        setRegion(urlMap.getRegion());
+    }
+
+    @Override
+    protected boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
-        copyFrom(client.urlMaps().get(getProjectId(), getName()).execute());
+        copyFrom(client.regionUrlMaps().get(getProjectId(), getRegion(), getName()).execute());
         return true;
     }
 
     @Override
-    public void doCreate(GyroUI ui, State state) throws Exception {
+    protected void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        Operation response = client.urlMaps().insert(getProjectId(), toUrlMap()).execute();
+        UrlMap urlMap = toUrlMap();
+        urlMap.setRegion(getRegion());
+
+        Operation response = client.regionUrlMaps().insert(getProjectId(), getRegion(), urlMap).execute();
         waitForCompletion(client, response);
 
         refresh();
@@ -76,13 +98,13 @@ public class UrlMapResource extends AbstractUrlMap {
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        // TODO:
+        // TODO
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
-        Operation response = client.urlMaps().delete(getProjectId(), getName()).execute();
+        Operation response = client.regionUrlMaps().delete(getProjectId(), getRegion(), getName()).execute();
         waitForCompletion(client, response);
     }
 }
