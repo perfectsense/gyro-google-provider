@@ -37,6 +37,7 @@ import gyro.core.Wait;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
@@ -99,8 +100,9 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The source snapshot used to create the disk.
+     * The source snapshot used to create the disk. Conflicts with ``source-image``.
      */
+    @ConflictsWith("source-image")
     public SnapshotResource getSourceSnapshot() {
         return sourceSnapshot;
     }
