@@ -20,32 +20,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.PathRule;
+import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableType;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
+import gyro.google.GoogleCredentials;
 
 public class ComputePathRule extends Diffable implements Copyable<PathRule> {
 
     private BackendBucketResource backendBucket;
-
-    private GlobalBackendServiceResource backendService;
-
+    private BackendServiceResource backendService;
+    private RegionBackendServiceResource regionBackendService;
     private List<String> paths;
 
     /**
-     * The backend bucket resource to which traffic is directed if this
-     * rule is matched. If routeAction is additionally specified, advanced routing actions like URL
-     * Rewrites, etc. take effect prior to sending the request to the backend. However, if service is
-     * specified, routeAction cannot contain any weightedBackendService s. Conversely, if routeAction
-     * specifies any  weightedBackendServices, service must not be specified. Only one of urlRedirect,
-     * service or routeAction.weightedBackendService must be set.
+     * The backend bucket resource to which traffic is directed if this rule is matched. Conflicts with ``backend-service`` and ``region-backend-service``.
      */
-    @ConflictsWith("backend-service")
+    @ConflictsWith({ "backend-service", "region-backend-service" })
     public BackendBucketResource getBackendBucket() {
         return backendBucket;
     }
@@ -55,26 +49,31 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     }
 
     /**
-     * The backend service resource to which traffic is directed if this
-     * rule is matched. If routeAction is additionally specified, advanced routing actions like URL
-     * Rewrites, etc. take effect prior to sending the request to the backend. However, if service is
-     * specified, routeAction cannot contain any weightedBackendService s. Conversely, if routeAction
-     * specifies any  weightedBackendServices, service must not be specified. Only one of urlRedirect,
-     * service or routeAction.weightedBackendService must be set.
+     * The backend service resource to which traffic is directed if this rule is matched. Conflicts with ``backend-bucket`` and ``region-backend-service``.
      */
-    @ConflictsWith("backend-bucket")
-    public GlobalBackendServiceResource getBackendService() {
+    @ConflictsWith({ "backend-bucket", "region-backend-service" })
+    public BackendServiceResource getBackendService() {
         return backendService;
     }
 
-    public void setBackendService(GlobalBackendServiceResource backendService) {
+    public void setBackendService(BackendServiceResource backendService) {
         this.backendService = backendService;
     }
 
     /**
-     * The list of path patterns to match. Each must start with / and the only place a * is allowed is
-     * at the end following a /. The string fed to the path matcher does not include any text after
-     * the first ? or #, and those chars are not allowed here.
+     * The region backend service resource to which traffic is directed if this rule is matched. Conflicts with ``backend-bucket`` and ``backend-service``.
+     */
+    @ConflictsWith({ "backend-bucket", "backend-service" })
+    public RegionBackendServiceResource getRegionBackendService() {
+        return regionBackendService;
+    }
+
+    public void setRegionBackendService(RegionBackendServiceResource regionBackendService) {
+        this.regionBackendService = regionBackendService;
+    }
+
+    /**
+     * The list of path patterns to match. Each must start with ``/`` and the only place a ``*`` is allowed is at the end following a ``/``. The string fed to the path matcher does not include any text after the first ``?`` or ``#```, and those chars are not allowed here.
      */
     public List<String> getPaths() {
         if (paths == null) {
@@ -91,51 +90,38 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     public void copyFrom(PathRule model) {
         setPaths(model.getPaths());
 
-        BackendBucketResource backendBucket = null;
-        GlobalBackendServiceResource backendService = null;
         String service = model.getService();
-
-        if (service != null) {
-            BackendBucketResource possibleBackendBucket = findById(BackendBucketResource.class, service);
-
-            if (possibleBackendBucket.getName() != null) {
-                backendBucket = possibleBackendBucket;
-            } else {
-                GlobalBackendServiceResource possibleBackendService = findById(
-                    GlobalBackendServiceResource.class,
-                    service);
-
-                if (possibleBackendBucket.getName() != null) {
-                    backendService = possibleBackendService;
-                }
-            }
+        setBackendBucket(null);
+        if (BackendBucketResource.parseBackendBucket(getProjectId(), service) != null) {
+            setBackendBucket(findById(BackendBucketResource.class, service));
         }
-        setBackendBucket(backendBucket);
-        setBackendService(backendService);
+
+        setBackendService(null);
+        if (BackendServiceResource.parseBackendService(getProjectId(), service) != null) {
+            setBackendService(findById(BackendServiceResource.class, service));
+        }
+
+        setRegionBackendService(null);
+        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), service) != null) {
+            setRegionBackendService(findById(RegionBackendServiceResource.class, service));
+        }
     }
 
     @Override
     public String primaryKey() {
-        return String.format(
-            "%s::%s",
-            DiffableType.getInstance(getClass()).getName(),
-            getPaths().stream().collect(Collectors.joining(";")));
+        return String.join(";", getPaths());
     }
 
     @Override
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
 
-        // make 'backend-bucket' or 'backend-service' effectively required.
-        if (getBackendBucket() == null && getBackendService() == null) {
+        if (getBackendBucket() == null && getBackendService() == null
+            && getRegionBackendService() == null) {
             errors.add(new ValidationError(
                 this,
-                "backend-bucket",
-                "Either 'backend-bucket' or 'backend-service' is required!"));
-            errors.add(new ValidationError(
-                this,
-                "backend-service",
-                "Either 'backend-bucket' or 'backend-service' is required!"));
+                null,
+                "Either 'backend-bucket', 'backend-service', or 'region-backend-service' is required!"));
         }
         return errors;
     }
@@ -144,19 +130,16 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         PathRule pathRule = new PathRule();
         pathRule.setPaths(getPaths());
 
-        String service = null;
-        BackendBucketResource backendBucket = getBackendBucket();
-
-        if (backendBucket != null) {
-            service = backendBucket.getSelfLink();
+        String service;
+        if (getBackendBucket() != null) {
+            service = getBackendBucket().getSelfLink();
+        } else if (getBackendService() != null) {
+            service = getBackendService().getSelfLink();
+        } else if (getRegionBackendService() != null) {
+            service = getRegionBackendService().getSelfLink();
         } else {
-            GlobalBackendServiceResource backendService = getBackendService();
-
-            if (backendService != null) {
-                service = backendService.getSelfLink();
-            } else {
-                // TODO: throw
-            }
+            throw new GyroException(
+                "Either 'backend-bucket', 'backend-service', or 'region-backend-service' is required!");
         }
         pathRule.setService(service);
         return pathRule;
@@ -168,5 +151,9 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
             .map(HashSet::new)
             .filter(hosts -> hosts.equals(new HashSet<>(getPaths())))
             .isPresent();
+    }
+
+    private String getProjectId() {
+        return credentials(GoogleCredentials.class).getProjectId();
     }
 }

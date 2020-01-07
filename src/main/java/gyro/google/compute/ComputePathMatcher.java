@@ -23,102 +23,26 @@ import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.PathMatcher;
 import com.google.api.services.compute.model.PathRule;
+import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableType;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
+import gyro.google.GoogleCredentials;
 
 public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher> {
 
-    private BackendBucketResource defaultBackendBucket;
-
-    private GlobalBackendServiceResource defaultBackendService;
-
-    /**
-     * When when none of the specified pathRules or routeRules match, the request is redirected to a
-     * URL specified by defaultUrlRedirect. If defaultUrlRedirect is specified, defaultService or
-     * defaultRouteAction must not be set.
-     *
-     private ComputeHttpRedirectAction defaultUrlRedirect;
-     */
-    private String description;
-
-    /**
-     * Specifies changes to request and response headers that need to take effect for the selected
-     * backendService. HeaderAction specified here are applied after the matching HttpRouteRule
-     * HeaderAction and before the HeaderAction in the UrlMap
-     *
-     private ComputeHttpHeaderAction headerAction;
-     */
     private String name;
-
+    private String description;
+    private BackendBucketResource defaultBackendBucket;
+    private BackendServiceResource defaultBackendService;
+    private RegionBackendServiceResource defaultRegionBackendService;
     private List<ComputePathRule> pathRule;
 
     /**
-     * The backend bucket resource. This will be used if none of the
-     * pathRules or routeRules defined by this PathMatcher are matched. For example, the following are
-     * all valid URLs to a BackendService resource: -
-     * https://www.googleapis.com/compute/v1/projects/project/global/backendServices/backendService  -
-     * compute/v1/projects/project/global/backendServices/backendService  -
-     * global/backendServices/backendService  If defaultRouteAction is additionally specified,
-     * advanced routing actions like URL Rewrites, etc. take effect prior to sending the request to
-     * the backend. However, if defaultService is specified, defaultRouteAction cannot contain any
-     * weightedBackendServices. Conversely, if defaultRouteAction specifies any
-     * weightedBackendServices, defaultService must not be specified. Only one of defaultService,
-     * defaultUrlRedirect  or defaultRouteAction.weightedBackendService must be set. Authorization
-     * requires one or more of the following Google IAM permissions on the specified resource
-     * default_service:   - compute.backendBuckets.use  - compute.backendServices.use
-     */
-    @ConflictsWith("default-backend-service")
-    public BackendBucketResource getDefaultBackendBucket() {
-        return defaultBackendBucket;
-    }
-
-    public void setDefaultBackendBucket(BackendBucketResource defaultBackendBucket) {
-        this.defaultBackendBucket = defaultBackendBucket;
-    }
-
-    /**
-     * The backend service resource. This will be used if none of the
-     * pathRules or routeRules defined by this PathMatcher are matched. For example, the following are
-     * all valid URLs to a BackendService resource: -
-     * https://www.googleapis.com/compute/v1/projects/project/global/backendServices/backendService  -
-     * compute/v1/projects/project/global/backendServices/backendService  -
-     * global/backendServices/backendService  If defaultRouteAction is additionally specified,
-     * advanced routing actions like URL Rewrites, etc. take effect prior to sending the request to
-     * the backend. However, if defaultService is specified, defaultRouteAction cannot contain any
-     * weightedBackendServices. Conversely, if defaultRouteAction specifies any
-     * weightedBackendServices, defaultService must not be specified. Only one of defaultService,
-     * defaultUrlRedirect  or defaultRouteAction.weightedBackendService must be set. Authorization
-     * requires one or more of the following Google IAM permissions on the specified resource
-     * default_service:   - compute.backendBuckets.use  - compute.backendServices.use
-     */
-    @ConflictsWith("default-backend-bucket")
-    public GlobalBackendServiceResource getDefaultBackendService() {
-        return defaultBackendService;
-    }
-
-    public void setDefaultBackendService(GlobalBackendServiceResource defaultBackendService) {
-        this.defaultBackendService = defaultBackendService;
-    }
-
-    /**
-     * An optional description of this resource. Provide this property when you create the resource.
-     */
-    @Updatable
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * The name to which this PathMatcher is referred by the HostRule.
+     * The name to which this path matcher is referred by the host rule.
      */
     @Required
     public String getName() {
@@ -130,11 +54,57 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     }
 
     /**
-     * The list of path rules. Use this list instead of routeRules when routing based on simple path
-     * matching is all that's required. The order by which path rules are specified does not matter.
-     * Matches are always done on the longest-path-first basis. For example: a pathRule with a path
-     * /a/b/c will match before /a/b irrespective of the order in which those paths appear in this
-     * list. Within a given pathMatcher, only one of pathRules or routeRules must be set.
+     * An optional description of this path matcher.
+     */
+    @Updatable
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * The default backend bucket resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-service`` and ``default-region-backend-service``.
+     */
+    @ConflictsWith({ "default-backend-service", "default-region-backend-service" })
+    public BackendBucketResource getDefaultBackendBucket() {
+        return defaultBackendBucket;
+    }
+
+    public void setDefaultBackendBucket(BackendBucketResource defaultBackendBucket) {
+        this.defaultBackendBucket = defaultBackendBucket;
+    }
+
+    /**
+     * The default backend service resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-bucket`` and ``default-region-backend-service``.
+     */
+    @ConflictsWith({ "default-backend-bucket", "default-region-backend-service" })
+    public BackendServiceResource getDefaultBackendService() {
+        return defaultBackendService;
+    }
+
+    public void setDefaultBackendService(BackendServiceResource defaultBackendService) {
+        this.defaultBackendService = defaultBackendService;
+    }
+
+    /**
+     * The default region backend service resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-bucket`` and ``default-backend-service``.
+     */
+    @ConflictsWith({ "default-backend-bucket", "default-backend-service" })
+    public RegionBackendServiceResource getDefaultRegionBackendService() {
+        return defaultRegionBackendService;
+    }
+
+    public void setDefaultRegionBackendService(RegionBackendServiceResource defaultRegionBackendService) {
+        this.defaultRegionBackendService = defaultRegionBackendService;
+    }
+
+    /**
+     * The list of path rules.
+     *
+     * @subresource gyro.google.compute.ComputePathRule
      */
     public List<ComputePathRule> getPathRule() {
         if (pathRule == null) {
@@ -147,40 +117,27 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         this.pathRule = pathRule;
     }
 
-    /**
-     * The list of ordered HTTP route rules. Use this list instead of pathRules when advanced route
-     * matching and routing actions are desired. The order of specifying routeRules matters: the first
-     * rule that matches will cause its specified routing action to take effect. Within a given
-     * pathMatcher, only one of pathRules or routeRules must be set. routeRules are not supported in
-     * UrlMaps intended for External Load balancers.
-     *
-     private List<HttpRouteRule> routeRules;
-     */
     @Override
     public void copyFrom(PathMatcher model) {
-        BackendBucketResource backendBucket = null;
-        GlobalBackendServiceResource backendService = null;
-        String service = model.getDefaultService();
+        setName(model.getName());
+        setDescription(model.getDescription());
 
-        if (service != null) {
-            BackendBucketResource possibleBackendBucket = findById(BackendBucketResource.class, service);
-
-            if (possibleBackendBucket.getName() != null) {
-                backendBucket = possibleBackendBucket;
-            } else {
-                GlobalBackendServiceResource possibleBackendService = findById(
-                    GlobalBackendServiceResource.class,
-                    service);
-
-                if (possibleBackendService.getName() != null) {
-                    backendService = possibleBackendService;
-                }
-            }
+        String defaultService = model.getDefaultService();
+        setDefaultBackendBucket(null);
+        if (BackendBucketResource.parseBackendBucket(getProjectId(), defaultService) != null) {
+            setDefaultBackendBucket(findById(BackendBucketResource.class, defaultService));
         }
-        setDefaultBackendBucket(backendBucket);
-        setDefaultBackendService(backendService);
-        setDescription(getDescription());
-        setName(getName());
+
+        setDefaultBackendService(null);
+        if (BackendServiceResource.parseBackendService(getProjectId(), defaultService) != null) {
+            setDefaultBackendService(findById(BackendServiceResource.class, defaultService));
+        }
+
+        setDefaultRegionBackendService(null);
+        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), defaultService) != null) {
+            setDefaultRegionBackendService(findById(RegionBackendServiceResource.class, defaultService));
+        }
+
         List<ComputePathRule> computePathRules = null;
         List<PathRule> pathRules = model.getPathRules();
 
@@ -203,52 +160,42 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
 
     @Override
     public String primaryKey() {
-        return String.format(
-            "%s::%s",
-            DiffableType.getInstance(getClass()).getName(),
-            getName() == null ? "" : getName());
+        return getName();
     }
 
     @Override
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
 
-        // make 'default-backend-bucket' or 'default-backend-service' effectively required.
-        if (getDefaultBackendBucket() == null && getDefaultBackendService() == null) {
+        if (getDefaultBackendBucket() == null && getDefaultBackendService() == null
+            && getDefaultRegionBackendService() == null) {
             errors.add(new ValidationError(
                 this,
-                "default-backend-bucket",
-                "Either 'default-backend-bucket' or 'default-backend-service' is required!"));
-            errors.add(new ValidationError(
-                this,
-                "default-backend-service",
-                "Either 'default-backend-bucket' or 'default-backend-service' is required!"));
+                null,
+                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!"));
         }
         return errors;
     }
 
     public PathMatcher copyTo() {
         PathMatcher pathMatcher = new PathMatcher();
+        pathMatcher.setName(getName());
+        pathMatcher.setDescription(getDescription());
 
-        String defaultService = null;
-        BackendBucketResource backendBucket = getDefaultBackendBucket();
-
-        if (backendBucket != null) {
-            defaultService = backendBucket.getSelfLink();
+        String defaultService;
+        if (getDefaultBackendBucket() != null) {
+            defaultService = getDefaultBackendBucket().getSelfLink();
+        } else if (getDefaultBackendService() != null) {
+            defaultService = getDefaultBackendService().getSelfLink();
+        } else if (getDefaultRegionBackendService() != null) {
+            defaultService = getDefaultRegionBackendService().getSelfLink();
         } else {
-            GlobalBackendServiceResource backendService = getDefaultBackendService();
-
-            if (backendService != null) {
-                defaultService = backendService.getSelfLink();
-            } else {
-                // TODO: throw
-            }
+            throw new GyroException(
+                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!");
         }
         pathMatcher.setDefaultService(defaultService);
-        pathMatcher.setDescription(getDescription());
-        pathMatcher.setName(getName());
-        List<ComputePathRule> pathRule = getPathRule();
 
+        List<ComputePathRule> pathRule = getPathRule();
         if (!pathRule.isEmpty()) {
             pathMatcher.setPathRules(pathRule.stream().map(ComputePathRule::copyTo).collect(Collectors.toList()));
         }
@@ -260,5 +207,9 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
             .map(PathMatcher::getName)
             .filter(hosts -> hosts.equals(getName()))
             .isPresent();
+    }
+
+    private String getProjectId() {
+        return credentials(GoogleCredentials.class).getProjectId();
     }
 }

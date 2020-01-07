@@ -20,11 +20,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.HostRule;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableType;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -32,14 +30,11 @@ import gyro.google.Copyable;
 public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
 
     private String description;
-
     private List<String> hosts;
-
-    // TODO: embed PathMatcher?
     private String pathMatcher;
 
     /**
-     * An optional description of this resource. Provide this property when you create the resource.
+     * An optional description of this host rule.
      */
     @Updatable
     public String getDescription() {
@@ -51,9 +46,7 @@ public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
     }
 
     /**
-     * The list of host patterns to match. They must be valid hostnames, except * will match any
-     * string of ([a-z0-9-.]*). In that case, * must be the first character and must be followed in
-     * the pattern by either - or ..
+     * The list of host patterns to match. They must be valid hostnames, except ``*`` will match any string of lowercase letters, numbers, ``-``, and ``.``. In that case, ``*`` must be the first character and must be followed in the pattern by either ``-`` or ``.``.
      */
     @Required
     public List<String> getHosts() {
@@ -68,8 +61,7 @@ public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
     }
 
     /**
-     * The name of the PathMatcher to use to match the path portion of the URL if the hostRule matches
-     * the URL's host portion.
+     * The name of the path matcher to use to match the path portion of the URL if the host rule matches the URL's host portion.
      */
     @Required
     public String getPathMatcher() {
@@ -82,11 +74,7 @@ public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
 
     @Override
     public String primaryKey() {
-        return String.format(
-            "%s::%s;%s",
-            DiffableType.getInstance(getClass()).getName(),
-            getHosts().stream().collect(Collectors.joining(";")),
-            getPathMatcher() == null ? "" : getPathMatcher());
+        return String.format("%s;%s", String.join(";", getHosts()), getPathMatcher() == null ? "" : getPathMatcher());
     }
 
     @Override
