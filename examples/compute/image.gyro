@@ -1,0 +1,36 @@
+google::compute-disk disk-example
+    name: "disk-example"
+    zone: "us-central1-a"
+
+    disk-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
+
+google::compute-image image-disk-example
+    name: "image-disk-example"
+    description: "image-disk-example-desc"
+    source-disk: $(google::compute-disk disk-example)
+    family: "image-disk-example-family"
+    labels: {
+        label-key: 'label-value'
+    }
+
+    source-disk-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+
+    storage-locations: [
+        "us-central1"
+    ]
+end
+
+google::compute-image image-image-example
+    name: "image-image-example"
+    description: "image-image-example-desc"
+    source-image: $(google::compute-image image-disk-example)
+
+    storage-locations: [
+        "us"
+    ]
+end
