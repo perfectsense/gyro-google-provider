@@ -30,9 +30,7 @@ import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest;
 import com.google.api.services.compute.model.InstanceGroupsRemoveInstancesRequest;
 import com.google.api.services.compute.model.InstanceGroupsSetNamedPortsRequest;
 import com.google.api.services.compute.model.InstanceReference;
-import com.google.api.services.compute.model.InstanceWithNamedPorts;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -77,7 +75,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     private List<InstanceGroupNamedPort> namedPort;
     private NetworkResource network;
     private String zone;
-    private List<String> instances;
+    private List<InstanceResource> instances;
 
     // Read-only
     private String region;
@@ -153,14 +151,14 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
      * A list of instances to be added to the group.
      */
     @Updatable
-    public List<String> getInstances() {
+    public List<InstanceResource> getInstances() {
         if (instances == null) {
             instances = new ArrayList<>();
         }
         return instances;
     }
 
-    public void setInstances(List<String> instances) {
+    public void setInstances(List<InstanceResource> instances) {
         this.instances = instances;
     }
 
@@ -216,7 +214,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         waitForCompletion(client, operation);
 
         if (!getInstances().isEmpty()) {
-            addInstances(getInstances());
+            addInstances(getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
         }
 
         state.save();
@@ -236,9 +234,11 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         if (changedFieldNames.contains("instances")) {
             List<String> removed = currentInstanceGroupResource.getInstances().stream()
                 .filter(instance -> !getInstances().contains(instance))
+                .map(InstanceResource::getSelfLink)
                 .collect(Collectors.toList());
             List<String> added = getInstances().stream()
                 .filter(instance -> !currentInstanceGroupResource.getInstances().contains(instance))
+                .map(InstanceResource::getSelfLink)
                 .collect(Collectors.toList());
 
             if (!removed.isEmpty()) {
@@ -261,7 +261,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     }
 
     @Override
-    public void copyFrom(InstanceGroup instanceGroup) {
+    public void copyFrom(InstanceGroup instanceGroup) throws Exception {
         setName(instanceGroup.getName());
         setDescription(instanceGroup.getDescription());
         setZone(instanceGroup.getZone());
@@ -313,29 +313,25 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         );
     }
 
-    private List<String> listInstances() {
+    private List<InstanceResource> listInstances() throws IOException {
         Compute client = createComputeClient();
-        List<String> current = new ArrayList<>();
+        List<InstanceResource> current = new ArrayList<>();
         String pageToken;
 
-        try {
-            do {
-                InstanceGroupsListInstances results = client.instanceGroups()
-                    .listInstances(getProjectId(), getZone(), getName(), new InstanceGroupsListInstancesRequest())
-                    .execute();
-                pageToken = results.getNextPageToken();
+        do {
+            InstanceGroupsListInstances results = client.instanceGroups()
+                .listInstances(getProjectId(), getZone(), getName(), new InstanceGroupsListInstancesRequest())
+                .execute();
+            pageToken = results.getNextPageToken();
 
-                current.addAll(results.getItems()
-                    .stream()
-                    .map(InstanceWithNamedPorts::getInstance)
-                    .collect(Collectors.toList()));
+            current.addAll(results.getItems()
+                .stream()
+                .map(item -> findById(InstanceResource.class, item.getInstance()))
+                .collect(Collectors.toList()));
 
-            } while (pageToken != null);
+        } while (pageToken != null);
 
-            return current;
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage(), e.getCause());
-        }
+        return current;
     }
 
     private InstanceGroup toInstanceGroup() {

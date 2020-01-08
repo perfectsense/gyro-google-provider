@@ -76,24 +76,3 @@ google::compute-instance-attached-disk gyro-disk-1
         source: $(google::compute-disk instance-disk-example)
     end
 end
-
-google::compute-instance-group instance-group-instances
-    name: "instance-group-instances"
-    description: "instance group for testing adding instances"
-    zone: $zone
-    network: $(external-query google::compute-network {name: "default"})
-    instances: [
-        $(google::compute-instance gyro-dev-1).self-link,
-        $(google::compute-instance gyro-dev-2).self-link
-    ]
-
-    named-port
-        name: "port-a"
-        port: 123
-    end
-
-    named-port
-        name: "port-b"
-        port: 490
-    end
-end
