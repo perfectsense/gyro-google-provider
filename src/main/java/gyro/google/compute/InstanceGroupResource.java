@@ -54,6 +54,10 @@ import gyro.google.Copyable;
  *          name: "instance-group-named-ports-example"
  *          description: "instance-group-named-ports-example-description"
  *          zone: "us-central1-a"
+ *          instances: [
+ *              $(google::compute-instance gyro-instance-group-instance-a),
+ *              $(google::compute-instance gyro-instance-group-instance-b)
+ *          ]
  *
  *          named-port
  *              name: "port-a"
@@ -213,6 +217,8 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         Operation operation = client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
         waitForCompletion(client, operation);
 
+        state.save();
+
         if (!getInstances().isEmpty()) {
             addInstances(getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
         }
@@ -229,7 +235,10 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
         InstanceGroupResource currentInstanceGroupResource = (InstanceGroupResource) current;
-        saveNamedPort(client);
+
+        if (changedFieldNames.contains("named-port")) {
+            saveNamedPort(client);
+        }
 
         if (changedFieldNames.contains("instances")) {
             List<String> removed = currentInstanceGroupResource.getInstances().stream()
