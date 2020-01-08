@@ -17,9 +17,7 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import com.google.api.services.compute.model.HostRule;
 import gyro.core.resource.Diffable;
@@ -92,13 +90,5 @@ public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
         hostRule.setHosts(getHosts());
         hostRule.setPathMatcher(getPathMatcher());
         return hostRule;
-    }
-
-    protected boolean isEqualTo(HostRule model) {
-        return Optional.ofNullable(model)
-            .map(HostRule::getHosts)
-            .map(HashSet::new)
-            .filter(hosts -> hosts.equals(new HashSet<>(getHosts())))
-            .isPresent();
     }
 }

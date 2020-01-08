@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.PathMatcher;
@@ -146,13 +145,9 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
             computePathRules = pathRules
                 .stream()
                 .map(pathRule -> {
-                    ComputePathRule diffablePathRule = getPathRule()
-                        .stream()
-                        .filter(e -> e.isEqualTo(pathRule))
-                        .findFirst()
-                        .orElse(newSubresource(ComputePathRule.class));
-                    diffablePathRule.copyFrom(pathRule);
-                    return diffablePathRule;
+                    ComputePathRule computePathRule = newSubresource(ComputePathRule.class);
+                    computePathRule.copyFrom(pathRule);
+                    return computePathRule;
                 })
                 .collect(Collectors.toList());
         }
@@ -201,13 +196,6 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
             pathMatcher.setPathRules(pathRule.stream().map(ComputePathRule::copyTo).collect(Collectors.toList()));
         }
         return pathMatcher;
-    }
-
-    protected boolean isEqualTo(PathMatcher model) {
-        return Optional.ofNullable(model)
-            .map(PathMatcher::getName)
-            .filter(hosts -> hosts.equals(getName()))
-            .isPresent();
     }
 
     private String getProjectId() {

@@ -17,9 +17,7 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import com.google.api.services.compute.model.PathRule;
 import gyro.core.GyroException;
@@ -145,14 +143,6 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         }
         pathRule.setService(service);
         return pathRule;
-    }
-
-    protected boolean isEqualTo(PathRule model) {
-        return Optional.ofNullable(model)
-            .map(PathRule::getPaths)
-            .map(HashSet::new)
-            .filter(hosts -> hosts.equals(new HashSet<>(getPaths())))
-            .isPresent();
     }
 
     private String getProjectId() {

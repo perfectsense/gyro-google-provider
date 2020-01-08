@@ -56,7 +56,7 @@ import gyro.core.scope.State;
  *     end
  */
 @Type("compute-region-url-map")
-public class RegionUrlMapResource extends AbstractUrlMap {
+public class RegionUrlMapResource extends AbstractUrlMapResource {
 
     private String region;
 

@@ -36,7 +36,7 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
-public abstract class AbstractUrlMap extends ComputeResource implements Copyable<UrlMap> {
+public abstract class AbstractUrlMapResource extends ComputeResource implements Copyable<UrlMap> {
 
     private String name;
     private BackendBucketResource defaultBackendBucket;
@@ -200,13 +200,9 @@ public abstract class AbstractUrlMap extends ComputeResource implements Copyable
             computeHostRules = hostRules
                 .stream()
                 .map(hostRule -> {
-                    ComputeHostRule diffableHostRules = getHostRule()
-                        .stream()
-                        .filter(e -> e.isEqualTo(hostRule))
-                        .findFirst()
-                        .orElse(newSubresource(ComputeHostRule.class));
-                    diffableHostRules.copyFrom(hostRule);
-                    return diffableHostRules;
+                    ComputeHostRule computeHostRule = newSubresource(ComputeHostRule.class);
+                    computeHostRule.copyFrom(hostRule);
+                    return computeHostRule;
                 })
                 .collect(Collectors.toList());
         }
@@ -219,13 +215,9 @@ public abstract class AbstractUrlMap extends ComputeResource implements Copyable
             computePathMatchers = pathMatchers
                 .stream()
                 .map(pathMatcher -> {
-                    ComputePathMatcher diffablePathMatchers = getPathMatcher()
-                        .stream()
-                        .filter(e -> e.isEqualTo(pathMatcher))
-                        .findFirst()
-                        .orElse(newSubresource(ComputePathMatcher.class));
-                    diffablePathMatchers.copyFrom(pathMatcher);
-                    return diffablePathMatchers;
+                    ComputePathMatcher computePathMatcher = newSubresource(ComputePathMatcher.class);
+                    computePathMatcher.copyFrom(pathMatcher);
+                    return computePathMatcher;
                 })
                 .collect(Collectors.toList());
         }

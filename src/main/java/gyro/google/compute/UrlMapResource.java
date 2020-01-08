@@ -55,7 +55,7 @@ import gyro.core.scope.State;
  *     end
  */
 @Type("compute-url-map")
-public class UrlMapResource extends AbstractUrlMap {
+public class UrlMapResource extends AbstractUrlMapResource {
 
     @Override
     public boolean doRefresh() throws Exception {
