@@ -25,7 +25,7 @@ import com.google.common.base.CaseFormat;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.TypeSpec;
 import gyro.core.Type;
-import gyro.core.resource.Diffable;
+import gyro.core.resource.Resource;
 
 public class ResourceGenerator extends DiffableGenerator {
 
@@ -43,7 +43,7 @@ public class ResourceGenerator extends DiffableGenerator {
         this.diffableSchema = description.getSchemas().get(schemaName);
         this.resourceBuilder = TypeSpec.classBuilder("Abstract" + schemaName + "Resource")
             .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
-            .superclass(Diffable.class);
+            .superclass(Resource.class);
 
         String typeName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, schemaName);
 
