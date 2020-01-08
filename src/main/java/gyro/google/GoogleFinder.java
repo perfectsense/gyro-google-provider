@@ -86,11 +86,7 @@ public abstract class GoogleFinder<C extends AbstractGoogleJsonClient, M, R exte
             } catch (GyroException ex) {
                 throw ex;
             } catch (GoogleJsonResponseException je) {
-                if (je.getDetails().getCode() == 404) {
-                    return null;
-                } else {
-                    throw new GyroException(GoogleResource.formatGoogleExceptionMessage(je));
-                }
+                throw new GyroException(GoogleResource.formatGoogleExceptionMessage(je));
             } catch (Exception ex) {
                 throw new GyroException(ex.getMessage(), ex.getCause());
             }
