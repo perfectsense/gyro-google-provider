@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -23,8 +24,15 @@ import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroup;
+import com.google.api.services.compute.model.InstanceGroupsAddInstancesRequest;
+import com.google.api.services.compute.model.InstanceGroupsListInstances;
+import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest;
+import com.google.api.services.compute.model.InstanceGroupsRemoveInstancesRequest;
 import com.google.api.services.compute.model.InstanceGroupsSetNamedPortsRequest;
+import com.google.api.services.compute.model.InstanceReference;
+import com.google.api.services.compute.model.InstanceWithNamedPorts;
 import com.google.api.services.compute.model.Operation;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -69,6 +77,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     private List<InstanceGroupNamedPort> namedPort;
     private NetworkResource network;
     private String zone;
+    private List<String> instances;
 
     // Read-only
     private String region;
@@ -141,6 +150,21 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     }
 
     /**
+     * A list of instances to be added to the group.
+     */
+    @Updatable
+    public List<String> getInstances() {
+        if (instances == null) {
+            instances = new ArrayList<>();
+        }
+        return instances;
+    }
+
+    public void setInstances(List<String> instances) {
+        this.instances = instances;
+    }
+
+    /**
      * The fully-qualified URL of the region where the instance group is located.
      */
     @Output
@@ -191,6 +215,10 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         Operation operation = client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
         waitForCompletion(client, operation);
 
+        if (!getInstances().isEmpty()) {
+            addInstances(getInstances());
+        }
+
         state.save();
 
         saveNamedPort(client);
@@ -202,7 +230,25 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
+        InstanceGroupResource currentInstanceGroupResource = (InstanceGroupResource) current;
         saveNamedPort(client);
+
+        if (changedFieldNames.contains("instances")) {
+            List<String> removed = currentInstanceGroupResource.getInstances().stream()
+                .filter(instance -> !getInstances().contains(instance))
+                .collect(Collectors.toList());
+            List<String> added = getInstances().stream()
+                .filter(instance -> !currentInstanceGroupResource.getInstances().contains(instance))
+                .collect(Collectors.toList());
+
+            if (!removed.isEmpty()) {
+                removeInstances(removed);
+            }
+
+            if (!added.isEmpty()) {
+                addInstances(added);
+            }
+        }
 
         refresh();
     }
@@ -222,6 +268,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         setRegion(instanceGroup.getRegion());
         setSelfLink(instanceGroup.getSelfLink());
         setSubnetwork(instanceGroup.getSubnetwork());
+        setInstances(listInstances());
 
         if (instanceGroup.getNetwork() != null) {
             setNetwork(findById(
@@ -235,6 +282,59 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                 namedPort.copyFrom(rule);
                 return namedPort;
             }).collect(Collectors.toList()));
+        }
+    }
+
+    private void addInstances(List<String> instances) throws Exception {
+        Compute client = createComputeClient();
+        waitForCompletion(
+            client,
+            client.instanceGroups()
+                .addInstances(getProjectId(), getZone(), getName(), new InstanceGroupsAddInstancesRequest()
+                    .setInstances(instances.stream()
+                        .map(instance -> new InstanceReference().setInstance(instance))
+                        .collect(Collectors.toList())
+                    )
+                ).execute()
+        );
+    }
+
+    private void removeInstances(List<String> instances) throws Exception {
+        Compute client = createComputeClient();
+        waitForCompletion(
+            client,
+            client.instanceGroups()
+                .removeInstances(getProjectId(), getZone(), getName(), new InstanceGroupsRemoveInstancesRequest()
+                    .setInstances(instances.stream()
+                        .map(instance -> new InstanceReference().setInstance(instance))
+                        .collect(Collectors.toList())
+                    )
+                ).execute()
+        );
+    }
+
+    private List<String> listInstances() {
+        Compute client = createComputeClient();
+        List<String> current = new ArrayList<>();
+        String pageToken;
+
+        try {
+            do {
+                InstanceGroupsListInstances results = client.instanceGroups()
+                    .listInstances(getProjectId(), getZone(), getName(), new InstanceGroupsListInstancesRequest())
+                    .execute();
+                pageToken = results.getNextPageToken();
+
+                current.addAll(results.getItems()
+                    .stream()
+                    .map(InstanceWithNamedPorts::getInstance)
+                    .collect(Collectors.toList()));
+
+            } while (pageToken != null);
+
+            return current;
+        } catch (IOException e) {
+            throw new GyroException(e.getMessage(), e.getCause());
         }
     }
 
