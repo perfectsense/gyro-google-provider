@@ -210,11 +210,18 @@ public class DiffableGenerator {
 
     private String removePlural(String word) {
         if (word.endsWith("s")) {
-            word = StringUtils.chop(word);
-            return isReservedName(word) ? handleReservedName(word) : word;
+            String singularExceptionCase = removePluralExceptionCase(word);
+            word = singularExceptionCase != null ? singularExceptionCase : StringUtils.chop(word);
         }
 
-        return word;
+        return isReservedName(word) ? handleReservedName(word) : word;
+    }
+
+    private String removePluralExceptionCase(String word) {
+        if (word.equals("addresses")) {
+            return "address";
+        }
+        return null;
     }
 
     private void generateGetterSetter(String name, TypeName type, boolean isList, JsonSchema property) {
