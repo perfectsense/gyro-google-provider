@@ -18,8 +18,10 @@ package gyro.provider.google.codegen;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -54,8 +56,10 @@ public class DiffableGenerator {
     protected RestDescription description;
     protected JsonSchema diffableSchema;
     protected TypeSpec.Builder resourceBuilder;
+    protected Set<String> dependentResources;
 
     public DiffableGenerator() {
+        dependentResources = new HashSet<>();
     }
 
     public DiffableGenerator(RestDescription description, String schemaName, String output) {
@@ -66,6 +70,7 @@ public class DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder(schemaName)
             .addModifiers(Modifier.PUBLIC)
             .superclass(Diffable.class);
+        dependentResources = new HashSet<>();
     }
 
     public DiffableGenerator(RestDescription description, String schemaName, JsonSchema diffableSchema, String output) {
@@ -76,16 +81,17 @@ public class DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder(schemaName)
             .addModifiers(Modifier.PUBLIC)
             .superclass(Diffable.class);
+        dependentResources = new HashSet<>();
     }
 
-    public TypeSpec generate() throws Exception {
+    public TypeSpec generate(Map<String, TypeSpec> resourceMap) throws Exception {
         // Generate fields, getters, and setters
         if (diffableSchema.getProperties() != null) {
             for (String propertyName : getSortedPropertyNames()) {
                 JsonSchema property = diffableSchema.getProperties().get(propertyName);
 
                 if (!isDeprecated(property)) {
-                    generateField(propertyName, property);
+                    generateField(propertyName, property, resourceMap);
                 }
             }
         }
@@ -104,7 +110,7 @@ public class DiffableGenerator {
         return typeSpec;
     }
 
-    private void generateField(String name, JsonSchema property) throws Exception {
+    private void generateField(String name, JsonSchema property, Map<String, TypeSpec> resourceMap) throws Exception {
         String type = property.getType();
 
         name = isReservedName(name) ? handleReservedName(name) : name;
@@ -115,9 +121,17 @@ public class DiffableGenerator {
         }
 
         if ("string".equals(type)) {
-            resourceBuilder.addField(FieldSpec.builder(String.class, name, Modifier.PRIVATE).build());
+            if (isResource(name, resourceMap, property)) {
+                resourceBuilder.addField(
+                    FieldSpec.builder(TypeVariableName.get(resourceMap.get(name).name), name, Modifier.PRIVATE)
+                        .build());
 
-            generateGetterSetter(name, TypeVariableName.get(String.class), false, property);
+                generateGetterSetter(name, TypeVariableName.get(resourceMap.get(name).name), false, property);
+            } else {
+                resourceBuilder.addField(FieldSpec.builder(String.class, name, Modifier.PRIVATE).build());
+
+                generateGetterSetter(name, TypeVariableName.get(String.class), false, property);
+            }
         } else if ("integer".equals(type)) {
             resourceBuilder.addField(FieldSpec.builder(Integer.class, name, Modifier.PRIVATE).build());
 
@@ -132,7 +146,7 @@ public class DiffableGenerator {
             generateGetterSetter(name, TypeVariableName.get(Boolean.class), false, property);
         } else if ("object".equals(type)) {
             String typeName = schemaName + StringUtils.capitalize(name);
-            TypeSpec complexType = generateComplexType(typeName, property);
+            TypeSpec complexType = generateComplexType(typeName, property, resourceMap);
 
             resourceBuilder.addField(
                 FieldSpec.builder(TypeVariableName.get(complexType.name), name, Modifier.PRIVATE)
@@ -145,7 +159,7 @@ public class DiffableGenerator {
 
             if ("object".equals(schemaType)) {
                 String typeName = removePlural(schemaName + StringUtils.capitalize(name));
-                TypeSpec complexType = generateComplexType(typeName, property.getItems());
+                TypeSpec complexType = generateComplexType(typeName, property.getItems(), resourceMap);
                 ClassName list = ClassName.get("java.util", "List");
                 TypeName listOf = ParameterizedTypeName.get(list, TypeVariableName.get(complexType.name));
 
@@ -156,7 +170,14 @@ public class DiffableGenerator {
                 generateGetterSetter(removePlural(name), listOf, true, property);
             } else if ("string".equals(schemaType)) {
                 ClassName list = ClassName.get("java.util", "List");
-                TypeName listOf = ParameterizedTypeName.get(list, TypeVariableName.get(String.class));
+                TypeName listOf;
+                if (isResource(name, resourceMap, property)) {
+                    listOf = ParameterizedTypeName.get(
+                        list,
+                        TypeVariableName.get(resourceMap.get(removePlural(name)).name));
+                } else {
+                    listOf = ParameterizedTypeName.get(list, TypeVariableName.get(String.class));
+                }
 
                 resourceBuilder.addField(
                     FieldSpec.builder(listOf, name, Modifier.PRIVATE)
@@ -164,7 +185,7 @@ public class DiffableGenerator {
 
                 generateGetterSetter(name, listOf, true, property);
             } else if (schemaType == null) {
-                TypeSpec complexType = generateComplexType(schema.get$ref());
+                TypeSpec complexType = generateComplexType(schema.get$ref(), resourceMap);
                 ClassName list = ClassName.get("java.util", "List");
                 TypeName listOf = ParameterizedTypeName.get(list, TypeVariableName.get(complexType.name));
 
@@ -181,7 +202,7 @@ public class DiffableGenerator {
         } else if (type == null) {
             String typeName = StringUtils.uncapitalize(name);
 
-            TypeSpec complexType = generateComplexType(property.get$ref());
+            TypeSpec complexType = generateComplexType(property.get$ref(), resourceMap);
 
             resourceBuilder.addField(
                 FieldSpec.builder(TypeVariableName.get(complexType.name), typeName, Modifier.PRIVATE)
@@ -198,14 +219,15 @@ public class DiffableGenerator {
         return null;
     }
 
-    private TypeSpec generateComplexType(String name, JsonSchema schema) throws Exception {
+    private TypeSpec generateComplexType(String name, JsonSchema schema, Map<String, TypeSpec> resourceMap)
+        throws Exception {
         DiffableGenerator diffableGenerator = new DiffableGenerator(description, name, schema, output);
-        return diffableGenerator.generate();
+        return diffableGenerator.generate(resourceMap);
     }
 
-    private TypeSpec generateComplexType(String name) throws Exception {
+    private TypeSpec generateComplexType(String name, Map<String, TypeSpec> resourceMap) throws Exception {
         DiffableGenerator diffableGenerator = new DiffableGenerator(description, name, output);
-        return diffableGenerator.generate();
+        return diffableGenerator.generate(resourceMap);
     }
 
     private String removePlural(String word) {
@@ -333,5 +355,15 @@ public class DiffableGenerator {
         }
 
         return name;
+    }
+
+    private Boolean isResource(String name, Map<String, TypeSpec> resourceMap, JsonSchema property) {
+        if ((resourceMap.containsKey(removePlural(name)))) {
+            this.dependentResources.add(removePlural(name));
+
+            return true;
+        }
+
+        return false;
     }
 }

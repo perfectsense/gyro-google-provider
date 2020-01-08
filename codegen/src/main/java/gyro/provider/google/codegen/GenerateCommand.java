@@ -16,7 +16,13 @@
 
 package gyro.provider.google.codegen;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -24,6 +30,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.discovery.Discovery;
 import com.google.api.services.discovery.model.RestDescription;
+import com.google.common.base.CaseFormat;
+import com.squareup.javapoet.TypeSpec;
 import gyro.core.command.GyroCommand;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
@@ -57,16 +65,60 @@ public class GenerateCommand implements GyroCommand {
 
         RestDescription description = discovery.apis().getRest(service, version).execute();
 
+        Map<String, TypeSpec> resourceMap = new HashMap<>();
+        Map<String, ResourceGenerator> generateMap = new HashMap<>();
+        for (String resource : description.getResources().keySet()) {
+            if (isNotResource(resource)) {
+                continue;
+            }
+
+            ResourceGenerator generator = new ResourceGenerator(description, resource, output);
+            String type = CaseFormat.UPPER_CAMEL.to(
+                CaseFormat.LOWER_CAMEL,
+                description.getResources().get(resource).getMethods().get("get").getResponse().get$ref());
+            resourceMap.put(type, generator.resourceBuilder.build());
+            generateMap.put(type, generator);
+        }
+
         if (resource != null) {
             ResourceGenerator generator = new ResourceGenerator(description, resource, output);
-            generator.generate();
+            generator.generate(resourceMap);
+            Set<String> createdResources = new HashSet<>();
+            createdResources.add(resource);
+            generateDependentResource(generator, resourceMap, generateMap, createdResources);
         } else {
             for (String resource : description.getResources().keySet()) {
+                if (isNotResource(resource)) {
+                    System.out.println("Skipping classes for " + resource);
+                    continue;
+                }
                 System.out.println("Generating classes for " + resource);
 
                 ResourceGenerator generator = new ResourceGenerator(description, resource, output);
-                generator.generate();
+                generator.generate(resourceMap);
             }
         }
+    }
+
+    private void generateDependentResource(
+        ResourceGenerator resourceGenerator,
+        Map<String, TypeSpec> resourceMap,
+        Map<String, ResourceGenerator> generatorMap,
+        Set<String> createdResources) throws Exception {
+        for (String resource : resourceGenerator.dependentResources) {
+            if (!createdResources.contains(resource)) {
+                ResourceGenerator generator = generatorMap.get(resource);
+                generator.generate(resourceMap);
+                createdResources.add(resource);
+
+                if (!generator.dependentResources.isEmpty()) {
+                    generateDependentResource(generator, resourceMap, generatorMap, createdResources);
+                }
+            }
+        }
+    }
+
+    private boolean isNotResource(String resource) {
+        return Arrays.asList("regions", "zones").contains(resource);
     }
 }
