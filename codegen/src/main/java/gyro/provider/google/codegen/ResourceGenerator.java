@@ -21,10 +21,7 @@ import javax.lang.model.element.Modifier;
 import com.google.api.services.discovery.model.RestDescription;
 import com.google.api.services.discovery.model.RestMethod;
 import com.google.api.services.discovery.model.RestResource;
-import com.google.common.base.CaseFormat;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.TypeSpec;
-import gyro.core.Type;
 import gyro.core.resource.Resource;
 
 public class ResourceGenerator extends DiffableGenerator {
@@ -44,13 +41,5 @@ public class ResourceGenerator extends DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder("Abstract" + schemaName + "Resource")
             .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
             .superclass(Resource.class);
-
-        String typeName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, schemaName);
-
-        resourceBuilder.addAnnotation(
-            AnnotationSpec.builder(Type.class)
-                .addMember("value", "$S", description.getName() + "-" + typeName)
-                .build()
-        );
     }
 }

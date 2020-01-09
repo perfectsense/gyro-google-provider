@@ -97,7 +97,8 @@ public class DiffableGenerator {
         }
 
         TypeSpec typeSpec = resourceBuilder.build();
-        JavaFile javaFile = JavaFile.builder(PROVIDER_PACKAGE + "." + description.getName(), typeSpec).indent("    ")
+        String packageName = PROVIDER_PACKAGE + "." + description.getName() + ".base";
+        JavaFile javaFile = JavaFile.builder(packageName, typeSpec).indent("    ")
             .build();
 
         if (output != null) {
@@ -105,6 +106,16 @@ public class DiffableGenerator {
         } else {
             javaFile.writeTo(System.out);
             System.out.println("----");
+        }
+
+        if (typeSpec.name.startsWith("Abstract")) {
+            ResourceConcreteGenerator resourceConcreteGenerator = new ResourceConcreteGenerator(
+                typeSpec,
+                output,
+                schemaName,
+                packageName,
+                description.getName());
+            resourceConcreteGenerator.generate();
         }
 
         return typeSpec;
