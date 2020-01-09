@@ -228,6 +228,10 @@ public class RegionDiskResource extends AbstractDiskResource {
     }
 
     static ProjectRegionDiskName parseRegionDisk(String projectId, String selfLink) {
+        if (selfLink == null) {
+            return null;
+        }
+
         String parseDiskName = formatResource(projectId, selfLink);
         if (ProjectRegionDiskName.isParsableFrom(parseDiskName)) {
             return ProjectRegionDiskName.parse(parseDiskName);
