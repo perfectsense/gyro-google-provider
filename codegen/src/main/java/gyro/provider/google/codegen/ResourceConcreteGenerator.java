@@ -2,7 +2,6 @@ package gyro.provider.google.codegen;
 
 import java.io.File;
 import java.util.Set;
-
 import javax.lang.model.element.Modifier;
 
 import com.google.common.base.CaseFormat;
@@ -27,7 +26,12 @@ public class ResourceConcreteGenerator {
     protected String basePackage;
     protected String packageName;
 
-    public ResourceConcreteGenerator(TypeSpec typeSpec, String output, String schemaName, String basePackage, String packageName) {
+    public ResourceConcreteGenerator(
+        TypeSpec typeSpec,
+        String output,
+        String schemaName,
+        String basePackage,
+        String packageName) {
         this.typeSpec = typeSpec;
         this.output = output;
         this.schemaName = schemaName;
@@ -36,30 +40,42 @@ public class ResourceConcreteGenerator {
     }
 
     public void generate() throws Exception {
-        TypeSpec.Builder resourceBuilder = TypeSpec.classBuilder(schemaName + "Resource")
-            .addModifiers(Modifier.PUBLIC)
-            .superclass(ClassName.get(basePackage, typeSpec.name));
+        String resourcePackage = basePackage.replace(".base", "");
+        String resourceName = schemaName + "Resource";
+        String resourcePackagePath = resourcePackage.replaceAll("\\.", "/");
+        String filePath = String.format("%s/%s/%s.java", output, resourcePackagePath, resourceName);
+        File file = new File(filePath);
 
-        String typeName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, schemaName);
+        if (!file.exists()) {
+            TypeSpec.Builder resourceBuilder = TypeSpec.classBuilder(resourceName)
+                .addModifiers(Modifier.PUBLIC)
+                .superclass(ClassName.get(basePackage, typeSpec.name));
 
-        resourceBuilder.addAnnotation(
-            AnnotationSpec.builder(Type.class)
-                .addMember("value", "$S", packageName + "-" + typeName)
-                .build()
-        );
+            String typeName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, schemaName);
 
-        generateMethods(resourceBuilder);
+            resourceBuilder.addAnnotation(
+                AnnotationSpec.builder(Type.class)
+                    .addMember("value", "$S", packageName + "-" + typeName)
+                    .build()
+            );
 
-        TypeSpec resource = resourceBuilder.build();
+            generateMethods(resourceBuilder);
 
-        JavaFile javaFile = JavaFile.builder(basePackage.replace(".base", ""), resource).indent("    ")
-            .build();
+            TypeSpec resource = resourceBuilder.build();
 
-        if (output != null) {
-            javaFile.writeTo(new File(output));
+            JavaFile javaFile = JavaFile.builder(resourcePackage, resource).indent("    ")
+                .build();
+
+            System.out.println("\nCreating " + resourcePackage + "." + resourceName + ".java.");
+
+            if (output != null) {
+                javaFile.writeTo(new File(output));
+            } else {
+                javaFile.writeTo(System.out);
+                System.out.println("----");
+            }
         } else {
-            javaFile.writeTo(System.out);
-            System.out.println("----");
+            System.out.println("\nSkip creating " + resourcePackage + "." + resourceName + ".java. Already present.");
         }
     }
 
@@ -86,7 +102,8 @@ public class ResourceConcreteGenerator {
             .addParameter(ParameterSpec.builder(GyroUI.class, "ui").build())
             .addParameter(ParameterSpec.builder(State.class, "state").build())
             .addParameter(ParameterSpec.builder(Resource.class, "current").build())
-            .addParameter(ParameterSpec.builder(ParameterizedTypeName.get(Set.class, String.class), "changedFieldNames").build())
+            .addParameter(ParameterSpec.builder(ParameterizedTypeName.get(Set.class, String.class), "changedFieldNames")
+                .build())
             .build());
 
         resourceBuilder.addMethod(MethodSpec.methodBuilder("delete")
