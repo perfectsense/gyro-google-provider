@@ -25,9 +25,10 @@ import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
+import gyro.core.validation.Required;
 
 /**
- * Creates a regional URL map.
+ * Creates a region URL map.
  *
  * Example
  * -------
@@ -36,9 +37,9 @@ import gyro.core.scope.State;
  *
  *     google::compute-region-url-map region-url-map-example
  *         name: "region-url-map-example"
- *         region: "us-east1"
+ *         region: "us-central1"
  *         description: "Region URL map description."
- *         default-backend-service: $(google::compute-backend-service backend-service-example)
+ *         default-region-backend-service: $(google::compute-region-backend-service region-backend-service-example)
  *
  *         host-rule
  *             hosts: [ "example.com" ]
@@ -47,9 +48,9 @@ import gyro.core.scope.State;
  *
  *         path-matcher
  *             name: "abc-path"
- *             default-backend-service: $(google::compute-backend-service backend-service-example)
+ *             default-region-backend-service: $(google::compute-region-backend-service region-backend-service-example)
  *             path-rule
- *                 backend-bucket: $(google::compute-backend-bucket backend-bucket-example)
+ *                 region-backend-service: $(google::compute-region-backend-service region-backend-service-example)
  *                 paths: [ "/abc" ]
  *             end
  *         end
@@ -59,13 +60,30 @@ import gyro.core.scope.State;
 public class RegionUrlMapResource extends AbstractUrlMapResource {
 
     private String region;
+    private RegionBackendServiceResource defaultRegionBackendService;
 
+    /**
+     * The region for the URL map. (Required)
+     */
+    @Required
     public String getRegion() {
         return region;
     }
 
     public void setRegion(String region) {
-        this.region = region;
+        this.region = region != null ? region.substring(region.lastIndexOf("/") + 1) : null;
+    }
+
+    /**
+     * The default region backend service resource to which traffic is directed if none of the host rules match. (Required)
+     */
+    @Required
+    public RegionBackendServiceResource getDefaultRegionBackendService() {
+        return defaultRegionBackendService;
+    }
+
+    public void setDefaultRegionBackendService(RegionBackendServiceResource defaultRegionBackendService) {
+        this.defaultRegionBackendService = defaultRegionBackendService;
     }
 
     @Override
@@ -73,6 +91,13 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
         super.copyFrom(urlMap);
 
         setRegion(urlMap.getRegion());
+
+        String defaultService = urlMap.getDefaultService();
+
+        setDefaultRegionBackendService(null);
+        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), defaultService) != null) {
+            setDefaultRegionBackendService(findById(RegionBackendServiceResource.class, defaultService));
+        }
     }
 
     @Override
@@ -88,6 +113,7 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
 
         UrlMap urlMap = toUrlMap(null);
         urlMap.setRegion(getRegion());
+        urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
 
         Operation response = client.regionUrlMaps().insert(getProjectId(), getRegion(), urlMap).execute();
         waitForCompletion(client, response);

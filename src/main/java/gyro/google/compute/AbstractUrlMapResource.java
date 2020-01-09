@@ -26,22 +26,16 @@ import com.google.api.client.util.Data;
 import com.google.api.services.compute.model.HostRule;
 import com.google.api.services.compute.model.PathMatcher;
 import com.google.api.services.compute.model.UrlMap;
-import gyro.core.GyroException;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
-import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
-import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public abstract class AbstractUrlMapResource extends ComputeResource implements Copyable<UrlMap> {
 
     private String name;
-    private BackendBucketResource defaultBackendBucket;
-    private BackendServiceResource defaultBackendService;
-    private RegionBackendServiceResource defaultRegionBackendService;
     private String description;
     private List<ComputeHostRule> hostRule;
     private List<ComputePathMatcher> pathMatcher;
@@ -61,42 +55,6 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * The default backend bucket resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-service`` and ``default-region-backend-service``.
-     */
-    @ConflictsWith({ "default-backend-service", "default-region-backend-service" })
-    public BackendBucketResource getDefaultBackendBucket() {
-        return defaultBackendBucket;
-    }
-
-    public void setDefaultBackendBucket(BackendBucketResource defaultBackendBucket) {
-        this.defaultBackendBucket = defaultBackendBucket;
-    }
-
-    /**
-     * The default backend service resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-bucket`` and ``default-region-backend-service``.
-     */
-    @ConflictsWith({ "default-backend-bucket", "default-region-backend-service" })
-    public BackendServiceResource getDefaultBackendService() {
-        return defaultBackendService;
-    }
-
-    public void setDefaultBackendService(BackendServiceResource defaultBackendService) {
-        this.defaultBackendService = defaultBackendService;
-    }
-
-    /**
-     * The default region backend service resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-bucket`` and ``default-backend-service``.
-     */
-    @ConflictsWith({ "default-backend-bucket", "default-backend-service" })
-    public RegionBackendServiceResource getDefaultRegionBackendService() {
-        return defaultRegionBackendService;
-    }
-
-    public void setDefaultRegionBackendService(RegionBackendServiceResource defaultRegionBackendService) {
-        this.defaultRegionBackendService = defaultRegionBackendService;
     }
 
     /**
@@ -171,30 +129,14 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
     }
 
     @Override
-    public void copyFrom(UrlMap model) {
-        setName(model.getName());
-        setDescription(model.getDescription());
-        setSelfLink(model.getSelfLink());
-        setFingerprint(model.getFingerprint());
-
-        String defaultService = model.getDefaultService();
-        setDefaultBackendBucket(null);
-        if (BackendBucketResource.parseBackendBucket(getProjectId(), defaultService) != null) {
-            setDefaultBackendBucket(findById(BackendBucketResource.class, defaultService));
-        }
-
-        setDefaultBackendService(null);
-        if (BackendServiceResource.parseBackendService(getProjectId(), defaultService) != null) {
-            setDefaultBackendService(findById(BackendServiceResource.class, defaultService));
-        }
-
-        setDefaultRegionBackendService(null);
-        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), defaultService) != null) {
-            setDefaultRegionBackendService(findById(RegionBackendServiceResource.class, defaultService));
-        }
+    public void copyFrom(UrlMap urlMap) {
+        setName(urlMap.getName());
+        setDescription(urlMap.getDescription());
+        setSelfLink(urlMap.getSelfLink());
+        setFingerprint(urlMap.getFingerprint());
 
         List<ComputeHostRule> computeHostRules = null;
-        List<HostRule> hostRules = model.getHostRules();
+        List<HostRule> hostRules = urlMap.getHostRules();
 
         if (hostRules != null && !hostRules.isEmpty()) {
             computeHostRules = hostRules
@@ -209,7 +151,7 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
         setHostRule(computeHostRules);
 
         List<ComputePathMatcher> computePathMatchers = null;
-        List<PathMatcher> pathMatchers = model.getPathMatchers();
+        List<PathMatcher> pathMatchers = urlMap.getPathMatchers();
 
         if (pathMatchers != null && !pathMatchers.isEmpty()) {
             computePathMatchers = pathMatchers
@@ -231,19 +173,6 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
 
         if (!isUpdate) {
             urlMap.setName(getName());
-
-            String defaultService;
-            if (getDefaultBackendBucket() != null) {
-                defaultService = getDefaultBackendBucket().getSelfLink();
-            } else if (getDefaultBackendService() != null) {
-                defaultService = getDefaultBackendService().getSelfLink();
-            } else if (getDefaultRegionBackendService() != null) {
-                defaultService = getDefaultRegionBackendService().getSelfLink();
-            } else {
-                throw new GyroException(
-                    "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!");
-            }
-            urlMap.setDefaultService(defaultService);
         }
 
         if (!isUpdate || changedFieldNames.contains("description")) {
@@ -263,19 +192,5 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
         }
 
         return urlMap;
-    }
-
-    @Override
-    public List<ValidationError> validate() {
-        List<ValidationError> errors = new ArrayList<>();
-
-        if (getDefaultBackendBucket() == null && getDefaultBackendService() == null
-            && getDefaultRegionBackendService() == null) {
-            errors.add(new ValidationError(
-                this,
-                null,
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!"));
-        }
-        return errors;
     }
 }
