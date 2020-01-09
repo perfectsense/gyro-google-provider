@@ -66,7 +66,7 @@ public class ResourceConcreteGenerator {
             JavaFile javaFile = JavaFile.builder(resourcePackage, resource).indent("    ")
                 .build();
 
-            System.out.println("\nCreating " + resourcePackage + "." + resourceName + ".java.");
+            System.out.println("\nGenerating concrete class for " + schemaName);
 
             if (output != null) {
                 javaFile.writeTo(new File(output));
@@ -75,7 +75,7 @@ public class ResourceConcreteGenerator {
                 System.out.println("----");
             }
         } else {
-            System.out.println("\nSkip creating " + resourcePackage + "." + resourceName + ".java. Already present.");
+            System.out.println("\nSkipping concrete class for " + schemaName + ". Already present.");
         }
     }
 

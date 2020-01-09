@@ -80,6 +80,7 @@ public class GenerateCommand implements GyroCommand {
         }
 
         if (resource != null) {
+            System.out.println("\nGenerating classes for " + resource);
             ResourceGenerator generator = new ResourceGenerator(description, resource, output);
             generator.generate(resourceMap);
             Set<String> createdResources = new HashSet<>();
@@ -88,10 +89,10 @@ public class GenerateCommand implements GyroCommand {
         } else {
             for (String resource : description.getResources().keySet()) {
                 if (isNotResource(resource)) {
-                    System.out.println("Skipping classes for " + resource);
+                    System.out.println("\nSkipping classes for " + resource);
                     continue;
                 }
-                System.out.println("Generating classes for " + resource);
+                System.out.println("\nGenerating classes for " + resource);
 
                 ResourceGenerator generator = new ResourceGenerator(description, resource, output);
                 generator.generate(resourceMap);
@@ -106,6 +107,7 @@ public class GenerateCommand implements GyroCommand {
         Set<String> createdResources) throws Exception {
         for (String resource : resourceGenerator.dependentResources) {
             if (!createdResources.contains(resource)) {
+                System.out.println("\nGenerating classes for " + resource);
                 ResourceGenerator generator = generatorMap.get(resource);
                 generator.generate(resourceMap);
                 createdResources.add(resource);
