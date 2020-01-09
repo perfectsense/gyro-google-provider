@@ -220,7 +220,9 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         state.save();
 
         if (!getInstances().isEmpty()) {
-            addInstances(getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
+            addInstances(
+                client,
+                getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
         }
 
         state.save();
@@ -251,11 +253,11 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                 .collect(Collectors.toList());
 
             if (!removed.isEmpty()) {
-                removeInstances(removed);
+                removeInstances(client, removed);
             }
 
             if (!added.isEmpty()) {
-                addInstances(added);
+                addInstances(client, added);
             }
         }
 
@@ -294,8 +296,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         }
     }
 
-    private void addInstances(List<String> instances) throws Exception {
-        Compute client = createComputeClient();
+    private void addInstances(Compute client, List<String> instances) throws Exception {
         waitForCompletion(
             client,
             client.instanceGroups()
@@ -308,8 +309,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         );
     }
 
-    private void removeInstances(List<String> instances) throws Exception {
-        Compute client = createComputeClient();
+    private void removeInstances(Compute client, List<String> instances) throws Exception {
         waitForCompletion(
             client,
             client.instanceGroups()
