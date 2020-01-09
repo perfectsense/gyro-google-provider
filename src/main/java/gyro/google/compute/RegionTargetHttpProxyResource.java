@@ -27,11 +27,29 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 
+/**
+ * Creates a regional target http proxy.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-region-target-http-proxy region-target-http-proxy-example
+ *         name: "region-target-http-proxy-example"
+ *         description: "region-target-http-proxy-example-desc"
+ *         region: "us-east1"
+ *         region-url-map: $(google::compute-region-url-map region-url-map-example)
+ *     end
+ */
 @Type("compute-region-target-http-proxy")
 public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResource {
 
     private String region;
 
+    /**
+     * The region of the target http proxy. (Required)
+     */
     @Required
     public String getRegion() {
         return region;

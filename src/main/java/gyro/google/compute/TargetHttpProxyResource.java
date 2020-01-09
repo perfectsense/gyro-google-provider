@@ -25,6 +25,20 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 
+/**
+ * Creates a target http proxy.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-target-http-proxy target-http-proxy-example
+ *         name: "target-http-proxy-example"
+ *         description: "target-http-proxy-example-desc"
+ *         url-map: $(google::compute-url-map url-map-example)
+ *     end
+ */
 @Type("compute-target-http-proxy")
 public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
 

@@ -40,7 +40,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    compute-region-target-http-proxy: $(external-query google::compute-region-target-http-proxy { name: 'region-target-http-proxy-example' })
+ *    compute-region-target-http-proxy: $(external-query google::compute-region-target-http-proxy { name: 'region-target-http-proxy-example', region: 'us-east1' })
  */
 @Type("compute-region-target-http-proxy")
 public class RegionTargetHttpProxyFinder extends GoogleFinder<Compute, TargetHttpProxy, RegionTargetHttpProxyResource> {
