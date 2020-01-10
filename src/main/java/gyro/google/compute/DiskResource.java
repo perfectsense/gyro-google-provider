@@ -16,12 +16,16 @@
 
 package gyro.google.compute;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.CustomerEncryptionKey;
 import com.google.api.services.compute.model.Disk;
+import com.google.api.services.compute.model.DisksAddResourcePoliciesRequest;
+import com.google.api.services.compute.model.DisksRemoveResourcePoliciesRequest;
 import com.google.api.services.compute.model.DisksResizeRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.ZoneSetLabelsRequest;
@@ -53,6 +57,7 @@ import gyro.core.validation.Required;
  *             label-key: 'label-value'
  *         }
  *         physical-block-size-bytes: 4096
+ *         resource-policy: $(google::compute-resource-policy example-policy-disk-alpha)
  *     end
  *
  * .. code-block:: gyro
@@ -161,6 +166,9 @@ public class DiskResource extends AbstractDiskResource {
         disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
             ? getSourceImageEncryptionKey().toCustomerEncryptionKey()
             : Data.nullOf(CustomerEncryptionKey.class));
+        disk.setResourcePolicies(!getResourcePolicy().isEmpty() ? getResourcePolicy().stream()
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList()) : null);
 
         Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
         createDisk(client, insert);
@@ -178,6 +186,10 @@ public class DiskResource extends AbstractDiskResource {
 
         if (changedFieldNames.contains("labels")) {
             saveLabels(client);
+        }
+
+        if (changedFieldNames.contains("resource-policy")) {
+            saveResourcePolicies(client, (DiskResource) current);
         }
 
         refresh();
@@ -210,6 +222,38 @@ public class DiskResource extends AbstractDiskResource {
         labelsRequest.setLabelFingerprint(getLabelFingerprint());
         Operation operation = client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
         waitForCompletion(client, operation);
+    }
+
+    private void saveResourcePolicies(Compute client, DiskResource current) throws Exception {
+        List<String> removed = current.getResourcePolicy().stream()
+            .filter(policy -> !getResourcePolicy().contains(policy))
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList());
+        List<String> added = getResourcePolicy().stream()
+            .filter(policy -> !current.getResourcePolicy().contains(policy))
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList());
+
+        if (!removed.isEmpty()) {
+            Operation operation = client.disks()
+                .removeResourcePolicies(getProjectId(),
+                    getZone(),
+                    getName(),
+                    new DisksRemoveResourcePoliciesRequest().setResourcePolicies(removed))
+                .execute();
+            waitForCompletion(client, operation);
+        }
+
+        if (!added.isEmpty()) {
+            Operation operation = client.disks()
+                .addResourcePolicies(
+                    getProjectId(),
+                    getZone(),
+                    getName(),
+                    new DisksAddResourcePoliciesRequest().setResourcePolicies(added))
+                .execute();
+            waitForCompletion(client, operation);
+        }
     }
 
     static ProjectZoneDiskName parseDisk(String projectId, String selfLink) {
