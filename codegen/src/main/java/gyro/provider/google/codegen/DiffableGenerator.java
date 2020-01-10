@@ -28,6 +28,7 @@ import javax.lang.model.element.Modifier;
 
 import com.google.api.services.discovery.model.JsonSchema;
 import com.google.api.services.discovery.model.RestDescription;
+import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ObjectUtils;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
@@ -125,6 +126,8 @@ public class DiffableGenerator {
         String type = property.getType();
 
         name = isReservedName(name) ? handleReservedName(name) : name;
+
+        name = isValidNameByCheckStyle(name) ? name : handleValidNameByCheckStyle(name);
 
         if ("kind".equals(name) || "etag".equals(name)
             || "timeCreated".equals(name) || "updated".equals(name)) {
@@ -376,5 +379,21 @@ public class DiffableGenerator {
         }
 
         return false;
+    }
+
+    private boolean isValidNameByCheckStyle(String name) {
+        return name.matches("^[a-z][a-zA-Z0-9]*$");
+    }
+
+    private String handleValidNameByCheckStyle(String name) {
+        if (name.startsWith("IP")) {
+            name = name.replace("IP", "ip");
+        }
+
+        if (name.contains("_")) {
+            name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name);
+        }
+
+        return name;
     }
 }
