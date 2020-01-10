@@ -26,11 +26,8 @@ import gyro.core.resource.Resource;
 
 public class ResourceGenerator extends DiffableGenerator {
 
-    private RestResource restResource;
-
-    public ResourceGenerator(RestDescription description, String name, String output) {
+    public ResourceGenerator(RestDescription description, String name, String output, RestResource restResource) {
         this.description = description;
-        this.restResource = description.getResources().get(name);
         this.output = output;
 
         RestMethod getMethod = restResource.getMethods().get("get");

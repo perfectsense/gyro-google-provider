@@ -29,6 +29,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.discovery.Discovery;
 import com.google.api.services.discovery.model.RestDescription;
+import com.google.api.services.discovery.model.RestResource;
 import com.google.common.base.CaseFormat;
 import com.squareup.javapoet.TypeSpec;
 import gyro.core.command.GyroCommand;
@@ -64,38 +65,32 @@ public class GenerateCommand implements GyroCommand {
 
         RestDescription description = discovery.apis().getRest(service, version).execute();
 
-        Map<String, TypeSpec> resourceMap = new HashMap<>();
-        Map<String, ResourceGenerator> generateMap = new HashMap<>();
-        for (String resource : description.getResources().keySet()) {
-            if (isNotResource(resource)) {
-                continue;
-            }
+        Map<String, TypeSpec> typeSpecMap = new HashMap<>();
+        Map<String, ResourceGenerator> resourceGeneratorMap = new HashMap<>();
+        Map<String, RestResource> restResourceMap = getResourceMap(description.getResources());
 
-            ResourceGenerator generator = new ResourceGenerator(description, resource, output);
+        for (String resourceKey : restResourceMap.keySet()) {
+            ResourceGenerator generator = new ResourceGenerator(description, resourceKey, output, restResourceMap.get(resourceKey));
             String type = CaseFormat.UPPER_CAMEL.to(
                 CaseFormat.LOWER_CAMEL,
-                description.getResources().get(resource).getMethods().get("get").getResponse().get$ref());
-            resourceMap.put(type, generator.resourceBuilder.build());
-            generateMap.put(type, generator);
+                restResourceMap.get(resourceKey).getMethods().get("get").getResponse().get$ref());
+            typeSpecMap.put(type, generator.resourceBuilder.build());
+            resourceGeneratorMap.put(type, generator);
         }
 
         if (resource != null) {
             System.out.println("\nGenerating classes for " + resource);
-            ResourceGenerator generator = new ResourceGenerator(description, resource, output);
-            generator.generate(resourceMap);
+            ResourceGenerator generator = new ResourceGenerator(description, resource, output, restResourceMap.get(resource));
+            generator.generate(typeSpecMap);
             Set<String> createdResources = new HashSet<>();
             createdResources.add(resource);
-            generateDependentResource(generator, resourceMap, generateMap, createdResources);
+            generateDependentResource(generator, typeSpecMap, resourceGeneratorMap, createdResources);
         } else {
-            for (String resource : description.getResources().keySet()) {
-                if (isNotResource(resource)) {
-                    System.out.println("\nSkipping classes for " + resource);
-                    continue;
-                }
-                System.out.println("\nGenerating classes for " + resource);
+            for (String resourceKey : restResourceMap.keySet()) {
+                ResourceGenerator generator = new ResourceGenerator(description, resourceKey, output, restResourceMap.get(resourceKey));
 
-                ResourceGenerator generator = new ResourceGenerator(description, resource, output);
-                generator.generate(resourceMap);
+                System.out.println("\nGenerating classes for " + resourceKey);
+                generator.generate(typeSpecMap);
             }
         }
     }
@@ -121,5 +116,25 @@ public class GenerateCommand implements GyroCommand {
 
     private boolean isNotResource(String resource) {
         return Arrays.asList("regions", "zones").contains(resource);
+    }
+
+    private Map<String, RestResource> getResourceMap(Map<String, RestResource> restResourceMap) {
+        Map<String, RestResource> resourceMap = new HashMap<>();
+        for (String resourceKey : restResourceMap.keySet()) {
+            if (isNotResource(resourceKey)) {
+                continue;
+            }
+
+            RestResource restResource = restResourceMap.get(resourceKey);
+            if (restResource.getMethods() != null && restResource.getMethods().containsKey("get")) {
+                resourceMap.put(resourceKey, restResource);
+            } else if (restResource.getResources() != null && !restResource.getResources().isEmpty()) {
+                resourceMap.putAll(getResourceMap(restResource.getResources()));
+            } else {
+                // skipping as no get method, or sub resource
+            }
+        }
+
+        return resourceMap;
     }
 }
