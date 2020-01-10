@@ -40,6 +40,11 @@ public abstract class ComputeResource extends GoogleResource {
             zone = bits[bits.length - 1];
         }
 
+        String region = operation.getRegion();
+        if (region != null) {
+            region = region.substring(region.lastIndexOf("/") + 1);
+        }
+
         try {
             while (operation != null && !operation.getStatus().equals("DONE")) {
                 Thread.sleep(pollInterval);
@@ -52,6 +57,10 @@ public abstract class ComputeResource extends GoogleResource {
                 if (zone != null) {
                     Compute.ZoneOperations.Get get = compute.zoneOperations()
                         .get(getProjectId(), zone, operation.getName());
+                    operation = get.execute();
+                } else if (region != null) {
+                    Compute.RegionOperations.Get get = compute.regionOperations()
+                        .get(getProjectId(), region, operation.getName());
                     operation = get.execute();
                 } else {
                     Compute.GlobalOperations.Get get = compute.globalOperations()
