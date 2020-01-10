@@ -122,7 +122,7 @@ public class DiskResource extends AbstractDiskResource {
         return sourceImageEncryptionKey;
     }
 
-    public void setSourceDiskEncryptionKey(EncryptionKey sourceImageEncryptionKey) {
+    public void setSourceImageEncryptionKey(EncryptionKey sourceImageEncryptionKey) {
         this.sourceImageEncryptionKey = sourceImageEncryptionKey;
     }
 
