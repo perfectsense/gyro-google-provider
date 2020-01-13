@@ -159,8 +159,6 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
 
     /**
      * List of disks associated with this instance.
-     *
-     * @subresource gyro.google.compute.InstanceAttachedDisk
      */
     @Output
     public List<InstanceAttachedDisk> getDisk() {
