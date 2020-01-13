@@ -59,13 +59,9 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
         this.snapshotProperties = snapshotProperties;
     }
 
-    public ResourcePolicySnapshotSchedulePolicy copyTo() {
-        ResourcePolicySnapshotSchedulePolicy snapshotSchedulePolicy = new ResourcePolicySnapshotSchedulePolicy();
-        snapshotSchedulePolicy.setRetentionPolicy(getRetentionPolicy() != null ? getRetentionPolicy().copyTo() : null);
-        snapshotSchedulePolicy.setSchedule(getSchedule() != null ? getSchedule().copyTo() : null);
-        snapshotSchedulePolicy.setSnapshotProperties(getSnapshotProperties() != null ? getSnapshotProperties().copyTo() : null);
-
-        return snapshotSchedulePolicy;
+    @Override
+    public String primaryKey() {
+        return "";
     }
 
     @Override
@@ -90,5 +86,14 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
             currentSnapshotProperties.copyFrom(model.getSnapshotProperties());
             setSnapshotProperties(currentSnapshotProperties);
         }
+    }
+
+    public ResourcePolicySnapshotSchedulePolicy copyTo() {
+        ResourcePolicySnapshotSchedulePolicy snapshotSchedulePolicy = new ResourcePolicySnapshotSchedulePolicy();
+        snapshotSchedulePolicy.setRetentionPolicy(getRetentionPolicy() != null ? getRetentionPolicy().copyTo() : null);
+        snapshotSchedulePolicy.setSchedule(getSchedule() != null ? getSchedule().copyTo() : null);
+        snapshotSchedulePolicy.setSnapshotProperties(getSnapshotProperties() != null ? getSnapshotProperties().copyTo() : null);
+
+        return snapshotSchedulePolicy;
     }
 }

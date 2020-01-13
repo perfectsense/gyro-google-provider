@@ -53,6 +53,11 @@ public class WeeklyCycleDayOfWeek extends Diffable implements Copyable<ResourceP
     }
 
     @Override
+    public String primaryKey() {
+        return String.format("running every %s starting at %s", getDay(), getStartTime());
+    }
+
+    @Override
     public void copyFrom(ResourcePolicyWeeklyCycleDayOfWeek model) {
         setDay(model.getDay());
         setStartTime(model.getStartTime());

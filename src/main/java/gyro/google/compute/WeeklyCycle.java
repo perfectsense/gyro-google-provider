@@ -43,6 +43,11 @@ public class WeeklyCycle extends Diffable implements Copyable<ResourcePolicyWeek
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(ResourcePolicyWeeklyCycle model) {
         getDayOfWeeks().clear();
         if (model.getDayOfWeeks() != null) {

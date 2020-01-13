@@ -50,6 +50,24 @@ public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements C
     }
 
     @Override
+    public String primaryKey() {
+        StringBuilder key = new StringBuilder();
+
+        if (getMaxRetentionDays() != null) {
+            key.append(String.format("keeping snapshot %s days", getMaxRetentionDays()));
+        }
+
+        if (getOnSourceDiskDelete() != null) {
+            if (key.length() != 0) {
+                key.append(" and ");
+            }
+            key.append(String.format("setting %s policy when disk is deleted", getOnSourceDiskDelete()));
+        }
+
+        return key.toString();
+    }
+
+    @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicyRetentionPolicy model) {
         setMaxRetentionDays(model.getMaxRetentionDays());
         setOnSourceDiskDelete(model.getOnSourceDiskDelete());

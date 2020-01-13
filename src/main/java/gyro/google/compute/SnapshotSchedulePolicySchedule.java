@@ -64,6 +64,11 @@ public class SnapshotSchedulePolicySchedule extends Diffable implements Copyable
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicySchedule model) {
         setDailySchedule(null);
         if (model.getDailySchedule() != null) {

@@ -53,6 +53,11 @@ public class HourlyCycle extends Diffable implements Copyable<ResourcePolicyHour
     }
 
     @Override
+    public String primaryKey() {
+        return String.format("running every %d hours starting at %s", getHoursInCycle(), getStartTime());
+    }
+
+    @Override
     public void copyFrom(ResourcePolicyHourlyCycle model) {
         setHoursInCycle(model.getHoursInCycle());
         setStartTime(model.getStartTime());

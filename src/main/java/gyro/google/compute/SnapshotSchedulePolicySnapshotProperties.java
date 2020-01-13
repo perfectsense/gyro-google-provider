@@ -16,11 +16,15 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.ResourcePolicySnapshotSchedulePolicySnapshotProperties;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
 import gyro.google.Copyable;
 
 public class SnapshotSchedulePolicySnapshotProperties extends Diffable implements Copyable<ResourcePolicySnapshotSchedulePolicySnapshotProperties> {
@@ -60,6 +64,24 @@ public class SnapshotSchedulePolicySnapshotProperties extends Diffable implement
 
     public void setStorageLocations(List<String> storageLocations) {
         this.storageLocations = storageLocations;
+    }
+
+    @Override
+    public String primaryKey() {
+        List<String> key = new ArrayList<>();
+        DiffableType type = DiffableType.getInstance(this);
+        List<DiffableField> fields = type.getFields();
+        for (DiffableField f : fields) {
+            Object value = f.getValue(this);
+            if (value != null) {
+                key.add(f.getName() + "=" + f.getValue(this));
+            }
+        }
+
+        if (key.size() > 0) {
+            return key.stream().collect(Collectors.joining(", "));
+        }
+        return "";
     }
 
     @Override

@@ -52,6 +52,11 @@ public class DailyCycle extends Diffable implements Copyable<ResourcePolicyDaily
     }
 
     @Override
+    public String primaryKey() {
+        return String.format("running on day %d of the month starting at %s", getDaysInCycle(), getStartTime());
+    }
+
+    @Override
     public void copyFrom(ResourcePolicyDailyCycle model) {
         setDaysInCycle(model.getDaysInCycle());
         setStartTime(model.getStartTime());
