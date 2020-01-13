@@ -28,7 +28,7 @@ public class HourlyCycle extends Diffable implements Copyable<ResourcePolicyHour
     private String startTime;
 
     /**
-     * Allows to define schedule that runs every nth hour, [1-23].
+     * Defines a schedule that runs every nth hour, [1-23].
      */
     @Range(min = 1, max = 23)
     @Required
