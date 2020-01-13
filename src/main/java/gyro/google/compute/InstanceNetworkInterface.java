@@ -52,7 +52,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     /**
      * Subnetwork for this instance. If the network resource is in legacy mode, do not specify this field. If the network is in auto subnet mode, specifying the subnetwork is optional. If the network is in custom subnet mode, specifying the subnetwork is required.
      *
-     * @resource gyro.google.compute.NetworkResource
+     * @resource gyro.google.compute.SubnetworkResource
      */
     public SubnetworkResource getSubnetwork() {
         return subnetwork;
