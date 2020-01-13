@@ -50,7 +50,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class DiffableGenerator {
 
-    private static final String PROVIDER_PACKAGE = "gyro.provider.google";
+    private static final String PROVIDER_PACKAGE = "gyro.google";
 
     protected String schemaName;
     protected String output;
