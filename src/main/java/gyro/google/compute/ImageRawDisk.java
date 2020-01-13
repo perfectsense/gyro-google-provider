@@ -41,6 +41,11 @@ public class ImageRawDisk extends Diffable implements Copyable<Image.RawDisk> {
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(Image.RawDisk model) {
         setSource(model.getSource());
     }
