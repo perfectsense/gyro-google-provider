@@ -317,11 +317,7 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
         waitForCompletion(client, response);
     }
 
-    static ProjectGlobalBackendBucketName parseBackendBucket(String projectId, String selfLink) {
-        String parseBackendBucket = formatResource(projectId, selfLink);
-        if (ProjectGlobalBackendBucketName.isParsableFrom(parseBackendBucket)) {
-            return ProjectGlobalBackendBucketName.parse(parseBackendBucket);
-        }
-        return null;
+    static boolean isBackendBucket(String selfLink) {
+        return selfLink != null && (ProjectGlobalBackendBucketName.isParsableFrom(formatResource(null, selfLink)));
     }
 }

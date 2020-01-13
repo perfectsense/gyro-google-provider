@@ -95,7 +95,7 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
         String defaultService = urlMap.getDefaultService();
 
         setDefaultRegionBackendService(null);
-        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), defaultService) != null) {
+        if (RegionBackendServiceResource.isRegionBackendService(defaultService)) {
             setDefaultRegionBackendService(findById(RegionBackendServiceResource.class, defaultService));
         }
     }

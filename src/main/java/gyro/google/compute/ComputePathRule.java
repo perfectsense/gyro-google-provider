@@ -26,7 +26,6 @@ import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
-import gyro.google.GoogleCredentials;
 
 public class ComputePathRule extends Diffable implements Copyable<PathRule> {
 
@@ -92,17 +91,17 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
 
         String service = model.getService();
         setBackendBucket(null);
-        if (BackendBucketResource.parseBackendBucket(getProjectId(), service) != null) {
+        if (BackendBucketResource.isBackendBucket(service)) {
             setBackendBucket(findById(BackendBucketResource.class, service));
         }
 
         setBackendService(null);
-        if (BackendServiceResource.parseBackendService(getProjectId(), service) != null) {
+        if (BackendServiceResource.isBackendService(service)) {
             setBackendService(findById(BackendServiceResource.class, service));
         }
 
         setRegionBackendService(null);
-        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), service) != null) {
+        if (RegionBackendServiceResource.isRegionBackendService(service)) {
             setRegionBackendService(findById(RegionBackendServiceResource.class, service));
         }
     }
@@ -143,9 +142,5 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         }
         pathRule.setService(service);
         return pathRule;
-    }
-
-    private String getProjectId() {
-        return credentials(GoogleCredentials.class).getProjectId();
     }
 }

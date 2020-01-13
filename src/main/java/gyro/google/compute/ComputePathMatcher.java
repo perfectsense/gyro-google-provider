@@ -29,7 +29,6 @@ import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
-import gyro.google.GoogleCredentials;
 
 public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher> {
 
@@ -124,17 +123,17 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
 
         String defaultService = model.getDefaultService();
         setDefaultBackendBucket(null);
-        if (BackendBucketResource.parseBackendBucket(getProjectId(), defaultService) != null) {
+        if (BackendBucketResource.isBackendBucket(defaultService)) {
             setDefaultBackendBucket(findById(BackendBucketResource.class, defaultService));
         }
 
         setDefaultBackendService(null);
-        if (BackendServiceResource.parseBackendService(getProjectId(), defaultService) != null) {
+        if (BackendServiceResource.isBackendService(defaultService)) {
             setDefaultBackendService(findById(BackendServiceResource.class, defaultService));
         }
 
         setDefaultRegionBackendService(null);
-        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), defaultService) != null) {
+        if (RegionBackendServiceResource.isRegionBackendService(defaultService)) {
             setDefaultRegionBackendService(findById(RegionBackendServiceResource.class, defaultService));
         }
 
@@ -196,9 +195,5 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
             pathMatcher.setPathRules(pathRule.stream().map(ComputePathRule::copyTo).collect(Collectors.toList()));
         }
         return pathMatcher;
-    }
-
-    private String getProjectId() {
-        return credentials(GoogleCredentials.class).getProjectId();
     }
 }

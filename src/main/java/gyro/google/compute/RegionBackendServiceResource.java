@@ -114,11 +114,7 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
         waitForCompletion(client, response);
     }
 
-    static ProjectRegionBackendServiceName parseRegionBackendService(String projectId, String selfLink) {
-        String parseRegionBackendService = formatResource(projectId, selfLink);
-        if (ProjectRegionBackendServiceName.isParsableFrom(parseRegionBackendService)) {
-            return ProjectRegionBackendServiceName.parse(parseRegionBackendService);
-        }
-        return null;
+    static boolean isRegionBackendService(String selfLink) {
+        return selfLink != null && (ProjectRegionBackendServiceName.isParsableFrom(formatResource(null, selfLink)));
     }
 }

@@ -213,11 +213,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         waitForCompletion(client, response);
     }
 
-    static ProjectGlobalBackendServiceName parseBackendService(String projectId, String selfLink) {
-        String parseBackendService = formatResource(projectId, selfLink);
-        if (ProjectGlobalBackendServiceName.isParsableFrom(parseBackendService)) {
-            return ProjectGlobalBackendServiceName.parse(parseBackendService);
-        }
-        return null;
+    static boolean isBackendService(String selfLink) {
+        return selfLink != null && (ProjectGlobalBackendServiceName.isParsableFrom(formatResource(null, selfLink)));
     }
 }

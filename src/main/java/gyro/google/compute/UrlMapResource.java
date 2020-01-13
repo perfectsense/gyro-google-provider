@@ -108,17 +108,17 @@ public class UrlMapResource extends AbstractUrlMapResource {
 
         String defaultService = urlMap.getDefaultService();
         setDefaultBackendBucket(null);
-        if (BackendBucketResource.parseBackendBucket(getProjectId(), defaultService) != null) {
+        if (BackendBucketResource.isBackendBucket(defaultService)) {
             setDefaultBackendBucket(findById(BackendBucketResource.class, defaultService));
         }
 
         setDefaultBackendService(null);
-        if (BackendServiceResource.parseBackendService(getProjectId(), defaultService) != null) {
+        if (BackendServiceResource.isBackendService(defaultService)) {
             setDefaultBackendService(findById(BackendServiceResource.class, defaultService));
         }
 
         setDefaultRegionBackendService(null);
-        if (RegionBackendServiceResource.parseRegionBackendService(getProjectId(), defaultService) != null) {
+        if (RegionBackendServiceResource.isRegionBackendService(defaultService)) {
             setDefaultRegionBackendService(findById(RegionBackendServiceResource.class, defaultService));
         }
     }
