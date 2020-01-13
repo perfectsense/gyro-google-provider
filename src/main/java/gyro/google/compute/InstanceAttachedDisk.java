@@ -32,7 +32,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     private Boolean boot;
     private String deviceName;
     private EncryptionKey diskEncryptionKey;
-    private List<InstanceGuestOsFeature> guestOsFeatures;
+    private List<InstanceGuestOsFeature> guestOsFeature;
     private InstanceAttachedDiskInitializeParams initializeParams;
     private String diskInterface; // model name is reserved 'interface'
     private String mode;
@@ -86,15 +86,15 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     /**
      * List of features to enable on the guest operating system. Applicable only for bootable images. See `enabling guest operating system features<https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images#guest-os-features/>`_.
      */
-    public List<InstanceGuestOsFeature> getGuestOsFeatures() {
-        if (guestOsFeatures == null) {
-            guestOsFeatures = new ArrayList<>();
+    public List<InstanceGuestOsFeature> getGuestOsFeature() {
+        if (guestOsFeature == null) {
+            guestOsFeature = new ArrayList<>();
         }
-        return guestOsFeatures;
+        return guestOsFeature;
     }
 
-    public void setGuestOsFeatures(List<InstanceGuestOsFeature> guestOsFeatures) {
-        this.guestOsFeatures = guestOsFeatures;
+    public void setGuestOsFeature(List<InstanceGuestOsFeature> guestOsFeature) {
+        this.guestOsFeature = guestOsFeature;
     }
 
     /**
@@ -183,9 +183,9 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
             setDiskEncryptionKey(newDiskEncryptionKey);
         }
 
-        getGuestOsFeatures().clear();
+        getGuestOsFeature().clear();
         if (model.getGuestOsFeatures() != null) {
-            setGuestOsFeatures(model.getGuestOsFeatures().stream()
+            setGuestOsFeature(model.getGuestOsFeatures().stream()
                 .map(feature -> {
                     InstanceGuestOsFeature newFeature = newSubresource(InstanceGuestOsFeature.class);
                     newFeature.copyFrom(feature);
@@ -205,8 +205,9 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         disk.setMode(getMode());
         disk.setSource(getSource() != null ? getSource().getSelfLink() : null);
         disk.setType(getType());
-        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
-        disk.setGuestOsFeatures(getGuestOsFeatures() != null ? getGuestOsFeatures().stream()
+        disk.setDiskEncryptionKey(
+            getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
+        disk.setGuestOsFeatures(getGuestOsFeature() != null ? getGuestOsFeature().stream()
             .map(InstanceGuestOsFeature::copyTo)
             .collect(Collectors.toList()) : null);
         disk.setInitializeParams(getInitializeParams() != null ? getInitializeParams().copyTo() : null);

@@ -15,11 +15,11 @@ google::compute-instance gyro-dev-1
     zone: $zone
     machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
 
-    network-interfaces
+    network-interface
         network: $(external-query google::compute-network {name: "default"})
     end
 
-    initialize-disks
+    initialize-disk
         boot: true
         auto-delete: true
 
@@ -29,7 +29,7 @@ google::compute-instance gyro-dev-1
         end
     end
 
-    initialize-disks
+    initialize-disk
         auto-delete: true
 
         initialize-params
@@ -49,11 +49,11 @@ google::compute-instance gyro-dev-2
     zone: $zone
     machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
 
-    network-interfaces
+    network-interface
         network: $(external-query google::compute-network {name: "default"})
     end
 
-    initialize-disks
+    initialize-disk
         boot: true
         auto-delete: true
 

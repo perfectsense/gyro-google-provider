@@ -30,8 +30,8 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     private NetworkResource network;
     private SubnetworkResource subnetwork;
     private String networkIp;
-    private List<InstanceAccessConfig> accessConfigs;
-    private List<InstanceAliasIpRange> aliasIpRanges;
+    private List<InstanceAccessConfig> accessConfig;
+    private List<InstanceAliasIpRange> aliasIpRange;
     private String fingerprint;
     private String name;
 
@@ -72,23 +72,23 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     /**
      * A list of access configurations for this interface. Currently, only ``NE_TO_ONE_NAT`` is supported. If unspecified this instance will have no external internet access.
      */
-    public List<InstanceAccessConfig> getAccessConfigs() {
-        return accessConfigs;
+    public List<InstanceAccessConfig> getAccessConfig() {
+        return accessConfig;
     }
 
-    public void setAccessConfigs(List<InstanceAccessConfig> accessConfigs) {
-        this.accessConfigs = accessConfigs;
+    public void setAccessConfig(List<InstanceAccessConfig> accessConfig) {
+        this.accessConfig = accessConfig;
     }
 
     /**
      * A list of alias IP ranges for this network interface. Can only specify this for network interfaces in VPC networks.
      */
-    public List<InstanceAliasIpRange> getAliasIpRanges() {
-        return aliasIpRanges;
+    public List<InstanceAliasIpRange> getAliasIpRange() {
+        return aliasIpRange;
     }
 
-    public void setAliasIpRanges(List<InstanceAliasIpRange> aliasIpRanges) {
-        this.aliasIpRanges = aliasIpRanges;
+    public void setAliasIpRange(List<InstanceAliasIpRange> aliasIpRange) {
+        this.aliasIpRange = aliasIpRange;
     }
 
     /**
@@ -150,14 +150,14 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
             networkInterface.setSubnetwork(getSubnetwork().getSelfLink());
         }
 
-        if (getAccessConfigs() != null) {
-            networkInterface.setAccessConfigs(getAccessConfigs().stream()
+        if (getAccessConfig() != null) {
+            networkInterface.setAccessConfigs(getAccessConfig().stream()
                 .map(InstanceAccessConfig::copyTo)
                 .collect(Collectors.toList()));
         }
 
-        if (getAliasIpRanges() != null) {
-            networkInterface.setAliasIpRanges(getAliasIpRanges().stream()
+        if (getAliasIpRange() != null) {
+            networkInterface.setAliasIpRanges(getAliasIpRange().stream()
                 .map(InstanceAliasIpRange::copyTo)
                 .collect(Collectors.toList()));
         }
