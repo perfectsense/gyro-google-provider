@@ -130,7 +130,8 @@ public class DiffableGenerator {
         name = isValidNameByCheckStyle(name) ? name : handleValidNameByCheckStyle(name);
 
         if ("kind".equals(name) || "etag".equals(name)
-            || "timeCreated".equals(name) || "updated".equals(name)) {
+            || "timeCreated".equals(name) || "updated".equals(name)
+            || "creationTimestamp".equals(name)) {
             return;
         }
 
