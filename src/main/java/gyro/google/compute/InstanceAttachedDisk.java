@@ -74,6 +74,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     /**
      * When creating a new disk this field encrypts the new disk using the supplied encryption key. If attaching an existing disk already encrypted, this decrypts the disk using the supplied encryption key.||If you encrypt a disk using a customer-supplied key, you must provide the same key again when you attempt to use this resource at a later time.||If you do not provide an encryption key, then the disk will be encrypted using an automatically generated key and you do not need to provide a key to use the disk later. Instance templates do not store customer-supplied encryption keys, so you cannot use your own keys to encrypt disks in a managed instance group.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     public EncryptionKey getDiskEncryptionKey() {
         return diskEncryptionKey;
@@ -85,6 +87,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     /**
      * List of features to enable on the guest operating system. Applicable only for bootable images. See `enabling guest operating system features<https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images#guest-os-features/>`_.
+     *
+     * @subresource gyro.google.compute.InstanceGuestOsFeature
      */
     public List<InstanceGuestOsFeature> getGuestOsFeature() {
         if (guestOsFeature == null) {
@@ -99,6 +103,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     /**
      * Parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.
+     *
+     * @subresource gyro.google.compute.InstanceAttachedDiskInitializeParams
      */
     @ConflictsWith("source")
     public InstanceAttachedDiskInitializeParams getInitializeParams() {
@@ -135,6 +141,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     /**
      * The Persistent Disk resource.
+     *
+     * @resource gyro.google.compute.DiskResource
      */
     @ConflictsWith("initializeParams")
     public DiskResource getSource() {

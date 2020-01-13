@@ -110,6 +110,8 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
 
     /**
      * Encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. Instance templates do not store customer-supplied encryption keys, so you cannot create disks or instances in a managed instance group if the source images are encrypted with your own keys.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     public EncryptionKey getSourceImageEncryptionKey() {
         return sourceImageEncryptionKey;
@@ -121,6 +123,8 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
 
     /**
      * Encryption key of the source snapshot.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     public EncryptionKey getSourceSnapshotEncryptionKey() {
         return sourceSnapshotEncryptionKey;

@@ -143,6 +143,8 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
 
     /**
      * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported.
+     *
+     * @subresource gyro.google.compute.InstanceNetworkInterface
      */
     public List<InstanceNetworkInterface> getNetworkInterface() {
         if (networkInterface == null) {
@@ -157,6 +159,8 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
 
     /**
      * List of disks associated with this instance.
+     *
+     * @subresource gyro.google.compute.InstanceAttachedDisk
      */
     @Output
     public List<InstanceAttachedDisk> getDisk() {
@@ -209,6 +213,8 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
 
     /**
      * Parameters for a new disk that will be created alongside the new instance. Use to create boot disks or local SSDs attached to the new instance.
+     *
+     * @subresource gyro.google.compute.InstanceAttachedDisk
      */
     public List<InstanceAttachedDisk> getInitializeDisk() {
         if (initializeDisk == null) {
