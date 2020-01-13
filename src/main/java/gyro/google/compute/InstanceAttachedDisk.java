@@ -167,11 +167,22 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     @Override
     public String primaryKey() {
-        if (getInitializeParams() != null) {
-            return super.primaryKey();
-        }
+        DiskResource source = getSource();
 
-        return getSource() != null ? getSource().getSelfLink() : "";
+        if (source != null) {
+            return source.getSelfLink();
+        }
+        InstanceAttachedDiskInitializeParams initializeParams = getInitializeParams();
+
+        if (initializeParams != null) {
+            return initializeParams.primaryKey();
+        }
+        String diskType = getType();
+
+        if ("SCRATCH".equals(diskType)) {
+            return diskType;
+        }
+        return null;
     }
 
     @Override
@@ -181,7 +192,13 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         setDeviceName(model.getDeviceName());
         setDiskInterface(model.getInterface());
         setMode(model.getMode());
-        setSource(findById(DiskResource.class, model.getSource()));
+        DiskResource diskResource = null;
+        String source = model.getSource();
+
+        if (source != null) {
+            diskResource = findById(DiskResource.class, source);
+        }
+        setSource(diskResource);
         setType(model.getType());
 
         setDiskEncryptionKey(null);
