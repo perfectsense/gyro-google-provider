@@ -33,7 +33,7 @@ import gyro.google.GoogleFinder;
 /**
  * Query for resource policies.
  *
- * Example find the address filtering on name equal to 'us-east1-test-two' in the region 'us-east1'.
+ * Example
  * -------
  *
  * .. code-block:: gyro
@@ -43,6 +43,31 @@ import gyro.google.GoogleFinder;
  */
 @Type("compute-resource-policy")
 public class ResourcePolicyFinder extends GoogleFinder<Compute, ResourcePolicy, ResourcePolicyResource> {
+
+    private String region;
+    private String filter;
+
+    /**
+     * Name of the region for this request.
+     */
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    /**
+     * A filter expression that filters results returned. See `example filter rules <https://cloud.google.com/compute/docs/reference/rest/v1/resourcePolicies/list#body.QUERY_PARAMETERS.filter/>`_.
+     */
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
 
     @Override
     protected List<ResourcePolicy> findAllGoogle(Compute client) throws Exception {

@@ -169,6 +169,9 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         this.physicalBlockSizeBytes = physicalBlockSizeBytes;
     }
 
+    /**
+     * Adds an existing resource policy to a disk which will be applied to this disk for scheduling snapshot creation.
+     */
     @Updatable
     public List<ResourcePolicyResource> getResourcePolicy() {
         if (resourcePolicy == null) {
