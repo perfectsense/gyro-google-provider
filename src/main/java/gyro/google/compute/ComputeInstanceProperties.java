@@ -313,15 +313,20 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         Metadata metadata = model.getMetadata();
 
         if (metadata != null) {
-            diffableMetadataItemResource = metadata.getItems()
-                .stream()
-                .map(networkInterface -> {
-                    // TODO: isEqualTo
-                    ProjectMetadataItemResource diffableNetworkInterface = newSubresource(ProjectMetadataItemResource.class);
-                    diffableNetworkInterface.copyFrom(networkInterface);
-                    return diffableNetworkInterface;
-                })
-                .collect(Collectors.toList());
+            List<Metadata.Items> items = metadata.getItems();
+
+            if (items != null) {
+                diffableMetadataItemResource = items
+                    .stream()
+                    .map(networkInterface -> {
+                        // TODO: isEqualTo
+                        ProjectMetadataItemResource diffableNetworkInterface = newSubresource(
+                            ProjectMetadataItemResource.class);
+                        diffableNetworkInterface.copyFrom(networkInterface);
+                        return diffableNetworkInterface;
+                    })
+                    .collect(Collectors.toList());
+            }
         }
         setMetadata(diffableMetadataItemResource);
         setMinCpuPlatform(model.getMinCpuPlatform());
