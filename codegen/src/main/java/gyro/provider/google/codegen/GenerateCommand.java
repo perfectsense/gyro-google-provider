@@ -55,6 +55,9 @@ public class GenerateCommand implements GyroCommand {
     @Option(name = { "--output" })
     private String output;
 
+    @Option(name = {"--generate-concrete"})
+    private Boolean generateConcrete;
+
     @Override
     public void execute() throws Exception {
         String service = arguments.get(0);
@@ -70,7 +73,7 @@ public class GenerateCommand implements GyroCommand {
         Map<String, RestResource> restResourceMap = getResourceMap(description.getResources());
 
         for (String resourceKey : restResourceMap.keySet()) {
-            ResourceGenerator generator = new ResourceGenerator(description, resourceKey, output, restResourceMap.get(resourceKey));
+            ResourceGenerator generator = new ResourceGenerator(description, output, restResourceMap.get(resourceKey), generateConcrete);
             String type = CaseFormat.UPPER_CAMEL.to(
                 CaseFormat.LOWER_CAMEL,
                 restResourceMap.get(resourceKey).getMethods().get("get").getResponse().get$ref());
@@ -80,14 +83,14 @@ public class GenerateCommand implements GyroCommand {
 
         if (resource != null) {
             System.out.println("\nGenerating classes for " + resource);
-            ResourceGenerator generator = new ResourceGenerator(description, resource, output, restResourceMap.get(resource));
+            ResourceGenerator generator = new ResourceGenerator(description, output, restResourceMap.get(resource), generateConcrete);
             generator.generate(typeSpecMap);
             Set<String> createdResources = new HashSet<>();
             createdResources.add(resource);
             generateDependentResource(generator, typeSpecMap, resourceGeneratorMap, createdResources);
         } else {
             for (String resourceKey : restResourceMap.keySet()) {
-                ResourceGenerator generator = new ResourceGenerator(description, resourceKey, output, restResourceMap.get(resourceKey));
+                ResourceGenerator generator = new ResourceGenerator(description, output, restResourceMap.get(resourceKey), generateConcrete);
 
                 System.out.println("\nGenerating classes for " + resourceKey);
                 generator.generate(typeSpecMap);

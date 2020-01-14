@@ -26,7 +26,7 @@ import gyro.core.resource.Resource;
 
 public class ResourceGenerator extends DiffableGenerator {
 
-    public ResourceGenerator(RestDescription description, String name, String output, RestResource restResource) {
+    public ResourceGenerator(RestDescription description, String output, RestResource restResource, boolean generateConcrete) {
         this.description = description;
         this.output = output;
 
@@ -38,5 +38,6 @@ public class ResourceGenerator extends DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder("Abstract" + schemaName + "Resource")
             .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
             .superclass(Resource.class);
+        this.generateConcrete = generateConcrete;
     }
 }

@@ -58,12 +58,13 @@ public class DiffableGenerator {
     protected JsonSchema diffableSchema;
     protected TypeSpec.Builder resourceBuilder;
     protected Set<String> dependentResources;
+    protected boolean generateConcrete;
 
     public DiffableGenerator() {
         dependentResources = new HashSet<>();
     }
 
-    public DiffableGenerator(RestDescription description, String schemaName, String output) {
+    public DiffableGenerator(RestDescription description, String schemaName, String output, boolean generateConcrete) {
         this.schemaName = schemaName;
         this.description = description;
         this.diffableSchema = description.getSchemas().get(schemaName);
@@ -71,10 +72,11 @@ public class DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder(schemaName)
             .addModifiers(Modifier.PUBLIC)
             .superclass(Diffable.class);
-        dependentResources = new HashSet<>();
+        this.dependentResources = new HashSet<>();
+        this.generateConcrete = generateConcrete;
     }
 
-    public DiffableGenerator(RestDescription description, String schemaName, JsonSchema diffableSchema, String output) {
+    public DiffableGenerator(RestDescription description, String schemaName, JsonSchema diffableSchema, String output, boolean generateConcrete) {
         this.schemaName = schemaName;
         this.description = description;
         this.diffableSchema = diffableSchema;
@@ -82,7 +84,8 @@ public class DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder(schemaName)
             .addModifiers(Modifier.PUBLIC)
             .superclass(Diffable.class);
-        dependentResources = new HashSet<>();
+        this.dependentResources = new HashSet<>();
+        this.generateConcrete = generateConcrete;
     }
 
     public TypeSpec generate(Map<String, TypeSpec> resourceMap) throws Exception {
@@ -109,7 +112,7 @@ public class DiffableGenerator {
             System.out.println("----");
         }
 
-        if (typeSpec.name.startsWith("Abstract")) {
+        if (generateConcrete && typeSpec.name.startsWith("Abstract")) {
             ResourceConcreteGenerator resourceConcreteGenerator = new ResourceConcreteGenerator(
                 typeSpec,
                 output,
@@ -236,12 +239,12 @@ public class DiffableGenerator {
 
     private TypeSpec generateComplexType(String name, JsonSchema schema, Map<String, TypeSpec> resourceMap)
         throws Exception {
-        DiffableGenerator diffableGenerator = new DiffableGenerator(description, name, schema, output);
+        DiffableGenerator diffableGenerator = new DiffableGenerator(description, name, schema, output, generateConcrete);
         return diffableGenerator.generate(resourceMap);
     }
 
     private TypeSpec generateComplexType(String name, Map<String, TypeSpec> resourceMap) throws Exception {
-        DiffableGenerator diffableGenerator = new DiffableGenerator(description, name, output);
+        DiffableGenerator diffableGenerator = new DiffableGenerator(description, name, output, generateConcrete);
         return diffableGenerator.generate(resourceMap);
     }
 
