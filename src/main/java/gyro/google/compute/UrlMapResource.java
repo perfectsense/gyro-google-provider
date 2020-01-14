@@ -23,7 +23,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.UrlMap;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -135,16 +134,13 @@ public class UrlMapResource extends AbstractUrlMapResource {
         Compute client = createComputeClient();
 
         UrlMap urlMap = toUrlMap(null);
-        String defaultService;
+        String defaultService = "";
         if (getDefaultBackendBucket() != null) {
             defaultService = getDefaultBackendBucket().getSelfLink();
         } else if (getDefaultBackendService() != null) {
             defaultService = getDefaultBackendService().getSelfLink();
         } else if (getDefaultRegionBackendService() != null) {
             defaultService = getDefaultRegionBackendService().getSelfLink();
-        } else {
-            throw new GyroException(
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!");
         }
         urlMap.setDefaultService(defaultService);
 
