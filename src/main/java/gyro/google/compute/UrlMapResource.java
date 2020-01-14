@@ -41,7 +41,7 @@ import gyro.core.validation.ValidationError;
  *     google::compute-url-map url-map-example
  *         name: "url-map-example"
  *         description: "URL map description."
- *         default-backend-service: $(google::compute-backend-service backend-service-example)
+ *         default-backend-service: $(google::compute-backend-service backend-service-example-url-map)
  *
  *         host-rule
  *             hosts: [ "example.com" ]
@@ -50,7 +50,7 @@ import gyro.core.validation.ValidationError;
  *
  *         path-matcher
  *             name: "abc-path"
- *             default-backend-service: $(google::compute-backend-service backend-service-example)
+ *             default-backend-service: $(google::compute-backend-service backend-service-example-url-map)
  *             path-rule
  *                 backend-bucket: $(google::compute-backend-bucket backend-bucket-example)
  *                 paths: [ "/abc" ]

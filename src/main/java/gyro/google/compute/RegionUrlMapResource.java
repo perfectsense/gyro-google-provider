@@ -39,7 +39,7 @@ import gyro.core.validation.Required;
  *         name: "region-url-map-example"
  *         region: "us-central1"
  *         description: "Region URL map description."
- *         default-region-backend-service: $(google::compute-region-backend-service region-backend-service-example)
+ *         default-region-backend-service: $(google::compute-region-backend-service region-backend-service-example-region-url-map)
  *
  *         host-rule
  *             hosts: [ "example.com" ]
@@ -48,9 +48,9 @@ import gyro.core.validation.Required;
  *
  *         path-matcher
  *             name: "abc-path"
- *             default-region-backend-service: $(google::compute-region-backend-service region-backend-service-example)
+ *             default-region-backend-service: $(google::compute-region-backend-service region-backend-service-example-region-url-map)
  *             path-rule
- *                 region-backend-service: $(google::compute-region-backend-service region-backend-service-example)
+ *                 region-backend-service: $(google::compute-region-backend-service region-backend-service-example-region-url-map)
  *                 paths: [ "/abc" ]
  *             end
  *         end

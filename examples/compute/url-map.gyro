@@ -1,12 +1,12 @@
-google::bucket bucket-example-one
-    name: "bucket-example-one"
+google::bucket bucket-example-url-map
+    name: "bucket-example-url-map"
     location: "US-CENTRAL1"
 end
 
-google::compute-health-check health-check-example
-    name: "health-check-example"
+google::compute-health-check health-check-example-url-map
+    name: "health-check-example-url-map"
     check-interval-sec: 30
-    description: "The description goes here."
+    description: "Health check description."
     healthy-threshold: 8
     timeout-sec: 29
     unhealthy-threshold: 6
@@ -18,23 +18,23 @@ google::compute-health-check health-check-example
     end
 end
 
-google::compute-backend-bucket backend-bucket-example
-    name: "backend-bucket-example"
-    description: "Global backend bucket."
-    bucket: $(google::bucket bucket-example-one)
+google::compute-backend-bucket backend-bucket-example-url-map
+    name: "backend-bucket-example-url-map"
+    description: "Global backend bucket description."
+    bucket: $(google::bucket bucket-example-url-map)
 end
 
-google::compute-network lb-ig-network-example
-    name: "lb-ig-network-example"
-    description: "lb-ig-network-example"
+google::compute-network network-example-url-map
+    name: "network-example-url-map"
+    description: "Network description."
     routing-mode: "Regional"
 end
 
-google::compute-instance-group lb-instance-group-example
-    name: "lb-instance-group-example"
-    description: "instance-group-example-description"
+google::compute-instance-group instance-group-example-url-map
+    name: "instance-group-example-url-map"
+    description: "Instance group description."
     zone: "us-central1-b"
-    network: $(google::compute-network lb-ig-network-example)
+    network: $(google::compute-network network-example-url-map)
 
     named-port
         name: "port-a"
@@ -47,13 +47,13 @@ google::compute-instance-group lb-instance-group-example
     end
 end
 
-google::compute-backend-service backend-service-example
-    name: "backend-service-example"
+google::compute-backend-service backend-service-example-url-map
+    name: "backend-service-example-url-map"
     description: "Global backend service description."
-    health-check: [ $(google::compute-health-check health-check-example) ]
+    health-check: [ $(google::compute-health-check health-check-example-url-map) ]
 
     backend
-        group: $(google::compute-instance-group lb-instance-group-example)
+        group: $(google::compute-instance-group instance-group-example-url-map)
         balancing-mode: "UTILIZATION"
     end
 end
@@ -61,7 +61,7 @@ end
 google::compute-url-map url-map-example
     name: "url-map-example"
     description: "URL map description."
-    default-backend-service: $(google::compute-backend-service backend-service-example)
+    default-backend-service: $(google::compute-backend-service backend-service-example-url-map)
 
     host-rule
         hosts: [ "example.com" ]
@@ -70,9 +70,9 @@ google::compute-url-map url-map-example
 
     path-matcher
         name: "abc-path"
-        default-backend-service: $(google::compute-backend-service backend-service-example)
+        default-backend-service: $(google::compute-backend-service backend-service-example-url-map)
         path-rule
-            backend-bucket: $(google::compute-backend-bucket backend-bucket-example)
+            backend-bucket: $(google::compute-backend-bucket backend-bucket-example-url-map)
             paths: [ "/abc" ]
         end
     end
