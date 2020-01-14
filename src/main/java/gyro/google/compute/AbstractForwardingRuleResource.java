@@ -40,8 +40,10 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     private String networkTier;
     private String portRange;
     private List<String> ports;
-    private String selfLink;
     private String serviceLabel;
+
+    // Read-only
+    private String selfLink;
     private String serviceName;
 
     /**
@@ -94,6 +96,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     /**
      * The IP Version that will be used by this forwarding rule. Valid values are ``IPV4`` or ``IPV6``.
      */
+    @ValidStrings({ "IPV4", "IPV6" })
     public String getIpVersion() {
         return ipVersion;
     }
@@ -115,7 +118,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The name of the forwarding proxy. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     * The name of the forwarding rule. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
      */
     @Required
     @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
@@ -130,7 +133,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     /**
      * The networking tier used for configuring the load balancer with this forwarding rule. Valid values are ``PREMIUM`` or ``STANDARD``.
      */
-    @ValidStrings({"PREMIUM", "STANDARD"})
+    @ValidStrings({ "PREMIUM", "STANDARD" })
     public String getNetworkTier() {
         return networkTier;
     }
@@ -140,7 +143,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * This field is deprecated. See the port field.
+     * The port or port numbers to be used for this forwarding rule.
      */
     public String getPortRange() {
         return portRange;
@@ -151,7 +154,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * List of comma-separated ports that the forwarding rule forwards packets with matching destination ports.
+     * List of ports that the forwarding rule forwards packets with matching destination ports.
      */
     public List<String> getPorts() {
         if (ports == null) {
@@ -165,6 +168,18 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
+     * A prefix to the service name for this forwarding rule. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``.
+     */
+    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
+    public String getServiceLabel() {
+        return serviceLabel;
+    }
+
+    public void setServiceLabel(String serviceLabel) {
+        this.serviceLabel = serviceLabel;
+    }
+
+    /**
      * Server-defined URL for the forwarding rule.
      */
     @Id
@@ -175,18 +190,6 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
 
     public void setSelfLink(String selfLink) {
         this.selfLink = selfLink;
-    }
-
-    /**
-     * A prefix to the service name for this forwarding rule. If specified, the prefix is the first label of the fully qualified service name. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
-     */
-    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
-    public String getServiceLabel() {
-        return serviceLabel;
-    }
-
-    public void setServiceLabel(String serviceLabel) {
-        this.serviceLabel = serviceLabel;
     }
 
     /**
@@ -207,36 +210,35 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
         setIpProtocol(forwardingRule.getIPProtocol());
         setAllPorts(forwardingRule.getAllPorts());
         setDescription(forwardingRule.getDescription());
-        setIpProtocol(forwardingRule.getIPProtocol());
+        setIpVersion(forwardingRule.getIpVersion());
         setLoadBalancingScheme(forwardingRule.getLoadBalancingScheme());
         setName(forwardingRule.getName());
         setNetworkTier(forwardingRule.getNetworkTier());
+        setPortRange(forwardingRule.getPortRange());
         setPorts(forwardingRule.getPorts());
-        setSelfLink(forwardingRule.getSelfLink());
         setServiceLabel(forwardingRule.getServiceLabel());
+        setSelfLink(forwardingRule.getSelfLink());
         setServiceName(forwardingRule.getServiceName());
-        setIpVersion(forwardingRule.getIpVersion());
     }
 
     ForwardingRule toForwardingRule() {
         ForwardingRule forwardingRule = new ForwardingRule();
-        forwardingRule.setIpVersion(getIpVersion());
         forwardingRule.setIPAddress(getIpAddress());
         forwardingRule.setIPProtocol(getIpProtocol());
         forwardingRule.setAllPorts(getAllPorts());
         forwardingRule.setDescription(getDescription());
-        forwardingRule.setIPProtocol(getIpProtocol());
+        forwardingRule.setIpVersion(getIpVersion());
         forwardingRule.setLoadBalancingScheme(getLoadBalancingScheme());
         forwardingRule.setName(getName());
         forwardingRule.setNetworkTier(getNetworkTier());
+        forwardingRule.setServiceLabel(getServiceLabel());
         // This should be used even though the docs says it's deprecated as setting port is not working.
         forwardingRule.setPortRange(getPortRange());
-        List<String> ports = getPorts();
 
+        List<String> ports = getPorts();
         if (!ports.isEmpty()) {
             forwardingRule.setPorts(ports);
         }
-        forwardingRule.setServiceLabel(getServiceLabel());
 
         return forwardingRule;
     }

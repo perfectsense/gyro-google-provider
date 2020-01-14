@@ -16,19 +16,18 @@
 
 package gyro.google.compute;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.ForwardingRule;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.TargetReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
+import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
-import gyro.core.validation.ValidationError;
+import gyro.core.validation.Required;
 
 @Type("compute-global-forwarding-rule")
 public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource {
@@ -39,6 +38,8 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
     /**
      * The target http proxy to receive the matched traffic.
      */
+    @Updatable
+    @Required
     public TargetHttpProxyResource getTargetHttpProxy() {
         return targetHttpProxy;
     }
@@ -66,7 +67,13 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
-        Operation response = client.globalForwardingRules().insert(getProjectId(), toForwardingRule()).execute();
+
+        ForwardingRule forwardingRule = toForwardingRule();
+        if (getTargetHttpProxy() != null) {
+            forwardingRule.setTarget(getTargetHttpProxy().getSelfLink());
+        }
+
+        Operation response = client.globalForwardingRules().insert(getProjectId(), forwardingRule).execute();
         waitForCompletion(client, response);
         refresh();
     }
@@ -74,7 +81,15 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        // TODO:
+        Compute client = createComputeClient();
+
+        if (changedFieldNames.contains("target-http-proxy")) {
+            TargetReference targetReference = new TargetReference();
+            targetReference.setTarget(getTargetHttpProxy().getSelfLink());
+            client.globalForwardingRules().setTarget(getProjectId(), getName(), targetReference).execute();
+        }
+
+        refresh();
     }
 
     @Override
@@ -82,37 +97,5 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
         Compute client = createComputeClient();
         Operation response = client.globalForwardingRules().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, response);
-    }
-
-    @Override
-    public List<ValidationError> validate() {
-        List<ValidationError> errors = new ArrayList<>();
-
-        // make 'target-http-proxy' effectively required.
-        if (getTargetHttpProxy() == null) {
-            errors.add(new ValidationError(
-                this,
-                "target-http-proxy",
-                "target-http-proxy is required!"));
-        }
-
-        //        if (getTargetHttpProxyResource() != null) {
-        //            List<String> ports = getPorts();
-        //
-        //            if (ports.size() != 1 || !ports.contains("80")) {
-        //                errors.add(new ValidationError(this, "ports", "Must be '80'"));
-        //            }
-        //        }
-        return errors;
-    }
-
-    @Override
-    ForwardingRule toForwardingRule() {
-        ForwardingRule forwardingRule = super.toForwardingRule();
-
-        Optional.ofNullable(getTargetHttpProxy())
-            .ifPresent(targetHttpProxyResource -> forwardingRule.setTarget(targetHttpProxyResource.getSelfLink()));
-
-        return forwardingRule;
     }
 }
