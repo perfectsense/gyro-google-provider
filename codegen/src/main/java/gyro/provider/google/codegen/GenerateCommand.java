@@ -56,7 +56,7 @@ public class GenerateCommand implements GyroCommand {
     private String output;
 
     @Option(name = {"--generate-concrete"})
-    private Boolean generateConcrete;
+    private boolean generateConcrete;
 
     @Override
     public void execute() throws Exception {
@@ -131,10 +131,10 @@ public class GenerateCommand implements GyroCommand {
             RestResource restResource = restResourceMap.get(resourceKey);
             if (restResource.getMethods() != null && restResource.getMethods().containsKey("get")) {
                 resourceMap.put(resourceKey, restResource);
-            } else if (restResource.getResources() != null && !restResource.getResources().isEmpty()) {
+            }
+
+            if (restResource.getResources() != null && !restResource.getResources().isEmpty()) {
                 resourceMap.putAll(getResourceMap(restResource.getResources()));
-            } else {
-                // skipping as no get method, or sub resource
             }
         }
 
