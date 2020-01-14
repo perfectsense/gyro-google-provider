@@ -35,6 +35,7 @@ google::compute-instance gyro-dev-1
         initialize-params
             disk-name: "gyro-secondary-disk"
             source-image: "projects/debian-cloud/global/images/family/debian-9"
+            resource-policy: $(google::compute-resource-policy instance-attached-disk-example)
         end
     end
 
@@ -74,5 +75,39 @@ google::compute-instance-attached-disk gyro-disk-1
     attached-disk
         auto-delete: true
         source: $(google::compute-disk instance-disk-example)
+    end
+end
+
+google::compute-resource-policy instance-attached-disk-example
+    name: "instance-attached-disk-example"
+    region: "us-west1"
+    description: "Resource policy for instance example"
+
+    snapshot-schedule-policy
+        schedule
+            weekly-schedule
+                day-of-weeks
+                    day: "FRIDAY"
+                    start-time: "00:00"
+                end
+                day-of-weeks
+                    day: "MONDAY"
+                    start-time: "00:00"
+                end
+            end
+        end
+
+        retention-policy
+            max-retention-days: 7
+            on-source-disk-delete: "KEEP_AUTO_SNAPSHOTS"
+        end
+
+        snapshot-properties
+            guest-flush: false
+            labels: {
+                "foo": "bar"
+            }
+            storage-locations: ["us-west1"]
+        end
     end
 end
