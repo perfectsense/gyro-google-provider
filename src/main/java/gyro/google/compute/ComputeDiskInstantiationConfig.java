@@ -18,6 +18,7 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.DiskInstantiationConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ComputeDiskInstantiationConfig extends Diffable implements Copyable<DiskInstantiationConfig> {
@@ -55,6 +56,7 @@ public class ComputeDiskInstantiationConfig extends Diffable implements Copyable
     /**
      * Specifies the device name of the disk to which the configurations apply to.
      */
+    @Required
     public String getDeviceName() {
         return deviceName;
     }
@@ -100,6 +102,6 @@ public class ComputeDiskInstantiationConfig extends Diffable implements Copyable
 
     @Override
     public String primaryKey() {
-        return "";
+        return getDeviceName();
     }
 }

@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.google.api.services.compute.model.ReservationAffinity;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ComputeReservationAffinity extends Diffable implements Copyable<ReservationAffinity> {
@@ -50,6 +51,7 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
      * To target a ``SPECIFIC_RESERVATION`` by name, specify ``googleapis.com/reservation-name`` as the key and specify the name of your
      * reservation as its value.
      */
+    @Required
     public String getKey() {
         return key;
     }
@@ -61,6 +63,7 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
     /**
      * Corresponds to the label values of a reservation resource.
      */
+    @Required
     public List<String> getValues() {
         if (values == null) {
             values = new ArrayList();

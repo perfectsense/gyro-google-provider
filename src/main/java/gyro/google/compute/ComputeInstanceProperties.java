@@ -140,6 +140,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     /**
      * The machine type to use for instances that are created from this template.
      */
+    @Required
     public String getMachineType() {
         return machineType;
     }
@@ -182,6 +183,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
      *
      * @subresource gyro.google.compute.InstanceNetworkInterface
      */
+    @Required
     public List<InstanceNetworkInterface> getNetworkInterface() {
         if (networkInterface == null) {
             networkInterface = new ArrayList();

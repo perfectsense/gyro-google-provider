@@ -18,6 +18,7 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.AcceleratorConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ComputeAcceleratorConfig extends Diffable implements Copyable<AcceleratorConfig> {
@@ -29,6 +30,7 @@ public class ComputeAcceleratorConfig extends Diffable implements Copyable<Accel
     /**
      * The number of the guest accelerator cards exposed to this instance.
      */
+    @Required
     public Integer getAcceleratorCount() {
         return acceleratorCount;
     }
@@ -42,6 +44,7 @@ public class ComputeAcceleratorConfig extends Diffable implements Copyable<Accel
      * For example: ``projects/my-project/zones/us-central1-c/acceleratorTypes/nvidia-tesla-p100``
      * If you are creating an instance template, specify only the accelerator name.
      */
+    @Required
     public String getAcceleratorType() {
         return acceleratorType;
     }
@@ -65,6 +68,6 @@ public class ComputeAcceleratorConfig extends Diffable implements Copyable<Accel
 
     @Override
     public String primaryKey() {
-        return "";
+        return getAcceleratorType();
     }
 }

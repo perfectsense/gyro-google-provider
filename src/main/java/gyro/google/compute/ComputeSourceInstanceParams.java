@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.model.DiskInstantiationConfig;
 import com.google.api.services.compute.model.SourceInstanceParams;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ComputeSourceInstanceParams extends Diffable implements Copyable<SourceInstanceParams> {
@@ -30,13 +31,14 @@ public class ComputeSourceInstanceParams extends Diffable implements Copyable<So
     private List<ComputeDiskInstantiationConfig> diskConfig;
 
     /**
-     * List of attached disks configuration. If not provided, defaults are applied.
+     * List of attached disks configuration.
      * For boot disk and any other R/W disks, new custom images will be created from each disk.
      * For read-only disks, they will be attached in read-only mode.
      * Local SSD disks will be created as blank volumes.
      *
      * @subresource gyro.google.compute.ComputeDiskInstantiationConfig
      */
+    @Required
     public List<ComputeDiskInstantiationConfig> getDiskConfig() {
         if (diskConfig == null) {
             diskConfig = new ArrayList();

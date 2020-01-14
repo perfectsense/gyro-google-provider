@@ -69,6 +69,11 @@ public class ComputeServiceAccount extends Diffable implements Copyable<ServiceA
 
     @Override
     public String primaryKey() {
+        String email = getEmail();
+
+        if (email != null) {
+            return email;
+        }
         return "";
     }
 }

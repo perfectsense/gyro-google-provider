@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.google.api.services.compute.model.SchedulingNodeAffinity;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<SchedulingNodeAffinity> {
@@ -34,6 +35,7 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
     /**
      * Corresponds to the label key of Node resource.
      */
+    @Required
     public String getKey() {
         return key;
     }
@@ -85,6 +87,6 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
 
     @Override
     public String primaryKey() {
-        return "";
+        return getKey();
     }
 }
