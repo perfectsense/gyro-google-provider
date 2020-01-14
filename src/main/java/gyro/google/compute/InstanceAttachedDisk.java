@@ -18,9 +18,11 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.AttachedDisk;
+import com.google.api.services.compute.model.AttachedDiskInitializeParams;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidStrings;
@@ -219,6 +221,15 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
                 .collect(Collectors.toList())
             );
         }
+        InstanceAttachedDiskInitializeParams diffableInitializeParams = null;
+        AttachedDiskInitializeParams initializeParams = model.getInitializeParams();
+
+        if (initializeParams != null) {
+            diffableInitializeParams = Optional.ofNullable(getInitializeParams())
+                .orElse(newSubresource(InstanceAttachedDiskInitializeParams.class));
+            diffableInitializeParams.copyFrom(initializeParams);
+        }
+        setInitializeParams(diffableInitializeParams);
     }
 
     public AttachedDisk copyTo() {
