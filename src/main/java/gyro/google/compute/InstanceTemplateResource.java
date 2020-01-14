@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -28,8 +30,11 @@ import gyro.core.Type;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
+import gyro.core.validation.ConflictsWith;
+import gyro.core.validation.DependsOn;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 /**
@@ -133,7 +138,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
      *
      * @subresource gyro.google.compute.ComputeInstanceProperties
      */
-    @Required
+    @ConflictsWith("source-instance")
     public ComputeInstanceProperties getProperties() {
         return properties;
     }
@@ -159,6 +164,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
      *
      * @resource gyro.google.compute.InstanceResource
      */
+    @ConflictsWith("properties")
     public InstanceResource getSourceInstance() {
         return sourceInstance;
     }
@@ -172,6 +178,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
      *
      * @subresource gyro.google.compute.ComputeSourceInstanceParams
      */
+    @DependsOn("source-instance")
     public ComputeSourceInstanceParams getSourceInstanceParams() {
         return sourceInstanceParams;
     }
@@ -252,5 +259,22 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
             diffableSourceInstanceParams.copyFrom(sourceInstanceParams);
         }
         setSourceInstanceParams(diffableSourceInstanceParams);
+    }
+
+    @Override
+    public List<ValidationError> validate() {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (getProperties() == null && getSourceInstance() == null) {
+            errors.add(new ValidationError(
+                this,
+                "properties",
+                "Either `properties` or `source-instance` is required!"));
+            errors.add(new ValidationError(
+                this,
+                "source-instance",
+                "Either `properties` or `source-instance` is required!"));
+        }
+        return errors;
     }
 }
