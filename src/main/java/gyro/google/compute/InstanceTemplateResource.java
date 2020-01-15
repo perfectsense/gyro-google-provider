@@ -262,10 +262,11 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
-        if (getProperties() == null && getSourceInstance() == null) {
+        if ((!configuredFields.contains("properties") && !configuredFields.contains("source-instance"))
+            || (getProperties() == null && getSourceInstance() == null)) {
             errors.add(new ValidationError(
                 this,
                 "properties",
