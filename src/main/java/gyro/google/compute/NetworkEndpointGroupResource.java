@@ -264,10 +264,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
         Operation operation = client.networkEndpointGroups()
             .insert(getProjectId(), getZone(), networkEndpointGroup)
             .execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         // Saves the state before trying to save the endpoints
         // Calling refresh resets values to what is present in the cloud
@@ -296,10 +293,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
         Compute client = createComputeClient();
 
         Operation operation = client.networkEndpointGroups().delete(getProjectId(), getZone(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     private List<NetworkEndpointResource> getNetworkEndpoint() {
@@ -340,10 +334,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
             operation = client.networkEndpointGroups()
                 .detachNetworkEndpoints(getProjectId(), getZone(), getName(), detachRequest)
                 .execute();
-            error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
         }
 
         if (!getEndpoint().isEmpty()) {
@@ -355,10 +346,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
             operation = client.networkEndpointGroups()
                 .attachNetworkEndpoints(getProjectId(), getZone(), getName(), attachRequest)
                 .execute();
-            error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
         }
     }
 }
