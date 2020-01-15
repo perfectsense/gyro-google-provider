@@ -35,9 +35,9 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    network: $(external-query google::network { name: 'network-example'})
+ *    network: $(external-query google::compute-network { name: 'network-example'})
  */
-@Type("network")
+@Type("compute-network")
 public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResource> {
 
     private String name;

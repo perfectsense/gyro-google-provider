@@ -1,0 +1,72 @@
+zone: "us-central1-b"
+
+google::compute-instance gyro-instance-group-instance-a
+    name: "instance-group-example-a"
+    description: "Testing for Gyro"
+    zone: $zone
+    machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
+
+    network-interfaces
+        network: $(external-query google::compute-network {name: "default"})
+    end
+
+    initialize-disks
+        boot: true
+        auto-delete: true
+
+        initialize-params
+            disk-name: "instance-group-example-a-boot-disk-2"
+            source-image: "projects/debian-cloud/global/images/family/debian-9"
+        end
+    end
+
+    labels: {
+        "gyro": "install"
+    }
+end
+
+google::compute-instance gyro-instance-group-instance-b
+    name: "instance-group-example-b"
+    description: "Testing for Gyro"
+    zone: $zone
+    machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
+
+    network-interfaces
+        network: $(external-query google::compute-network {name: "default"})
+    end
+
+    initialize-disks
+        boot: true
+        auto-delete: true
+
+        initialize-params
+            disk-name: "instance-group-example-b-boot-disk-2"
+            source-image: "projects/debian-cloud/global/images/family/debian-9"
+        end
+    end
+
+    labels: {
+        "gyro": "install"
+    }
+end
+
+google::compute-instance-group instance-group-example
+    name: "instance-group-example"
+    description: "instance-group-example-description"
+    zone: $zone
+    network: $(external-query google::compute-network {name: "default"})
+    instances: [
+        $(google::compute-instance gyro-instance-group-instance-a),
+        $(google::compute-instance gyro-instance-group-instance-b)
+    ]
+
+    named-port
+        name: "port-a"
+        port: 123
+    end
+
+    named-port
+        name: "port-b"
+        port: 490
+    end
+end

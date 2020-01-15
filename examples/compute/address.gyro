@@ -1,0 +1,34 @@
+google::compute-network network-example-address
+    name: "vpc-network-example-address"
+    description: "vpc-network-example-address-desc"
+    routing-mode: "REGIONAL"
+end
+
+google::compute-subnet subnet-example-address
+    name: "vpc-subnet-example-address"
+    description: "vpc-subnet-example-address-description"
+    ip-cidr-range: "10.0.0.0/16"
+    network: $(google::compute-network network-example-address)
+    region: "us-east1"
+end
+
+google::address default-east1-address-1
+    name: "us-east1-test-one"
+    region: "us-east1"
+    description: "test static IP address"
+end
+
+google::address subnet-example-address-east1-address-1
+    name: "us-east1-test-two"
+    region: "us-east1"
+    description: "test static IP address"
+    address-type: "INTERNAL"
+    purpose: "GCE_ENDPOINT"
+    subnetwork: $(google::compute-subnet subnet-example-address)
+end
+
+google::global-address global-address-1
+    name: "global-address-test-1"
+    description: "test global static IP address"
+    ip-version: "IPV6"
+end

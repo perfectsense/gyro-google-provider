@@ -27,9 +27,7 @@ import java.util.stream.Stream;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Route;
-import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroCore;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Output;
@@ -215,9 +213,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         setDescription(route.getDescription());
         setDestRange(route.getDestRange());
         setNetwork(findById(NetworkResource.class, route.getNetwork()));
-        setNetwork(findById(
-            NetworkResource.class,
-            route.getNetwork().substring(route.getNetwork().lastIndexOf("/") + 1)));
         setPriority(route.getPriority());
         setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
         setNextHopGateway(route.getNextHopGateway());
@@ -242,7 +237,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         Route route = new Route();
         route.setName(getName());
         route.setDescription(getDescription());
-        route.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
+        route.setNetwork(getNetwork().getSelfLink());
         route.setDestRange(getDestRange());
         route.setNextHopGateway(getNextHopGateway());
         route.setNextHopVpnTunnel(getNextHopVpnTunnel());
@@ -251,10 +246,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         route.setTags(new ArrayList<>(getTags()));
 
         Operation operation = client.routes().insert(getProjectId(), route).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         route = client.routes().get(getProjectId(), getName()).execute();
         copyFrom(route);
@@ -275,10 +267,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         Compute client = createComputeClient();
 
         Operation operation = client.routes().delete(getProjectId(), getName()).execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
     }
 
     @Override

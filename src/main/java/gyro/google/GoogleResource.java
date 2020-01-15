@@ -52,7 +52,7 @@ public abstract class GoogleResource extends Resource {
         } catch (GyroException ex) {
             throw ex;
         } catch (GoogleJsonResponseException je) {
-            if (je.getDetails().getCode() != 404) {
+            if (je.getDetails().getCode() == 404) {
                 return false;
             } else {
                 throw new GyroException(formatGoogleExceptionMessage(je));
@@ -112,5 +112,13 @@ public abstract class GoogleResource extends Resource {
         return je.getDetails().getErrors().stream()
             .map(GoogleJsonError.ErrorInfo::getMessage)
             .collect(Collectors.joining("\n"));
+    }
+
+    protected static String formatResource(String projectId, String resource) {
+        return resource.contains("projects/")
+            ? resource.substring(resource.indexOf("projects/") + 9)
+            : resource.startsWith("global/")
+                ? projectId + "/" + resource
+                : resource;
     }
 }

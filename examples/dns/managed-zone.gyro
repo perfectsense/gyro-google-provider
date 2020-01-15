@@ -1,0 +1,40 @@
+google::compute-network managed-zone-network-example
+    name: "managed-zone-network-example"
+    description: "managed zone network example desc"
+    routing-mode: "Regional"
+end
+
+google::dns-managed-zone private-managed-zone-example
+    name: "private-managed-zone-example"
+    description: "Private Managed Zone Example"
+    dns-name: "private.example.com."
+    visibility: "private"
+
+    private-visibility-config
+        network
+            network: $(google::compute-network managed-zone-network-example)
+        end
+    end
+end
+
+google::dns-managed-zone public-managed-zone-example
+    name: "public-managed-zone-example"
+    description: "Public Managed Zone Example"
+    dns-name: "p.example.com."
+
+    dnssec-config
+        state: "on"
+
+        default-key-spec
+            algorithm: "rsasha256"
+            key-length: "2048"
+            key-type: "keySigning"
+        end
+
+        default-key-spec
+            algorithm: "rsasha256"
+            key-length: "1024"
+            key-type: "zoneSigning"
+        end
+    end
+end

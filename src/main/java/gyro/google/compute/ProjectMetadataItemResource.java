@@ -41,12 +41,12 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *     google::project-metadata-item project-metadata-item-example
+ *     google::compute-project-metadata-item project-metadata-item-example
  *         key: "example-key"
  *         value: "example-value"
  *     end
  */
-@Type("project-metadata-item")
+@Type("compute-project-metadata-item")
 public class ProjectMetadataItemResource extends ComputeResource implements Copyable<Metadata.Items> {
 
     private String key;
@@ -158,10 +158,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
                 client.projects().setCommonInstanceMetadata(getProjectId(), metadata);
             Operation operation = metadataRequest.execute();
 
-            Operation.Error error = waitForCompletion(client, operation);
-            if (error != null) {
-                throw new GyroException(error.toPrettyString());
-            }
+            waitForCompletion(client, operation);
         } catch (GoogleJsonResponseException je) {
             String message = je.getDetails().getMessage();
             if (message.contains("Metadata has duplicate keys")) {

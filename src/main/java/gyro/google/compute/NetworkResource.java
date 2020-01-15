@@ -22,7 +22,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Network;
 import com.google.api.services.compute.model.NetworkRoutingConfig;
 import com.google.api.services.compute.model.Operation;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -42,13 +41,13 @@ import gyro.google.Copyable;
  *
  * .. code-block:: gyro
  *
- *     google::network network-example
+ *     google::compute-network network-example
  *         name: "vpc-example"
  *         description: "vpc-example-desc"
  *         routing-mode: "GLOBAL"
  *     end
  */
-@Type("network")
+@Type("compute-network")
 public class NetworkResource extends ComputeResource implements Copyable<Network> {
 
     private String name;
@@ -57,11 +56,11 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     // Read-only
     private String id;
+    private String selfLink;
 
     /**
      * The name of the network. (Required)
      */
-    @Id
     @Required
     public String getName() {
         return name;
@@ -108,9 +107,23 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         this.id = id;
     }
 
+    /**
+     * The fully-qualified URL linking back to the network.
+     */
+    @Id
+    @Output
+    public String getSelfLink() {
+        return selfLink;
+    }
+
+    public void setSelfLink(String selfLink) {
+        this.selfLink = selfLink;
+    }
+
     @Override
     public void copyFrom(Network network) {
         setId(network.getId().toString());
+        setSelfLink(network.getSelfLink());
         setRoutingMode(network.getRoutingConfig().getRoutingMode());
         setDescription(network.getDescription());
         setName(network.getName());
@@ -141,10 +154,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
         Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
         Operation operation = insert.execute();
-        Operation.Error error = waitForCompletion(client, operation);
-        if (error != null) {
-            throw new GyroException(error.toPrettyString());
-        }
+        waitForCompletion(client, operation);
 
         refresh();
     }
@@ -159,14 +169,16 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         Network network = client.networks().get(getProjectId(), getName()).execute();
         network.setRoutingConfig(networkRoutingConfig);
 
-        client.networks().patch(getProjectId(), getName(), network).execute();
+        Operation operation = client.networks().patch(getProjectId(), getName(), network).execute();
+        waitForCompletion(client, operation);
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createComputeClient();
+        Compute client = createComputeClient();
 
-        compute.networks().delete(getProjectId(), getName()).execute();
+        Operation operation = client.networks().delete(getProjectId(), getName()).execute();
+        waitForCompletion(client, operation);
     }
 }

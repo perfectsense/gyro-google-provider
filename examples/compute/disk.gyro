@@ -1,0 +1,62 @@
+google::compute-disk disk-example
+    name: "disk-example"
+    description: "disk-example-desc"
+    zone: "us-central1-a"
+    size-gb: 32
+    type: "pd-standard"
+    labels: {
+        label-key: 'label-value'
+    }
+    physical-block-size-bytes: 4096
+    resource-policy: $(google::compute-resource-policy example-policy-disk-alpha)
+end
+
+google::compute-image image-example
+    name: "image-example"
+    source-disk: $(google::compute-disk disk-example)
+
+    image-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
+
+google::compute-disk disk-image-example
+    name: "disk-image-example"
+    description: "disk-image-example-desc"
+    zone: "us-west1-a"
+    source-image: $(google::compute-image image-example)
+
+    source-image-encryption-key
+        raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+    end
+end
+
+google::compute-resource-policy example-policy-disk-alpha
+    name: "example-policy-disk-alpha"
+    region: "us-central1"
+    description: "Resource policy example disk alpha"
+
+    snapshot-schedule-policy
+        schedule
+            weekly-schedule
+                day-of-weeks
+                    day: "FRIDAY"
+                    start-time: "00:00"
+                end
+            end
+        end
+
+        retention-policy
+            max-retention-days: 7
+            on-source-disk-delete: "KEEP_AUTO_SNAPSHOTS"
+        end
+
+        snapshot-properties
+            guest-flush: false
+            labels: {
+                "foo": "bar"
+            }
+            storage-locations: ["us-central1"]
+        end
+    end
+end
