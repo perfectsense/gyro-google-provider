@@ -21,6 +21,7 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.TargetHttpProxy;
+import com.google.api.services.compute.model.UrlMapReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -70,8 +71,12 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
+
+        TargetHttpProxy targetHttpProxy = toTargetHttpProxy();
+        targetHttpProxy.setRegion(getRegion());
+
         Operation operation = client.regionTargetHttpProxies()
-            .insert(getProjectId(), getRegion(), toTargetHttpProxy())
+            .insert(getProjectId(), getRegion(), targetHttpProxy)
             .execute();
         waitForCompletion(client, operation);
 
@@ -80,7 +85,11 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        Compute client = createComputeClient();
 
+        UrlMapReference urlMapReference = new UrlMapReference();
+        urlMapReference.setUrlMap(getUrlMapSelfLink());
+        client.regionTargetHttpProxies().setUrlMap(getProjectId(), getRegion(), getName(), urlMapReference).execute();
     }
 
     @Override
@@ -88,10 +97,5 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
         Compute client = createComputeClient();
         Operation response = client.regionTargetHttpProxies().delete(getProjectId(), getRegion(), getName()).execute();
         waitForCompletion(client, response);
-    }
-
-    @Override
-    TargetHttpProxy toTargetHttpProxy() {
-        return super.toTargetHttpProxy().setRegion(getRegion());
     }
 }

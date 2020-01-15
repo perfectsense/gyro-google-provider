@@ -20,6 +20,7 @@ import java.util.Set;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.UrlMapReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -59,8 +60,12 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        Compute client = createComputeClient();
+
+        UrlMapReference urlMapReference = new UrlMapReference();
+        urlMapReference.setUrlMap(getUrlMapSelfLink());
+        client.targetHttpProxies().setUrlMap(getProjectId(), getName(), urlMapReference).execute();
     }
 
     @Override
