@@ -16,7 +16,9 @@
 
 package gyro.google.storage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.Condition;
@@ -89,6 +91,31 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
 
     public void setNumNewerVersions(Integer numNewerVersions) {
         this.numNewerVersions = numNewerVersions;
+    }
+
+    @Override
+    public String primaryKey() {
+        ArrayList<String> values = new ArrayList<>();
+        values.add(String.format("is-live = %s", "TRUE".equals(getIsLive())));
+
+        if (getAge() != null) {
+            values.add(String.format("age = %d", getAge()));
+        }
+
+        if (getCreatedBefore() != null) {
+            values.add(String.format("created-before = %s", getCreatedBefore()));
+        }
+
+        if (getNumNewerVersions() != null) {
+            values.add(String.format("num-new-versions = %d", getNumNewerVersions()));
+        }
+
+        if (getMatchesStorageClass() != null) {
+            values.add(String.format("matches-storage-class = [%s]", getMatchesStorageClass().stream()
+                .collect(Collectors.joining(", "))));
+        }
+
+        return values.stream().collect(Collectors.joining("; "));
     }
 
     @Override

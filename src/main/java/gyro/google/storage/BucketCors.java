@@ -16,7 +16,9 @@
 
 package gyro.google.storage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.api.services.storage.model.Bucket.Cors;
 import gyro.core.resource.Diffable;
@@ -76,6 +78,32 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
 
     public void setResponseHeader(List<String> responseHeader) {
         this.responseHeader = responseHeader;
+    }
+
+    @Override
+    public String primaryKey() {
+        ArrayList<String> values = new ArrayList<>();
+
+        if (getMaxAgeSeconds() != null) {
+            values.add(String.format("max-age-seconds = %d", getMaxAgeSeconds()));
+        }
+
+        if (getMethod() != null) {
+            values.add(String.format("method(s) = [%s]", getMethod().stream()
+                .collect(Collectors.joining(", "))));
+        }
+
+        if (getOrigin() != null) {
+            values.add(String.format("origin(s) = [%s]", getOrigin().stream()
+                .collect(Collectors.joining(", "))));
+        }
+
+        if (getResponseHeader() != null) {
+            values.add(String.format("response-header(s) = [%s]", getResponseHeader().stream()
+                .collect(Collectors.joining(", "))));
+        }
+
+        return values.stream().collect(Collectors.joining("; "));
     }
 
     @Override
