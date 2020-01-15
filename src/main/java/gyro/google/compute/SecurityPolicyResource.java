@@ -154,8 +154,6 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         Operation operation = client.securityPolicies().insert(getProjectId(), toSecurityPolicy()).execute();
         waitForCompletion(client, operation);
 
-        state.save();
-
         refresh();
     }
 

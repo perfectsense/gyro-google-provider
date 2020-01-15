@@ -137,13 +137,6 @@ public class SecurityPolicyRule extends ComputeResource
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
-        com.google.api.services.compute.model.SecurityPolicyRule securityPolicyRule = client.securityPolicies()
-            .getRule(getProjectId(), securityPolicyResource.getName()).set("priority", getPriority())
-            .execute();
-        copyFrom(securityPolicyRule);
-
         return true;
     }
 
@@ -156,8 +149,6 @@ public class SecurityPolicyRule extends ComputeResource
             .addRule(getProjectId(), securityPolicyResource.getName(), toSecurityPolicyRule())
             .execute();
         waitForCompletion(client, operation);
-
-        state.save();
 
         refresh();
     }
