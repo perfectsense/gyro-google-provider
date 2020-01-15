@@ -23,17 +23,11 @@ import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Subnetwork;
 import com.google.api.services.compute.model.SubnetworksSetPrivateIpGoogleAccessRequest;
 import gyro.core.GyroUI;
-<<<<<<< HEAD
-import gyro.core.resource.Id;
-=======
 import gyro.core.Type;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
->>>>>>> master
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
-import gyro.core.Type;
-import gyro.core.resource.Output;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
