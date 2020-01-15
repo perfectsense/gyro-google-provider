@@ -23,7 +23,12 @@ google::compute-instance-template instance-template-example
             end
         end
 
-        machine-type: "f1-micro"
+        guest-accelerator
+            accelerator-type: "nvidia-tesla-p100"
+            accelerator-count: 1
+        end
+
+        machine-type: "n1-standard-1"
 
         network-interface
             network: $(external-query google::compute-network {name: "default"})
@@ -42,3 +47,41 @@ google::compute-instance-template instance-template-example
         end
     end
 end
+
+zone: "us-central1-a"
+
+google::compute-instance instance-template-instance-source-example
+    name: "instance-template-instance-example"
+    description: "instance-template-instance-example"
+    zone: $zone
+    machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
+
+    network-interface
+        network: $(external-query google::compute-network {name: "default"})
+    end
+
+    initialize-disk
+        boot: true
+        auto-delete: true
+        device-name: "pd-0"
+
+        initialize-params
+            disk-name: "instance-source-boot-disk-0"
+            source-image: "projects/debian-cloud/global/images/family/debian-9"
+        end
+    end
+end
+
+google::compute-instance-template instance-template-from-instance-source-example
+    name: "instance-template-from-instance-source-example"
+    description: "Instance template from instance source example"
+
+    source-instance: $(google::compute-instance instance-template-instance-source-example)
+
+    source-instance-params
+        disk-config
+            device-name: "pd-0"
+        end
+    end
+end
+
