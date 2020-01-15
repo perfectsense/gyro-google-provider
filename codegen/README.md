@@ -2,13 +2,13 @@
 
 The codegen module allows you to automatically generate resource files based on the [GCP Discovery API](https://developers.google.com/discovery).
 
-The codegen generates java files for for GCP resources. Under a base package abstract java classes are created for each resource, having all the fields, their getters and setters with annotations.
+The codegen generates java files for GCP resources. Under a base package abstract java classes are created for each resource, having all the fields, their getters and setters with annotations.
 Fields that are other resources are created as references as well as fields which are complex in nature are created as separate java files and referenced where needed.
 
 The generated fields have the following annotations if applicable
  - `@Required` - if the field is required.
  - `@Output` - if the field is output only.
- - `@ValidStrings` - If the filed can only be set to certain values.
+ - `@ValidStrings` - If the field can only be set to certain values.
  - `@Regex` - If the field value needs to match a particular regex.
 
 Every time the codegen is run, it overwrites the classes it generates if it exists already under the base package.
