@@ -36,8 +36,8 @@ import gyro.core.scope.State;
  *
  *     google::compute-target-http-proxy target-http-proxy-example
  *         name: "target-http-proxy-example"
- *         description: "target-http-proxy-example-desc"
- *         url-map: $(google::compute-url-map url-map-example)
+ *         description: "Target http proxy description."
+ *         url-map: $(google::compute-url-map url-map-example-target-http-proxy)
  *     end
  */
 @Type("compute-target-http-proxy")

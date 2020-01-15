@@ -38,9 +38,9 @@ import gyro.core.validation.Required;
  *
  *     google::compute-region-target-http-proxy region-target-http-proxy-example
  *         name: "region-target-http-proxy-example"
- *         description: "region-target-http-proxy-example-desc"
+ *         description: "Region target http proxy description."
  *         region: "us-east1"
- *         region-url-map: $(google::compute-region-url-map region-url-map-example)
+ *         region-url-map: $(google::compute-region-url-map region-url-map-example-region-target-http-proxy)
  *     end
  */
 @Type("compute-region-target-http-proxy")
