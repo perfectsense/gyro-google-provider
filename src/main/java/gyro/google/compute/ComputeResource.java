@@ -16,67 +16,50 @@
 
 package gyro.google.compute;
 
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroException;
+import gyro.core.Wait;
 import gyro.google.GoogleResource;
 
 public abstract class ComputeResource extends GoogleResource {
 
-    public void waitForCompletion(Compute compute, Operation operation) throws Exception {
-        waitForCompletion(compute, operation, 60000);
-    }
+    public void waitForCompletion(Compute compute, Operation operation) {
+        Wait.atMost(60, TimeUnit.SECONDS)
+            .until(() -> {
+                    Operation response = null;
+                    String zone = operation.getZone();
 
-    public void waitForCompletion(Compute compute, Operation operation, long timeout) throws Exception {
-        long start = System.currentTimeMillis();
-        final long pollInterval = 1000;
+                    if (zone != null) {
+                        String[] bits = zone.split("/");
+                        zone = bits[bits.length - 1];
+                        Compute.ZoneOperations.Get get = compute.zoneOperations()
+                            .get(getProjectId(), zone, operation.getName());
+                        response = get.execute();
+                    } else {
+                        String region = operation.getRegion();
 
-        String zone = operation.getZone();
-        if (zone != null) {
-            String[] bits = zone.split("/");
-            zone = bits[bits.length - 1];
-        }
+                        if (region != null) {
+                            region = region.substring(region.lastIndexOf("/") + 1);
+                            Compute.RegionOperations.Get get = compute.regionOperations()
+                                .get(getProjectId(), region, operation.getName());
+                            response = get.execute();
+                        } else {
+                            Compute.GlobalOperations.Get get = compute.globalOperations()
+                                .get(getProjectId(), operation.getName());
+                            response = get.execute();
+                        }
+                    }
 
-        String region = operation.getRegion();
-        if (region != null) {
-            region = region.substring(region.lastIndexOf("/") + 1);
-        }
-
-        try {
-            while (operation != null && !operation.getStatus().equals("DONE")) {
-                Thread.sleep(pollInterval);
-
-                long elapsed = System.currentTimeMillis() - start;
-                if (elapsed >= timeout) {
-                    throw new InterruptedException("Timed out waiting for operation to complete");
+                    if (response != null && response.getError() != null) {
+                        throw new GyroException(formatOperationErrorMessage(response.getError()));
+                    }
+                    return response != null && response.getStatus().equals("DONE");
                 }
-
-                if (zone != null) {
-                    Compute.ZoneOperations.Get get = compute.zoneOperations()
-                        .get(getProjectId(), zone, operation.getName());
-                    operation = get.execute();
-                } else if (region != null) {
-                    Compute.RegionOperations.Get get = compute.regionOperations()
-                        .get(getProjectId(), region, operation.getName());
-                    operation = get.execute();
-                } else {
-                    Compute.GlobalOperations.Get get = compute.globalOperations()
-                        .get(getProjectId(), operation.getName());
-                    operation = get.execute();
-                }
-            }
-        } catch (GoogleJsonResponseException ex) {
-            if (ex.getStatusCode() != 404) {
-                throw ex;
-            }
-        }
-
-        if (operation != null && operation.getError() != null) {
-            throw new GyroException(formatOperationErrorMessage(operation.getError()));
-        }
+            );
     }
 
     protected static String formatOperationErrorMessage(Operation.Error error) {
