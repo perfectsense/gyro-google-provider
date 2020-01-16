@@ -14,9 +14,4 @@
  * limitations under the License.
  */
 
-package gyro.google;
-
-public interface Copyable<M> {
-
-    void copyFrom(M model) throws Exception;
-}
+rootProject.name = 'gyro-google-provider-codegen'

@@ -70,6 +70,7 @@ import gyro.google.Copyable;
  *              initialize-params
  *                  disk-name: "gyro-secondary-disk"
  *                  source-image: "projects/debian-cloud/global/images/family/debian-9"
+ *                  resource-policy: $(google::compute-resource-policy instance-attached-disk-example)
  *              end
  *          end
  *
