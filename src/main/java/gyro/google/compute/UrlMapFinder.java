@@ -61,7 +61,9 @@ public class UrlMapFinder extends GoogleFinder<Compute, UrlMap, UrlMapResource> 
 
         do {
             urlMapList = client.urlMaps().list(getProjectId()).setPageToken(nextPageToken).execute();
-            urlMaps.addAll(urlMapList.getItems());
+            if (urlMapList.getItems() != null) {
+                urlMaps.addAll(urlMapList.getItems());
+            }
             nextPageToken = urlMapList.getNextPageToken();
         } while (nextPageToken != null);
 

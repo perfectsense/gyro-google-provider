@@ -77,7 +77,7 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
     @Updatable
     public List<ComputeHostRule> getHostRule() {
         if (hostRule == null) {
-            hostRule = new ArrayList();
+            hostRule = new ArrayList<>();
         }
         return hostRule;
     }
@@ -94,7 +94,7 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
     @Updatable
     public List<ComputePathMatcher> getPathMatcher() {
         if (pathMatcher == null) {
-            pathMatcher = new ArrayList();
+            pathMatcher = new ArrayList<>();
         }
         return pathMatcher;
     }
