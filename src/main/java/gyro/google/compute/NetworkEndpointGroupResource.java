@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.NetworkEndpointGroup;
 import com.google.api.services.compute.model.NetworkEndpointGroupsAttachEndpointsRequest;
@@ -31,7 +30,6 @@ import com.google.api.services.compute.model.NetworkEndpointGroupsListEndpointsR
 import com.google.api.services.compute.model.NetworkEndpointWithHealthStatus;
 import com.google.api.services.compute.model.Operation;
 import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Output;
@@ -57,7 +55,7 @@ import gyro.google.Copyable;
  *         zone: "us-east1-b"
  *
  *         endpoint
- *             instance: "instance-example"
+ *             instance: $(google::compute-instance gyro-network-endpoint-group-example-a)
  *         end
  *     end
  */
@@ -219,17 +217,13 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     @Override
-    public void copyFrom(NetworkEndpointGroup networkEndpointGroup) {
+    public void copyFrom(NetworkEndpointGroup networkEndpointGroup) throws Exception {
         setDefaultPort(networkEndpointGroup.getDefaultPort());
         setDescription(networkEndpointGroup.getDescription());
         setId(networkEndpointGroup.getId().toString());
         setName(networkEndpointGroup.getName());
-        setNetwork(findById(
-            NetworkResource.class,
-            networkEndpointGroup.getNetwork().substring(networkEndpointGroup.getNetwork().lastIndexOf("/") + 1)));
-        setSubnet(findById(
-            SubnetworkResource.class,
-            networkEndpointGroup.getSubnetwork().substring(networkEndpointGroup.getSubnetwork().lastIndexOf("/") + 1)));
+        setNetwork(findById(NetworkResource.class, networkEndpointGroup.getNetwork()));
+        setSubnet(findById(SubnetworkResource.class, networkEndpointGroup.getSubnetwork()));
         setType(networkEndpointGroup.getNetworkEndpointType());
         setSelfLink(networkEndpointGroup.getSelfLink());
         setSize(networkEndpointGroup.getSize());
@@ -296,34 +290,32 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
         waitForCompletion(client, operation);
     }
 
-    private List<NetworkEndpointResource> getNetworkEndpoint() {
+    private List<NetworkEndpointResource> getNetworkEndpoint() throws Exception {
         Compute client = createComputeClient();
+        NetworkEndpointGroupsListEndpointsRequest request = new NetworkEndpointGroupsListEndpointsRequest();
+        request.setHealthStatus("SHOW");
+        List<NetworkEndpointWithHealthStatus> endpoints = client.networkEndpointGroups()
+            .listNetworkEndpoints(getProjectId(), getZone(), getName(), request)
+            .execute()
+            .getItems();
 
-        try {
-            NetworkEndpointGroupsListEndpointsRequest request = new NetworkEndpointGroupsListEndpointsRequest();
-            request.setHealthStatus("SHOW");
-            List<NetworkEndpointWithHealthStatus> endpoints = client.networkEndpointGroups()
-                .listNetworkEndpoints(getProjectId(), getZone(), getName(), request)
-                .execute()
-                .getItems();
+        getEndpoint().clear();
 
-            getEndpoint().clear();
-            return endpoints != null ? endpoints.stream().map(endpoint -> {
+        return endpoints != null ? endpoints.stream()
+            .map(endpoint -> {
                 NetworkEndpointResource endpointResource = newSubresource(NetworkEndpointResource.class);
+                // API returns only the name not the instance self-link so reconstruct the self-link.
+                endpoint.getNetworkEndpoint()
+                    .setInstance(getSelfLink().replaceFirst(
+                        "/networkEndpointGroups/.*",
+                        "/instances/" + endpoint.getNetworkEndpoint().getInstance()));
                 endpointResource.copyFrom(endpoint);
                 return endpointResource;
             }).collect(Collectors.toList()) : Collections.emptyList();
-        } catch (GoogleJsonResponseException je) {
-            throw new GyroException(formatGoogleExceptionMessage(je));
-        } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
-        }
-
     }
 
     private void saveNetworkEndpoint(Compute client, List<NetworkEndpointResource> oldEndpoints) throws Exception {
         Operation operation;
-        Operation.Error error;
 
         if (!oldEndpoints.isEmpty()) {
             NetworkEndpointGroupsDetachEndpointsRequest detachRequest = new NetworkEndpointGroupsDetachEndpointsRequest();

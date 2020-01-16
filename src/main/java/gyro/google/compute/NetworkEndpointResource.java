@@ -24,25 +24,27 @@ import com.google.api.services.compute.model.HealthStatusForNetworkEndpoint;
 import com.google.api.services.compute.model.NetworkEndpoint;
 import com.google.api.services.compute.model.NetworkEndpointWithHealthStatus;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class NetworkEndpointResource extends Diffable implements Copyable<NetworkEndpointWithHealthStatus> {
 
-    private String instance;
+    private InstanceResource instance;
     private Integer port;
     private String ipAddress;
 
     // Read-only
     private List<String> healthStatus;
 
+    @Id
     @Required
-    public String getInstance() {
+    public InstanceResource getInstance() {
         return instance;
     }
 
-    public void setInstance(String instance) {
+    public void setInstance(InstanceResource instance) {
         this.instance = instance;
     }
 
@@ -77,13 +79,23 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
 
     @Override
     public String primaryKey() {
-        return getInstance();
+        StringBuilder key = new StringBuilder();
+
+        if (getInstance() != null) {
+            key.append(getInstance().getName());
+        }
+
+        if (getPort() != null) {
+            key.append(String.format(" port %d", getPort()));
+        }
+
+        return key.toString();
     }
 
     @Override
     public void copyFrom(NetworkEndpointWithHealthStatus endpoint) {
         NetworkEndpoint networkEndpoint = endpoint.getNetworkEndpoint();
-        setInstance(networkEndpoint.getInstance());
+        setInstance(findById(InstanceResource.class, networkEndpoint.getInstance()));
         setIpAddress(networkEndpoint.getIpAddress());
         setPort(networkEndpoint.getPort());
 
@@ -98,7 +110,7 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
 
     NetworkEndpoint toNetworkEndpoint() {
         NetworkEndpoint networkEndpoint = new NetworkEndpoint();
-        networkEndpoint.setInstance(getInstance());
+        networkEndpoint.setInstance(getInstance().getName());
         networkEndpoint.setPort(getPort());
         networkEndpoint.setIpAddress(getIpAddress());
 
