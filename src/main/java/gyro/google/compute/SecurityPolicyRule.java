@@ -21,7 +21,7 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
-import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -38,6 +38,8 @@ public class SecurityPolicyRule extends ComputeResource
     private Boolean preview;
     private SecurityPolicyRuleMatcher match;
 
+    private int hashcode;
+
     /**
      * The description of the security policy rule.
      */
@@ -53,7 +55,6 @@ public class SecurityPolicyRule extends ComputeResource
     /**
      * The priority of the security policy rule.
      */
-    @Id
     @Updatable
     public Integer getPriority() {
         return priority;
@@ -102,9 +103,18 @@ public class SecurityPolicyRule extends ComputeResource
         this.match = match;
     }
 
+    @Output
+    public int getHashcode() {
+        return hashcode;
+    }
+
+    public void setHashcode(int hashcode) {
+        this.hashcode = hashcode;
+    }
+
     @Override
     public String primaryKey() {
-        return "security-policy-rule-" + getPriority();
+        return "" + getHashcode();
     }
 
     com.google.api.services.compute.model.SecurityPolicyRule toSecurityPolicyRule() {
@@ -113,26 +123,22 @@ public class SecurityPolicyRule extends ComputeResource
         policyRule.setDescription(getDescription());
         policyRule.setPriority(getPriority());
         policyRule.setPreview(getPreview());
-
-        if (getMatch() != null) {
-            policyRule.setMatch(match.toSecurityPolicyRuleMatcher());
-        }
+        policyRule.setMatch(match.toSecurityPolicyRuleMatcher());
 
         return policyRule;
     }
 
     @Override
     public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRule securityPolicyRule) {
+        setHashcode(securityPolicyRule.hashCode());
         setPriority(securityPolicyRule.getPriority());
         setDescription(securityPolicyRule.getDescription());
         setAction(securityPolicyRule.getAction());
         setPreview(securityPolicyRule.getPreview());
 
-        if (securityPolicyRule.getMatch() != null) {
-            SecurityPolicyRuleMatcher matcher = newSubresource(SecurityPolicyRuleMatcher.class);
-            matcher.copyFrom(securityPolicyRule.getMatch());
-            setMatch(matcher);
-        }
+        SecurityPolicyRuleMatcher matcher = newSubresource(SecurityPolicyRuleMatcher.class);
+        matcher.copyFrom(securityPolicyRule.getMatch());
+        setMatch(matcher);
     }
 
     @Override
@@ -149,8 +155,7 @@ public class SecurityPolicyRule extends ComputeResource
             .addRule(getProjectId(), securityPolicyResource.getName(), toSecurityPolicyRule())
             .execute();
         waitForCompletion(client, operation);
-
-        refresh();
+        setHashcode(operation.hashCode());
     }
 
     @Override
@@ -160,23 +165,29 @@ public class SecurityPolicyRule extends ComputeResource
 
         com.google.api.services.compute.model.SecurityPolicyRule rule = new com.google.api.services.compute.model.SecurityPolicyRule();
 
-        for (String changedFieldName : changedFieldNames) {
-            if (changedFieldName.equals("description")) {
-                rule.setDescription(getDescription());
-            }
-
-            if (changedFieldName.equals("preview")) {
-                rule.setPreview(getPreview());
-            }
+        if (changedFieldNames.contains("description")) {
+            rule.setDescription(getDescription());
         }
 
-        if (getPriority() != null) {
+        if (changedFieldNames.contains("priority")) {
             rule.setPriority(getPriority());
+        }
+
+        if (changedFieldNames.contains("action")) {
+            rule.setAction(getAction());
+        }
+
+        if (changedFieldNames.contains("preview")) {
+            rule.setPreview(getPreview());
+        }
+
+        if (changedFieldNames.contains("match")) {
+            rule.setMatch(getMatch().toSecurityPolicyRuleMatcher());
         }
 
         SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
         Operation operation = client.securityPolicies()
-            .patchRule(getProjectId(), securityPolicyResource.getName(), rule)
+            .patchRule(getProjectId(), securityPolicyResource.getName(), rule).set("priority", current.get("priority"))
             .execute();
         waitForCompletion(client, operation);
 

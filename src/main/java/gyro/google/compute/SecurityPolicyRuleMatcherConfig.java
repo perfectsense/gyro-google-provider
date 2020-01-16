@@ -42,6 +42,11 @@ public class SecurityPolicyRuleMatcherConfig extends Diffable
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig config) {
         config.setSrcIpRanges(getSrcIpRanges());
     }

@@ -184,6 +184,10 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         setDescription(securityPolicy.getDescription());
         setSelfLink(securityPolicy.getSelfLink());
         setFingerprint(securityPolicy.getFingerprint());
+        securityPolicy.getRules().forEach(rule -> {
+            SecurityPolicyRule securityPolicyRule = newSubresource(SecurityPolicyRule.class);
+            securityPolicyRule.copyFrom(rule);
+        });
     }
 
     private SecurityPolicy toSecurityPolicy() {

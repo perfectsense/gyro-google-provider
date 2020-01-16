@@ -56,6 +56,11 @@ public class SecurityPolicyRuleMatcher extends Diffable
     }
 
     @Override
+    public String primaryKey() {
+        return "";
+    }
+
+    @Override
     public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRuleMatcher matcher) {
         setVersionedExpr(matcher.getVersionedExpr());
         if (matcher.getConfig() != null) {
