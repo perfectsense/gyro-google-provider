@@ -53,6 +53,11 @@ public class InstanceGroupNamedPort extends Diffable implements Copyable<NamedPo
     }
 
     @Override
+    public String primaryKey() {
+        return String.format("%s on port %d", getName(), getPort());
+    }
+
+    @Override
     public void copyFrom(NamedPort namedPort) {
         setName(namedPort.getName());
         setPort(namedPort.getPort());

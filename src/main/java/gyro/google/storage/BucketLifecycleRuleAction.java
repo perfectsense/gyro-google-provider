@@ -16,6 +16,9 @@
 
 package gyro.google.storage;
 
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.Action;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
@@ -50,6 +53,21 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Override
+    public String primaryKey() {
+        ArrayList<String> values = new ArrayList<>();
+
+        if (getStorageClass() != null) {
+            values.add(String.format("storage-class = %s", getStorageClass()));
+        }
+
+        if (getType() != null) {
+            values.add(String.format("type = %s", getType()));
+        }
+
+        return values.stream().collect(Collectors.joining("; "));
     }
 
     @Override
