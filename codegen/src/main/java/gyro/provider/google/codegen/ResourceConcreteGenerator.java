@@ -17,6 +17,11 @@
 package gyro.provider.google.codegen;
 
 import java.io.File;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 import javax.lang.model.element.Modifier;
 
@@ -85,7 +90,37 @@ public class ResourceConcreteGenerator {
             System.out.println("\nGenerating concrete class for " + schemaName);
 
             if (output != null) {
-                javaFile.writeTo(new File(output));
+                File directory = new File(this.output);
+                Path outputDirectory = directory.toPath();
+
+                if (!resourcePackage.isEmpty()) {
+                    for (String packageComponent : resourcePackage.split("\\.")) {
+                        outputDirectory = outputDirectory.resolve(packageComponent);
+                    }
+                    Files.createDirectories(outputDirectory);
+                }
+                Path outputPath = outputDirectory.resolve(resourceName + ".java");
+
+                try (Writer writer = new OutputStreamWriter(
+                    Files.newOutputStream(outputPath),
+                    StandardCharsets.UTF_8)) {
+                    writer.write("/*\n"
+                        + " * Copyright 2020, Perfect Sense, Inc.\n"
+                        + " *\n"
+                        + " * Licensed under the Apache License, Version 2.0 (the \"License\");\n"
+                        + " * you may not use this file except in compliance with the License.\n"
+                        + " * You may obtain a copy of the License at\n"
+                        + " *\n"
+                        + " *     http://www.apache.org/licenses/LICENSE-2.0\n"
+                        + " *\n"
+                        + " * Unless required by applicable law or agreed to in writing, software\n"
+                        + " * distributed under the License is distributed on an \"AS IS\" BASIS,\n"
+                        + " * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n"
+                        + " * See the License for the specific language governing permissions and\n"
+                        + " * limitations under the License.\n"
+                        + " */\n\n");
+                    javaFile.writeTo(writer);
+                }
             } else {
                 javaFile.writeTo(System.out);
                 System.out.println("----");
