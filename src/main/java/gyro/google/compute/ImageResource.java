@@ -451,7 +451,8 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
         image.set("storageLocations", getStorageLocations());
 
         Operation operation = client.images().insert(getProjectId(), image).execute();
-        waitForCompletion(client, operation);
+        // Images are slow to complete so wait max of 3 minutes for completion
+        waitForCompletion(client, operation, 180000);
 
         refresh();
     }
