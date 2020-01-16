@@ -36,7 +36,7 @@ public abstract class ComputeResource extends GoogleResource {
     }
 
     public void waitForCompletion(Compute compute, Operation operation, long duration, TimeUnit unit) {
-        Waiter waiter = new Waiter();
+        Waiter waiter = new Waiter().prompt(false);
 
         if (duration > 0 && unit != null) {
             waiter.atMost(duration, unit);
