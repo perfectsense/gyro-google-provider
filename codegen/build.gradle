@@ -51,6 +51,7 @@ repositories {
 
 dependencies {
     api 'gyro:gyro-core:0.99.1-SNAPSHOT'
+    api 'gyro:gyro-google-provider:0.99.1-SNAPSHOT'
     api 'io.airlift:airline:0.8'
 
     implementation 'com.google.guava:guava:28.1-jre'
