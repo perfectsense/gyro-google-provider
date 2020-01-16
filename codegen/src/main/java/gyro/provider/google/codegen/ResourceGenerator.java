@@ -22,11 +22,15 @@ import com.google.api.services.discovery.model.RestDescription;
 import com.google.api.services.discovery.model.RestMethod;
 import com.google.api.services.discovery.model.RestResource;
 import com.squareup.javapoet.TypeSpec;
-import gyro.core.resource.Resource;
+import gyro.google.GoogleResource;
 
 public class ResourceGenerator extends DiffableGenerator {
 
-    public ResourceGenerator(RestDescription description, String output, RestResource restResource, boolean generateConcrete) {
+    public ResourceGenerator(
+        RestDescription description,
+        String output,
+        RestResource restResource,
+        boolean generateConcrete) {
         this.description = description;
         this.output = output;
 
@@ -37,7 +41,7 @@ public class ResourceGenerator extends DiffableGenerator {
         this.diffableSchema = description.getSchemas().get(schemaName);
         this.resourceBuilder = TypeSpec.classBuilder("Abstract" + schemaName + "Resource")
             .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
-            .superclass(Resource.class);
+            .superclass(GoogleResource.class);
         this.generateConcrete = generateConcrete;
     }
 }

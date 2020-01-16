@@ -131,14 +131,14 @@ public class ResourceConcreteGenerator {
     }
 
     private void generateMethods(TypeSpec.Builder resourceBuilder) {
-        resourceBuilder.addMethod(MethodSpec.methodBuilder("refresh")
+        resourceBuilder.addMethod(MethodSpec.methodBuilder("doRefresh")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(boolean.class)
             .addCode(CodeBlock.builder().addStatement("return false").build())
             .build());
 
-        resourceBuilder.addMethod(MethodSpec.methodBuilder("create")
+        resourceBuilder.addMethod(MethodSpec.methodBuilder("doCreate")
             .addAnnotation(Override.class)
             .addException(Exception.class)
             .addModifiers(Modifier.PUBLIC)
@@ -146,7 +146,7 @@ public class ResourceConcreteGenerator {
             .addParameter(ParameterSpec.builder(State.class, "state").build())
             .build());
 
-        resourceBuilder.addMethod(MethodSpec.methodBuilder("update")
+        resourceBuilder.addMethod(MethodSpec.methodBuilder("doUpdate")
             .addAnnotation(Override.class)
             .addException(Exception.class)
             .addModifiers(Modifier.PUBLIC)
@@ -157,7 +157,7 @@ public class ResourceConcreteGenerator {
                 .build())
             .build());
 
-        resourceBuilder.addMethod(MethodSpec.methodBuilder("delete")
+        resourceBuilder.addMethod(MethodSpec.methodBuilder("doDelete")
             .addAnnotation(Override.class)
             .addException(Exception.class)
             .addModifiers(Modifier.PUBLIC)
