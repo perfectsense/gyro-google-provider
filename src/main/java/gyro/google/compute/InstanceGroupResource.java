@@ -333,10 +333,12 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                 .execute();
             pageToken = results.getNextPageToken();
 
-            current.addAll(results.getItems()
-                .stream()
-                .map(item -> findById(InstanceResource.class, item.getInstance()))
-                .collect(Collectors.toList()));
+            if (results.getItems() != null) {
+                current.addAll(results.getItems()
+                    .stream()
+                    .map(item -> findById(InstanceResource.class, item.getInstance()))
+                    .collect(Collectors.toList()));
+            }
 
         } while (pageToken != null);
 
