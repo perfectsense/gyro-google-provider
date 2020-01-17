@@ -21,7 +21,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
-import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -38,8 +37,6 @@ public class SecurityPolicyRule extends ComputeResource
     private Boolean preview;
     private SecurityPolicyRuleMatcher match;
 
-    private int hashcode;
-
     /**
      * The description of the security policy rule.
      */
@@ -55,7 +52,7 @@ public class SecurityPolicyRule extends ComputeResource
     /**
      * The priority of the security policy rule.
      */
-    @Updatable
+    @Required
     public Integer getPriority() {
         return priority;
     }
@@ -103,18 +100,9 @@ public class SecurityPolicyRule extends ComputeResource
         this.match = match;
     }
 
-    @Output
-    public int getHashcode() {
-        return hashcode;
-    }
-
-    public void setHashcode(int hashcode) {
-        this.hashcode = hashcode;
-    }
-
     @Override
     public String primaryKey() {
-        return "" + getHashcode();
+        return "" + getPriority();
     }
 
     com.google.api.services.compute.model.SecurityPolicyRule toSecurityPolicyRule() {
@@ -130,7 +118,6 @@ public class SecurityPolicyRule extends ComputeResource
 
     @Override
     public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRule securityPolicyRule) {
-        setHashcode(securityPolicyRule.hashCode());
         setPriority(securityPolicyRule.getPriority());
         setDescription(securityPolicyRule.getDescription());
         setAction(securityPolicyRule.getAction());
@@ -155,7 +142,6 @@ public class SecurityPolicyRule extends ComputeResource
             .addRule(getProjectId(), securityPolicyResource.getName(), toSecurityPolicyRule())
             .execute();
         waitForCompletion(client, operation);
-        setHashcode(operation.hashCode());
     }
 
     @Override
@@ -167,10 +153,6 @@ public class SecurityPolicyRule extends ComputeResource
 
         if (changedFieldNames.contains("description")) {
             rule.setDescription(getDescription());
-        }
-
-        if (changedFieldNames.contains("priority")) {
-            rule.setPriority(getPriority());
         }
 
         if (changedFieldNames.contains("action")) {
@@ -187,7 +169,7 @@ public class SecurityPolicyRule extends ComputeResource
 
         SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
         Operation operation = client.securityPolicies()
-            .patchRule(getProjectId(), securityPolicyResource.getName(), rule).set("priority", current.get("priority"))
+            .patchRule(getProjectId(), securityPolicyResource.getName(), rule).set("priority", getPriority())
             .execute();
         waitForCompletion(client, operation);
 
