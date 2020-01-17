@@ -35,6 +35,7 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     private Map<String, String> labels;
     private EncryptionKey sourceImageEncryptionKey;
     private EncryptionKey sourceSnapshotEncryptionKey;
+    private List<ResourcePolicyResource> resourcePolicy;
 
     /**
      * The source image to create this disk in the form of a URL path. See `Images <https://cloud.google.com/compute/docs/images/>`_.
@@ -135,6 +136,20 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
         this.sourceSnapshotEncryptionKey = sourceSnapshotEncryptionKey;
     }
 
+    /**
+     * Resource policies applied to this disk for automatic snapshot creations.
+     */
+    public List<ResourcePolicyResource> getResourcePolicy() {
+        if (resourcePolicy == null) {
+            resourcePolicy = new ArrayList<>();
+        }
+        return resourcePolicy;
+    }
+
+    public void setResourcePolicy(List<ResourcePolicyResource> resourcePolicy) {
+        this.resourcePolicy = resourcePolicy;
+    }
+
     @Override
     public String primaryKey() {
         return getDiskName();
@@ -166,6 +181,13 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
             snapshotEncryptionKey.copyFrom(model.getSourceImageEncryptionKey());
             setSourceSnapshotEncryptionKey(snapshotEncryptionKey);
         }
+
+        getResourcePolicy().clear();
+        if (model.getResourcePolicies() != null) {
+            setResourcePolicy(model.getResourcePolicies().stream()
+                .map(policy -> findById(ResourcePolicyResource.class, policy))
+                .collect(Collectors.toList()));
+        }
     }
 
     public AttachedDiskInitializeParams copyTo() {
@@ -181,6 +203,9 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
             getSourceSnapshotEncryptionKey() != null
                 ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
                 : null);
+        initializeParams.setResourcePolicies(!getResourcePolicy().isEmpty() ? getResourcePolicy().stream()
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList()) : null);
 
         return initializeParams;
     }

@@ -54,6 +54,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private EncryptionKey sourceSnapshotEncryptionKey;
     private Map<String, String> labels;
     private Long physicalBlockSizeBytes;
+    private List<ResourcePolicyResource> resourcePolicy;
 
     // Read-only
     private String status;
@@ -166,6 +167,21 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
 
     public void setPhysicalBlockSizeBytes(Long physicalBlockSizeBytes) {
         this.physicalBlockSizeBytes = physicalBlockSizeBytes;
+    }
+
+    /**
+     * Adds an existing resource policy to a disk which will be applied to this disk for scheduling snapshot creation.
+     */
+    @Updatable
+    public List<ResourcePolicyResource> getResourcePolicy() {
+        if (resourcePolicy == null) {
+            resourcePolicy = new ArrayList<>();
+        }
+        return resourcePolicy;
+    }
+
+    public void setResourcePolicy(List<ResourcePolicyResource> resourcePolicy) {
+        this.resourcePolicy = resourcePolicy;
     }
 
     /**
