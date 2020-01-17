@@ -57,7 +57,14 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
     }
 
     public void setRegion(String region) {
-        this.region = region;
+        this.region = region != null ? region.substring(region.lastIndexOf("/") + 1) : null;
+    }
+
+    @Override
+    public void copyFrom(TargetHttpProxy targetHttpProxy) {
+        super.copyFrom(targetHttpProxy);
+
+        setRegion(targetHttpProxy.getRegion());
     }
 
     @Override
@@ -90,6 +97,8 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
         UrlMapReference urlMapReference = new UrlMapReference();
         urlMapReference.setUrlMap(getUrlMapSelfLink());
         client.regionTargetHttpProxies().setUrlMap(getProjectId(), getRegion(), getName(), urlMapReference).execute();
+
+        refresh();
     }
 
     @Override
