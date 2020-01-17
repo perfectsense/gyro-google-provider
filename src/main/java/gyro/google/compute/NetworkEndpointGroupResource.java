@@ -32,6 +32,7 @@ import com.google.api.services.compute.model.Operation;
 import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -195,6 +196,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     /**
      * The fully qualified url of the network endpoint group.
      */
+    @Id
     @Output
     public String getSelfLink() {
         return selfLink;

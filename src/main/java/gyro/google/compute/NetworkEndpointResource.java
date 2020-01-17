@@ -24,7 +24,6 @@ import com.google.api.services.compute.model.HealthStatusForNetworkEndpoint;
 import com.google.api.services.compute.model.NetworkEndpoint;
 import com.google.api.services.compute.model.NetworkEndpointWithHealthStatus;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -38,7 +37,9 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
     // Read-only
     private List<String> healthStatus;
 
-    @Id
+    /**
+     * The instance resource to add. Required for network endpoints of type ``GCE_VM_IP_PORT``.
+     */
     @Required
     public InstanceResource getInstance() {
         return instance;
@@ -48,6 +49,9 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
         this.instance = instance;
     }
 
+    /**
+     * Port number of network endpoint. If unspecified and the ``NetworkEndpointGroup.network_endpoint_type`` is ``GCE_IP_PORT``, then the ``defaultPort`` for the network endpoint group will be used.
+     */
     public Integer getPort() {
         return port;
     }
@@ -56,6 +60,9 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
         this.port = port;
     }
 
+    /**
+     * IPv4 address of network endpoint. The IP address must belong to a VM in Compute Engine as either the primary IP or as part of an aliased IP range. If not specified the primary IP address for the instance resource in the network that the network endpoint group belongs to will be used.
+     */
     public String getIpAddress() {
         return ipAddress;
     }
