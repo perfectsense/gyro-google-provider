@@ -109,6 +109,7 @@ public class DiffableGenerator {
                 }
             }
         }
+        generatePrimaryKeyMethod();
 
         TypeSpec typeSpec = resourceBuilder.build();
         String packageName = PROVIDER_PACKAGE + "." + description.getName() + ".base";
@@ -276,6 +277,16 @@ public class DiffableGenerator {
 
     private MethodSpec generateMethods(String name, JsonSchema property) {
         return null;
+    }
+
+    private void generatePrimaryKeyMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("primaryKey")
+            .returns(String.class)
+            .addModifiers(Modifier.PUBLIC)
+            .addAnnotation(Override.class)
+            .addComment("TODO: implement")
+            .addCode(CodeBlock.builder().addStatement("return \"\"").build());
+        resourceBuilder.addMethod(builder.build());
     }
 
     private TypeSpec generateComplexType(String name, JsonSchema schema, Map<String, TypeSpec> resourceMap)
