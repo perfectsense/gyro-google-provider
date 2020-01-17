@@ -109,7 +109,10 @@ public class DiffableGenerator {
                 }
             }
         }
-        generatePrimaryKeyMethod();
+
+        if (getClass().equals(DiffableGenerator.class)) {
+            generatePrimaryKeyMethod();
+        }
 
         TypeSpec typeSpec = resourceBuilder.build();
         String packageName = PROVIDER_PACKAGE + "." + description.getName() + ".base";
