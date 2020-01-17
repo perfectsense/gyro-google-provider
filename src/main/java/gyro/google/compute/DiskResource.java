@@ -16,10 +16,16 @@
 
 package gyro.google.compute;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.CustomerEncryptionKey;
 import com.google.api.services.compute.model.Disk;
+import com.google.api.services.compute.model.DisksAddResourcePoliciesRequest;
+import com.google.api.services.compute.model.DisksRemoveResourcePoliciesRequest;
 import com.google.api.services.compute.model.DisksResizeRequest;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.ZoneSetLabelsRequest;
@@ -30,6 +36,7 @@ import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
 
 /**
@@ -50,6 +57,20 @@ import gyro.core.validation.Required;
  *             label-key: 'label-value'
  *         }
  *         physical-block-size-bytes: 4096
+ *         resource-policy: $(google::compute-resource-policy example-policy-disk-alpha)
+ *     end
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-disk disk-image-example
+ *         name: "disk-image-example"
+ *         description: "disk-image-example-desc"
+ *         zone: "us-west1-a"
+ *         source-image: $(google::compute-image image-example)
+ *
+ *         source-image-encryption-key
+ *             raw-key: "SGVsbG8gZnJvbSBHb29nbGUgQ2xvdWQgUGxhdGZvcm0="
+ *         end
  *     end
  */
 @Type("compute-disk")
@@ -57,6 +78,8 @@ public class DiskResource extends AbstractDiskResource {
 
     private String zone;
     private String type;
+    private ImageResource sourceImage;
+    private EncryptionKey sourceImageEncryptionKey;
 
     /**
      * The zone where the disk resides. (Required)
@@ -83,12 +106,43 @@ public class DiskResource extends AbstractDiskResource {
         this.type = type != null ? toZoneDiskTypeUrl(getProjectId(), type, getZone()) : null;
     }
 
+    /**
+     * The source image used to create this disk. Conflicts with ``source-snapshot``.
+     */
+    @ConflictsWith("source-snapshot")
+    public ImageResource getSourceImage() {
+        return sourceImage;
+    }
+
+    public void setSourceImage(ImageResource sourceImage) {
+        this.sourceImage = sourceImage;
+    }
+
+    /**
+     * The encryption key of the source image. This is required if the source image is protected by a customer-supplied encryption key.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
+     */
+    public EncryptionKey getSourceImageEncryptionKey() {
+        return sourceImageEncryptionKey;
+    }
+
+    public void setSourceImageEncryptionKey(EncryptionKey sourceImageEncryptionKey) {
+        this.sourceImageEncryptionKey = sourceImageEncryptionKey;
+    }
+
     @Override
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
         setZone(disk.getZone());
         setType(disk.getType());
+
+        setSourceImage(null);
+        if (ImageResource.parseImage(getProjectId(), disk.getSourceImage()) != null
+            || ImageResource.parseFamilyImage(getProjectId(), disk.getSourceImage()) != null) {
+            setSourceImage(findById(ImageResource.class, disk.getSourceImage()));
+        }
     }
 
     @Override
@@ -108,6 +162,13 @@ public class DiskResource extends AbstractDiskResource {
         Disk disk = toDisk();
         disk.setZone(getZone());
         disk.setType(getType());
+        disk.setSourceImage(getSourceImage() != null ? getSourceImage().getSelfLink() : null);
+        disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
+            ? getSourceImageEncryptionKey().toCustomerEncryptionKey()
+            : Data.nullOf(CustomerEncryptionKey.class));
+        disk.setResourcePolicies(!getResourcePolicy().isEmpty() ? getResourcePolicy().stream()
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList()) : null);
 
         Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
         createDisk(client, insert);
@@ -125,6 +186,10 @@ public class DiskResource extends AbstractDiskResource {
 
         if (changedFieldNames.contains("labels")) {
             saveLabels(client);
+        }
+
+        if (changedFieldNames.contains("resource-policy")) {
+            saveResourcePolicies(client, (DiskResource) current);
         }
 
         refresh();
@@ -159,7 +224,43 @@ public class DiskResource extends AbstractDiskResource {
         waitForCompletion(client, operation);
     }
 
+    private void saveResourcePolicies(Compute client, DiskResource current) throws Exception {
+        List<String> removed = current.getResourcePolicy().stream()
+            .filter(policy -> !getResourcePolicy().contains(policy))
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList());
+        List<String> added = getResourcePolicy().stream()
+            .filter(policy -> !current.getResourcePolicy().contains(policy))
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList());
+
+        if (!removed.isEmpty()) {
+            Operation operation = client.disks()
+                .removeResourcePolicies(getProjectId(),
+                    getZone(),
+                    getName(),
+                    new DisksRemoveResourcePoliciesRequest().setResourcePolicies(removed))
+                .execute();
+            waitForCompletion(client, operation);
+        }
+
+        if (!added.isEmpty()) {
+            Operation operation = client.disks()
+                .addResourcePolicies(
+                    getProjectId(),
+                    getZone(),
+                    getName(),
+                    new DisksAddResourcePoliciesRequest().setResourcePolicies(added))
+                .execute();
+            waitForCompletion(client, operation);
+        }
+    }
+
     static ProjectZoneDiskName parseDisk(String projectId, String selfLink) {
+        if (selfLink == null) {
+            return null;
+        }
+
         String parseDiskName = formatResource(projectId, selfLink);
         if (ProjectZoneDiskName.isParsableFrom(parseDiskName)) {
             return ProjectZoneDiskName.parse(parseDiskName);

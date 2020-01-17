@@ -37,6 +37,7 @@ import gyro.core.Wait;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
@@ -53,6 +54,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private EncryptionKey sourceSnapshotEncryptionKey;
     private Map<String, String> labels;
     private Long physicalBlockSizeBytes;
+    private List<ResourcePolicyResource> resourcePolicy;
 
     // Read-only
     private String status;
@@ -99,8 +101,9 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The source snapshot used to create the disk.
+     * The source snapshot used to create the disk. Conflicts with ``source-image``.
      */
+    @ConflictsWith("source-image")
     public SnapshotResource getSourceSnapshot() {
         return sourceSnapshot;
     }
@@ -164,6 +167,21 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
 
     public void setPhysicalBlockSizeBytes(Long physicalBlockSizeBytes) {
         this.physicalBlockSizeBytes = physicalBlockSizeBytes;
+    }
+
+    /**
+     * Adds an existing resource policy to a disk which will be applied to this disk for scheduling snapshot creation.
+     */
+    @Updatable
+    public List<ResourcePolicyResource> getResourcePolicy() {
+        if (resourcePolicy == null) {
+            resourcePolicy = new ArrayList<>();
+        }
+        return resourcePolicy;
+    }
+
+    public void setResourcePolicy(List<ResourcePolicyResource> resourcePolicy) {
+        this.resourcePolicy = resourcePolicy;
     }
 
     /**

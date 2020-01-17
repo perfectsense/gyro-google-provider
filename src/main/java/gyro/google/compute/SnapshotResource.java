@@ -420,4 +420,16 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         }
         return snapshot;
     }
+
+    static ProjectGlobalSnapshotName parseSnapshot(String projectId, String selfLink) {
+        if (selfLink == null) {
+            return null;
+        }
+
+        String parseSnapshot = formatResource(projectId, selfLink);
+        if (ProjectGlobalSnapshotName.isParsableFrom(parseSnapshot)) {
+            return ProjectGlobalSnapshotName.parse(parseSnapshot);
+        }
+        return null;
+    }
 }

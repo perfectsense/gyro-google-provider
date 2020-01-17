@@ -93,13 +93,17 @@ public class DiskFinder extends GoogleFinder<Compute, Disk, DiskResource> {
 
     @Override
     protected List<Disk> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        List<Disk> disks;
+
         if (filters.containsKey("name")) {
-            return Collections.singletonList(client.disks()
+            disks = Collections.singletonList(client.disks()
                 .get(getProjectId(), filters.get("zone"), filters.get("name"))
                 .execute());
         } else {
-            return Optional.ofNullable(client.disks().list(getProjectId(), filters.get("zone")).execute().getItems())
+            disks = Optional.ofNullable(client.disks().list(getProjectId(), filters.get("zone")).execute().getItems())
                 .orElse(new ArrayList<>());
         }
+
+        return disks;
     }
 }

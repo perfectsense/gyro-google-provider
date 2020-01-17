@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Disk;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.RegionDisksAddResourcePoliciesRequest;
+import com.google.api.services.compute.model.RegionDisksRemoveResourcePoliciesRequest;
 import com.google.api.services.compute.model.RegionDisksResizeRequest;
 import com.google.api.services.compute.model.RegionSetLabelsRequest;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
@@ -49,6 +51,7 @@ import gyro.core.validation.ValidationError;
  *         name: "region-disk-example"
  *         description: "region-disk-example-desc"
  *         region: "us-central1"
+ *         resource-policy: $(google::compute-resource-policy example-policy-disk-gamma)
  *
  *         replica-zones: [
  *             "us-central1-c",
@@ -158,6 +161,9 @@ public class RegionDiskResource extends AbstractDiskResource {
         disk.setRegion(getRegion());
         disk.setReplicaZones(getReplicaZones());
         disk.setType(getType());
+        disk.setResourcePolicies(!getResourcePolicy().isEmpty() ? getResourcePolicy().stream()
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList()) : null);
 
         Compute.RegionDisks.Insert insert = client.regionDisks().insert(getProjectId(), getRegion(), disk);
         createDisk(client, insert);
@@ -175,6 +181,10 @@ public class RegionDiskResource extends AbstractDiskResource {
 
         if (changedFieldNames.contains("labels")) {
             saveLabels(client);
+        }
+
+        if (changedFieldNames.contains("resource-policy")) {
+            saveResourcePolicies(client, (RegionDiskResource) current);
         }
 
         refresh();
@@ -227,7 +237,43 @@ public class RegionDiskResource extends AbstractDiskResource {
         waitForCompletion(client, operation);
     }
 
+    private void saveResourcePolicies(Compute client, RegionDiskResource current) throws Exception {
+        List<String> removed = current.getResourcePolicy().stream()
+            .filter(policy -> !getResourcePolicy().contains(policy))
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList());
+        List<String> added = getResourcePolicy().stream()
+            .filter(policy -> !current.getResourcePolicy().contains(policy))
+            .map(ResourcePolicyResource::getSelfLink)
+            .collect(Collectors.toList());
+
+        if (!removed.isEmpty()) {
+            Operation operation = client.regionDisks()
+                .removeResourcePolicies(getProjectId(),
+                    getRegion(),
+                    getName(),
+                    new RegionDisksRemoveResourcePoliciesRequest().setResourcePolicies(removed))
+                .execute();
+            waitForCompletion(client, operation);
+        }
+
+        if (!added.isEmpty()) {
+            Operation operation = client.regionDisks()
+                .addResourcePolicies(
+                    getProjectId(),
+                    getRegion(),
+                    getName(),
+                    new RegionDisksAddResourcePoliciesRequest().setResourcePolicies(added))
+                .execute();
+            waitForCompletion(client, operation);
+        }
+    }
+
     static ProjectRegionDiskName parseRegionDisk(String projectId, String selfLink) {
+        if (selfLink == null) {
+            return null;
+        }
+
         String parseDiskName = formatResource(projectId, selfLink);
         if (ProjectRegionDiskName.isParsableFrom(parseDiskName)) {
             return ProjectRegionDiskName.parse(parseDiskName);
