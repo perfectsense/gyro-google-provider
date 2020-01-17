@@ -16,8 +16,11 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.AttachedDiskInitializeParams;
 import gyro.core.resource.Diffable;
