@@ -19,6 +19,8 @@ package gyro.google.compute;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.api.services.compute.model.AccessConfig;
+import com.google.api.services.compute.model.AliasIpRange;
 import com.google.api.services.compute.model.NetworkInterface;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
@@ -129,10 +131,6 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
 
     @Override
     public void copyFrom(NetworkInterface model) {
-        setNetworkIp(model.getNetworkIP());
-        setFingerprint(model.getFingerprint());
-        setName(model.getName());
-
         setNetwork(null);
         if (model.getNetwork() != null) {
             setNetwork(findById(NetworkResource.class, model.getNetwork()));
@@ -142,6 +140,40 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
         if (model.getSubnetwork() != null) {
             setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         }
+        setNetworkIp(model.getNetworkIP());
+
+        List<InstanceAccessConfig> diffableAccessConfigs = null;
+        List<AccessConfig> accessConfigs = model.getAccessConfigs();
+
+        if (accessConfigs != null && !accessConfigs.isEmpty()) {
+            diffableAccessConfigs = accessConfigs
+                .stream()
+                .map(accessConfig -> {
+                    InstanceAccessConfig instanceAccessConfig = newSubresource(InstanceAccessConfig.class);
+                    instanceAccessConfig.copyFrom(accessConfig);
+                    return instanceAccessConfig;
+                })
+                .collect(Collectors.toList());
+        }
+        setAccessConfig(diffableAccessConfigs);
+
+        List<InstanceAliasIpRange> diffableAliasIpRanges = null;
+        List<AliasIpRange> aliasIpRanges = model.getAliasIpRanges();
+
+        if (aliasIpRanges != null && !aliasIpRanges.isEmpty()) {
+            diffableAliasIpRanges = aliasIpRanges
+                .stream()
+                .map(aliasIpRange -> {
+                    InstanceAliasIpRange instanceAliasIpRange = newSubresource(InstanceAliasIpRange.class);
+                    instanceAliasIpRange.copyFrom(aliasIpRange);
+                    return instanceAliasIpRange;
+                })
+                .collect(Collectors.toList());
+        }
+        setAliasIpRange(diffableAliasIpRanges);
+
+        setFingerprint(model.getFingerprint());
+        setName(model.getName());
     }
 
     public NetworkInterface copyTo() {
