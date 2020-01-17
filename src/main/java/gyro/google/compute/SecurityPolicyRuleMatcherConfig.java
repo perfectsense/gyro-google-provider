@@ -37,7 +37,7 @@ public class SecurityPolicyRuleMatcherConfig extends Diffable
         return srcIpRanges;
     }
 
-    public void setSrcIpRanges(List srcIpRanges) {
+    public void setSrcIpRanges(List<String> srcIpRanges) {
         this.srcIpRanges = srcIpRanges;
     }
 
