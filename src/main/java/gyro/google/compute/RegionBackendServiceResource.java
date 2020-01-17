@@ -21,6 +21,7 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.BackendService;
 import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.ProjectRegionBackendServiceName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -111,5 +112,9 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
         Compute client = createComputeClient();
         Operation response = client.regionBackendServices().delete(getProjectId(), getRegion(), getName()).execute();
         waitForCompletion(client, response);
+    }
+
+    static boolean isRegionBackendService(String selfLink) {
+        return selfLink != null && (ProjectRegionBackendServiceName.isParsableFrom(formatResource(null, selfLink)));
     }
 }

@@ -160,7 +160,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     @Override
     public String primaryKey() {
         if (getInitializeParams() != null) {
-            return super.primaryKey();
+            return "";
         }
 
         return getSource() != null ? getSource().getSelfLink() : "";

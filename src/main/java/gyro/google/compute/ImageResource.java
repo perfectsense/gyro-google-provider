@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
@@ -452,7 +453,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
 
         Operation operation = client.images().insert(getProjectId(), image).execute();
         // Images are slow to complete so wait max of 3 minutes for completion
-        waitForCompletion(client, operation, 180000);
+        waitForCompletion(client, operation, 3, TimeUnit.MINUTES);
 
         refresh();
     }
