@@ -29,7 +29,7 @@ public class SecurityPolicyRuleMatcher extends Diffable
     private String versionedExpr;
 
     /**
-     * The configuration for the security policy rule matcher. (Required).
+     * The configuration for the security policy rule matcher. (Required)
      */
     @Required
     @Updatable
@@ -42,7 +42,7 @@ public class SecurityPolicyRuleMatcher extends Diffable
     }
 
     /**
-     * The versioned expression of the security policy rule matcher. (Required).
+     * The versioned expression of the security policy rule matcher. Currently only supported value is ``SRC_IPS_V1``. (Required)
      */
     @Required
     @Updatable
@@ -63,19 +63,15 @@ public class SecurityPolicyRuleMatcher extends Diffable
     @Override
     public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRuleMatcher matcher) {
         setVersionedExpr(matcher.getVersionedExpr());
-        if (matcher.getConfig() != null) {
-            SecurityPolicyRuleMatcherConfig config = new SecurityPolicyRuleMatcherConfig();
-            config.setSrcIpRanges(matcher.getConfig().getSrcIpRanges());
-            setConfig(config);
-        }
+        SecurityPolicyRuleMatcherConfig config = new SecurityPolicyRuleMatcherConfig();
+        config.setSrcIpRanges(matcher.getConfig().getSrcIpRanges());
+        setConfig(config);
     }
 
     public com.google.api.services.compute.model.SecurityPolicyRuleMatcher toSecurityPolicyRuleMatcher() {
         com.google.api.services.compute.model.SecurityPolicyRuleMatcher matcher = new com.google.api.services.compute.model.SecurityPolicyRuleMatcher();
         matcher.setVersionedExpr(getVersionedExpr());
-        if (getConfig() != null) {
-            matcher.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
-        }
+        matcher.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
 
         return matcher;
     }

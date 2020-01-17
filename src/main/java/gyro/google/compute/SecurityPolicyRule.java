@@ -62,7 +62,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The action to take for this rule. (Required)
+     * The action to take for this rule. Valid values are ``allow``, ``deny(403)``, ``deny(404)`` or ``deny(502)``. (Required)
      */
     @Updatable
     @Required
@@ -111,7 +111,7 @@ public class SecurityPolicyRule extends ComputeResource
         policyRule.setDescription(getDescription());
         policyRule.setPriority(getPriority());
         policyRule.setPreview(getPreview());
-        policyRule.setMatch(match.toSecurityPolicyRuleMatcher());
+        policyRule.setMatch(getMatch().toSecurityPolicyRuleMatcher());
 
         return policyRule;
     }
@@ -184,6 +184,6 @@ public class SecurityPolicyRule extends ComputeResource
         Compute.SecurityPolicies.RemoveRule removeOperation = client.securityPolicies()
             .removeRule(getProjectId(), securityPolicyResource.getName());
         removeOperation.setPriority(getPriority());
-        removeOperation.execute();
+        waitForCompletion(client, removeOperation.execute());
     }
 }

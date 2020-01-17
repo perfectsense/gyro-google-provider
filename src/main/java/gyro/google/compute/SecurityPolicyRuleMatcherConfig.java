@@ -29,11 +29,11 @@ public class SecurityPolicyRuleMatcherConfig extends Diffable
     private List<String> srcIpRanges;
 
     /**
-     * The ip ranges for this security policy rule matcher configuration.
+     * The ip ranges for this security policy rule matcher configuration. (Required)
      */
     @Required
     @Updatable
-    public List getSrcIpRanges() {
+    public List<String> getSrcIpRanges() {
         return srcIpRanges;
     }
 

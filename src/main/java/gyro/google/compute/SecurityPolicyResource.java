@@ -130,7 +130,6 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     /**
      * The fingerprint for this security policy.
      */
-    @Updatable
     public String getFingerprint() {
         return fingerprint;
     }
@@ -187,6 +186,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         securityPolicy.getRules().forEach(rule -> {
             SecurityPolicyRule securityPolicyRule = newSubresource(SecurityPolicyRule.class);
             securityPolicyRule.copyFrom(rule);
+            getRule().add(securityPolicyRule);
         });
     }
 
