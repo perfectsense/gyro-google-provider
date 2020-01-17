@@ -29,6 +29,23 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 
+/**
+ * Creates a global forwarding rule.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-global-forwarding-rule global-forwarding-rule-example
+ *         name: "global-forwarding-rule-example"
+ *         description: "Global forwarding rule description."
+ *         ip-protocol: "TCP"
+ *         load-balancing-scheme: "EXTERNAL"
+ *         port-range: "80-80"
+ *         target-http-proxy: $(google::compute-target-http-proxy target-http-proxy-example-forwarding-rule)
+ *     end
+ */
 @Type("compute-global-forwarding-rule")
 public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource {
 
