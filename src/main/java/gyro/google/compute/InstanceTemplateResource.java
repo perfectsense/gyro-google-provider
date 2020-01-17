@@ -24,7 +24,6 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
-import com.google.api.services.compute.model.SourceInstanceParams;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Output;
@@ -250,15 +249,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
             // TODO: is it a full url?
             setSourceInstance(findById(InstanceResource.class, sourceInstance));
         }
-        ComputeSourceInstanceParams diffableSourceInstanceParams = null;
-        SourceInstanceParams sourceInstanceParams = model.getSourceInstanceParams();
-
-        if (sourceInstanceParams != null) {
-            diffableSourceInstanceParams = Optional.ofNullable(getSourceInstanceParams())
-                .orElse(newSubresource(ComputeSourceInstanceParams.class));
-            diffableSourceInstanceParams.copyFrom(sourceInstanceParams);
-        }
-        setSourceInstanceParams(diffableSourceInstanceParams);
+        // Do NOT update `sourceInstanceParams` with the value from the server as it's always `null`.
     }
 
     @Override
