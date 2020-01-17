@@ -65,7 +65,9 @@ public class GlobalForwardingRuleFinder extends GoogleFinder<Compute, Forwarding
                 .setPageToken(nextPageToken)
                 .execute();
 
-            forwardingRules.addAll(forwardingRuleList.getItems());
+            if (forwardingRuleList.getItems() != null) {
+                forwardingRules.addAll(forwardingRuleList.getItems());
+            }
             nextPageToken = forwardingRuleList.getNextPageToken();
         } while (nextPageToken != null);
 

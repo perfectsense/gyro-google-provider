@@ -61,7 +61,9 @@ public class TargetHttpProxyFinder extends GoogleFinder<Compute, TargetHttpProxy
 
         do {
             targetHttpProxyList = client.targetHttpProxies().list(getProjectId()).setPageToken(nextPageToken).execute();
-            targetHttpProxies.addAll(targetHttpProxyList.getItems());
+            if (targetHttpProxyList.getItems() != null) {
+                targetHttpProxies.addAll(targetHttpProxyList.getItems());
+            }
             nextPageToken = targetHttpProxyList.getNextPageToken();
         } while (nextPageToken != null);
 
