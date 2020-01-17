@@ -61,8 +61,11 @@ public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResourc
 
         do {
             networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
-            networks.addAll(networkList.getItems());
             nextPageToken = networkList.getNextPageToken();
+
+            if (networkList.getItems() != null) {
+                networks.addAll(networkList.getItems());
+            }
         } while (nextPageToken != null);
 
         return networks;

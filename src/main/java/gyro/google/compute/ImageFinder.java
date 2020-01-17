@@ -118,8 +118,11 @@ public class ImageFinder extends GoogleFinder<Compute, Image, ImageResource> {
 
         do {
             imageList = client.images().list(project).setPageToken(nextPageToken).execute();
-            images.addAll(imageList.getItems().stream().filter(Objects::nonNull).collect(Collectors.toList()));
             nextPageToken = imageList.getNextPageToken();
+
+            if (imageList.getItems() != null) {
+                images.addAll(imageList.getItems().stream().filter(Objects::nonNull).collect(Collectors.toList()));
+            }
         } while (nextPageToken != null);
 
         return images;

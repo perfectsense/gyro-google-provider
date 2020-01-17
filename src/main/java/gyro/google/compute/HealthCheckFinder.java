@@ -60,8 +60,11 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
         String nextPageToken = null;
         do {
             healthCheckList = client.healthChecks().list(getProjectId()).setPageToken(nextPageToken).execute();
-            healthChecks.addAll(healthCheckList.getItems());
             nextPageToken = healthCheckList.getNextPageToken();
+
+            if (healthCheckList.getItems() != null) {
+                healthChecks.addAll(healthCheckList.getItems());
+            }
         } while (nextPageToken != null);
 
         return healthChecks;

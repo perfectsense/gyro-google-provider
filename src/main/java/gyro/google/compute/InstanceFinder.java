@@ -19,6 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
@@ -70,10 +71,10 @@ public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceReso
     protected List<Instance> findAllGoogle(Compute client) throws Exception {
         List<Instance> instances = new ArrayList<>();
         String pageToken;
-        List<String> zones = client.zones().list(getProjectId()).execute().getItems()
-            .stream()
-            .map(Zone::getName)
-            .collect(Collectors.toList());
+        List<Zone> zoneList = Optional.ofNullable(client.zones().list(getProjectId()).execute().getItems()).orElse(new ArrayList<>());
+        List<String> zones = zoneList.stream()
+                .map(Zone::getName)
+                .collect(Collectors.toList());
 
         for (String zone : zones) {
             do {
@@ -105,7 +106,6 @@ public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceReso
                 if (results.getItems() != null) {
                     instances.addAll(results.getItems());
                 }
-
             } while (pageToken != null);
         }
 

@@ -61,8 +61,11 @@ public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallReso
 
         do {
             firewallList = client.firewalls().list(getProjectId()).setPageToken(nextPageToken).execute();
-            firewalls.addAll(firewallList.getItems());
             nextPageToken = firewallList.getNextPageToken();
+
+            if (firewallList.getItems() != null) {
+                firewalls.addAll(firewallList.getItems());
+            }
         } while (nextPageToken != null);
 
         return firewalls;

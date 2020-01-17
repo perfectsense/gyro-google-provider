@@ -16,12 +16,15 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Metadata;
+import com.google.api.services.compute.model.Project;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -53,20 +56,26 @@ public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.It
 
     @Override
     protected List<Metadata.Items> findAllGoogle(Compute client) throws Exception {
-        return client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems();
+        return Optional.ofNullable(client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems()).orElse(new ArrayList<>());
     }
 
     @Override
     protected List<Metadata.Items> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        Metadata.Items item = client.projects()
+        Project project = client.projects()
             .get(getProjectId())
-            .execute()
-            .getCommonInstanceMetadata()
-            .getItems()
-            .stream()
-            .filter(r -> filters.get("key").equals(r.getKey()))
-            .findFirst()
-            .orElse(null);
+            .execute();
+
+        Metadata.Items item = null;
+
+        if (project.getCommonInstanceMetadata() != null && project.getCommonInstanceMetadata().getItems() != null) {
+            item = project
+                .getCommonInstanceMetadata()
+                .getItems()
+                .stream()
+                .filter(r -> filters.get("key").equals(r.getKey()))
+                .findFirst()
+                .orElse(null);
+        }
 
         if (item != null) {
             return Collections.singletonList(item);

@@ -107,7 +107,9 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
                     .execute();
                 pageToken = addressList.getNextPageToken();
 
-                addresses.addAll(addressList.getItems());
+                if (addressList.getItems() != null) {
+                    addresses.addAll(addressList.getItems());
+                }
 
             } while (pageToken != null);
         }
