@@ -63,8 +63,8 @@ public class SecurityPolicyRuleMatcher extends Diffable
     @Override
     public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRuleMatcher matcher) {
         setVersionedExpr(matcher.getVersionedExpr());
-        SecurityPolicyRuleMatcherConfig config = new SecurityPolicyRuleMatcherConfig();
-        config.setSrcIpRanges(matcher.getConfig().getSrcIpRanges());
+        SecurityPolicyRuleMatcherConfig config = newSubresource(SecurityPolicyRuleMatcherConfig.class);
+        config.copyFrom(matcher.getConfig());
         setConfig(config);
     }
 
