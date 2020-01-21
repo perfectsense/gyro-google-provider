@@ -25,10 +25,18 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerList;
 import gyro.core.Type;
+import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
 
 /**
+ * Query Instance Group Manager.
  *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *    instance-group-manager: $(external-query google::compute-instance-group-manager { name: 'instance-group-manager-example' })
  */
 @Type("compute-instance-group-manager")
 public class InstanceGroupManagerFinder
@@ -41,6 +49,7 @@ public class InstanceGroupManagerFinder
     /**
      * User assigned name for the instance group manager.
      */
+    @Required
     public String getName() {
         return name;
     }
@@ -49,6 +58,10 @@ public class InstanceGroupManagerFinder
         this.name = name;
     }
 
+    /**
+     * The zone where the managed instance group is located (for zonal resources).
+     */
+    @Required
     public String getZone() {
         return zone;
     }

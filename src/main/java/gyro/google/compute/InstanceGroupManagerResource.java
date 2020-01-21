@@ -35,7 +35,21 @@ import gyro.core.scope.State;
 import gyro.core.validation.ValidationError;
 
 /**
+ * Creates an Instance Group Manager.
  *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *     google::compute-instance-group-manager instance-group-manager-example
+ *         name: "instance-group-manager-example"
+ *         base-instance-name: "instance-group-manager-example"
+ *         description: "Instance group manager example"
+ *         instance-template: $(google::compute-instance-template instance-group-template-example)
+ *         target-size: 1
+ *         zone: "us-central-1"
+ *     end
  */
 @Type("compute-instance-group-manager")
 public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerResource {
