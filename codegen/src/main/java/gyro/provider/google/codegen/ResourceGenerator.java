@@ -21,7 +21,9 @@ import javax.lang.model.element.Modifier;
 import com.google.api.services.discovery.model.RestDescription;
 import com.google.api.services.discovery.model.RestMethod;
 import com.google.api.services.discovery.model.RestResource;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
 public class ResourceGenerator extends DiffableGenerator {
@@ -44,6 +46,8 @@ public class ResourceGenerator extends DiffableGenerator {
             .superclass(GoogleResource.class);
         try {
             gClass = Class.forName(String.format(GOOGLE_PACKAGE_NAME, description.getName(), schemaName));
+            ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName.get(Copyable.class, gClass);
+            this.resourceBuilder.addSuperinterface(parameterizedTypeName);
         } catch (ClassNotFoundException e) {
             System.err.println("Class Not Found in Google SDK: " + schemaName);
         }

@@ -50,6 +50,7 @@ import gyro.core.resource.Output;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
+import gyro.google.Copyable;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
@@ -82,6 +83,8 @@ public class DiffableGenerator {
 
         try {
             gClass = Class.forName(String.format(GOOGLE_PACKAGE_NAME, description.getName(), schemaName));
+            ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName.get(Copyable.class, gClass);
+            this.resourceBuilder.addSuperinterface(parameterizedTypeName);
         } catch (ClassNotFoundException e) {
             System.err.println("Class Not Found in Google SDK: " + schemaName);
         }
@@ -105,6 +108,8 @@ public class DiffableGenerator {
 
         try {
             gClass = Class.forName(String.format(GOOGLE_PACKAGE_NAME, description.getName(), schemaName));
+            ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName.get(Copyable.class, gClass);
+            this.resourceBuilder.addSuperinterface(parameterizedTypeName);
         } catch (ClassNotFoundException e) {
             System.err.println("Class Not Found in Google SDK: " + schemaName);
         }
@@ -123,6 +128,7 @@ public class DiffableGenerator {
                 }
             }
         }
+        generateCopyToAndFromMethods();
 
         if (getClass().equals(DiffableGenerator.class)) {
             generatePrimaryKeyMethod();
@@ -301,6 +307,28 @@ public class DiffableGenerator {
             .addComment("TODO: implement")
             .addStatement("return \"\"");
         resourceBuilder.addMethod(builder.build());
+    }
+
+    private void generateCopyToAndFromMethods() {
+        if (gClass != null) {
+            String name = com.psddev.dari.util.StringUtils.toCamelCase(gClass.getSimpleName());
+
+            MethodSpec.Builder copyToBuilder = MethodSpec.methodBuilder("copyTo")
+                .returns(gClass)
+                .addModifiers(Modifier.PUBLIC)
+                .addComment("TODO: implement")
+                .addStatement("$T $L = new $T()", gClass, name, gClass)
+                .addStatement("return $L", name);
+            resourceBuilder.addMethod(copyToBuilder.build());
+
+            MethodSpec.Builder copyFromBuilder = MethodSpec.methodBuilder("copyFrom")
+                .returns(TypeName.VOID)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(gClass, name)
+                .addComment("TODO: implement");
+            resourceBuilder.addMethod(copyFromBuilder.build());
+        }
     }
 
     private TypeSpec generateComplexType(String name, JsonSchema schema, Map<String, TypeSpec> resourceMap)

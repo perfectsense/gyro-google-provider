@@ -38,6 +38,7 @@ import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
+import gyro.google.Copyable;
 
 public class ResourceConcreteGenerator {
 
@@ -74,6 +75,8 @@ public class ResourceConcreteGenerator {
 
             try {
                 Class<?> gClass = Class.forName(String.format(DiffableGenerator.GOOGLE_PACKAGE_NAME, packageName, schemaName));
+                ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName.get(Copyable.class, gClass);
+                resourceBuilder.addSuperinterface(parameterizedTypeName);
             } catch (ClassNotFoundException e) {
                 System.err.println("Class Not Found in Google SDK: " + schemaName);
             }
