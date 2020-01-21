@@ -85,7 +85,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
         Operation operation = client.instanceGroupManagers()
             .insert(getProjectId(), getZone(), instanceGroupManager)
             .execute();
-        ComputeUtils.waitForCompletion(client, operation, getProjectId());
+        waitForCompletion(client, operation);
         refresh();
     }
 
@@ -100,7 +100,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
         Operation operation = client.instanceGroupManagers()
             .delete(getProjectId(), getZone(), getName())
             .execute();
-        ComputeUtils.waitForCompletion(client, operation, getProjectId());
+        waitForCompletion(client, operation);
     }
 
     @Override

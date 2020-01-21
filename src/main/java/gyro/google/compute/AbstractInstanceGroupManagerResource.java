@@ -25,9 +25,8 @@ import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-import gyro.google.GoogleResource;
 
-public abstract class AbstractInstanceGroupManagerResource extends GoogleResource
+public abstract class AbstractInstanceGroupManagerResource extends ComputeResource
     implements Copyable<InstanceGroupManager> {
 
     private String baseInstanceName;
