@@ -72,6 +72,11 @@ public class ResourceConcreteGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(ClassName.get(basePackage, typeSpec.name));
 
+            try {
+                Class<?> gClass = Class.forName(String.format(DiffableGenerator.GOOGLE_PACKAGE_NAME, packageName, schemaName));
+            } catch (ClassNotFoundException e) {
+                System.err.println("Class Not Found in Google SDK: " + schemaName);
+            }
             String typeName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, schemaName);
 
             resourceBuilder.addAnnotation(

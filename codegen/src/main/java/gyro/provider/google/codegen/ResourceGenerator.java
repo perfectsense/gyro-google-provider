@@ -42,6 +42,11 @@ public class ResourceGenerator extends DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder("Abstract" + schemaName + "Resource")
             .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
             .superclass(GoogleResource.class);
+        try {
+            gClass = Class.forName(String.format(GOOGLE_PACKAGE_NAME, description.getName(), schemaName));
+        } catch (ClassNotFoundException e) {
+            System.err.println("Class Not Found in Google SDK: " + schemaName);
+        }
         this.generateConcrete = generateConcrete;
     }
 }

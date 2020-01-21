@@ -56,6 +56,7 @@ import org.apache.commons.lang.StringUtils;
 public class DiffableGenerator {
 
     private static final String PROVIDER_PACKAGE = "gyro.google";
+    protected static final String GOOGLE_PACKAGE_NAME = "com.google.api.services.%s.model.%s";
 
     protected String schemaName;
     protected String output;
@@ -64,6 +65,7 @@ public class DiffableGenerator {
     protected TypeSpec.Builder resourceBuilder;
     protected Set<String> dependentResources;
     protected boolean generateConcrete;
+    protected Class<?> gClass;
 
     public DiffableGenerator() {
         dependentResources = new HashSet<>();
@@ -77,6 +79,12 @@ public class DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder(StringUtils.capitalize(description.getName()) + schemaName)
             .addModifiers(Modifier.PUBLIC)
             .superclass(Diffable.class);
+
+        try {
+            gClass = Class.forName(String.format(GOOGLE_PACKAGE_NAME, description.getName(), schemaName));
+        } catch (ClassNotFoundException e) {
+            System.err.println("Class Not Found in Google SDK: " + schemaName);
+        }
         this.dependentResources = new HashSet<>();
         this.generateConcrete = generateConcrete;
     }
@@ -94,6 +102,12 @@ public class DiffableGenerator {
         this.resourceBuilder = TypeSpec.classBuilder(StringUtils.capitalize(description.getName()) + schemaName)
             .addModifiers(Modifier.PUBLIC)
             .superclass(Diffable.class);
+
+        try {
+            gClass = Class.forName(String.format(GOOGLE_PACKAGE_NAME, description.getName(), schemaName));
+        } catch (ClassNotFoundException e) {
+            System.err.println("Class Not Found in Google SDK: " + schemaName);
+        }
         this.dependentResources = new HashSet<>();
         this.generateConcrete = generateConcrete;
     }
@@ -185,11 +199,10 @@ public class DiffableGenerator {
 
         if ("string".equals(type)) {
             if (isResource(name, resourceMap, property)) {
-                resourceBuilder.addField(
-                    FieldSpec.builder(TypeVariableName.get(resourceMap.get(name).name), name, Modifier.PRIVATE)
-                        .build());
+                TypeVariableName typeVariableName = TypeVariableName.get(resourceMap.get(name).name);
+                resourceBuilder.addField(FieldSpec.builder(typeVariableName, name, Modifier.PRIVATE).build());
 
-                generateGetterSetter(name, TypeVariableName.get(resourceMap.get(name).name), false, property);
+                generateGetterSetter(name, typeVariableName, false, property, typeVariableName);
             } else {
                 resourceBuilder.addField(FieldSpec.builder(String.class, name, Modifier.PRIVATE).build());
 
@@ -210,12 +223,10 @@ public class DiffableGenerator {
         } else if ("object".equals(type)) {
             String typeName = schemaName + StringUtils.capitalize(name);
             TypeSpec complexType = generateComplexType(typeName, property, resourceMap);
+            TypeVariableName typeVariableName = TypeVariableName.get(complexType.name);
+            resourceBuilder.addField(FieldSpec.builder(typeVariableName, name, Modifier.PRIVATE).build());
 
-            resourceBuilder.addField(
-                FieldSpec.builder(TypeVariableName.get(complexType.name), name, Modifier.PRIVATE)
-                    .build());
-
-            generateGetterSetter(name, TypeVariableName.get(complexType.name), false, property);
+            generateGetterSetter(name, typeVariableName, false, property, typeVariableName);
         } else if ("array".equals(type)) {
             JsonSchema schema = property.getItems();
             String schemaType = schema.getType();
@@ -224,13 +235,14 @@ public class DiffableGenerator {
                 String typeName = removePlural(schemaName + StringUtils.capitalize(name));
                 TypeSpec complexType = generateComplexType(typeName, property.getItems(), resourceMap);
                 ClassName list = ClassName.get("java.util", "List");
-                TypeName listOf = ParameterizedTypeName.get(list, TypeVariableName.get(complexType.name));
+                TypeVariableName typeVariableName = TypeVariableName.get(complexType.name);
+                TypeName listOf = ParameterizedTypeName.get(list, typeVariableName);
 
                 resourceBuilder.addField(
                     FieldSpec.builder(listOf, removePlural(name), Modifier.PRIVATE)
                         .build());
 
-                generateGetterSetter(removePlural(name), listOf, true, property);
+                generateGetterSetter(removePlural(name), listOf, true, property, typeVariableName);
             } else if ("string".equals(schemaType)) {
                 ClassName list = ClassName.get("java.util", "List");
                 TypeName listOf;
@@ -250,13 +262,14 @@ public class DiffableGenerator {
             } else if (schemaType == null) {
                 TypeSpec complexType = generateComplexType(schema.get$ref(), resourceMap);
                 ClassName list = ClassName.get("java.util", "List");
-                TypeName listOf = ParameterizedTypeName.get(list, TypeVariableName.get(complexType.name));
+                TypeVariableName typeVariableName = TypeVariableName.get(complexType.name);
+                TypeName listOf = ParameterizedTypeName.get(list, typeVariableName);
 
                 resourceBuilder.addField(
                     FieldSpec.builder(listOf, removePlural(name), Modifier.PRIVATE)
                         .build());
 
-                generateGetterSetter(removePlural(name), listOf, true, property);
+                generateGetterSetter(removePlural(name), listOf, true, property, typeVariableName);
 
             } else {
                 throw new NotImplementedException("Unhandled schema: " + name + ": " + type + "(" + schemaType + ")");
@@ -266,12 +279,10 @@ public class DiffableGenerator {
             String typeName = StringUtils.uncapitalize(name);
 
             TypeSpec complexType = generateComplexType(property.get$ref(), resourceMap);
+            TypeVariableName typeVariableName = TypeVariableName.get(complexType.name);
+            resourceBuilder.addField(FieldSpec.builder(typeVariableName, typeName, Modifier.PRIVATE).build());
 
-            resourceBuilder.addField(
-                FieldSpec.builder(TypeVariableName.get(complexType.name), typeName, Modifier.PRIVATE)
-                    .build());
-
-            generateGetterSetter(typeName, TypeVariableName.get(complexType.name), false, property);
+            generateGetterSetter(typeName, typeVariableName, false, property, typeVariableName);
         } else {
             throw new NotImplementedException("Unhandled type: " + name + ": " + type);
         }
@@ -288,7 +299,7 @@ public class DiffableGenerator {
             .addModifiers(Modifier.PUBLIC)
             .addAnnotation(Override.class)
             .addComment("TODO: implement")
-            .addCode(CodeBlock.builder().addStatement("return \"\"").build());
+            .addStatement("return \"\"");
         resourceBuilder.addMethod(builder.build());
     }
 
@@ -325,6 +336,10 @@ public class DiffableGenerator {
     }
 
     private void generateGetterSetter(String name, TypeName type, boolean isList, JsonSchema property) {
+        generateGetterSetter(name, type, isList, property, null);
+    }
+
+    private void generateGetterSetter(String name, TypeName type, boolean isList, JsonSchema property, TypeName resourceTypeName) {
         // getter start
         MethodSpec.Builder builder = MethodSpec.methodBuilder(String.format("get%s", StringUtils.capitalize(name)))
             .returns(type)
@@ -335,6 +350,17 @@ public class DiffableGenerator {
             builder.addJavadoc(property.getDescription()
                 .replaceFirst(Pattern.quote("[Output Only] "), "")
                 .replaceAll("\n", "") + "\n");
+        }
+
+        if (resourceTypeName != null) {
+            boolean isSubresource = resourceTypeName.toString().toLowerCase().startsWith(description.getName().toLowerCase())
+                && !resourceTypeName.toString().endsWith("Resource");
+            builder.addJavadoc("\n")
+                .addJavadoc("@$Lresource $L.$L.base.$T\n",
+                    isSubresource ? "sub" : "",
+                    PROVIDER_PACKAGE,
+                    description.getName(),
+                    resourceTypeName);
         }
 
         // Add code to initialize list type variable if null
