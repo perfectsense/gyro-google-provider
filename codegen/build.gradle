@@ -54,9 +54,13 @@ dependencies {
     api 'gyro:gyro-google-provider:0.99.1-SNAPSHOT'
     api 'io.airlift:airline:0.8'
 
+    implementation enforcedPlatform('com.google.cloud:google-cloud-bom:0.119.0-alpha')
     implementation 'com.google.guava:guava:28.1-jre'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
     implementation 'com.google.auth:google-auth-library-oauth2-http:0.18.0'
     implementation 'com.google.apis:google-api-services-discovery:v1-rev123-1.25.0'
+    implementation 'com.google.cloud:google-cloud-compute'
+    implementation 'com.google.cloud:google-cloud-dns'
+    implementation 'com.google.cloud:google-cloud-storage'
     implementation 'com.squareup:javapoet:1.11.1'
 }
