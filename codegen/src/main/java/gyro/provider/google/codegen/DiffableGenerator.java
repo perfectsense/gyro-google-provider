@@ -325,7 +325,7 @@ public class DiffableGenerator {
                 .returns(TypeName.VOID)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(gClass, name)
+                .addParameter(gClass, "model")
                 .addComment("TODO: implement");
             resourceBuilder.addMethod(copyFromBuilder.build());
         }
