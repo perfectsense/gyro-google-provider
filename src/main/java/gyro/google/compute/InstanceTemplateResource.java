@@ -261,11 +261,11 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
             errors.add(new ValidationError(
                 this,
                 "properties",
-                "Either `properties` or `source-instance` is required!"));
+                "Either 'properties' or 'source-instance' is required!"));
             errors.add(new ValidationError(
                 this,
                 "source-instance",
-                "Either `properties` or `source-instance` is required!"));
+                "Either 'properties' or 'source-instance' is required!"));
         }
         return errors;
     }
