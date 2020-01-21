@@ -43,7 +43,7 @@ public class InstanceTemplateFinder extends GoogleFinder<Compute, InstanceTempla
     private String name;
 
     /**
-     * User assigned name for the managed zone.
+     * User assigned name for the instance template.
      */
     public String getName() {
         return name;
