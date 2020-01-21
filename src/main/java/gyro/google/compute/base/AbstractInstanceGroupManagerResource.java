@@ -316,7 +316,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     }
 
     /**
-     * The URL of the zone where the managed instance group is located (for zonal resources).
+     * The zone where the managed instance group is located (for zonal resources).
      */
     @Required
     public String getZone() {
