@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute.base;
+package gyro.google.compute;
 
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;

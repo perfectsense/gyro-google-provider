@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute.base;
+package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class ComputeDistributionPolicy extends Diffable implements Copyable<Dist
     /**
      * Zones where the regional managed instance group will create and manage instances.
      *
-     * @subresource gyro.google.compute.base.ComputeDistributionPolicyZoneConfiguration
+     * @subresource gyro.google.compute.ComputeDistributionPolicyZoneConfiguration
      */
     public List<ComputeDistributionPolicyZoneConfiguration> getZone() {
         if (zone == null) {

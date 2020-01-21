@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute.base;
+package gyro.google.compute;
 
 import java.util.Optional;
 
@@ -22,7 +22,6 @@ import com.google.api.services.compute.model.InstanceGroupManagerVersion;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-import gyro.google.compute.InstanceTemplateResource;
 
 public class ComputeInstanceGroupManagerVersion extends Diffable implements Copyable<InstanceGroupManagerVersion> {
 
@@ -60,7 +59,7 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
     /**
      * Specifies the intended number of instances to be created from the instanceTemplate. The final number of instances created from the template will be equal to:  - If expressed as a fixed number, the minimum of either targetSize.fixed or instanceGroupManager.targetSize is used. - if expressed as a percent, the targetSize would be (targetSize.percent/100 * InstanceGroupManager.targetSize) If there is a remainder, the number is rounded up.  If unset, this version will update any remaining instances not updated by another version. Read Starting a canary update for more information.
      *
-     * @subresource gyro.google.compute.base.ComputeFixedOrPercent
+     * @subresource gyro.google.compute.ComputeFixedOrPercent
      */
     public ComputeFixedOrPercent getTargetSize() {
         return targetSize;

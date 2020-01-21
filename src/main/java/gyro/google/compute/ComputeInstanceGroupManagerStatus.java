@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute.base;
+package gyro.google.compute;
 
 import com.google.api.services.compute.model.InstanceGroupManagerStatus;
 import gyro.core.resource.Diffable;
@@ -42,7 +42,7 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
     /**
      * A status of consistency of Instances' versions with their target version specified by version field on Instance Group Manager.
      *
-     * @subresource gyro.google.compute.base.ComputeInstanceGroupManagerStatusVersionTarget
+     * @subresource gyro.google.compute.ComputeInstanceGroupManagerStatusVersionTarget
      */
     @Output
     public ComputeInstanceGroupManagerStatusVersionTarget getVersionTarget() {

@@ -33,14 +33,6 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.ValidationError;
-import gyro.google.compute.base.AbstractInstanceGroupManagerResource;
-import gyro.google.compute.base.ComputeDistributionPolicy;
-import gyro.google.compute.base.ComputeInstanceGroupManagerActionsSummary;
-import gyro.google.compute.base.ComputeInstanceGroupManagerAutoHealingPolicy;
-import gyro.google.compute.base.ComputeInstanceGroupManagerStatus;
-import gyro.google.compute.base.ComputeInstanceGroupManagerUpdatePolicy;
-import gyro.google.compute.base.ComputeInstanceGroupManagerVersion;
-import gyro.google.compute.base.ComputeNamedPort;
 
 /**
  *

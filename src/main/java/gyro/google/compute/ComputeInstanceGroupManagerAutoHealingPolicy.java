@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute.base;
+package gyro.google.compute;
 
 import java.util.Optional;
 
@@ -22,7 +22,6 @@ import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPoli
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
-import gyro.google.compute.HealthCheckResource;
 
 public class ComputeInstanceGroupManagerAutoHealingPolicy extends Diffable
     implements Copyable<InstanceGroupManagerAutoHealingPolicy> {

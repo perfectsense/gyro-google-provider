@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute.base;
+package gyro.google.compute;
 
 import com.google.api.services.compute.model.FixedOrPercent;
 import gyro.core.resource.Diffable;

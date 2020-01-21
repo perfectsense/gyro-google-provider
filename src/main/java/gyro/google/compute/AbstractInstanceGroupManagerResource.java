@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.google.compute.base;
+package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,6 @@ import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
-import gyro.google.compute.InstanceTemplateResource;
 
 public abstract class AbstractInstanceGroupManagerResource extends GoogleResource
     implements Copyable<InstanceGroupManager> {
@@ -112,7 +111,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     /**
      * The autohealing policy for this managed instance group. You can specify only one value.
      *
-     * @subresource gyro.google.compute.base.ComputeInstanceGroupManagerAutoHealingPolicy
+     * @subresource gyro.google.compute.ComputeInstanceGroupManagerAutoHealingPolicy
      */
     public List<ComputeInstanceGroupManagerAutoHealingPolicy> getAutoHealingPolicy() {
         if (autoHealingPolicy == null) {
@@ -139,7 +138,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     /**
      * Policy specifying intended distribution of instances in regional managed instance group.
      *
-     * @subresource gyro.google.compute.base.ComputeDistributionPolicy
+     * @subresource gyro.google.compute.ComputeDistributionPolicy
      */
     public ComputeDistributionPolicy getDistributionPolicy() {
         return distributionPolicy;
@@ -177,7 +176,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     /**
      * Named ports configured for the Instance Groups complementary to this Instance Group Manager.
      *
-     * @subresource gyro.google.compute.base.ComputeNamedPort
+     * @subresource gyro.google.compute.ComputeNamedPort
      */
     public List<ComputeNamedPort> getNamedPort() {
         if (namedPort == null) {
@@ -211,7 +210,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     /**
      * The update policy for this managed instance group.
      *
-     * @subresource gyro.google.compute.base.ComputeInstanceGroupManagerUpdatePolicy
+     * @subresource gyro.google.compute.ComputeInstanceGroupManagerUpdatePolicy
      */
     public ComputeInstanceGroupManagerUpdatePolicy getUpdatePolicy() {
         return updatePolicy;
@@ -224,7 +223,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     /**
      * Specifies the instance templates used by this managed instance group to create instances.Each version is defined by an instanceTemplate and a name. Every version can appear at most once per instance group. This field overrides the top-level instanceTemplate field. Read more about the relationships between these fields. Exactly one version must leave the targetSize field unset. That version will be applied to all remaining instances. For more information, read about canary updates.
      *
-     * @subresource gyro.google.compute.base.ComputeInstanceGroupManagerVersion
+     * @subresource gyro.google.compute.ComputeInstanceGroupManagerVersion
      */
     @ConflictsWith("instance-template")
     public List<ComputeInstanceGroupManagerVersion> getVersion() {
@@ -242,7 +241,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     /**
      * The list of instance actions and the number of instances in this managed instance group that are scheduled for each of those actions.
      *
-     * @subresource gyro.google.compute.base.ComputeInstanceGroupManagerActionsSummary
+     * @subresource gyro.google.compute.ComputeInstanceGroupManagerActionsSummary
      */
     @Output
     public ComputeInstanceGroupManagerActionsSummary getCurrentActions() {
@@ -304,7 +303,7 @@ public abstract class AbstractInstanceGroupManagerResource extends GoogleResourc
     /**
      * The status of this managed instance group.
      *
-     * @subresource gyro.google.compute.base.ComputeInstanceGroupManagerStatus
+     * @subresource gyro.google.compute.ComputeInstanceGroupManagerStatus
      */
     @Output
     public ComputeInstanceGroupManagerStatus getStatus() {
