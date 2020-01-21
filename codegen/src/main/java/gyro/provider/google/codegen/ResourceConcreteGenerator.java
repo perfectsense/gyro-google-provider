@@ -133,6 +133,7 @@ public class ResourceConcreteGenerator {
     private void generateMethods(TypeSpec.Builder resourceBuilder) {
         resourceBuilder.addMethod(MethodSpec.methodBuilder("doRefresh")
             .addAnnotation(Override.class)
+            .addException(Exception.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(boolean.class)
             .addCode(CodeBlock.builder().addStatement("return false").build())
