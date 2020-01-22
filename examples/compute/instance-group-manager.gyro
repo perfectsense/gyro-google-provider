@@ -1,6 +1,6 @@
 google::compute-instance-template instance-group-template-example
-    name: "instance-template-example"
-    description: "Instance template example"
+    name: "instance-group-template-example"
+    description: "Instance group template example"
 
     properties
         disk
@@ -8,7 +8,7 @@ google::compute-instance-template instance-group-template-example
             boot: true
 
             initialize-params
-                disk-name: "instance-template-example-disk-1"
+                disk-name: "instance-group-template-example-disk-1"
                 source-image: "projects/debian-cloud/global/images/family/debian-9"
             end
         end
