@@ -1,0 +1,34 @@
+google::compute-instance-template region-instance-group-template-example
+    name: "region-instance-group-template-example"
+    description: "Region instance group template example"
+
+    properties
+        disk
+            auto-delete: true
+            boot: true
+
+            initialize-params
+                disk-name: "region-instance-group-template-example-disk-1"
+                source-image: "projects/debian-cloud/global/images/family/debian-9"
+            end
+        end
+
+        machine-type: "f1-micro"
+
+        network-interface
+            network: $(external-query google::compute-network {name: "default"})
+
+            access-config
+                name: "External NAT"
+                type: "ONE_TO_ONE_NAT"
+                network-tier: "PREMIUM"
+            end
+        end
+
+        scheduling
+            automatic-restart: true
+            on-host-maintenance: "MIGRATE"
+            preemptible: false
+        end
+    end
+end

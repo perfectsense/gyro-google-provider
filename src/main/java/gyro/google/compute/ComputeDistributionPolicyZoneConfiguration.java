@@ -18,39 +18,59 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Output;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ComputeDistributionPolicyZoneConfiguration extends Diffable
     implements Copyable<DistributionPolicyZoneConfiguration> {
 
-    private String zone;
+    private String zoneOutput;
+
+    private String zoneUrl;
+
+    /**
+     * The full URL of the zone.
+     */
+    @Output
+    public String getZoneOutput() {
+        return zoneOutput;
+    }
+
+    public void setZoneOutput(String zoneOutput) {
+        this.zoneOutput = zoneOutput;
+    }
 
     /**
      * The URL of the zone. The zone must exist in the region where the managed instance group is located.
      */
     @Required
-    public String getZone() {
-        return zone;
+    public String getZoneUrl() {
+        return zoneUrl;
     }
 
-    public void setZone(String zone) {
-        this.zone = zone;
+    public void setZoneUrl(String zoneUrl) {
+        this.zoneUrl = zoneUrl;
     }
 
     public DistributionPolicyZoneConfiguration copyTo() {
         DistributionPolicyZoneConfiguration distributionPolicyZoneConfiguration = new DistributionPolicyZoneConfiguration();
-        distributionPolicyZoneConfiguration.setZone(getZone());
+        distributionPolicyZoneConfiguration.setZone(getZoneUrl());
         return distributionPolicyZoneConfiguration;
     }
 
     @Override
     public void copyFrom(DistributionPolicyZoneConfiguration model) {
-        setZone(model.getZone());
+        setZoneOutput(model.getZone());
     }
 
     @Override
     public String primaryKey() {
-        return getZone();
+        String primaryKey = getZoneUrl();
+
+        if (primaryKey == null) {
+            return getZoneOutput();
+        }
+        return primaryKey;
     }
 }

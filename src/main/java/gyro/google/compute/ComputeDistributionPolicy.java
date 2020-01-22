@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class ComputeDistributionPolicy extends Diffable implements Copyable<DistributionPolicy> {
@@ -34,6 +35,7 @@ public class ComputeDistributionPolicy extends Diffable implements Copyable<Dist
      *
      * @subresource gyro.google.compute.ComputeDistributionPolicyZoneConfiguration
      */
+    @Required
     public List<ComputeDistributionPolicyZoneConfiguration> getZone() {
         if (zone == null) {
             zone = new ArrayList<>();
