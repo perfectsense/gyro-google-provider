@@ -18,12 +18,19 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.InstanceGroupManager;
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerVersion;
+import com.google.api.services.compute.model.NamedPort;
 import gyro.core.resource.Output;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public abstract class AbstractInstanceGroupManagerResource extends ComputeResource
@@ -38,8 +45,6 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
     private List<ComputeInstanceGroupManagerAutoHealingPolicy> autoHealingPolicy;
 
     private String description;
-
-    private ComputeDistributionPolicy distributionPolicy;
 
     private String fingerprint;
 
@@ -61,13 +66,9 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     private String instanceGroup;
 
-    private String region;
-
     private String selfLink;
 
     private ComputeInstanceGroupManagerStatus status;
-
-    private String zone;
 
     /**
      * The base instance name to use for instances in this group. The value must be 1-58 characters long. Instances are named by appending a hyphen and a random four-character string to the base instance name. The base instance name must comply with RFC1035.
@@ -132,19 +133,6 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    /**
-     * Policy specifying intended distribution of instances in regional managed instance group.
-     *
-     * @subresource gyro.google.compute.ComputeDistributionPolicy
-     */
-    public ComputeDistributionPolicy getDistributionPolicy() {
-        return distributionPolicy;
-    }
-
-    public void setDistributionPolicy(ComputeDistributionPolicy distributionPolicy) {
-        this.distributionPolicy = distributionPolicy;
     }
 
     /**
@@ -276,18 +264,6 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
     }
 
     /**
-     * The URL of the region where the managed instance group resides (for regional resources).
-     */
-    @Output
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    /**
      * The URL for this managed instance group. The server defines this URL.
      */
     @Output
@@ -313,15 +289,148 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         this.status = status;
     }
 
-    /**
-     * The zone where the managed instance group is located (for zonal resources).
-     */
-    @Required
-    public String getZone() {
-        return zone;
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if ((!configuredFields.contains("instance-template") && !configuredFields.contains("version"))
+            || (getInstanceTemplate() == null && getVersion().isEmpty())) {
+            errors.add(new ValidationError(
+                this,
+                "instance-template",
+                "Either 'instance-template' or 'version' is required!"));
+            errors.add(new ValidationError(
+                this,
+                "version",
+                "Either 'instance-template' or 'version' is required!"));
+        }
+        return errors;
     }
 
-    public void setZone(String zone) {
-        this.zone = zone;
+    @Override
+    public void copyFrom(InstanceGroupManager model) {
+        setBaseInstanceName(model.getBaseInstanceName());
+        setName(model.getName());
+        setTargetSize(model.getTargetSize());
+        List<ComputeInstanceGroupManagerAutoHealingPolicy> diffableAutoHealingPolicies = null;
+        List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicies = model.getAutoHealingPolicies();
+
+        if (autoHealingPolicies != null && !autoHealingPolicies.isEmpty()) {
+            diffableAutoHealingPolicies = autoHealingPolicies
+                .stream()
+                .map(e -> {
+                    ComputeInstanceGroupManagerAutoHealingPolicy computeInstanceGroupManagerAutoHealingPolicy = newSubresource(
+                        ComputeInstanceGroupManagerAutoHealingPolicy.class);
+                    computeInstanceGroupManagerAutoHealingPolicy.copyFrom(e);
+                    return computeInstanceGroupManagerAutoHealingPolicy;
+                })
+                .collect(Collectors.toList());
+        }
+        setAutoHealingPolicy(diffableAutoHealingPolicies);
+        setDescription(getDescription());
+        setFingerprint(model.getFingerprint());
+        setInstanceTemplate(Optional.ofNullable(model.getInstanceTemplate())
+            .map(e -> findById(InstanceTemplateResource.class, e))
+            .orElse(null));
+        List<ComputeNamedPort> diffableNamedPorts = null;
+        List<NamedPort> namedPorts = model.getNamedPorts();
+
+        if (namedPorts != null && !namedPorts.isEmpty()) {
+            diffableNamedPorts = namedPorts
+                .stream()
+                .map(e -> {
+                    ComputeNamedPort computeNamedPort = newSubresource(ComputeNamedPort.class);
+                    computeNamedPort.copyFrom(e);
+                    return computeNamedPort;
+                })
+                .collect(Collectors.toList());
+        }
+        setNamedPort(diffableNamedPorts);
+        // TODO: https://github.com/perfectsense/gyro-google-provider/issues/79
+        //        List<AbstractTargetPoolResource> diffableTargetPools = null;
+        //        List<String> targetPools = model.getTargetPools();
+        //
+        //        if (targetPools != null && !targetPools.isEmpty()) {
+        //            diffableTargetPools = targetPools
+        //                .stream()
+        //                .map(e -> findById(AbstractTargetPoolResource.class, e))
+        //                .collect(Collectors.toList());
+        //        }
+        //        setTargetPools(diffableTargetPools);
+        setUpdatePolicy(Optional.ofNullable(model.getUpdatePolicy())
+            .map(e -> {
+                ComputeInstanceGroupManagerUpdatePolicy updatePolicy = newSubresource(
+                    ComputeInstanceGroupManagerUpdatePolicy.class);
+                updatePolicy.copyFrom(e);
+                return updatePolicy;
+            })
+            .orElse(null));
+        List<ComputeInstanceGroupManagerVersion> diffableInstanceGroupManagerVersion = null;
+        List<InstanceGroupManagerVersion> versions = model.getVersions();
+
+        if (versions != null && !versions.isEmpty()) {
+            diffableInstanceGroupManagerVersion = versions
+                .stream()
+                .map(e -> {
+                    ComputeInstanceGroupManagerVersion computeVersion = newSubresource(
+                        ComputeInstanceGroupManagerVersion.class);
+                    computeVersion.copyFrom(e);
+                    return computeVersion;
+                })
+                .collect(Collectors.toList());
+        }
+        setVersion(diffableInstanceGroupManagerVersion);
+        setCurrentActions(Optional.ofNullable(model.getCurrentActions())
+            .map(e -> {
+                ComputeInstanceGroupManagerActionsSummary instanceGroupManagerActionsSummary = newSubresource(
+                    ComputeInstanceGroupManagerActionsSummary.class);
+                instanceGroupManagerActionsSummary.copyFrom(e);
+                return instanceGroupManagerActionsSummary;
+            })
+            .orElse(null));
+        setInstanceGroup(model.getInstanceGroup());
+        setSelfLink(model.getSelfLink());
+        setStatus(Optional.ofNullable(model.getStatus())
+            .map(e -> {
+                ComputeInstanceGroupManagerStatus computeInstanceGroupManagerStatus = newSubresource(
+                    ComputeInstanceGroupManagerStatus.class);
+                computeInstanceGroupManagerStatus.copyFrom(e);
+                return computeInstanceGroupManagerStatus;
+            })
+            .orElse(null));
     }
+
+    protected InstanceGroupManager createInstanceGroupManager() {
+        InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+        instanceGroupManager.setBaseInstanceName(getBaseInstanceName());
+        instanceGroupManager.setName(getName());
+        instanceGroupManager.setTargetSize(getTargetSize());
+        instanceGroupManager.setAutoHealingPolicies(getAutoHealingPolicy()
+            .stream()
+            .map(ComputeInstanceGroupManagerAutoHealingPolicy::copyTo)
+            .collect(Collectors.toList()));
+        instanceGroupManager.setDescription(getDescription());
+        instanceGroupManager.setFingerprint(getFingerprint());
+        Optional.ofNullable(getInstanceTemplate())
+            .map(InstanceTemplateResource::getSelfLink)
+            .ifPresent(instanceGroupManager::setInstanceTemplate);
+        instanceGroupManager.setNamedPorts(getNamedPort().stream()
+            .map(ComputeNamedPort::copyTo)
+            .collect(Collectors.toList()));
+        // TODO: https://github.com/perfectsense/gyro-google-provider/issues/79
+        //        instanceGroupManager.setTargetPools(getTargetPools()
+        //            .stream()
+        //            .map(AbstractTargetPoolResource::getSelfLink)
+        //            .collect(Collectors.toList()));
+        Optional.ofNullable(getUpdatePolicy())
+            .map(ComputeInstanceGroupManagerUpdatePolicy::copyTo)
+            .ifPresent(instanceGroupManager::setUpdatePolicy);
+        instanceGroupManager.setVersions(getVersion()
+            .stream()
+            .map(ComputeInstanceGroupManagerVersion::copyTo)
+            .collect(Collectors.toList()));
+
+        return instanceGroupManager;
+    }
+
 }
