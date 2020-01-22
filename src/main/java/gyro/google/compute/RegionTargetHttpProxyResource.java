@@ -96,7 +96,11 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
 
         UrlMapReference urlMapReference = new UrlMapReference();
         urlMapReference.setUrlMap(getUrlMapSelfLink());
-        client.regionTargetHttpProxies().setUrlMap(getProjectId(), getRegion(), getName(), urlMapReference).execute();
+        Operation operation =
+            client.regionTargetHttpProxies()
+                .setUrlMap(getProjectId(), getRegion(), getName(), urlMapReference)
+                .execute();
+        waitForCompletion(client, operation);
 
         refresh();
     }

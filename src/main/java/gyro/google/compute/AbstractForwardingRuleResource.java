@@ -22,7 +22,6 @@ import java.util.List;
 import com.google.api.services.compute.model.ForwardingRule;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -84,7 +83,6 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     /**
      * Description of the forwarding rule.
      */
-    @Updatable
     public String getDescription() {
         return description;
     }

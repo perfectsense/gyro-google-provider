@@ -103,7 +103,9 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
         if (changedFieldNames.contains("target-http-proxy")) {
             TargetReference targetReference = new TargetReference();
             targetReference.setTarget(getTargetHttpProxy().getSelfLink());
-            client.globalForwardingRules().setTarget(getProjectId(), getName(), targetReference).execute();
+            Operation response =
+                client.globalForwardingRules().setTarget(getProjectId(), getName(), targetReference).execute();
+            waitForCompletion(client, response);
         }
 
         refresh();

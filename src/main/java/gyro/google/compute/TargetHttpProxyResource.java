@@ -65,7 +65,8 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
 
         UrlMapReference urlMapReference = new UrlMapReference();
         urlMapReference.setUrlMap(getUrlMapSelfLink());
-        client.targetHttpProxies().setUrlMap(getProjectId(), getName(), urlMapReference).execute();
+        Operation response = client.targetHttpProxies().setUrlMap(getProjectId(), getName(), urlMapReference).execute();
+        waitForCompletion(client, response);
 
         refresh();
     }
