@@ -19,6 +19,7 @@ package gyro.google.compute;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.Compute.SecurityPolicies.RemoveRule;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
@@ -50,7 +51,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The priority of the security policy rule.
+     * The priority of the security policy rule. (Required)
      */
     @Required
     public Integer getPriority() {
@@ -88,7 +89,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The match for this rule. (Required).
+     * The match condition that incoming traffic is evaluated against for this rule. (Required)
      */
     @Updatable
     @Required
@@ -182,7 +183,7 @@ public class SecurityPolicyRule extends ComputeResource
 
         SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
         if (getPriority() != 2147483647) {
-            Compute.SecurityPolicies.RemoveRule removeOperation = client.securityPolicies()
+            RemoveRule removeOperation = client.securityPolicies()
                 .removeRule(getProjectId(), securityPolicyResource.getName());
             removeOperation.setPriority(getPriority());
             waitForCompletion(client, removeOperation.execute());

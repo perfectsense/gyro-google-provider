@@ -50,7 +50,6 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     private String localityLbPolicy;
     private String name;
     private String protocol;
-    private SecurityPolicyResource securityPolicy;
     private String selfLink;
     private String sessionAffinity;
     private Integer timeoutSec;
@@ -202,18 +201,6 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * The resource URL for the security policy associated with this backend service.
-     */
-    @Updatable
-    public SecurityPolicyResource getSecurityPolicy() {
-        return securityPolicy;
-    }
-
-    public void setSecurityPolicy(SecurityPolicyResource securityPolicy) {
-        this.securityPolicy = securityPolicy;
-    }
-
-    /**
      * Server-defined URL for the resource.
      */
     @Id
@@ -322,11 +309,6 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         setLocalityLbPolicy(model.getLocalityLbPolicy());
         setName(model.getName());
         setProtocol(model.getProtocol());
-
-        setSecurityPolicy(model.getSecurityPolicy() != null
-            ? findById(SecurityPolicyResource.class, model.getSecurityPolicy())
-            : null);
-
         setSelfLink(model.getSelfLink());
         setSessionAffinity(model.getSessionAffinity());
         setTimeoutSec(model.getTimeoutSec());

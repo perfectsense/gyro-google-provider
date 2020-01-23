@@ -51,13 +51,15 @@ import gyro.core.scope.State;
  *
  *         health-check: [ $(google::compute-health-check health-check-example-backend-service) ]
  *
+ *         security-policy: $(google::compute-security-policy security-policy-example-backend-service)
+ *
  *         connection-draining
  *             draining-timeout-sec: 30
  *         end
  *
  *         load-balancing-scheme: "EXTERNAL"
  *
- *         enable-cdn: true
+ *         enable-cdn: false
  *         protocol: "HTTPS"
  *         session-affinity: "NONE"
  *         port-name: "http"
@@ -82,6 +84,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
 
     private List<BackendSignedUrlKey> signedUrlKey;
     private String portName;
+    private SecurityPolicyResource securityPolicy;
 
     /**
      * Signed Url key configuration for the backend service.
@@ -111,10 +114,26 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         this.portName = portName;
     }
 
+    /**
+     * The security policy associated with this backend service. This can only be added when ``enableCdn`` is ``false``.
+     */
+    @Updatable
+    public SecurityPolicyResource getSecurityPolicy() {
+        return securityPolicy;
+    }
+
+    public void setSecurityPolicy(SecurityPolicyResource securityPolicy) {
+        this.securityPolicy = securityPolicy;
+    }
+
     @Override
     public void copyFrom(BackendService model) {
         super.copyFrom(model);
+
         setPortName(model.getPortName());
+        setSecurityPolicy(model.getSecurityPolicy() != null
+            ? findById(SecurityPolicyResource.class, model.getSecurityPolicy())
+            : null);
 
         if (getCdnPolicy() != null) {
             // add any new keys not configured through gyro

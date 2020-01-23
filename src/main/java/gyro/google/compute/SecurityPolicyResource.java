@@ -101,7 +101,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     }
 
     /**
-     * The fully-qualified URL linking back to the security policy.
+     * The fully-qualified URL of the security policy.
      */
     @Id
     @Output
