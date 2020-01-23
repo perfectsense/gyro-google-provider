@@ -19,6 +19,25 @@ google::compute-health-check health-check-example-backend-service
     end
 end
 
+google::compute-security-policy security-policy-example-backend-service
+    name: "security-policy-example"
+    description: "security-policy-example-desc"
+
+    rule
+        description: "security-policy-example-rule-desc"
+        priority: 2
+        action: 'allow'
+        preview: true
+
+        match
+            versioned-expr: 'SRC_IPS_V1'
+            config
+                src-ip-ranges: ['*']
+            end
+        end
+    end
+end
+
 google::compute-instance-group instance-group-example-backend-service
     name: "instance-group-example-backend-service"
     description: "instance-group-example-backend-service-desc"
@@ -47,13 +66,15 @@ google::compute-backend-service backend-service-example
 
     health-check: [ $(google::compute-health-check health-check-example-backend-service) ]
 
+    security-policy: $(google::compute-security-policy security-policy-example-backend-service)
+
     connection-draining
         draining-timeout-sec: 30
     end
 
     load-balancing-scheme: "EXTERNAL"
 
-    enable-cdn: true
+    enable-cdn: false
     protocol: "HTTPS"
     session-affinity: "NONE"
     port-name: "http"
