@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.BackendService;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.SecurityPolicyReference;
 import com.google.cloud.compute.v1.ProjectGlobalBackendServiceName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -153,6 +154,17 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         Operation operation = client.backendServices().insert(getProjectId(), backendService).execute();
         waitForCompletion(client, operation);
 
+        if (getSecurityPolicy() != null) {
+            state.save();
+
+            SecurityPolicyReference securityPolicyReference = new SecurityPolicyReference();
+            securityPolicyReference.set("securityPolicy", getSecurityPolicy().getSelfLink());
+            Operation securityPolicyOperation = client.backendServices()
+                .setSecurityPolicy(getProjectId(), getName(), securityPolicyReference)
+                .execute();
+            waitForCompletion(client, securityPolicyOperation);
+        }
+
         if (!getSignedUrlKey().isEmpty()) {
             state.save();
 
@@ -174,8 +186,19 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
 
         Compute client = createComputeClient();
 
-        BackendService backendService = getBackendService(changedFieldNames);
+        BackendServiceResource currentBackendResource = (BackendServiceResource) current;
+        boolean securityPolicyUpdated = false;
 
+        if (changedFieldNames.contains("enable-cdn") && getEnableCdn()
+            && currentBackendResource.getSecurityPolicy() != null) {
+            Operation securityPolicyOperation = client.backendServices()
+                .setSecurityPolicy(getProjectId(), getName(), null)
+                .execute();
+            waitForCompletion(client, securityPolicyOperation);
+            securityPolicyUpdated = true;
+        }
+
+        BackendService backendService = getBackendService(changedFieldNames);
         Operation operation = client.backendServices().patch(getProjectId(), getName(), backendService).execute();
         waitForCompletion(client, operation);
 
@@ -185,7 +208,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
 
         if (changedFieldNames.contains("signed-url-key")) {
             // delete old keys
-            List<String> deleteSignedUrlKeys = ((BackendServiceResource) current).getSignedUrlKey().stream().map(
+            List<String> deleteSignedUrlKeys = currentBackendResource.getSignedUrlKey().stream().map(
                 BackendSignedUrlKey::getKey).collect(
                 Collectors.toList());
 
@@ -203,6 +226,20 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                         .addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey())
                         .execute());
             }
+        }
+
+        if (changedFieldNames.contains("security-policy") && !securityPolicyUpdated) {
+            SecurityPolicyReference securityPolicyReference = null;
+
+            if (getSecurityPolicy() != null) {
+                securityPolicyReference = new SecurityPolicyReference();
+                securityPolicyReference.set("securityPolicy", getSecurityPolicy().getSelfLink());
+            }
+
+            Operation securityPolicyOperation = client.backendServices()
+                .setSecurityPolicy(getProjectId(), getName(), securityPolicyReference)
+                .execute();
+            waitForCompletion(client, securityPolicyOperation);
         }
     }
 

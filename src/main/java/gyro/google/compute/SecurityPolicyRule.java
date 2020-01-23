@@ -102,7 +102,7 @@ public class SecurityPolicyRule extends ComputeResource
 
     @Override
     public String primaryKey() {
-        return "" + getPriority();
+        return "with priority " + getPriority();
     }
 
     com.google.api.services.compute.model.SecurityPolicyRule toSecurityPolicyRule() {
@@ -181,9 +181,11 @@ public class SecurityPolicyRule extends ComputeResource
         Compute client = createComputeClient();
 
         SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
-        Compute.SecurityPolicies.RemoveRule removeOperation = client.securityPolicies()
-            .removeRule(getProjectId(), securityPolicyResource.getName());
-        removeOperation.setPriority(getPriority());
-        waitForCompletion(client, removeOperation.execute());
+        if (getPriority() != 2147483647) {
+            Compute.SecurityPolicies.RemoveRule removeOperation = client.securityPolicies()
+                .removeRule(getProjectId(), securityPolicyResource.getName());
+            removeOperation.setPriority(getPriority());
+            waitForCompletion(client, removeOperation.execute());
+        }
     }
 }

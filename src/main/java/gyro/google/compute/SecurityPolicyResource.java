@@ -69,6 +69,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     private String name;
     private String description;
     private List<SecurityPolicyRule> rule;
+    private SecurityPolicyRule defaultRule;
     private String fingerprint;
 
     // Read-only
@@ -138,6 +139,18 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         this.fingerprint = fingerprint;
     }
 
+    /**
+     * The default rule for this security policy.
+     */
+    @Output
+    public SecurityPolicyRule getDefaultRule() {
+        return defaultRule;
+    }
+
+    public void setDefaultRule(SecurityPolicyRule defaultRule) {
+        this.defaultRule = defaultRule;
+    }
+
     @Override
     protected boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
@@ -183,10 +196,16 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         setDescription(securityPolicy.getDescription());
         setSelfLink(securityPolicy.getSelfLink());
         setFingerprint(securityPolicy.getFingerprint());
+        getRule().clear();
         securityPolicy.getRules().forEach(rule -> {
             SecurityPolicyRule securityPolicyRule = newSubresource(SecurityPolicyRule.class);
             securityPolicyRule.copyFrom(rule);
-            getRule().add(securityPolicyRule);
+
+            if (rule.getPriority() == 2147483647) {
+                setDefaultRule(securityPolicyRule);
+            } else {
+                getRule().add(securityPolicyRule);
+            }
         });
     }
 

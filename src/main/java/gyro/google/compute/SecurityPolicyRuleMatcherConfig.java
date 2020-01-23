@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import gyro.core.resource.Diffable;
@@ -34,6 +35,9 @@ public class SecurityPolicyRuleMatcherConfig extends Diffable
     @Required
     @Updatable
     public List<String> getSrcIpRanges() {
+        if (srcIpRanges == null) {
+            srcIpRanges = new ArrayList<>();
+        }
         return srcIpRanges;
     }
 
@@ -48,7 +52,7 @@ public class SecurityPolicyRuleMatcherConfig extends Diffable
 
     @Override
     public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig config) {
-        config.setSrcIpRanges(getSrcIpRanges());
+        setSrcIpRanges(config.getSrcIpRanges());
     }
 
     public com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig toSecurityPolicyRuleMatcherConfig() {
