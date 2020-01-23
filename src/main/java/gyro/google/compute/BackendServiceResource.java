@@ -157,12 +157,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         if (getSecurityPolicy() != null) {
             state.save();
 
-            SecurityPolicyReference securityPolicyReference = new SecurityPolicyReference();
-            securityPolicyReference.set("securityPolicy", getSecurityPolicy().getSelfLink());
-            Operation securityPolicyOperation = client.backendServices()
-                .setSecurityPolicy(getProjectId(), getName(), securityPolicyReference)
-                .execute();
-            waitForCompletion(client, securityPolicyOperation);
+            saveSecurityPolicy(client);
         }
 
         if (!getSignedUrlKey().isEmpty()) {
@@ -191,10 +186,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
 
         if (changedFieldNames.contains("enable-cdn") && getEnableCdn()
             && currentBackendResource.getSecurityPolicy() != null) {
-            Operation securityPolicyOperation = client.backendServices()
-                .setSecurityPolicy(getProjectId(), getName(), null)
-                .execute();
-            waitForCompletion(client, securityPolicyOperation);
+            saveSecurityPolicy(client);
             securityPolicyUpdated = true;
         }
 
@@ -229,17 +221,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         }
 
         if (changedFieldNames.contains("security-policy") && !securityPolicyUpdated) {
-            SecurityPolicyReference securityPolicyReference = null;
-
-            if (getSecurityPolicy() != null) {
-                securityPolicyReference = new SecurityPolicyReference();
-                securityPolicyReference.set("securityPolicy", getSecurityPolicy().getSelfLink());
-            }
-
-            Operation securityPolicyOperation = client.backendServices()
-                .setSecurityPolicy(getProjectId(), getName(), securityPolicyReference)
-                .execute();
-            waitForCompletion(client, securityPolicyOperation);
+            saveSecurityPolicy(client);
         }
     }
 
@@ -248,6 +230,21 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         Compute client = createComputeClient();
         Operation response = client.backendServices().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, response);
+    }
+
+    private void saveSecurityPolicy(Compute client) throws Exception {
+        SecurityPolicyResource securityPolicyResource = getSecurityPolicy();
+        SecurityPolicyReference securityPolicyReference = null;
+
+        if (securityPolicyResource != null) {
+            securityPolicyReference = new SecurityPolicyReference();
+            securityPolicyReference.set("securityPolicy", securityPolicyResource.getSelfLink());
+        }
+
+        Operation securityPolicyOperation = client.backendServices()
+            .setSecurityPolicy(getProjectId(), getName(), securityPolicyReference)
+            .execute();
+        waitForCompletion(client, securityPolicyOperation);
     }
 
     static boolean isBackendService(String selfLink) {
