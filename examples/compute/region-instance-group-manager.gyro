@@ -32,3 +32,22 @@ google::compute-instance-template region-instance-group-template-example
         end
     end
 end
+
+region: "us-central1"
+
+google::compute-region-instance-group-manager region-instance-group-manager-example
+    name: "region-instance-group-manager-example"
+    base-instance-name: "region-instance-group-manager-example"
+    description: "Region instance group manager example"
+
+    distribution-policy
+        zone
+            zone-url: "projects/aerobic-lock-236714/zones/us-central1-b"
+        end
+    end
+
+    instance-template: $(google::compute-instance-template region-instance-group-template-example)
+	target-size: 1
+    region: $region
+end
+
