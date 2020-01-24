@@ -19,6 +19,7 @@ package gyro.google.compute;
 import com.google.api.services.compute.model.DiskInstantiationConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class ComputeDiskInstantiationConfig extends Diffable implements Copyable<DiskInstantiationConfig> {
@@ -75,6 +76,7 @@ public class ComputeDiskInstantiationConfig extends Diffable implements Copyable
      * - ``attach-read-only``: to attach a read-only disk. Applicable to read-only disks.
      * - ``do-not-include``: to exclude a disk from the template. Applicable to additional read-write disks, local SSDs, and read-only disks.
      */
+    @ValidStrings({ "source-image", "source-image-family", "custom-image", "attach-read-only", "do-not-include" })
     public String getInstantiateFrom() {
         return instantiateFrom;
     }
