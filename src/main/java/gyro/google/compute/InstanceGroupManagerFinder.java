@@ -29,7 +29,7 @@ import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
 
 /**
- * Query Instance Group Manager.
+ * Query an instance group manager.
  *
  * Example
  * -------

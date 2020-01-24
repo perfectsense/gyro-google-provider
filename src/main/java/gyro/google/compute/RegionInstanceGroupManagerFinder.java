@@ -29,14 +29,14 @@ import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
 
 /**
- * Query Region Instance Group Manager.
+ * Query a region instance group manager.
  *
  * Example
  * -------
  *
  * .. code-block:: gyro
  *
- *    instance-group-manager: $(external-query google::compute-region-instance-group-manager { name: 'region-instance-group-manager-example' })
+ *    region-instance-group-manager: $(external-query google::compute-region-instance-group-manager { name: 'region-instance-group-manager-example' })
  */
 @Type("compute-region-instance-group-manager")
 public class RegionInstanceGroupManagerFinder

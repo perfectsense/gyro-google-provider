@@ -29,7 +29,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Required;
 
 /**
- * Creates an Region Instance Group Manager.
+ * Creates a region instance group manager.
  *
  * Example
  * -------

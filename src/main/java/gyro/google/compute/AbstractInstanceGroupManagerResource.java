@@ -312,6 +312,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         setBaseInstanceName(model.getBaseInstanceName());
         setName(model.getName());
         setTargetSize(model.getTargetSize());
+
         List<ComputeInstanceGroupManagerAutoHealingPolicy> diffableAutoHealingPolicies = null;
         List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicies = model.getAutoHealingPolicies();
 
@@ -332,6 +333,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         setInstanceTemplate(Optional.ofNullable(model.getInstanceTemplate())
             .map(e -> findById(InstanceTemplateResource.class, e))
             .orElse(null));
+
         List<ComputeNamedPort> diffableNamedPorts = null;
         List<NamedPort> namedPorts = model.getNamedPorts();
 
@@ -346,6 +348,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
                 .collect(Collectors.toList());
         }
         setNamedPort(diffableNamedPorts);
+
         // TODO: https://github.com/perfectsense/gyro-google-provider/issues/79
         //        List<AbstractTargetPoolResource> diffableTargetPools = null;
         //        List<String> targetPools = model.getTargetPools();
@@ -357,6 +360,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         //                .collect(Collectors.toList());
         //        }
         //        setTargetPools(diffableTargetPools);
+
         setUpdatePolicy(Optional.ofNullable(model.getUpdatePolicy())
             .map(e -> {
                 ComputeInstanceGroupManagerUpdatePolicy updatePolicy = newSubresource(
@@ -365,6 +369,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
                 return updatePolicy;
             })
             .orElse(null));
+
         List<ComputeInstanceGroupManagerVersion> diffableInstanceGroupManagerVersion = null;
         List<InstanceGroupManagerVersion> versions = model.getVersions();
 
@@ -432,5 +437,4 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
         return instanceGroupManager;
     }
-
 }

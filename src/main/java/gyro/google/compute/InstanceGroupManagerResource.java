@@ -28,7 +28,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Required;
 
 /**
- * Creates an Instance Group Manager.
+ * Creates an instance group manager.
  *
  * Example
  * -------
