@@ -79,7 +79,12 @@ public class RegionInstanceGroupManagerFinder
 
         do {
             RegionInstanceGroupManagerList response = request.execute();
-            allInstanceGroupManagers.addAll(response.getItems());
+            List<InstanceGroupManager> items = response.getItems();
+
+            if (items == null) {
+                break;
+            }
+            allInstanceGroupManagers.addAll(items);
             nextPageToken = response.getNextPageToken();
             request.setPageToken(nextPageToken);
         } while (nextPageToken != null);
