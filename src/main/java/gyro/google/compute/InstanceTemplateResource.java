@@ -198,21 +198,25 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
         InstanceTemplate instanceTemplate = new InstanceTemplate();
         instanceTemplate.setDescription(getDescription());
         instanceTemplate.setName(getName());
+
         ComputeInstanceProperties property = getProperties();
 
         if (property != null) {
             instanceTemplate.setProperties(property.toInstanceProperties());
         }
+
         InstanceResource sourceInstance = getSourceInstance();
 
         if (sourceInstance != null) {
             instanceTemplate.setSourceInstance(sourceInstance.getSelfLink());
         }
+
         ComputeSourceInstanceParams sourceInstanceParam = getSourceInstanceParams();
 
         if (sourceInstanceParam != null) {
             instanceTemplate.setSourceInstanceParams(sourceInstanceParam.toSourceInstanceParams());
         }
+
         Compute client = createComputeClient();
         waitForCompletion(client, client.instanceTemplates().insert(getProjectId(), instanceTemplate).execute());
         refresh();
