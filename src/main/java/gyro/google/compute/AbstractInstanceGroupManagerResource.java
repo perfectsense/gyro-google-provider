@@ -115,7 +115,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
      */
     public List<ComputeInstanceGroupManagerAutoHealingPolicy> getAutoHealingPolicy() {
         if (autoHealingPolicy == null) {
-            autoHealingPolicy = new ArrayList();
+            autoHealingPolicy = new ArrayList<>();
         }
         return autoHealingPolicy;
     }
