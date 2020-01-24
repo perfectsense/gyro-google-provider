@@ -48,7 +48,7 @@ public class ComputeTags extends Diffable implements Copyable<Tags> {
      */
     public List<String> getItems() {
         if (items == null) {
-            items = new ArrayList();
+            items = new ArrayList<>();
         }
         return items;
     }

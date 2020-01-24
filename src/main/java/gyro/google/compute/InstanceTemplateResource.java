@@ -38,7 +38,7 @@ import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 /**
- * Creates an Instance Template.
+ * Creates an instance template.
  *
  * Example
  * -------
@@ -119,12 +119,12 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     /**
      * Name of the resource.
      * The name must be 1-63 characters long, and comply with RFC1035.
-     * Specifically, the name must be 1-63 characters long and match the regular expression ``[a-z]([-a-z0-9]*[a-z0-9])?``
+     * Specifically, the name must be 1-63 characters long and match the regular expression ``[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?``
      * which means the first character must be a lowercase letter, and all following characters must be a dash,
      * lowercase letter, or digit, except the last character, which cannot be a dash.
      */
     @Required
-    @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
+    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
     public String getName() {
         return name;
     }
@@ -200,21 +200,25 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
         InstanceTemplate instanceTemplate = new InstanceTemplate();
         instanceTemplate.setDescription(getDescription());
         instanceTemplate.setName(getName());
+
         ComputeInstanceProperties property = getProperties();
 
         if (property != null) {
             instanceTemplate.setProperties(property.toInstanceProperties());
         }
+
         InstanceResource sourceInstance = getSourceInstance();
 
         if (sourceInstance != null) {
             instanceTemplate.setSourceInstance(sourceInstance.getSelfLink());
         }
+
         ComputeSourceInstanceParams sourceInstanceParam = getSourceInstanceParams();
 
         if (sourceInstanceParam != null) {
             instanceTemplate.setSourceInstanceParams(sourceInstanceParam.toSourceInstanceParams());
         }
+
         Compute client = createComputeClient();
         waitForCompletion(client, client.instanceTemplates().insert(getProjectId(), instanceTemplate).execute());
         refresh();
@@ -263,11 +267,11 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
             errors.add(new ValidationError(
                 this,
                 "properties",
-                "Either `properties` or `source-instance` is required!"));
+                "Either 'properties' or 'source-instance' is required!"));
             errors.add(new ValidationError(
                 this,
                 "source-instance",
-                "Either `properties` or `source-instance` is required!"));
+                "Either 'properties' or 'source-instance' is required!"));
         }
         return errors;
     }

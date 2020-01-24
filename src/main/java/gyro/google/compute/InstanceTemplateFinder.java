@@ -28,7 +28,7 @@ import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 /**
- * Query Instance Template.
+ * Query an instance template.
  *
  * Example
  * -------
@@ -43,7 +43,7 @@ public class InstanceTemplateFinder extends GoogleFinder<Compute, InstanceTempla
     private String name;
 
     /**
-     * User assigned name for the managed zone.
+     * User assigned name for the instance template.
      */
     public String getName() {
         return name;
@@ -61,7 +61,12 @@ public class InstanceTemplateFinder extends GoogleFinder<Compute, InstanceTempla
 
         do {
             InstanceTemplateList response = request.execute();
-            allInstanceTemplates.addAll(response.getItems());
+            List<InstanceTemplate> items = response.getItems();
+
+            if (items == null) {
+                break;
+            }
+            allInstanceTemplates.addAll(items);
             nextPageToken = response.getNextPageToken();
             request.setPageToken(nextPageToken);
         } while (nextPageToken != null);

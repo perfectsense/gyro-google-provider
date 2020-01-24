@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,6 +82,9 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
      * @subresource gyro.google.compute.InstanceAccessConfig
      */
     public List<InstanceAccessConfig> getAccessConfig() {
+        if (accessConfig == null) {
+            accessConfig = new ArrayList<>();
+        }
         return accessConfig;
     }
 
@@ -94,6 +98,9 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
      * @subresource gyro.google.compute.InstanceAliasIpRange
      */
     public List<InstanceAliasIpRange> getAliasIpRange() {
+        if (aliasIpRange == null) {
+            aliasIpRange = new ArrayList<>();
+        }
         return aliasIpRange;
     }
 
@@ -190,13 +197,13 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
             networkInterface.setSubnetwork(getSubnetwork().getSelfLink());
         }
 
-        if (getAccessConfig() != null) {
+        if (!getAccessConfig().isEmpty()) {
             networkInterface.setAccessConfigs(getAccessConfig().stream()
                 .map(InstanceAccessConfig::copyTo)
                 .collect(Collectors.toList()));
         }
 
-        if (getAliasIpRange() != null) {
+        if (!getAliasIpRange().isEmpty()) {
             networkInterface.setAliasIpRanges(getAliasIpRange().stream()
                 .map(InstanceAliasIpRange::copyTo)
                 .collect(Collectors.toList()));

@@ -55,7 +55,7 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
      */
     public List<ComputeSchedulingNodeAffinity> getNodeAffinity() {
         if (nodeAffinity == null) {
-            nodeAffinity = new ArrayList();
+            nodeAffinity = new ArrayList<>();
         }
         return nodeAffinity;
     }
@@ -99,7 +99,6 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
             diffableNodeAffinities = nodeAffinities
                 .stream()
                 .map(nodeAffinity -> {
-                    // TODO: isEqualTo
                     ComputeSchedulingNodeAffinity diffableNodeAffinity = newSubresource(ComputeSchedulingNodeAffinity.class);
                     diffableNodeAffinity.copyFrom(nodeAffinity);
                     return diffableNodeAffinity;

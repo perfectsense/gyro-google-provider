@@ -107,7 +107,7 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     @Updatable
     public List<ComputePathRule> getPathRule() {
         if (pathRule == null) {
-            pathRule = new ArrayList();
+            pathRule = new ArrayList<>();
         }
         return pathRule;
     }

@@ -61,7 +61,7 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
      */
     public List<String> getValues() {
         if (values == null) {
-            values = new ArrayList();
+            values = new ArrayList<>();
         }
         return values;
     }

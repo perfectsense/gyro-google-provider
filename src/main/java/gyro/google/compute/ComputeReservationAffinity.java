@@ -22,6 +22,7 @@ import java.util.List;
 import com.google.api.services.compute.model.ReservationAffinity;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class ComputeReservationAffinity extends Diffable implements Copyable<ReservationAffinity> {
@@ -33,11 +34,14 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
     private List<String> values;
 
     /**
-     * Specifies the type of reservation from which this instance can consume resources:
+     * Specifies the type of reservation from which this instance can consume resources.
+     * Valid values are:
+     *
      * - ``ANY_RESERVATION`` (default)
      * - ``SPECIFIC_RESERVATION``
      * - ``NO_RESERVATION``
      */
+    @ValidStrings({ "ANY_RESERVATION", "SPECIFIC_RESERVATION", "NO_RESERVATION" })
     public String getConsumeReservationType() {
         return consumeReservationType;
     }
@@ -66,7 +70,7 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
     @Required
     public List<String> getValues() {
         if (values == null) {
-            values = new ArrayList();
+            values = new ArrayList<>();
         }
         return values;
     }

@@ -98,7 +98,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     @Required
     public List<InstanceAttachedDisk> getDisk() {
         if (disk == null) {
-            disk = new ArrayList();
+            disk = new ArrayList<>();
         }
         return disk;
     }
@@ -108,13 +108,13 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     }
 
     /**
-     * List of guest accelerator cards' type and count to use for instances created from the instance template.
+     * List of guest accelerator card type and count to use for instances created from the instance template.
      *
      * @subresource gyro.google.compute.ComputeAcceleratorConfig
      */
     public List<ComputeAcceleratorConfig> getGuestAccelerator() {
         if (guestAccelerator == null) {
-            guestAccelerator = new ArrayList();
+            guestAccelerator = new ArrayList<>();
         }
         return guestAccelerator;
     }
@@ -156,7 +156,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
      */
     public List<ProjectMetadataItemResource> getMetadata() {
         if (metadata == null) {
-            metadata = new ArrayList();
+            metadata = new ArrayList<>();
         }
         return metadata;
     }
@@ -186,7 +186,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     @Required
     public List<InstanceNetworkInterface> getNetworkInterface() {
         if (networkInterface == null) {
-            networkInterface = new ArrayList();
+            networkInterface = new ArrayList<>();
         }
         return networkInterface;
     }
@@ -230,7 +230,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
      */
     public List<ComputeServiceAccount> getServiceAccount() {
         if (serviceAccount == null) {
-            serviceAccount = new ArrayList();
+            serviceAccount = new ArrayList<>();
         }
         return serviceAccount;
     }
@@ -282,7 +282,6 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
             diffableAttachedDisks = disks
                 .stream()
                 .map(attachedDisk -> {
-                    // TODO: isEqualTo
                     InstanceAttachedDisk diffableAttachedDisk = newSubresource(InstanceAttachedDisk.class);
                     diffableAttachedDisk.copyFrom(attachedDisk);
                     return diffableAttachedDisk;
@@ -298,7 +297,6 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
             diffableGuestAccelerators = guestAccelerators
                 .stream()
                 .map(acceleratorConfig -> {
-                    // TODO: isEqualTo
                     ComputeAcceleratorConfig diffableAcceleratorConfig = newSubresource(ComputeAcceleratorConfig.class);
                     diffableAcceleratorConfig.copyFrom(acceleratorConfig);
                     return diffableAcceleratorConfig;
@@ -319,7 +317,6 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
                 diffableMetadataItemResource = items
                     .stream()
                     .map(networkInterface -> {
-                        // TODO: isEqualTo
                         ProjectMetadataItemResource diffableNetworkInterface = newSubresource(
                             ProjectMetadataItemResource.class);
                         diffableNetworkInterface.copyFrom(networkInterface);
@@ -338,7 +335,6 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
             diffableNetworkInterfaces = networkInterfaces
                 .stream()
                 .map(networkInterface -> {
-                    // TODO: isEqualTo
                     InstanceNetworkInterface diffableNetworkInterface = newSubresource(InstanceNetworkInterface.class);
                     diffableNetworkInterface.copyFrom(networkInterface);
                     return diffableNetworkInterface;
@@ -374,7 +370,6 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
             diffableServiceAccounts = serviceAccounts
                 .stream()
                 .map(serviceAccount -> {
-                    // TODO: isEqualTo
                     ComputeServiceAccount diffableServiceAccount = newSubresource(ComputeServiceAccount.class);
                     diffableServiceAccount.copyFrom(serviceAccount);
                     return diffableServiceAccount;
