@@ -26,6 +26,7 @@ import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
@@ -149,6 +150,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     /**
      * The URL for this instance template. The server defines this URL.
      */
+    @Id
     @Output
     public String getSelfLink() {
         return selfLink;
