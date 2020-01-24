@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.google.api.services.compute.model.Tags;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Regex;
 import gyro.google.Copyable;
 
 public class ComputeTags extends Diffable implements Copyable<Tags> {
@@ -46,6 +47,7 @@ public class ComputeTags extends Diffable implements Copyable<Tags> {
     /**
      * Tag items. Each tag must be 1-63 characters long, and comply with RFC1035.
      */
+    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
     public List<String> getItems() {
         if (items == null) {
             items = new ArrayList<>();
