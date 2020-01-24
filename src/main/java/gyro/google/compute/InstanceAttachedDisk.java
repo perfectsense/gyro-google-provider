@@ -184,7 +184,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         if ("SCRATCH".equals(diskType)) {
             return diskType;
         }
-        return null;
+        return "";
     }
 
     @Override
