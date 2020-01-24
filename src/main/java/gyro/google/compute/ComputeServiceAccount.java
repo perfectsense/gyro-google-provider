@@ -45,7 +45,7 @@ public class ComputeServiceAccount extends Diffable implements Copyable<ServiceA
      */
     public List<String> getScopes() {
         if (scopes == null) {
-            scopes = new ArrayList();
+            scopes = new ArrayList<>();
         }
         return scopes;
     }

@@ -66,7 +66,7 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
     @Required
     public List<String> getValues() {
         if (values == null) {
-            values = new ArrayList();
+            values = new ArrayList<>();
         }
         return values;
     }

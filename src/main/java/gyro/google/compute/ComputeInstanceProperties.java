@@ -98,7 +98,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     @Required
     public List<InstanceAttachedDisk> getDisk() {
         if (disk == null) {
-            disk = new ArrayList();
+            disk = new ArrayList<>();
         }
         return disk;
     }
@@ -114,7 +114,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
      */
     public List<ComputeAcceleratorConfig> getGuestAccelerator() {
         if (guestAccelerator == null) {
-            guestAccelerator = new ArrayList();
+            guestAccelerator = new ArrayList<>();
         }
         return guestAccelerator;
     }
@@ -156,7 +156,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
      */
     public List<ProjectMetadataItemResource> getMetadata() {
         if (metadata == null) {
-            metadata = new ArrayList();
+            metadata = new ArrayList<>();
         }
         return metadata;
     }
@@ -186,7 +186,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     @Required
     public List<InstanceNetworkInterface> getNetworkInterface() {
         if (networkInterface == null) {
-            networkInterface = new ArrayList();
+            networkInterface = new ArrayList<>();
         }
         return networkInterface;
     }
@@ -230,7 +230,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
      */
     public List<ComputeServiceAccount> getServiceAccount() {
         if (serviceAccount == null) {
-            serviceAccount = new ArrayList();
+            serviceAccount = new ArrayList<>();
         }
         return serviceAccount;
     }

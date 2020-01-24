@@ -41,7 +41,7 @@ public class ComputeSourceInstanceParams extends Diffable implements Copyable<So
     @Required
     public List<ComputeDiskInstantiationConfig> getDiskConfig() {
         if (diskConfig == null) {
-            diskConfig = new ArrayList();
+            diskConfig = new ArrayList<>();
         }
         return diskConfig;
     }

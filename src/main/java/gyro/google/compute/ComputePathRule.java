@@ -76,7 +76,7 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     @Updatable
     public List<String> getPaths() {
         if (paths == null) {
-            paths = new ArrayList();
+            paths = new ArrayList<>();
         }
         return paths;
     }
