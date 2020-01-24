@@ -33,7 +33,9 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
     private List<String> values;
 
     /**
-     * Specifies the type of reservation from which this instance can consume resources:
+     * Specifies the type of reservation from which this instance can consume resources.
+     * Valid values are:
+     *
      * - ``ANY_RESERVATION`` (default)
      * - ``SPECIFIC_RESERVATION``
      * - ``NO_RESERVATION``

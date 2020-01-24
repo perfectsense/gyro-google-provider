@@ -38,7 +38,7 @@ import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 /**
- * Creates an Instance Template.
+ * Creates an instance template.
  *
  * Example
  * -------

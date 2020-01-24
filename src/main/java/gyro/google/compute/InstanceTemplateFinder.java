@@ -28,7 +28,7 @@ import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
 /**
- * Query Instance Template.
+ * Query an instance template.
  *
  * Example
  * -------

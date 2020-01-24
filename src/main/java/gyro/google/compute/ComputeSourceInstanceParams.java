@@ -59,7 +59,6 @@ public class ComputeSourceInstanceParams extends Diffable implements Copyable<So
             diffableDiskConfigs = diskConfigs
                 .stream()
                 .map(attachedDisk -> {
-                    // TODO: isEqualTo
                     ComputeDiskInstantiationConfig diffableDiskConfig = newSubresource(ComputeDiskInstantiationConfig.class);
                     diffableDiskConfig.copyFrom(attachedDisk);
                     return diffableDiskConfig;
