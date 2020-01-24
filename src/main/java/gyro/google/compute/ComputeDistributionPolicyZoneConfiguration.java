@@ -27,35 +27,35 @@ import gyro.google.Copyable;
 public class ComputeDistributionPolicyZoneConfiguration extends Diffable
     implements Copyable<DistributionPolicyZoneConfiguration> {
 
-    private String zoneUrl;
+    private String zoneLink;
 
     /**
      * The URL of the zone. The zone must exist in the region where the managed instance group is located.
      */
     @Immutable
     @Required
-    public String getZoneUrl() {
-        return zoneUrl;
+    public String getZoneLink() {
+        return zoneLink;
     }
 
-    public void setZoneUrl(String zoneUrl) {
-        this.zoneUrl = zoneUrl;
+    public void setZoneLink(String zoneLink) {
+        this.zoneLink = zoneLink;
     }
 
     public DistributionPolicyZoneConfiguration copyTo() {
         DistributionPolicyZoneConfiguration distributionPolicyZoneConfiguration = new DistributionPolicyZoneConfiguration();
-        distributionPolicyZoneConfiguration.setZone(getZoneUrl());
+        distributionPolicyZoneConfiguration.setZone(getZoneLink());
         return distributionPolicyZoneConfiguration;
     }
 
     @Override
     public void copyFrom(DistributionPolicyZoneConfiguration model) {
-        setZoneUrl(model.getZone());
+        setZoneLink(model.getZone());
     }
 
     @Override
     public String primaryKey() {
-        return Optional.ofNullable(getZoneUrl())
+        return Optional.ofNullable(getZoneLink())
             .map(e -> e.substring(e.lastIndexOf("/") + 1))
             .orElse("");
     }

@@ -66,7 +66,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     private String id;
 
-    private String instanceGroup;
+    private String instanceGroupLink;
 
     private String selfLink;
 
@@ -261,12 +261,12 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
      * The URL of the Instance Group resource.
      */
     @Output
-    public String getInstanceGroup() {
-        return instanceGroup;
+    public String getInstanceGroupLink() {
+        return instanceGroupLink;
     }
 
-    public void setInstanceGroup(String instanceGroup) {
-        this.instanceGroup = instanceGroup;
+    public void setInstanceGroupLink(String instanceGroupLink) {
+        this.instanceGroupLink = instanceGroupLink;
     }
 
     /**
@@ -399,7 +399,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
                 return instanceGroupManagerActionsSummary;
             })
             .orElse(null));
-        setInstanceGroup(model.getInstanceGroup());
+        setInstanceGroupLink(model.getInstanceGroup());
         setSelfLink(model.getSelfLink());
         setStatus(Optional.ofNullable(model.getStatus())
             .map(e -> {
