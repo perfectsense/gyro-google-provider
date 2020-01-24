@@ -42,7 +42,7 @@ google::compute-region-instance-group-manager region-instance-group-manager-exam
 
     distribution-policy
         zone
-            zone-url: "projects/aerobic-lock-236714/zones/us-central1-b"
+            zone-link: "projects/aerobic-lock-236714/zones/us-central1-b"
         end
     end
 
