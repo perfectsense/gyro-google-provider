@@ -23,6 +23,7 @@ import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.Immutable;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
@@ -52,6 +53,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     /**
      * The zone where the managed instance group is located.
      */
+    @Immutable
     @Required
     public String getZone() {
         return zone;
