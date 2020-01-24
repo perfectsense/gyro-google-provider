@@ -61,7 +61,12 @@ public class InstanceTemplateFinder extends GoogleFinder<Compute, InstanceTempla
 
         do {
             InstanceTemplateList response = request.execute();
-            allInstanceTemplates.addAll(response.getItems());
+            List<InstanceTemplate> items = response.getItems();
+
+            if (items == null) {
+                break;
+            }
+            allInstanceTemplates.addAll(items);
             nextPageToken = response.getNextPageToken();
             request.setPageToken(nextPageToken);
         } while (nextPageToken != null);
