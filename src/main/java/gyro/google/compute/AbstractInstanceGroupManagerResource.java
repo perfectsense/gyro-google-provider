@@ -27,7 +27,9 @@ import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPoli
 import com.google.api.services.compute.model.InstanceGroupManagerVersion;
 import com.google.api.services.compute.model.NamedPort;
 import gyro.core.resource.Output;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
+import gyro.core.validation.Min;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
@@ -99,7 +101,9 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
     /**
      * The target number of running instances for this managed instance group. Deleting or abandoning instances reduces this number. Resizing the group changes this number.
      */
+    @Min(1)
     @Required
+    @Updatable
     public Integer getTargetSize() {
         return targetSize;
     }
@@ -113,6 +117,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
      *
      * @subresource gyro.google.compute.ComputeInstanceGroupManagerAutoHealingPolicy
      */
+    @Updatable
     public List<ComputeInstanceGroupManagerAutoHealingPolicy> getAutoHealingPolicy() {
         if (autoHealingPolicy == null) {
             autoHealingPolicy = new ArrayList<>();
@@ -152,6 +157,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
      * @resource gyro.google.compute.InstanceTemplateResource
      */
     @ConflictsWith("version")
+    @Updatable
     public InstanceTemplateResource getInstanceTemplate() {
         return instanceTemplate;
     }
