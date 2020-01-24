@@ -140,7 +140,8 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     public void copyFrom(InstanceGroupManager model) {
         super.copyFrom(model);
 
-        setZone(model.getZone());
+        // Do NOT update zone with a full url as this should be a name.
+        //        setZone(model.getZone());
     }
 
     private void setInstanceTemplate() throws Exception {

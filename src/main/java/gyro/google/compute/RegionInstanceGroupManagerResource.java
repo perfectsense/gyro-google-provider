@@ -167,7 +167,8 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
                 return computeDistributionPolicy;
             })
             .orElse(null));
-        setRegion(model.getRegion());
+        // Do NOT update region with a full url as this should be a name.
+        //        setRegion(model.getRegion());
     }
 
     private void setInstanceTemplate() throws Exception {
