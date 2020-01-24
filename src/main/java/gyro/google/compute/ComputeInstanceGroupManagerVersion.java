@@ -48,6 +48,7 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
     /**
      * Name of the version. Unique among all versions in the scope of this managed instance group.
      */
+    @Required
     public String getName() {
         return name;
     }

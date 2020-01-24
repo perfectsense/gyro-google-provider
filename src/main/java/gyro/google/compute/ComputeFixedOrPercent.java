@@ -16,9 +16,17 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import com.google.api.services.compute.model.FixedOrPercent;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
+import gyro.core.validation.ConflictsWith;
+import gyro.core.validation.Min;
+import gyro.core.validation.Range;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrPercent> {
@@ -32,6 +40,8 @@ public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrP
     /**
      * Specifies a fixed number of VM instances. This must be a positive integer.
      */
+    @ConflictsWith("percent")
+    @Min(0)
     public Integer getFixed() {
         return fixed;
     }
@@ -43,6 +53,8 @@ public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrP
     /**
      * Specifies a percentage of instances between 0 to 100%, inclusive. For example, specify 80 for 80%.
      */
+    @ConflictsWith("fixed")
+    @Range(min = 0, max = 100)
     public Integer getPercent() {
         return percent;
     }
@@ -81,5 +93,23 @@ public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrP
     @Override
     public String primaryKey() {
         return "";
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if ((!configuredFields.contains("fixed") && !configuredFields.contains("percent"))
+            || (getFixed() == null && getPercent() == null)) {
+            errors.add(new ValidationError(
+                this,
+                "fixed",
+                "Either 'fixed' or 'percent' is required!"));
+            errors.add(new ValidationError(
+                this,
+                "percent",
+                "Either 'fixed' or 'percent' is required!"));
+        }
+        return errors;
     }
 }

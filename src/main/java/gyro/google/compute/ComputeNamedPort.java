@@ -18,6 +18,8 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.NamedPort;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Range;
+import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -30,6 +32,7 @@ public class ComputeNamedPort extends Diffable implements Copyable<NamedPort> {
     /**
      * The name for this named port. The name must be 1-63 characters long, and comply with RFC1035.
      */
+    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
     @Required
     public String getName() {
         return name;
@@ -42,6 +45,7 @@ public class ComputeNamedPort extends Diffable implements Copyable<NamedPort> {
     /**
      * The port number, which can be a value between 1 and 65535.
      */
+    @Range(min = 1, max = 65535)
     @Required
     public Integer getPort() {
         return port;
