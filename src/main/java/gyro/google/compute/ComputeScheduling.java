@@ -92,6 +92,7 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
     @Override
     public void copyFrom(Scheduling model) {
         setAutomaticRestart(model.getAutomaticRestart());
+
         List<ComputeSchedulingNodeAffinity> diffableNodeAffinities = null;
         List<SchedulingNodeAffinity> nodeAffinities = model.getNodeAffinities();
 
@@ -114,6 +115,7 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
     public Scheduling toScheduling() {
         Scheduling scheduling = new Scheduling();
         scheduling.setAutomaticRestart(getAutomaticRestart());
+
         List<ComputeSchedulingNodeAffinity> nodeAffinity = getNodeAffinity();
 
         if (!nodeAffinity.isEmpty()) {

@@ -1,0 +1,18 @@
+google::compute-security-policy security-policy-example
+    name: "security-policy-example"
+    description: "security-policy-example-desc"
+
+    rule
+        description: "security-policy-example-rule-desc"
+        priority: 2
+        action: 'allow'
+        preview: true
+
+        match
+            versioned-expr: 'SRC_IPS_V1'
+            config
+                src-ip-ranges: ['*']
+            end
+        end
+    end
+end

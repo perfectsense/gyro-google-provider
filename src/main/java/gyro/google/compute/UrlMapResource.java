@@ -23,6 +23,7 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.UrlMap;
+import com.google.cloud.compute.v1.ProjectGlobalUrlMapName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -181,5 +182,9 @@ public class UrlMapResource extends AbstractUrlMapResource {
                 "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!"));
         }
         return errors;
+    }
+
+    static boolean isUrlMap(String selfLink) {
+        return selfLink != null && ProjectGlobalUrlMapName.isParsableFrom(formatResource(null, selfLink));
     }
 }

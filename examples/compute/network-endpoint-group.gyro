@@ -1,0 +1,57 @@
+google::compute-network network-example-network-endpoint-group
+    name: "vpc-example-network-endpoint-group"
+    description: "vpc-example-desc-network-endpoint-group"
+    routing-mode: "REGIONAL"
+end
+
+google::compute-subnet subnet-example-network-endpoint-group
+    name: "subnet-example-network-endpoint-group"
+    description: "subnet-example-description-network-endpoint-group"
+    ip-cidr-range: "10.0.0.0/16"
+    network: $(google::compute-network network-example-network-endpoint-group)
+    region: "us-east1"
+end
+
+google::compute-network-endpoint-group network-endpoint-group-example
+    name: "network-endpoint-group-example"
+    network: $(google::compute-network network-example-network-endpoint-group)
+    subnet: $(google::compute-subnet subnet-example-network-endpoint-group)
+    default-port: 80
+    zone: "us-east1-b"
+
+    endpoint
+       instance: $(google::compute-instance gyro-network-endpoint-group-example-a)
+       port: 8080
+    end
+
+    endpoint
+       instance: $(google::compute-instance gyro-network-endpoint-group-example-a)
+       port: 443
+    end
+end
+
+google::compute-instance gyro-network-endpoint-group-example-a
+    name: "instance-group-example-a"
+    description: "Testing for Gyro Network Endpoint Group"
+    zone: "us-east1-b"
+    machine-type: "zones/us-east1-b/machineTypes/n1-standard-1"
+
+    network-interfaces
+        network: $(google::compute-network network-example-network-endpoint-group)
+        subnetwork: $(google::compute-subnet subnet-example-network-endpoint-group)
+    end
+
+    initialize-disks
+        boot: true
+        auto-delete: true
+
+        initialize-params
+            disk-name: "gyro-network-endpoint-group-example-a"
+            source-image: "projects/debian-cloud/global/images/family/debian-9"
+        end
+    end
+
+    labels: {
+        "gyro": "install"
+    }
+end

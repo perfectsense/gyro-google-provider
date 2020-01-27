@@ -7,6 +7,7 @@ ISSUES FIXED:
 
 NEW FEATURES:
 
+* [15](https://github.com/perfectsense/gyro-google-provider/issues/15): Add Network Endpoint Group.
 * [23](https://github.com/perfectsense/gyro-google-provider/issues/23): Add Route.
 * [24](https://github.com/perfectsense/gyro-google-provider/issues/24): Add Firewall Rule.
 * [16](https://github.com/perfectsense/gyro-google-provider/issues/16): Add Bucket.

@@ -403,6 +403,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         InstanceProperties instanceProperties = new InstanceProperties();
         instanceProperties.setCanIpForward(getCanIpForward());
         instanceProperties.setDescription(getDescription());
+
         List<InstanceAttachedDisk> disk = getDisk();
 
         if (!disk.isEmpty()) {
@@ -411,6 +412,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
                 .map(InstanceAttachedDisk::copyTo)
                 .collect(Collectors.toList()));
         }
+
         List<ComputeAcceleratorConfig> guestAccelerator = getGuestAccelerator();
 
         if (!guestAccelerator.isEmpty()) {
@@ -421,6 +423,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         }
         instanceProperties.setLabels(getLabels());
         instanceProperties.setMachineType(getMachineType());
+
         List<ProjectMetadataItemResource> projectMetadata = getMetadata();
 
         if (!projectMetadata.isEmpty()) {
@@ -436,6 +439,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
                 .collect(Collectors.toList()));
         }
         instanceProperties.setMinCpuPlatform(getMinCpuPlatform());
+
         List<InstanceNetworkInterface> networkInterface = getNetworkInterface();
 
         if (!networkInterface.isEmpty()) {
@@ -444,16 +448,19 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
                 .map(InstanceNetworkInterface::copyTo)
                 .collect(Collectors.toList()));
         }
+
         ComputeReservationAffinity reservationAffinity = getReservationAffinity();
 
         if (reservationAffinity != null) {
             instanceProperties.setReservationAffinity(reservationAffinity.toReservationAffinity());
         }
+
         ComputeScheduling scheduling = getScheduling();
 
         if (scheduling != null) {
             instanceProperties.setScheduling(scheduling.toScheduling());
         }
+
         List<ComputeServiceAccount> serviceAccount = getServiceAccount();
 
         if (!serviceAccount.isEmpty()) {
@@ -462,11 +469,13 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
                 .map(ComputeServiceAccount::toServiceAccount)
                 .collect(Collectors.toList()));
         }
+
         ComputeShieldedInstanceConfig shieldedInstanceConfig = getShieldedInstanceConfig();
 
         if (shieldedInstanceConfig != null) {
             instanceProperties.setShieldedInstanceConfig(shieldedInstanceConfig.toShieldedInstanceConfig());
         }
+
         ComputeTags tags = getTags();
 
         if (tags != null) {

@@ -1,0 +1,22 @@
+google::bucket bucket-example-target-http-proxy
+    name: "bucket-example-target-http-proxy"
+    location: "US-CENTRAL1"
+end
+
+google::compute-backend-bucket backend-bucket-example-target-http-proxy
+    name: "backend-bucket-example-target-http-proxy"
+    description: "Global backend bucket."
+    bucket: $(google::bucket bucket-example-target-http-proxy)
+end
+
+google::compute-url-map url-map-example-target-http-proxy
+    name: "url-map-example-target-http-proxy"
+    description: "URL map description."
+    default-backend-bucket: $(google::compute-backend-bucket backend-bucket-example-target-http-proxy)
+end
+
+google::compute-target-http-proxy target-http-proxy-example
+    name: "target-http-proxy-example"
+    description: "Target http proxy description."
+    url-map: $(google::compute-url-map url-map-example-target-http-proxy)
+end

@@ -1,0 +1,31 @@
+google::bucket bucket-example-global-forwarding-rule
+    name: "bucket-example-global-forwarding-rule"
+    location: "US-CENTRAL1"
+end
+
+google::compute-backend-bucket backend-bucket-example-global-forwarding-rule
+    name: "backend-bucket-example-global-forwarding-rule"
+    description: "Global backend bucket."
+    bucket: $(google::bucket bucket-example-global-forwarding-rule)
+end
+
+google::compute-url-map url-map-example-global-forwarding-rule
+    name: "url-map-example-global-forwarding-rule"
+    description: "URL map description."
+    default-backend-bucket: $(google::compute-backend-bucket backend-bucket-example-global-forwarding-rule)
+end
+
+google::compute-target-http-proxy target-http-proxy-example-forwarding-rule
+    name: "target-http-proxy-example-forwarding-rule"
+    description: "Target http proxy description."
+    url-map: $(google::compute-url-map url-map-example-global-forwarding-rule)
+end
+
+google::compute-global-forwarding-rule global-forwarding-rule-example
+    name: "global-forwarding-rule-example"
+    description: "Global forwarding rule description."
+    ip-protocol: "TCP"
+    load-balancing-scheme: "EXTERNAL"
+    port-range: "80-80"
+    target-http-proxy: $(google::compute-target-http-proxy target-http-proxy-example-forwarding-rule)
+end
