@@ -53,11 +53,11 @@ import gyro.google.Copyable;
  *          zone: $zone
  *          machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
  *
- *          network-interfaces
+ *          network-interface
  *              network: $(external-query google::compute-network {name: "default"})
  *          end
  *
- *          initialize-disks
+ *          initialize-disk
  *              boot: true
  *
  *              initialize-params
@@ -66,7 +66,7 @@ import gyro.google.Copyable;
  *              end
  *          end
  *
- *          initialize-disks
+ *          initialize-disk
  *              initialize-params
  *                  disk-name: "gyro-secondary-disk"
  *                  source-image: "projects/debian-cloud/global/images/family/debian-9"
@@ -86,12 +86,12 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     private String zone;
     private String description;
     private String machineType;
-    private List<InstanceNetworkInterface> networkInterfaces;
-    private List<InstanceAttachedDisk> disks;
+    private List<InstanceNetworkInterface> networkInterface;
+    private List<InstanceAttachedDisk> disk;
     private String selfLink;
     private Map<String, String> labels;
     private String labelFingerprint;
-    private List<InstanceAttachedDisk> initializeDisks;
+    private List<InstanceAttachedDisk> initializeDisk;
     private String status;
 
     /**
@@ -144,31 +144,33 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
 
     /**
      * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported.
+     *
+     * @subresource gyro.google.compute.InstanceNetworkInterface
      */
-    public List<InstanceNetworkInterface> getNetworkInterfaces() {
-        if (networkInterfaces == null) {
-            networkInterfaces = new ArrayList<>();
+    public List<InstanceNetworkInterface> getNetworkInterface() {
+        if (networkInterface == null) {
+            networkInterface = new ArrayList<>();
         }
-        return networkInterfaces;
+        return networkInterface;
     }
 
-    public void setNetworkInterfaces(List<InstanceNetworkInterface> networkInterfaces) {
-        this.networkInterfaces = networkInterfaces;
+    public void setNetworkInterface(List<InstanceNetworkInterface> networkInterface) {
+        this.networkInterface = networkInterface;
     }
 
     /**
      * List of disks associated with this instance.
      */
     @Output
-    public List<InstanceAttachedDisk> getDisks() {
-        if (disks == null) {
-            disks = new ArrayList<>();
+    public List<InstanceAttachedDisk> getDisk() {
+        if (disk == null) {
+            disk = new ArrayList<>();
         }
-        return disks;
+        return disk;
     }
 
-    public void setDisks(List<InstanceAttachedDisk> disks) {
-        this.disks = disks;
+    public void setDisk(List<InstanceAttachedDisk> disk) {
+        this.disk = disk;
     }
 
     /**
@@ -210,17 +212,19 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
 
     /**
      * Parameters for a new disk that will be created alongside the new instance. Use to create boot disks or local SSDs attached to the new instance.
+     *
+     * @subresource gyro.google.compute.InstanceAttachedDisk
      */
-    public List<InstanceAttachedDisk> getInitializeDisks() {
-        if (initializeDisks == null) {
-            initializeDisks = new ArrayList<>();
+    public List<InstanceAttachedDisk> getInitializeDisk() {
+        if (initializeDisk == null) {
+            initializeDisk = new ArrayList<>();
         }
 
-        return initializeDisks;
+        return initializeDisk;
     }
 
-    public void setInitializeDisks(List<InstanceAttachedDisk> initializeDisks) {
-        this.initializeDisks = initializeDisks;
+    public void setInitializeDisk(List<InstanceAttachedDisk> initializeDisk) {
+        this.initializeDisk = initializeDisk;
     }
 
     /**
@@ -254,11 +258,11 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         content.setName(getName());
         content.setDescription(getDescription());
         content.setMachineType(getMachineType());
-        content.setNetworkInterfaces(getNetworkInterfaces().stream()
+        content.setNetworkInterfaces(getNetworkInterface().stream()
             .map(InstanceNetworkInterface::copyTo)
             .collect(Collectors.toList()));
         content.setLabels(getLabels());
-        content.setDisks(getInitializeDisks().stream()
+        content.setDisks(getInitializeDisk().stream()
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
 
@@ -323,9 +327,9 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
             setStatus(model.getStatus());
         }
 
-        getNetworkInterfaces().clear();
+        getNetworkInterface().clear();
         if (model.getNetworkInterfaces() != null) {
-            setNetworkInterfaces(model.getNetworkInterfaces().stream()
+            setNetworkInterface(model.getNetworkInterfaces().stream()
                 .map(networkInterface -> {
                     InstanceNetworkInterface newNetworkInterface = newSubresource(InstanceNetworkInterface.class);
                     newNetworkInterface.copyFrom(networkInterface);
@@ -334,9 +338,9 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
                 .collect(Collectors.toList()));
         }
 
-        getDisks().clear();
+        getDisk().clear();
         if (model.getDisks() != null) {
-            setDisks(model.getDisks().stream()
+            setDisk(model.getDisks().stream()
                 .map(disk -> {
                     InstanceAttachedDisk instanceAttachedDisk = newSubresource(InstanceAttachedDisk.class);
                     instanceAttachedDisk.copyFrom(disk);

@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.model.AttachedDiskInitializeParams;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Regex;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class InstanceAttachedDiskInitializeParams extends Diffable implements Copyable<AttachedDiskInitializeParams> {
@@ -42,6 +43,8 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     /**
      * The source image to create this disk in the form of a URL path. See `Images <https://cloud.google.com/compute/docs/images/>`_.
      */
+    @Required
+    // TODO: make `source-image` or `source-snapshot` effectively required when `source-snapshot` is supported.
     public String getSourceImage() {
         return sourceImage;
     }
@@ -62,8 +65,9 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     }
 
     /**
-     * The disk name. Unspecified, it will use the name of the instance. If the disk with the instance name exists already in the given zone/region a new name will be automatically generated.
+     * The disk name. If the disk with the instance name exists already in the given zone/region a new name will be automatically generated.
      */
+    @Required
     @Regex("(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)")
     public String getDiskName() {
         return diskName;
@@ -111,6 +115,8 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
 
     /**
      * Encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. Instance templates do not store customer-supplied encryption keys, so you cannot create disks or instances in a managed instance group if the source images are encrypted with your own keys.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     public EncryptionKey getSourceImageEncryptionKey() {
         return sourceImageEncryptionKey;
@@ -122,6 +128,8 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
 
     /**
      * Encryption key of the source snapshot.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     public EncryptionKey getSourceSnapshotEncryptionKey() {
         return sourceSnapshotEncryptionKey;
@@ -147,21 +155,7 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
 
     @Override
     public String primaryKey() {
-        List<String> key = new ArrayList<>();
-
-        if (getDiskName() != null) {
-            key.add(String.format("disk-name=%s", getDiskName()));
-        }
-
-        if (getDescription() != null) {
-            key.add(String.format("description=%s", getDescription()));
-        }
-
-        if (getSourceImage() != null) {
-            key.add(String.format("source-image=%s", getSourceImage()));
-        }
-
-        return key.stream().collect(Collectors.joining(", "));
+        return getDiskName();
     }
 
     @Override

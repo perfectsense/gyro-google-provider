@@ -18,9 +18,11 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.AttachedDisk;
+import com.google.api.services.compute.model.AttachedDiskInitializeParams;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidStrings;
@@ -32,7 +34,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     private Boolean boot;
     private String deviceName;
     private EncryptionKey diskEncryptionKey;
-    private List<InstanceGuestOsFeature> guestOsFeatures;
+    private List<InstanceGuestOsFeature> guestOsFeature;
     private InstanceAttachedDiskInitializeParams initializeParams;
     private String diskInterface; // model name is reserved 'interface'
     private String mode;
@@ -74,6 +76,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     /**
      * When creating a new disk this field encrypts the new disk using the supplied encryption key. If attaching an existing disk already encrypted, this decrypts the disk using the supplied encryption key.||If you encrypt a disk using a customer-supplied key, you must provide the same key again when you attempt to use this resource at a later time.||If you do not provide an encryption key, then the disk will be encrypted using an automatically generated key and you do not need to provide a key to use the disk later. Instance templates do not store customer-supplied encryption keys, so you cannot use your own keys to encrypt disks in a managed instance group.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     public EncryptionKey getDiskEncryptionKey() {
         return diskEncryptionKey;
@@ -85,20 +89,24 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     /**
      * List of features to enable on the guest operating system. Applicable only for bootable images. See `enabling guest operating system features<https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images#guest-os-features/>`_.
+     *
+     * @subresource gyro.google.compute.InstanceGuestOsFeature
      */
-    public List<InstanceGuestOsFeature> getGuestOsFeatures() {
-        if (guestOsFeatures == null) {
-            guestOsFeatures = new ArrayList<>();
+    public List<InstanceGuestOsFeature> getGuestOsFeature() {
+        if (guestOsFeature == null) {
+            guestOsFeature = new ArrayList<>();
         }
-        return guestOsFeatures;
+        return guestOsFeature;
     }
 
-    public void setGuestOsFeatures(List<InstanceGuestOsFeature> guestOsFeatures) {
-        this.guestOsFeatures = guestOsFeatures;
+    public void setGuestOsFeature(List<InstanceGuestOsFeature> guestOsFeature) {
+        this.guestOsFeature = guestOsFeature;
     }
 
     /**
      * Parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.
+     *
+     * @subresource gyro.google.compute.InstanceAttachedDiskInitializeParams
      */
     @ConflictsWith("source")
     public InstanceAttachedDiskInitializeParams getInitializeParams() {
@@ -135,6 +143,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     /**
      * The Persistent Disk resource.
+     *
+     * @resource gyro.google.compute.DiskResource
      */
     @ConflictsWith("initializeParams")
     public DiskResource getSource() {
@@ -159,11 +169,22 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     @Override
     public String primaryKey() {
-        if (getInitializeParams() != null) {
-            return "";
-        }
+        DiskResource source = getSource();
 
-        return getSource() != null ? getSource().getSelfLink() : "";
+        if (source != null) {
+            return source.getSelfLink();
+        }
+        InstanceAttachedDiskInitializeParams initializeParams = getInitializeParams();
+
+        if (initializeParams != null) {
+            return initializeParams.primaryKey();
+        }
+        String diskType = getType();
+
+        if ("SCRATCH".equals(diskType)) {
+            return diskType;
+        }
+        return "";
     }
 
     @Override
@@ -173,7 +194,13 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         setDeviceName(model.getDeviceName());
         setDiskInterface(model.getInterface());
         setMode(model.getMode());
-        setSource(findById(DiskResource.class, model.getSource()));
+        DiskResource diskResource = null;
+        String source = model.getSource();
+
+        if (source != null) {
+            diskResource = findById(DiskResource.class, source);
+        }
+        setSource(diskResource);
         setType(model.getType());
 
         setDiskEncryptionKey(null);
@@ -183,9 +210,9 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
             setDiskEncryptionKey(newDiskEncryptionKey);
         }
 
-        getGuestOsFeatures().clear();
+        getGuestOsFeature().clear();
         if (model.getGuestOsFeatures() != null) {
-            setGuestOsFeatures(model.getGuestOsFeatures().stream()
+            setGuestOsFeature(model.getGuestOsFeatures().stream()
                 .map(feature -> {
                     InstanceGuestOsFeature newFeature = newSubresource(InstanceGuestOsFeature.class);
                     newFeature.copyFrom(feature);
@@ -194,6 +221,15 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
                 .collect(Collectors.toList())
             );
         }
+        InstanceAttachedDiskInitializeParams diffableInitializeParams = null;
+        AttachedDiskInitializeParams initializeParams = model.getInitializeParams();
+
+        if (initializeParams != null) {
+            diffableInitializeParams = Optional.ofNullable(getInitializeParams())
+                .orElse(newSubresource(InstanceAttachedDiskInitializeParams.class));
+            diffableInitializeParams.copyFrom(initializeParams);
+        }
+        setInitializeParams(diffableInitializeParams);
     }
 
     public AttachedDisk copyTo() {
@@ -205,8 +241,9 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         disk.setMode(getMode());
         disk.setSource(getSource() != null ? getSource().getSelfLink() : null);
         disk.setType(getType());
-        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
-        disk.setGuestOsFeatures(getGuestOsFeatures() != null ? getGuestOsFeatures().stream()
+        disk.setDiskEncryptionKey(
+            getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
+        disk.setGuestOsFeatures(getGuestOsFeature() != null ? getGuestOsFeature().stream()
             .map(InstanceGuestOsFeature::copyTo)
             .collect(Collectors.toList()) : null);
         disk.setInitializeParams(getInitializeParams() != null ? getInitializeParams().copyTo() : null);

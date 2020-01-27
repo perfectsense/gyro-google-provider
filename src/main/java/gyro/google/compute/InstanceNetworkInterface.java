@@ -16,9 +16,12 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.api.services.compute.model.AccessConfig;
+import com.google.api.services.compute.model.AliasIpRange;
 import com.google.api.services.compute.model.NetworkInterface;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
@@ -30,13 +33,15 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     private NetworkResource network;
     private SubnetworkResource subnetwork;
     private String networkIp;
-    private List<InstanceAccessConfig> accessConfigs;
-    private List<InstanceAliasIpRange> aliasIpRanges;
+    private List<InstanceAccessConfig> accessConfig;
+    private List<InstanceAliasIpRange> aliasIpRange;
     private String fingerprint;
     private String name;
 
     /**
      * Network for this instance. If neither the network or subnetwork is specified, the default network ``global/networks/default`` is used and if the network is not specified but the subnetwork is specified, the network is inferred. (Required)
+     *
+     * @resource gyro.google.compute.NetworkResource
      */
     @Required
     public NetworkResource getNetwork() {
@@ -49,6 +54,8 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
 
     /**
      * Subnetwork for this instance. If the network resource is in legacy mode, do not specify this field. If the network is in auto subnet mode, specifying the subnetwork is optional. If the network is in custom subnet mode, specifying the subnetwork is required.
+     *
+     * @resource gyro.google.compute.SubnetworkResource
      */
     public SubnetworkResource getSubnetwork() {
         return subnetwork;
@@ -71,24 +78,34 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
 
     /**
      * A list of access configurations for this interface. Currently, only ``NE_TO_ONE_NAT`` is supported. If unspecified this instance will have no external internet access.
+     *
+     * @subresource gyro.google.compute.InstanceAccessConfig
      */
-    public List<InstanceAccessConfig> getAccessConfigs() {
-        return accessConfigs;
+    public List<InstanceAccessConfig> getAccessConfig() {
+        if (accessConfig == null) {
+            accessConfig = new ArrayList<>();
+        }
+        return accessConfig;
     }
 
-    public void setAccessConfigs(List<InstanceAccessConfig> accessConfigs) {
-        this.accessConfigs = accessConfigs;
+    public void setAccessConfig(List<InstanceAccessConfig> accessConfig) {
+        this.accessConfig = accessConfig;
     }
 
     /**
      * A list of alias IP ranges for this network interface. Can only specify this for network interfaces in VPC networks.
+     *
+     * @subresource gyro.google.compute.InstanceAliasIpRange
      */
-    public List<InstanceAliasIpRange> getAliasIpRanges() {
-        return aliasIpRanges;
+    public List<InstanceAliasIpRange> getAliasIpRange() {
+        if (aliasIpRange == null) {
+            aliasIpRange = new ArrayList<>();
+        }
+        return aliasIpRange;
     }
 
-    public void setAliasIpRanges(List<InstanceAliasIpRange> aliasIpRanges) {
-        this.aliasIpRanges = aliasIpRanges;
+    public void setAliasIpRange(List<InstanceAliasIpRange> aliasIpRange) {
+        this.aliasIpRange = aliasIpRange;
     }
 
     /**
@@ -121,10 +138,6 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
 
     @Override
     public void copyFrom(NetworkInterface model) {
-        setNetworkIp(model.getNetworkIP());
-        setFingerprint(model.getFingerprint());
-        setName(model.getName());
-
         setNetwork(null);
         if (model.getNetwork() != null) {
             setNetwork(findById(NetworkResource.class, model.getNetwork()));
@@ -134,6 +147,40 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
         if (model.getSubnetwork() != null) {
             setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         }
+        setNetworkIp(model.getNetworkIP());
+
+        List<InstanceAccessConfig> diffableAccessConfigs = null;
+        List<AccessConfig> accessConfigs = model.getAccessConfigs();
+
+        if (accessConfigs != null && !accessConfigs.isEmpty()) {
+            diffableAccessConfigs = accessConfigs
+                .stream()
+                .map(accessConfig -> {
+                    InstanceAccessConfig instanceAccessConfig = newSubresource(InstanceAccessConfig.class);
+                    instanceAccessConfig.copyFrom(accessConfig);
+                    return instanceAccessConfig;
+                })
+                .collect(Collectors.toList());
+        }
+        setAccessConfig(diffableAccessConfigs);
+
+        List<InstanceAliasIpRange> diffableAliasIpRanges = null;
+        List<AliasIpRange> aliasIpRanges = model.getAliasIpRanges();
+
+        if (aliasIpRanges != null && !aliasIpRanges.isEmpty()) {
+            diffableAliasIpRanges = aliasIpRanges
+                .stream()
+                .map(aliasIpRange -> {
+                    InstanceAliasIpRange instanceAliasIpRange = newSubresource(InstanceAliasIpRange.class);
+                    instanceAliasIpRange.copyFrom(aliasIpRange);
+                    return instanceAliasIpRange;
+                })
+                .collect(Collectors.toList());
+        }
+        setAliasIpRange(diffableAliasIpRanges);
+
+        setFingerprint(model.getFingerprint());
+        setName(model.getName());
     }
 
     public NetworkInterface copyTo() {
@@ -150,14 +197,14 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
             networkInterface.setSubnetwork(getSubnetwork().getSelfLink());
         }
 
-        if (getAccessConfigs() != null) {
-            networkInterface.setAccessConfigs(getAccessConfigs().stream()
+        if (!getAccessConfig().isEmpty()) {
+            networkInterface.setAccessConfigs(getAccessConfig().stream()
                 .map(InstanceAccessConfig::copyTo)
                 .collect(Collectors.toList()));
         }
 
-        if (getAliasIpRanges() != null) {
-            networkInterface.setAliasIpRanges(getAliasIpRanges().stream()
+        if (!getAliasIpRange().isEmpty()) {
+            networkInterface.setAliasIpRanges(getAliasIpRange().stream()
                 .map(InstanceAliasIpRange::copyTo)
                 .collect(Collectors.toList()));
         }
