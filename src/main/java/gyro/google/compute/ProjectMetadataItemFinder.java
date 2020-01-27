@@ -56,7 +56,11 @@ public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.It
 
     @Override
     protected List<Metadata.Items> findAllGoogle(Compute client) throws Exception {
-        return Optional.ofNullable(client.projects().get(getProjectId()).execute().getCommonInstanceMetadata().getItems()).orElse(new ArrayList<>());
+        return Optional.ofNullable(client.projects()
+            .get(getProjectId())
+            .execute()
+            .getCommonInstanceMetadata()
+            .getItems()).orElse(new ArrayList<>());
     }
 
     @Override

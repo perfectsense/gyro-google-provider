@@ -71,10 +71,11 @@ public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceReso
     protected List<Instance> findAllGoogle(Compute client) throws Exception {
         List<Instance> instances = new ArrayList<>();
         String pageToken;
-        List<Zone> zoneList = Optional.ofNullable(client.zones().list(getProjectId()).execute().getItems()).orElse(new ArrayList<>());
+        List<Zone> zoneList = Optional.ofNullable(client.zones().list(getProjectId()).execute().getItems())
+            .orElse(new ArrayList<>());
         List<String> zones = zoneList.stream()
-                .map(Zone::getName)
-                .collect(Collectors.toList());
+            .map(Zone::getName)
+            .collect(Collectors.toList());
 
         for (String zone : zones) {
             do {
