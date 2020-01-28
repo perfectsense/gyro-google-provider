@@ -40,7 +40,7 @@ import gyro.google.GoogleFinder;
  */
 @Type("compute-region-instance-group-manager")
 public class RegionInstanceGroupManagerFinder
-    extends GoogleFinder<Compute, InstanceGroupManager, InstanceGroupManagerResource> {
+    extends GoogleFinder<Compute, InstanceGroupManager, RegionInstanceGroupManagerResource> {
 
     private String name;
 
