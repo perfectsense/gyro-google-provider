@@ -61,8 +61,11 @@ public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
 
         do {
             routeList = client.routes().list(getProjectId()).setPageToken(nextPageToken).execute();
-            routes.addAll(routeList.getItems());
             nextPageToken = routeList.getNextPageToken();
+
+            if (routeList.getItems() != null) {
+                routes.addAll(routeList.getItems());
+            }
         } while (nextPageToken != null);
 
         return routes;

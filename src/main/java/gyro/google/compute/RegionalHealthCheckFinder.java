@@ -111,7 +111,10 @@ public class RegionalHealthCheckFinder extends GoogleFinder<Compute, HealthCheck
                     .setPageToken(nextPageToken)
                     .execute();
                 nextPageToken = healthCheckList.getNextPageToken();
-                healthChecks.addAll(healthCheckList.getItems());
+
+                if (healthCheckList.getItems() != null) {
+                    healthChecks.addAll(healthCheckList.getItems());
+                }
             } while (nextPageToken != null);
         }
 

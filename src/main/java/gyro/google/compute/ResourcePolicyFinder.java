@@ -105,8 +105,9 @@ public class ResourcePolicyFinder extends GoogleFinder<Compute, ResourcePolicy, 
                     .execute();
                 pageToken = policyList.getNextPageToken();
 
-                policies.addAll(policyList.getItems());
-
+                if (policyList.getItems() != null) {
+                    policies.addAll(policyList.getItems());
+                }
             } while (pageToken != null);
         }
 
