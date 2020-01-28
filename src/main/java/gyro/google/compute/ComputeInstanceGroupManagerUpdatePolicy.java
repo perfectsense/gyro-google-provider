@@ -26,7 +26,8 @@ import gyro.google.Copyable;
 public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
     implements Copyable<InstanceGroupManagerUpdatePolicy> {
 
-    private String instanceRedistributionType;
+    // instanceRedistributionType is not available from Google SDK yet.
+    //    private String instanceRedistributionType;
 
     private ComputeFixedOrPercent maxSurge;
 
@@ -35,21 +36,6 @@ public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
     private String minimalAction;
 
     private String type;
-
-    /**
-     * The instance redistribution policy for regional managed instance groups. Valid values are:  - PROACTIVE (default): The group attempts to maintain an even distribution of VM instances across zones in the region. - NONE: For non-autoscaled groups, proactive redistribution is disabled.
-     */
-    @ValidStrings({
-        "NONE",
-        "PROACTIVE"
-    })
-    public String getInstanceRedistributionType() {
-        return instanceRedistributionType;
-    }
-
-    public void setInstanceRedistributionType(String instanceRedistributionType) {
-        this.instanceRedistributionType = instanceRedistributionType;
-    }
 
     /**
      * The maximum number of instances that can be created above the specified targetSize during the update process. By default, a fixed value of 1 is used. This value can be either a fixed number or a percentage if the instance group has 10 or more instances. If you set a percentage, the number of instances will be rounded up if necessary.At least one of either maxSurge or maxUnavailable must be greater than 0. Learn more about maxSurge.
@@ -109,7 +95,6 @@ public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
 
     public InstanceGroupManagerUpdatePolicy copyTo() {
         InstanceGroupManagerUpdatePolicy instanceGroupManagerUpdatePolicy = new InstanceGroupManagerUpdatePolicy();
-        //instanceRedistributionType
         Optional.ofNullable(getMaxSurge())
             .map(ComputeFixedOrPercent::copyTo)
             .ifPresent(instanceGroupManagerUpdatePolicy::setMaxSurge);

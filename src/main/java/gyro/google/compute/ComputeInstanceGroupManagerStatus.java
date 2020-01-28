@@ -25,7 +25,8 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
 
     private Boolean isStable;
 
-    private ComputeInstanceGroupManagerStatusVersionTarget versionTarget;
+    // versionTarget is not available from Google SDK yet.
+    //    private ComputeInstanceGroupManagerStatusVersionTarget versionTarget;
 
     /**
      * A bit indicating whether the managed instance group is in a stable state. A stable state means that: none of the instances in the managed instance group is currently undergoing any type of change (for example, creation, restart, or deletion); no future changes are scheduled for instances in the managed instance group; and the managed instance group itself is not being modified.
@@ -39,24 +40,9 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
         this.isStable = isStable;
     }
 
-    /**
-     * A status of consistency of Instances' versions with their target version specified by version field on Instance Group Manager.
-     *
-     * @subresource gyro.google.compute.ComputeInstanceGroupManagerStatusVersionTarget
-     */
-    @Output
-    public ComputeInstanceGroupManagerStatusVersionTarget getVersionTarget() {
-        return versionTarget;
-    }
-
-    public void setVersionTarget(ComputeInstanceGroupManagerStatusVersionTarget versionTarget) {
-        this.versionTarget = versionTarget;
-    }
-
     @Override
     public void copyFrom(InstanceGroupManagerStatus model) {
         setIsStable(model.getIsStable());
-        // versionTarget is not available from Google SDK yet.
     }
 
     @Override
