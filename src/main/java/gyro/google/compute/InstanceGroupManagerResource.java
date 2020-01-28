@@ -16,20 +16,13 @@
 
 package gyro.google.compute;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
 import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Immutable;
-import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 
@@ -69,74 +62,6 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     }
 
     @Override
-    public boolean doRefresh() throws Exception {
-        Compute client = createClient(Compute.class);
-        copyFrom(client.instanceGroupManagers().get(getProjectId(), getZone(), getName()).execute());
-        return true;
-    }
-
-    @Override
-    public void doCreate(GyroUI ui, State state) throws Exception {
-        InstanceGroupManager instanceGroupManager = createInstanceGroupManager();
-        Compute client = createClient(Compute.class);
-        Operation operation = client.instanceGroupManagers()
-            .insert(getProjectId(), getZone(), instanceGroupManager)
-            .execute();
-        waitForCompletion(client, operation);
-        refresh();
-    }
-
-    @Override
-    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
-        throws Exception {
-        // TODO: target pool resource
-        // https://github.com/perfectsense/gyro-google-provider/issues/79
-        //    private List<AbstractTargetPoolResource> targetPools;
-        boolean shouldPatch = false;
-
-        InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
-
-        for (String changedFieldName : changedFieldNames) {
-            // template changes
-            if (changedFieldName.equals("instance-template")) {
-                setInstanceTemplate();
-            } else if (changedFieldName.equals("target-size")) {
-                instanceGroupManager.setTargetSize(getTargetSize());
-                shouldPatch = true;
-            } else if (changedFieldName.equals("auto-healing-policy")) {
-                List<ComputeInstanceGroupManagerAutoHealingPolicy> diffableAutoHealingPolicy = getAutoHealingPolicy();
-                List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicies = null;
-
-                if (diffableAutoHealingPolicy.isEmpty()) {
-                    autoHealingPolicies = Data.nullOf(List.class);
-                } else {
-                    autoHealingPolicies = diffableAutoHealingPolicy
-                        .stream()
-                        .map(ComputeInstanceGroupManagerAutoHealingPolicy::copyTo)
-                        .collect(Collectors.toList());
-                }
-                instanceGroupManager.setAutoHealingPolicies(autoHealingPolicies);
-                shouldPatch = true;
-            } else if (changedFieldName.equals("named-port")) {
-                // TODO: investigate as GCP UI allows updating of named ports.
-            }
-        }
-
-        if (shouldPatch) {
-            patch(instanceGroupManager);
-        }
-    }
-
-    @Override
-    public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createClient(Compute.class);
-        Operation operation = client.instanceGroupManagers()
-            .delete(getProjectId(), getZone(), getName())
-            .execute();
-        waitForCompletion(client, operation);
-    }
-
-    @Override
     public void copyFrom(InstanceGroupManager model) {
         super.copyFrom(model);
 
@@ -144,23 +69,48 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
         //        setZone(model.getZone());
     }
 
-    private void setInstanceTemplate() throws Exception {
-        Compute client = createClient(Compute.class);
+    @Override
+    protected boolean doRefresh() throws Exception {
+        Compute client = createComputeClient();
+        copyFrom(client.instanceGroupManagers().get(getProjectId(), "us-central1-a", getName()).execute());
+        return true;
+    }
+
+    @Override
+    protected void doDelete(GyroUI ui, State state) throws Exception {
+        Compute client = createComputeClient();
+        Operation operation = client.instanceGroupManagers()
+            .delete(getProjectId(), getZone(), getName())
+            .execute();
+        waitForCompletion(client, operation);
+    }
+
+    @Override
+    void insert(InstanceGroupManager instanceGroupManager) throws Exception {
+        Compute client = createComputeClient();
+        Operation operation = client.instanceGroupManagers()
+            .insert(getProjectId(), getZone(), instanceGroupManager)
+            .execute();
+        waitForCompletion(client, operation);
+    }
+
+    @Override
+    void patch(InstanceGroupManager instanceGroupManager) throws Exception {
+        Compute client = createComputeClient();
+        Operation operation = client.instanceGroupManagers()
+            .patch(getProjectId(), getZone(), getName(), instanceGroupManager)
+            .execute();
+        waitForCompletion(client, operation);
+    }
+
+    @Override
+    void setInstanceTemplate() throws Exception {
+        Compute client = createComputeClient();
         InstanceGroupManagersSetInstanceTemplateRequest request = new InstanceGroupManagersSetInstanceTemplateRequest();
         request.setInstanceTemplate(getInstanceTemplate().getSelfLink());
         Operation operation = client.instanceGroupManagers()
             .setInstanceTemplate(getProjectId(), getZone(), getName(), request)
             .execute();
         waitForCompletion(client, operation);
-        refresh();
-    }
-
-    private void patch(InstanceGroupManager instanceGroupManager) throws Exception {
-        Compute client = createClient(Compute.class);
-        Operation operation = client.instanceGroupManagers()
-            .patch(getProjectId(), getZone(), getName(), instanceGroupManager)
-            .execute();
-        waitForCompletion(client, operation);
-        refresh();
     }
 }

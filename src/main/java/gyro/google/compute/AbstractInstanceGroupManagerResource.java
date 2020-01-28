@@ -22,12 +22,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
 import com.google.api.services.compute.model.InstanceGroupManagerVersion;
 import com.google.api.services.compute.model.NamedPort;
+import gyro.core.GyroUI;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
+import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
+import gyro.core.scope.State;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Min;
 import gyro.core.validation.Regex;
@@ -71,6 +76,12 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
     private String selfLink;
 
     private ComputeInstanceGroupManagerStatus status;
+
+    abstract void insert(InstanceGroupManager instanceGroupManager) throws Exception;
+
+    abstract void patch(InstanceGroupManager instanceGroupManager) throws Exception;
+
+    abstract void setInstanceTemplate() throws Exception;
 
     /**
      * The base instance name to use for instances in this group. The value must be 1-58 characters long. Instances are named by appending a hyphen and a random four-character string to the base instance name. The base instance name must comply with RFC1035.
@@ -272,6 +283,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
     /**
      * The URL for this managed instance group. The server defines this URL.
      */
+    @Id
     @Output
     public String getSelfLink() {
         return selfLink;
@@ -334,7 +346,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
                 .collect(Collectors.toList());
         }
         setAutoHealingPolicy(diffableAutoHealingPolicies);
-        setDescription(getDescription());
+        setDescription(model.getDescription());
         setFingerprint(model.getFingerprint());
         setInstanceTemplate(Optional.ofNullable(model.getInstanceTemplate())
             .map(e -> findById(InstanceTemplateResource.class, e))
@@ -411,7 +423,8 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
             .orElse(null));
     }
 
-    protected InstanceGroupManager createInstanceGroupManager() {
+    @Override
+    protected void doCreate(GyroUI ui, State state) throws Exception {
         InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
         instanceGroupManager.setBaseInstanceName(getBaseInstanceName());
         instanceGroupManager.setName(getName());
@@ -441,6 +454,48 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
             .map(ComputeInstanceGroupManagerVersion::copyTo)
             .collect(Collectors.toList()));
 
-        return instanceGroupManager;
+        insert(instanceGroupManager);
+        refresh();
+    }
+
+    @Override
+    protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
+        throws Exception {
+        // TODO: target pool resource
+        // https://github.com/perfectsense/gyro-google-provider/issues/79
+
+        // TODO: investigate as GCP UI allows updating of named ports.
+
+        boolean shouldPatch = false;
+        InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+
+        for (String changedFieldName : changedFieldNames) {
+            // template changes
+            if (changedFieldName.equals("instance-template")) {
+                setInstanceTemplate();
+            } else if (changedFieldName.equals("target-size")) {
+                instanceGroupManager.setTargetSize(getTargetSize());
+                shouldPatch = true;
+            } else if (changedFieldName.equals("auto-healing-policy")) {
+                List<ComputeInstanceGroupManagerAutoHealingPolicy> diffableAutoHealingPolicy = getAutoHealingPolicy();
+                List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicies = null;
+
+                if (diffableAutoHealingPolicy.isEmpty()) {
+                    autoHealingPolicies = Data.nullOf(List.class);
+                } else {
+                    autoHealingPolicies = diffableAutoHealingPolicy
+                        .stream()
+                        .map(ComputeInstanceGroupManagerAutoHealingPolicy::copyTo)
+                        .collect(Collectors.toList());
+                }
+                instanceGroupManager.setAutoHealingPolicies(autoHealingPolicies);
+                shouldPatch = true;
+            }
+        }
+
+        if (shouldPatch) {
+            patch(instanceGroupManager);
+        }
+        refresh();
     }
 }
