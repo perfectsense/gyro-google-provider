@@ -77,7 +77,7 @@ public abstract class GoogleResource extends Resource {
         }
     }
 
-    public abstract void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
+    protected abstract void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
         throws Exception;
 
     @Override
@@ -93,7 +93,7 @@ public abstract class GoogleResource extends Resource {
         }
     }
 
-    public abstract void doDelete(GyroUI ui, State state) throws Exception;
+    protected abstract void doDelete(GyroUI ui, State state) throws Exception;
 
     @Override
     public final void delete(GyroUI ui, State state) {
