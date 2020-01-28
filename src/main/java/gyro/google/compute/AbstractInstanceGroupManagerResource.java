@@ -69,8 +69,6 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     private ComputeInstanceGroupManagerActionsSummary currentActions;
 
-    private String id;
-
     private String instanceGroupLink;
 
     private String selfLink;
@@ -254,18 +252,6 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     public void setCurrentActions(ComputeInstanceGroupManagerActionsSummary currentActions) {
         this.currentActions = currentActions;
-    }
-
-    /**
-     * A unique identifier for this resource type. The server generates this identifier.
-     */
-    @Output
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     /**
