@@ -40,7 +40,7 @@ import gyro.core.validation.Required;
  *         description: "Instance group manager example"
  *         instance-template: $(google::compute-instance-template instance-group-template-example)
  *         target-size: 1
- *         zone: "us-central-1"
+ *         zone: "us-central1-a"
  *     end
  */
 @Type("compute-instance-group-manager")
