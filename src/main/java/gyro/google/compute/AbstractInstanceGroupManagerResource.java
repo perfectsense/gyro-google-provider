@@ -113,10 +113,13 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
      * The target number of running instances for this managed instance group.
      * Deleting or abandoning instances reduces this number. Resizing the group changes this number.
      */
-    @Min(1)
-    @Required
+    @Min(0)
     @Updatable
     public Integer getTargetSize() {
+        if (targetSize == null) {
+            return 0;
+        }
+
         return targetSize;
     }
 
