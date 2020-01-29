@@ -32,7 +32,8 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
     private ComputeFixedOrPercent targetSize;
 
     /**
-     * The instance template that is specified for this managed instance group. The group uses this template to create new instances in the managed instance group until the `targetSize` for this version is reached.
+     * The instance template that is specified for this managed instance group.
+     * The group uses this template to create new instances in the managed instance group until the ``target-size`` for this version is reached.
      *
      * @resource gyro.google.compute.InstanceTemplateResource
      */
@@ -46,7 +47,8 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
     }
 
     /**
-     * Name of the version. Unique among all versions in the scope of this managed instance group.
+     * Name of the version.
+     * Unique among all versions in the scope of this managed instance group.
      */
     @Required
     public String getName() {
@@ -58,7 +60,13 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
     }
 
     /**
-     * Specifies the intended number of instances to be created from the instanceTemplate. The final number of instances created from the template will be equal to:  - If expressed as a fixed number, the minimum of either targetSize.fixed or instanceGroupManager.targetSize is used. - if expressed as a percent, the targetSize would be (targetSize.percent/100 * InstanceGroupManager.targetSize) If there is a remainder, the number is rounded up.  If unset, this version will update any remaining instances not updated by another version. Read Starting a canary update for more information.
+     * Specifies the intended number of instances to be created from the instanceTemplate.
+     * The final number of instances created from the template will be equal to:
+     *
+     * - If expressed as a fixed number, the minimum of either ``target-size.fixed`` or ``instance-group-manager.target-size`` is used.
+     * - if expressed as a percent, the ``target-size`` would be (``target-size.percent``/100 * ``instance-group-manager.target-size``) If there is a remainder, the number is rounded up.
+     *
+     * If unset, this version will update any remaining instances not updated by another version. Read Starting a canary update for more information.
      *
      * @subresource gyro.google.compute.ComputeFixedOrPercent
      */

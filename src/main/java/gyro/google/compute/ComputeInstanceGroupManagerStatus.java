@@ -29,7 +29,8 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
     //    private ComputeInstanceGroupManagerStatusVersionTarget versionTarget;
 
     /**
-     * A bit indicating whether the managed instance group is in a stable state. A stable state means that: none of the instances in the managed instance group is currently undergoing any type of change (for example, creation, restart, or deletion); no future changes are scheduled for instances in the managed instance group; and the managed instance group itself is not being modified.
+     * A bit indicating whether the managed instance group is in a stable state.
+     * A stable state means that: none of the instances in the managed instance group is currently undergoing any type of change (for example, creation, restart, or deletion); no future changes are scheduled for instances in the managed instance group; and the managed instance group itself is not being modified.
      */
     @Output
     public Boolean getIsStable() {

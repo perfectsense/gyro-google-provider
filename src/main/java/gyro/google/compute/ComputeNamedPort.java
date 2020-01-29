@@ -30,7 +30,8 @@ public class ComputeNamedPort extends Diffable implements Copyable<NamedPort> {
     private Integer port;
 
     /**
-     * The name for this named port. The name must be 1-63 characters long, and comply with RFC1035.
+     * The name for this named port.
+     * The name must be 1-63 characters long, and comply with RFC1035.
      */
     @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
     @Required
@@ -43,7 +44,8 @@ public class ComputeNamedPort extends Diffable implements Copyable<NamedPort> {
     }
 
     /**
-     * The port number, which can be a value between 1 and 65535.
+     * The port number.
+     * It can be a value between 1 and 65535.
      */
     @Range(min = 1, max = 65535)
     @Required
