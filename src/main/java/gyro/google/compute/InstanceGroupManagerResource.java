@@ -72,7 +72,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     @Override
     protected boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
-        copyFrom(client.instanceGroupManagers().get(getProjectId(), "us-central1-a", getName()).execute());
+        copyFrom(client.instanceGroupManagers().get(getProjectId(), getZone(), getName()).execute());
         return true;
     }
 
