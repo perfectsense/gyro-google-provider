@@ -1,0 +1,48 @@
+google::compute-network network-example-target-pool
+    name: "network-example-target-pool"
+    description: "Network description."
+    routing-mode: "Regional"
+end
+
+google::compute-instance instance-example-target-pool
+    name: "instance-example-target-pool"
+    description: "Instance description."
+    zone: us-central1-a
+    machine-type: "zones/us-central1-a/machineTypes/n1-standard-1"
+
+    network-interface
+        network: $(external-query google::compute-network {name: "default"})
+    end
+
+    initialize-disk
+        boot: true
+        auto-delete: true
+
+        initialize-params
+            disk-name: "gyro-boot-disk"
+            source-image: "projects/debian-cloud/global/images/family/debian-9"
+        end
+    end
+
+    labels: {
+        "gyro": "install"
+    }
+end
+
+google::compute-target-pool target-pool-example
+    name: "target-pool-example"
+    region: "us-central1"
+    description: "Target pool description."
+
+    instances: [ $(google::compute-instance instance-example-target-pool) ]
+end
+
+google::compute-target-pool target-pool-backup-example
+    name: "target-pool-backup-example"
+    region: "us-central1"
+    description: "Target pool backup description."
+    failover-ratio: 0.15
+    backup-pool: $(google::compute-target-pool target-pool-example)
+
+    instances: [ $(google::compute-instance instance-example-target-pool) ]
+end
