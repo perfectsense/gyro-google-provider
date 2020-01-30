@@ -16,13 +16,12 @@
 
 package gyro.google.compute;
 
-import java.util.Optional;
-
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Immutable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
+import gyro.google.util.Utils;
 
 public class ComputeDistributionPolicyZoneConfiguration extends Diffable
     implements Copyable<DistributionPolicyZoneConfiguration> {
@@ -55,8 +54,6 @@ public class ComputeDistributionPolicyZoneConfiguration extends Diffable
 
     @Override
     public String primaryKey() {
-        return Optional.ofNullable(getZoneLink())
-            .map(e -> e.substring(e.lastIndexOf("/") + 1))
-            .orElse("");
+        return Utils.extractName(getZoneLink());
     }
 }

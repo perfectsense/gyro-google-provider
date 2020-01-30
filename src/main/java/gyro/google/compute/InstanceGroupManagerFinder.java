@@ -36,7 +36,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    instance-group-manager: $(external-query google::compute-instance-group-manager { name: 'instance-group-manager-example' })
+ *    instance-group-manager: $(external-query google::compute-instance-group-manager { name: 'instance-group-manager-example', zone: 'us-central1-a' })
  */
 @Type("compute-instance-group-manager")
 public class InstanceGroupManagerFinder

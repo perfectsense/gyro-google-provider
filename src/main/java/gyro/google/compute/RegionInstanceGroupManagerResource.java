@@ -24,9 +24,9 @@ import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTemplateRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Immutable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.google.util.Utils;
 
 /**
  * Creates a region instance group manager.
@@ -68,7 +68,6 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
     /**
      * The region where the managed instance group resides.
      */
-    @Immutable
     @Required
     public String getRegion() {
         return region;
@@ -90,8 +89,7 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
                 return computeDistributionPolicy;
             })
             .orElse(null));
-        // Do NOT update region with a full url as this should be a name.
-        //        setRegion(model.getRegion());
+        setRegion(Utils.extractName(model.getRegion()));
     }
 
     @Override
