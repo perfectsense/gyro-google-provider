@@ -36,7 +36,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    autoscaler: $(external-query google::compute-autoscaler { name: 'compute-autoscaler-example' })
+ *    autoscaler: $(external-query google::compute-autoscaler { name: 'compute-autoscaler-example', zone: 'us-central1-a' })
  */
 @Type("compute-autoscaler")
 public class AutoscalerFinder

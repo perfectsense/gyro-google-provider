@@ -36,7 +36,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    region-autoscaler: $(external-query google::compute-region-autoscaler { name: 'compute-region-autoscaler-example' })
+ *    region-autoscaler: $(external-query google::compute-region-autoscaler { name: 'compute-region-autoscaler-example', region: 'us-central1' })
  */
 @Type("compute-region-autoscaler")
 public class RegionAutoscalerFinder
