@@ -23,9 +23,9 @@ import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Immutable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.google.util.Utils;
 
 /**
  * Creates an autoscaler.
@@ -72,7 +72,6 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
     /**
      * The zone where the autoscaler resides.
      */
-    @Immutable
     @Required
     public String getZone() {
         return zone;
@@ -89,8 +88,7 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
         setInstanceGroupManager(Optional.ofNullable(model.getTarget())
             .map(e -> findById(InstanceGroupManagerResource.class, e))
             .orElse(null));
-        // Do NOT update zone with a full url as this should be a name.
-        //        setZone(model.getZone());
+        setZone(Utils.extractName(model.getZone()));
     }
 
     @Override

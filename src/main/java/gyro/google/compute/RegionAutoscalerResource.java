@@ -23,9 +23,9 @@ import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Immutable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.google.util.Utils;
 
 /**
  * Creates an region autoscaler.
@@ -72,7 +72,6 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
     /**
      * The region where the autoscaler resides.
      */
-    @Immutable
     @Required
     public String getRegion() {
         return region;
@@ -89,8 +88,7 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
         setInstanceGroupManager(Optional.ofNullable(model.getTarget())
             .map(e -> findById(RegionInstanceGroupManagerResource.class, e))
             .orElse(null));
-        // Do NOT update region with a full url as this should be a name.
-        //                setRegion(model.getRegion());
+        setRegion(Utils.extractName(model.getRegion()));
     }
 
     @Override
