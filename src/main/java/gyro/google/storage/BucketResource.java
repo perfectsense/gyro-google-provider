@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import com.google.api.client.util.Data;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Policy;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -141,6 +142,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private BucketBilling billing;
     private Boolean defaultEventBasedHold;
     private BucketIamConfiguration iamConfiguration;
+    private BucketIamPolicy iamPolicy;
     private BucketLifecycle lifecycle;
     private BucketLogging logging;
     private BucketRetentionPolicy retentionPolicy;
@@ -302,6 +304,20 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
+     * The bucket's IAM Policy. See also `Cloud IAM Permissions <https://cloud.google.com/storage/docs/access-control/using-iam-permissions>`_.
+     *
+     * @subresource gyro.google.storage.BucketIamPolicy
+     */
+    @Updatable
+    public BucketIamPolicy getIamPolicy() {
+        return iamPolicy;
+    }
+
+    public void setIamPolicy(BucketIamPolicy iamPolicy) {
+        this.iamPolicy = iamPolicy;
+    }
+
+    /**
      * The bucket's lifecycle configuration. See also `Object Lifecycle Management <https://cloud.google.com/storage/docs/lifecycle/>`_.
      *
      * @subresource gyro.google.storage.BucketLifecycle
@@ -434,13 +450,20 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
         bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
 
-        copyFrom(storage.buckets()
+        bucket = storage.buckets()
             .insert(getProjectId(), bucket)
             .setPredefinedAcl(getPredefinedAcl())
             .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
             .setUserProject(getUserProject())
             .setProjection("full")
-            .execute());
+            .execute();
+
+        if (getIamPolicy() != null) {
+            state.save();
+            storage.buckets().setIamPolicy(getName(), getIamPolicy().toPolicy()).execute();
+        }
+
+        copyFrom(bucket);
     }
 
     @Override
@@ -510,13 +533,22 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
         }
 
-        copyFrom(storage.buckets()
+        bucket = storage.buckets()
             .patch(getName(), bucket)
             .setPredefinedAcl(getPredefinedAcl())
             .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
             .setUserProject(getUserProject())
             .setProjection("full")
-            .execute());
+            .execute();
+
+        if (changedFieldNames.contains("iam-policy") && getIamPolicy() != null) {
+            storage.buckets()
+                .setIamPolicy(
+                    getName(),
+                    getIamPolicy().toPolicy()).execute();
+        }
+
+        copyFrom(bucket);
     }
 
     @Override
@@ -552,7 +584,20 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     @Override
-    public void copyFrom(Bucket model) {
+    public void copyFrom(Bucket model) throws Exception {
+        Storage storage = createClient(Storage.class);
+
+        setIamPolicy(null);
+        Policy iamPolicy = storage.buckets()
+            .getIamPolicy(getName())
+            .set("optionsRequestedPolicyVersion", 3)
+            .execute();
+        if (iamPolicy != null) {
+            BucketIamPolicy bucketIamPolicy = newSubresource(BucketIamPolicy.class);
+            bucketIamPolicy.copyFrom(iamPolicy);
+            setIamPolicy(bucketIamPolicy);
+        }
+
         setId(model.getId());
         setName(model.getName());
         setLabels(model.getLabels());
