@@ -22,9 +22,9 @@ import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTem
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.resource.Immutable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.google.util.Utils;
 
 /**
  * Creates an instance group manager.
@@ -51,7 +51,6 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     /**
      * The zone where the managed instance group is located.
      */
-    @Immutable
     @Required
     public String getZone() {
         return zone;
@@ -65,8 +64,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     public void copyFrom(InstanceGroupManager model) {
         super.copyFrom(model);
 
-        // Do NOT update zone with a full url as this should be a name.
-        //        setZone(model.getZone());
+        setZone(Utils.extractName(model.getZone()));
     }
 
     @Override
