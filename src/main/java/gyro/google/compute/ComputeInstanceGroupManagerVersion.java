@@ -66,7 +66,7 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
      * - If expressed as a fixed number, the minimum of either ``target-size.fixed`` or ``instance-group-manager.target-size`` is used.
      * - if expressed as a percent, the ``target-size`` would be (``target-size.percent``/100 * ``instance-group-manager.target-size``) If there is a remainder, the number is rounded up.
      *
-     * If unset, this version will update any remaining instances not updated by another version. Read Starting a canary update for more information.
+     * If unset, this version will update any remaining instances not updated by another version.
      *
      * @subresource gyro.google.compute.ComputeFixedOrPercent
      */

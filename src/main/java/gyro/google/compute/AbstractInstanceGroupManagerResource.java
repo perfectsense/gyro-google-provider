@@ -33,6 +33,7 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.CollectionMax;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Min;
 import gyro.core.validation.Regex;
@@ -111,7 +112,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     /**
      * The target number of running instances for this managed instance group.
-     * Deleting or abandoning instances reduces this number. Resizing the group changes this number.
+     * Deleting or abandoning instances reduces this number. Resizing the group changes this number. Defaults to ``0``.
      */
     @Min(0)
     @Updatable
