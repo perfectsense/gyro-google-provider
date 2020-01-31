@@ -16,7 +16,12 @@
 
 package gyro.google.util;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.psddev.dari.util.StringUtils;
 
 public final class Utils {
 
@@ -28,5 +33,34 @@ public final class Utils {
         return Optional.ofNullable(url)
             .map(e -> e.substring(e.lastIndexOf("/") + 1))
             .orElse("");
+    }
+
+    /**
+     * Convert Gyro filter map to filter string that Google uses.
+     * This can be used in APIs that accept `filter` in a `list` request.
+     *
+     * <p>
+     * e.g.
+     * <pre>
+     * { "name": "foo", "enable-schedule": true }
+     * ->
+     * "(name = \"foo\") (enableSchedule = true)"
+     * </pre>
+     * </p>
+     */
+    public static String convertToFilters(Map<String, String> filterMap) {
+        if (filterMap == null) {
+            return "";
+        }
+        return filterMap.entrySet()
+            .stream()
+            .map(e -> String.format(
+                "(%s = \"%s\")",
+                Stream.of(e.getKey().split("\\."))
+                    .map(StringUtils::toCamelCase)
+                    .collect(Collectors.joining(".")),
+                e.getValue())
+            )
+            .collect(Collectors.joining(" "));
     }
 }

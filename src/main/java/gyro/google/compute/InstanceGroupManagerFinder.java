@@ -17,19 +17,30 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
+import com.google.api.services.compute.model.InstanceGroupManagerAggregatedList;
 import com.google.api.services.compute.model.InstanceGroupManagerList;
+import com.google.api.services.compute.model.InstanceGroupManagersScopedList;
+import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
-import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query an instance group manager.
+ *
+ * You can provide an expression that filters resources. The expression must specify the field name, and the value that you want to use for filtering.
+ *
+ * Please see :doc:`compute-instance-group-manager` resource for available fields.
  *
  * Example
  * -------
@@ -42,38 +53,23 @@ import gyro.google.GoogleFinder;
 public class InstanceGroupManagerFinder
     extends GoogleFinder<Compute, InstanceGroupManager, InstanceGroupManagerResource> {
 
-    private String name;
-
-    private String zone;
-
-    /**
-     * User assigned name for the instance group manager.
-     */
-    @Required
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * The zone where the managed instance group is located (for zonal resources).
-     */
-    @Required
-    public String getZone() {
-        return zone;
-    }
-
-    public void setZone(String zone) {
-        this.zone = zone;
+    @Override
+    protected List<InstanceGroupManager> findAllGoogle(Compute client) throws Exception {
+        return findAllInstanceGroupManagers(client, getProjectId(), ResourceScope.ZONE, null);
     }
 
     @Override
-    protected List<InstanceGroupManager> findAllGoogle(Compute client) throws Exception {
+    protected List<InstanceGroupManager> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        String zone = filters.remove("zone");
+
+        if (StringUtils.isBlank(zone) || ObjectUtils.isBlank(filters)) {
+            return findAllInstanceGroupManagers(client, getProjectId(), ResourceScope.ZONE, filters);
+        }
+        Compute.InstanceGroupManagers instanceGroupManagers = client.instanceGroupManagers();
         List<InstanceGroupManager> allInstanceGroupManagers = new ArrayList<>();
-        Compute.InstanceGroupManagers.List request = client.instanceGroupManagers().list(getProjectId(), getZone());
+
+        Compute.InstanceGroupManagers.List request = instanceGroupManagers.list(getProjectId(), zone);
+        request.setFilter(Utils.convertToFilters(filters));
         String nextPageToken = null;
 
         do {
@@ -90,10 +86,38 @@ public class InstanceGroupManagerFinder
         return allInstanceGroupManagers;
     }
 
-    @Override
-    protected List<InstanceGroupManager> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.instanceGroupManagers()
-            .get(getProjectId(), filters.get("zone"), filters.get("name"))
-            .execute());
+    protected static List<InstanceGroupManager> findAllInstanceGroupManagers(
+        Compute client,
+        String projectId,
+        ResourceScope scope,
+        Map<String, String> filterMap)
+        throws Exception {
+        String filters = Utils.convertToFilters(filterMap);
+
+        if (scope != null) {
+            filters = StringUtils.join(Arrays.asList(scope.toFilterString(), filters), " ");
+        }
+        Compute.InstanceGroupManagers.AggregatedList request = client.instanceGroupManagers()
+            .aggregatedList(projectId);
+        request.setFilter(filters);
+        String nextPageToken = null;
+        List<InstanceGroupManager> allInstanceGroupManagers = new ArrayList<>();
+
+        do {
+            InstanceGroupManagerAggregatedList response = request.execute();
+            Map<String, InstanceGroupManagersScopedList> items = response.getItems();
+
+            if (items == null) {
+                break;
+            }
+            items.values().stream()
+                .map(InstanceGroupManagersScopedList::getInstanceGroupManagers)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toCollection(() -> allInstanceGroupManagers));
+            nextPageToken = response.getNextPageToken();
+            request.setPageToken(nextPageToken);
+        } while (nextPageToken != null);
+        return allInstanceGroupManagers;
     }
 }

@@ -17,19 +17,24 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.RegionInstanceGroupManagerList;
+import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
-import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query a region instance group manager.
+ *
+ * You can provide an expression that filters resources. The expression must specify the field name, and the value that you want to use for filtering.
+ *
+ * Please see :doc:`compute-region-instance-group-manager` resource for available fields.
  *
  * Example
  * -------
@@ -42,39 +47,31 @@ import gyro.google.GoogleFinder;
 public class RegionInstanceGroupManagerFinder
     extends GoogleFinder<Compute, InstanceGroupManager, RegionInstanceGroupManagerResource> {
 
-    private String name;
-
-    private String region;
-
-    /**
-     * User assigned name for the instance group manager.
-     */
-    @Required
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * The zone where the managed instance group is located (for zonal resources).
-     */
-    @Required
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
+    @Override
+    protected List<InstanceGroupManager> findAllGoogle(Compute client) throws Exception {
+        return InstanceGroupManagerFinder.findAllInstanceGroupManagers(
+            client,
+            getProjectId(),
+            ResourceScope.REGION,
+            null);
     }
 
     @Override
-    protected List<InstanceGroupManager> findAllGoogle(Compute client) throws Exception {
+    protected List<InstanceGroupManager> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        String region = filters.remove("region");
+
+        if (StringUtils.isBlank(region) || ObjectUtils.isBlank(filters)) {
+            return InstanceGroupManagerFinder.findAllInstanceGroupManagers(
+                client,
+                getProjectId(),
+                ResourceScope.REGION,
+                filters);
+        }
+        Compute.RegionInstanceGroupManagers regionInstanceGroupManagers = client.regionInstanceGroupManagers();
         List<InstanceGroupManager> allInstanceGroupManagers = new ArrayList<>();
-        Compute.RegionInstanceGroupManagers.List request = client.regionInstanceGroupManagers()
-            .list(getProjectId(), getRegion());
+
+        Compute.RegionInstanceGroupManagers.List request = regionInstanceGroupManagers.list(getProjectId(), region);
+        request.setFilter(Utils.convertToFilters(filters));
         String nextPageToken = null;
 
         do {
@@ -89,12 +86,5 @@ public class RegionInstanceGroupManagerFinder
             request.setPageToken(nextPageToken);
         } while (nextPageToken != null);
         return allInstanceGroupManagers;
-    }
-
-    @Override
-    protected List<InstanceGroupManager> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.regionInstanceGroupManagers()
-            .get(getProjectId(), filters.get("region"), filters.get("name"))
-            .execute());
     }
 }
