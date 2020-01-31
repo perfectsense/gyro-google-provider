@@ -17,19 +17,31 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Autoscaler;
+import com.google.api.services.compute.model.AutoscalerAggregatedList;
 import com.google.api.services.compute.model.AutoscalerList;
+import com.google.api.services.compute.model.AutoscalersScopedList;
+import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.Type;
-import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query an autoscaler.
+ *
+ * You can provide an expression that filters resources. The expression must specify the field name, and the value that you want to use for filtering.
+ *
+ * Please see :doc:`compute-autoscaler` resource for available fields.
  *
  * Example
  * -------
@@ -39,41 +51,29 @@ import gyro.google.GoogleFinder;
  *    autoscaler: $(external-query google::compute-autoscaler { name: 'compute-autoscaler-example', zone: 'us-central1-a' })
  */
 @Type("compute-autoscaler")
-public class AutoscalerFinder
-    extends GoogleFinder<Compute, Autoscaler, AutoscalerResource> {
-
-    private String name;
-
-    private String zone;
-
-    /**
-     * User assigned name for the autoscaler.
-     */
-    @Required
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * The zone where the autoscaler is located.
-     */
-    @Required
-    public String getZone() {
-        return zone;
-    }
-
-    public void setZone(String zone) {
-        this.zone = zone;
-    }
+public class AutoscalerFinder extends GoogleFinder<Compute, Autoscaler, AutoscalerResource> {
 
     @Override
     protected List<Autoscaler> findAllGoogle(Compute client) throws Exception {
+        return findAllAutoscalers(client, getProjectId(), ResourceScope.ZONE, null);
+    }
+
+    @Override
+    protected List<Autoscaler> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        if (filters.containsKey("region")) {
+            throw new GyroException("For regional autoscaler, use 'compute-region-autoscaler' instead.");
+        }
+
+        String zone = filters.remove("zone");
+
+        if (StringUtils.isBlank(zone) || ObjectUtils.isBlank(filters)) {
+            return findAllAutoscalers(client, getProjectId(), ResourceScope.ZONE, filters);
+        }
+        Compute.Autoscalers instanceGroupManagers = client.autoscalers();
         List<Autoscaler> allAutoscalers = new ArrayList<>();
-        Compute.Autoscalers.List request = client.autoscalers().list(getProjectId(), getZone());
+
+        Compute.Autoscalers.List request = instanceGroupManagers.list(getProjectId(), zone);
+        request.setFilter(Utils.convertToFilters(filters));
         String nextPageToken = null;
 
         do {
@@ -90,10 +90,38 @@ public class AutoscalerFinder
         return allAutoscalers;
     }
 
-    @Override
-    protected List<Autoscaler> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.autoscalers()
-            .get(getProjectId(), filters.get("zone"), filters.get("name"))
-            .execute());
+    protected static List<Autoscaler> findAllAutoscalers(
+        Compute client,
+        String projectId,
+        ResourceScope scope,
+        Map<String, String> filterMap)
+        throws Exception {
+        String filters = Utils.convertToFilters(filterMap);
+
+        if (scope != null) {
+            filters = StringUtils.join(Arrays.asList(scope.toFilterString(), filters), " ");
+        }
+        Compute.Autoscalers.AggregatedList request = client.autoscalers()
+            .aggregatedList(projectId);
+        request.setFilter(filters);
+        String nextPageToken = null;
+        List<Autoscaler> allAutoscalers = new ArrayList<>();
+
+        do {
+            AutoscalerAggregatedList response = request.execute();
+            Map<String, AutoscalersScopedList> items = response.getItems();
+
+            if (items == null) {
+                break;
+            }
+            items.values().stream()
+                .map(AutoscalersScopedList::getAutoscalers)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toCollection(() -> allAutoscalers));
+            nextPageToken = response.getNextPageToken();
+            request.setPageToken(nextPageToken);
+        } while (nextPageToken != null);
+        return allAutoscalers;
     }
 }

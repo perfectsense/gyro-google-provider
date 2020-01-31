@@ -17,19 +17,25 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.RegionAutoscalerList;
+import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.Type;
-import gyro.core.validation.Required;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query a region autoscaler.
+ *
+ * You can provide an expression that filters resources. The expression must specify the field name, and the value that you want to use for filtering.
+ *
+ * Please see :doc:`compute-region-autoscaler` resource for available fields.
  *
  * Example
  * -------
@@ -39,41 +45,29 @@ import gyro.google.GoogleFinder;
  *    region-autoscaler: $(external-query google::compute-region-autoscaler { name: 'compute-region-autoscaler-example', region: 'us-central1' })
  */
 @Type("compute-region-autoscaler")
-public class RegionAutoscalerFinder
-    extends GoogleFinder<Compute, Autoscaler, RegionAutoscalerResource> {
-
-    private String name;
-
-    private String region;
-
-    /**
-     * User assigned name for the autoscaler.
-     */
-    @Required
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * The region where the autoscaler is located.
-     */
-    @Required
-    public String getRegion() {
-        return region;
-    }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
+public class RegionAutoscalerFinder extends GoogleFinder<Compute, Autoscaler, RegionAutoscalerResource> {
 
     @Override
     protected List<Autoscaler> findAllGoogle(Compute client) throws Exception {
+        return AutoscalerFinder.findAllAutoscalers(client, getProjectId(), ResourceScope.REGION, null);
+    }
+
+    @Override
+    protected List<Autoscaler> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        if (filters.containsKey("zone")) {
+            throw new GyroException("For zonal autoscaler, use 'compute-autoscaler' instead.");
+        }
+
+        String region = filters.remove("region");
+
+        if (StringUtils.isBlank(region) || ObjectUtils.isBlank(filters)) {
+            return AutoscalerFinder.findAllAutoscalers(client, getProjectId(), ResourceScope.REGION, filters);
+        }
+        Compute.RegionAutoscalers regionAutoscalers = client.regionAutoscalers();
         List<Autoscaler> allAutoscalers = new ArrayList<>();
-        Compute.RegionAutoscalers.List request = client.regionAutoscalers().list(getProjectId(), getRegion());
+
+        Compute.RegionAutoscalers.List request = regionAutoscalers.list(getProjectId(), region);
+        request.setFilter(Utils.convertToFilters(filters));
         String nextPageToken = null;
 
         do {
@@ -88,12 +82,5 @@ public class RegionAutoscalerFinder
             request.setPageToken(nextPageToken);
         } while (nextPageToken != null);
         return allAutoscalers;
-    }
-
-    @Override
-    protected List<Autoscaler> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.regionAutoscalers()
-            .get(getProjectId(), filters.get("region"), filters.get("name"))
-            .execute());
     }
 }
