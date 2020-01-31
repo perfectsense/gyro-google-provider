@@ -198,6 +198,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
         setSelfLink(model.getSelfLink());
 
         List<String> instances = model.getInstances();
+        setInstances(null);
         if (instances != null) {
             setInstances(instances.stream().map(e -> findById(InstanceResource.class, e)).collect(Collectors.toList()));
         }
