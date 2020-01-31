@@ -133,6 +133,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
      *
      * @subresource gyro.google.compute.ComputeInstanceGroupManagerAutoHealingPolicy
      */
+    @CollectionMax(1)
     @Updatable
     public List<ComputeInstanceGroupManagerAutoHealingPolicy> getAutoHealingPolicy() {
         if (autoHealingPolicy == null) {
