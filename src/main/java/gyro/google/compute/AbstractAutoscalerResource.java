@@ -27,6 +27,7 @@ import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.AutoscalerStatusDetails;
 import com.google.api.services.compute.model.AutoscalingPolicy;
 import gyro.core.GyroUI;
+import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -107,6 +108,7 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
     /**
      * Server-defined URL for the resource.
      */
+    @Id
     @Output
     public String getSelfLink() {
         return selfLink;
