@@ -78,6 +78,27 @@ import gyro.google.GoogleResource;
  *              end
  *          end
  *
+ *          iam-policy
+ *              bindings
+ *                  role: 'roles/storage.legacyBucketOwner'
+ *                  members: ['projectEditor:<<PROJECT-ID-GOES-HERE>>']
+ *              end
+ *
+ *              bindings
+ *                  role: 'roles/storage.legacyBucketReader'
+ *                  members: ['projectViewer:<<PROJECT-ID-GOES-HERE>>']
+ *              end
+ *
+ *              bindings
+ *                  role: 'roles/storage.legacyBucketReader'
+ *                  members: ['allAuthenticatedUsers']
+ *                  condition
+ *                      title: 'example bucket iam policy condition'
+ *                      expression: 'request.time < timestamp(\"2021-01-01T00:00:00Z\")'
+ *                  end
+ *              end
+ *          end
+ *
  *          lifecycle
  *              rule
  *                  action
