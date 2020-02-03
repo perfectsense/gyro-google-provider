@@ -26,8 +26,7 @@ import gyro.google.Copyable;
 public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
     implements Copyable<InstanceGroupManagerUpdatePolicy> {
 
-    // instanceRedistributionType is not available from Google SDK yet.
-    //    private String instanceRedistributionType;
+    private String instanceRedistributionType;
 
     private ComputeFixedOrPercent maxSurge;
 
@@ -36,6 +35,25 @@ public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
     private String minimalAction;
 
     private String type;
+
+    /**
+     * The instance redistribution policy for regional managed instance groups.
+     * Valid values are:
+     *
+     * - ``PROACTIVE`` (default): The group attempts to maintain an even distribution of VM instances across zones in the region.
+     * - ``NONE``: For non-autoscaled groups, proactive redistribution is disabled.
+     */
+    @ValidStrings({
+        "NONE",
+        "PROACTIVE"
+    })
+    public String getInstanceRedistributionType() {
+        return instanceRedistributionType;
+    }
+
+    public void setInstanceRedistributionType(String instanceRedistributionType) {
+        this.instanceRedistributionType = instanceRedistributionType;
+    }
 
     /**
      * The maximum number of instances that can be created above the specified target size during the update process.
@@ -106,6 +124,8 @@ public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
 
     public InstanceGroupManagerUpdatePolicy copyTo() {
         InstanceGroupManagerUpdatePolicy instanceGroupManagerUpdatePolicy = new InstanceGroupManagerUpdatePolicy();
+        // instanceRedistributionType is not available from Google SDK yet.
+        instanceGroupManagerUpdatePolicy.set("instanceRedistributionType", getInstanceRedistributionType());
         Optional.ofNullable(getMaxSurge())
             .map(ComputeFixedOrPercent::copyTo)
             .ifPresent(instanceGroupManagerUpdatePolicy::setMaxSurge);
@@ -119,6 +139,11 @@ public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
 
     @Override
     public void copyFrom(InstanceGroupManagerUpdatePolicy model) {
+        // instanceRedistributionType is not available from Google SDK yet.
+        setInstanceRedistributionType(Optional.ofNullable(model.get("instanceRedistributionType"))
+            .filter(String.class::isInstance)
+            .map(String.class::cast)
+            .orElse(null));
         setMaxSurge(
             Optional.ofNullable(model.getMaxSurge())
                 .map(e -> {

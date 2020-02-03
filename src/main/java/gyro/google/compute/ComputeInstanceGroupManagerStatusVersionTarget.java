@@ -16,6 +16,9 @@
 
 package gyro.google.compute;
 
+import java.util.Map;
+import java.util.Optional;
+
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 
@@ -24,7 +27,8 @@ public class ComputeInstanceGroupManagerStatusVersionTarget extends Diffable {
     private Boolean isReached;
 
     /**
-     * A bit indicating whether version target has been reached in this managed instance group, i.e. all instances are in their target version. Instances' target version are specified by version field on Instance Group Manager.
+     * A bit indicating whether version target has been reached in this managed instance group, i.e. all instances are in their target version.
+     * Instances' target versions are specified by version field on Instance Group Manager.
      */
     @Output
     public Boolean getIsReached() {
@@ -35,9 +39,18 @@ public class ComputeInstanceGroupManagerStatusVersionTarget extends Diffable {
         this.isReached = isReached;
     }
 
+    public void copyFrom(Object model) {
+        setIsReached(Optional.ofNullable(model)
+            .filter(Map.class::isInstance)
+            .map(Map.class::cast)
+            .map(e -> e.get("isReached"))
+            .filter(Boolean.class::isInstance)
+            .map(Boolean.class::cast)
+            .orElse(null));
+    }
+
     @Override
     public String primaryKey() {
-        // TODO: implement
         return "";
     }
 }
