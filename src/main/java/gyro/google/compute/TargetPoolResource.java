@@ -61,6 +61,8 @@ import gyro.google.Copyable;
  *         session-affinity: "CLIENT_IP"
  *
  *         instances: [ $(google::compute-instance instance-example-target-pool) ]
+ *
+ *         health-checks: [ $(google::compute-http-health-check http-health-check-example-target-pool) ]
  *     end
  *
  * .. code-block:: gyro
@@ -73,6 +75,8 @@ import gyro.google.Copyable;
  *         backup-pool: $(google::compute-target-pool target-pool-example)
  *
  *         instances: [ $(google::compute-instance instance-example-target-pool) ]
+ *
+ *         health-checks: [ $(google::compute-http-health-check http-health-check-example-target-pool) ]
  *     end
  */
 @Type("compute-target-pool")
