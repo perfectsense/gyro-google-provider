@@ -80,7 +80,7 @@ public class BucketIamPolicyBinding extends Diffable implements Copyable<Policy.
     @Override
     public String primaryKey() {
         return String.format(
-            "where role is \"%s\" and members are \"%s\" with condition \"%s\"",
+            "with role  '%s', members [ '%s' ] and condition '%s',
             getRole(),
             String.join(",", getMembers()),
             (getCondition() == null) ? "" : getCondition());
