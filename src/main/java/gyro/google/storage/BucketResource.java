@@ -608,17 +608,6 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     public void copyFrom(Bucket model) throws Exception {
         Storage storage = createClient(Storage.class);
 
-        setIamPolicy(null);
-        Policy iamPolicy = storage.buckets()
-            .getIamPolicy(getName())
-            .set("optionsRequestedPolicyVersion", 3)
-            .execute();
-        if (iamPolicy != null) {
-            BucketIamPolicy bucketIamPolicy = newSubresource(BucketIamPolicy.class);
-            bucketIamPolicy.copyFrom(iamPolicy);
-            setIamPolicy(bucketIamPolicy);
-        }
-
         setId(model.getId());
         setName(model.getName());
         setLabels(model.getLabels());
@@ -685,6 +674,17 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 })
                 .collect(Collectors.toList())
             );
+        }
+
+        setIamPolicy(null);
+        Policy iamPolicy = storage.buckets()
+            .getIamPolicy(getName())
+            .set("optionsRequestedPolicyVersion", 3)
+            .execute();
+        if (iamPolicy != null) {
+            BucketIamPolicy bucketIamPolicy = newSubresource(BucketIamPolicy.class);
+            bucketIamPolicy.copyFrom(iamPolicy);
+            setIamPolicy(bucketIamPolicy);
         }
     }
 }

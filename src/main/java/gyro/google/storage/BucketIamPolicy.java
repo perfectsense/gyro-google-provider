@@ -67,11 +67,11 @@ public class BucketIamPolicy extends Diffable implements Copyable<Policy> {
     }
 
     /**
-     * The version of this policy. This is always set to ``3``. See also `Understanding Policies <https://cloud.google.com/iam/docs/policies#versions>`_.
+     * The version of this policy. See also `Understanding Policies <https://cloud.google.com/iam/docs/policies#versions>`_.
      */
     @Output
     public Integer getVersion() {
-        return 3;
+        return version;
     }
 
     public void setVersion(Integer version) {
@@ -85,7 +85,7 @@ public class BucketIamPolicy extends Diffable implements Copyable<Policy> {
 
     @Override
     public void copyFrom(Policy model) {
-        setVersion(3);
+        setVersion(model.getVersion());
         setResourceId(model.getResourceId());
         getBindings().clear();
         if (model.getBindings() != null) {
@@ -99,7 +99,7 @@ public class BucketIamPolicy extends Diffable implements Copyable<Policy> {
     }
 
     public Policy toPolicy() {
-        return new Policy().setVersion(getVersion()).setResourceId(getResourceId())
+        return new Policy().setVersion(3).setResourceId(getResourceId())
             .setBindings(getBindings().stream().map(BucketIamPolicyBinding::toBinding).collect(Collectors.toList()));
     }
 }
