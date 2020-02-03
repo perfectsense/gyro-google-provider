@@ -44,8 +44,7 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
 
     private String description;
 
-    // `recommendedSize` is not available from Google SDK yet.
-    //    private Integer recommendedSize;
+    private Integer recommendedSize;
 
     private String selfLink;
 
@@ -103,6 +102,19 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    /**
+     * Target recommended MIG size (number of instances) computed by autoscaler.
+     * Autoscaler calculates recommended MIG size even when autoscaling policy mode is different from ON. This field is empty when autoscaler is not connected to the existing managed instance group or autoscaler did not generate its prediction.
+     */
+    @Output
+    public Integer getRecommendedSize() {
+        return recommendedSize;
+    }
+
+    public void setRecommendedSize(Integer recommendedSize) {
+        this.recommendedSize = recommendedSize;
     }
 
     /**
@@ -165,6 +177,11 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
             })
             .orElse(null));
         setDescription(model.getDescription());
+        // `recommendedSize` is not available from Google SDK yet.
+        setRecommendedSize(Optional.ofNullable(model.get("recommendedSize"))
+            .filter(Integer.class::isInstance)
+            .map(Integer.class::cast)
+            .orElse(null));
         setSelfLink(model.getSelfLink());
         setStatus(model.getStatus());
 

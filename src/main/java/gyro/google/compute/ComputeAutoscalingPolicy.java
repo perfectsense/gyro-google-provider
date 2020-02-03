@@ -28,6 +28,7 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Min;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
@@ -45,8 +46,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
 
     private Integer minNumReplicas;
 
-    // `mode` is not available from Google SDK yet.
-    //    private String mode;
+    private String mode;
 
     /**
      * The number of seconds that the autoscaler should wait before it starts collecting information from a new instance.
@@ -136,6 +136,22 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
         this.minNumReplicas = minNumReplicas;
     }
 
+    /**
+     * Operating mode for this policy.
+     */
+    @ValidStrings({
+        "OFF",
+        "ON",
+        "ONLY_UP"
+    })
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
     public AutoscalingPolicy copyTo() {
         AutoscalingPolicy autoscalingPolicy = new AutoscalingPolicy();
         autoscalingPolicy.setCoolDownPeriodSec(getCoolDownPeriodSec());
@@ -151,6 +167,8 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
             .ifPresent(autoscalingPolicy::setLoadBalancingUtilization);
         autoscalingPolicy.setMaxNumReplicas(getMaxNumReplicas());
         autoscalingPolicy.setMinNumReplicas(getMinNumReplicas());
+        // `mode` is not available from Google SDK yet.
+        autoscalingPolicy.set("mode", getMode());
         return autoscalingPolicy;
     }
 
@@ -192,6 +210,11 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
             .orElse(null));
         setMaxNumReplicas(model.getMaxNumReplicas());
         setMinNumReplicas(model.getMinNumReplicas());
+        // `mode` is not available from Google SDK yet.
+        setMode(Optional.ofNullable(model.get("mode"))
+            .filter(String.class::isInstance)
+            .map(String.class::cast)
+            .orElse(null));
     }
 
     @Override
