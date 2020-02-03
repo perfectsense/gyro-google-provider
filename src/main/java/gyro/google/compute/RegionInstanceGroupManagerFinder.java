@@ -25,6 +25,7 @@ import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.RegionInstanceGroupManagerList;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
@@ -58,6 +59,10 @@ public class RegionInstanceGroupManagerFinder
 
     @Override
     protected List<InstanceGroupManager> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+        if (filters.containsKey("zone")) {
+            throw new GyroException("For zonal instance group manager, use 'compute-instance-group-manager' instead.");
+        }
+
         String region = filters.remove("region");
 
         if (StringUtils.isBlank(region) || ObjectUtils.isBlank(filters)) {

@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.util.Optional;
+
 import com.google.api.services.compute.model.InstanceGroupManagerStatus;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
@@ -25,8 +27,7 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
 
     private Boolean isStable;
 
-    // versionTarget is not available from Google SDK yet.
-    //    private ComputeInstanceGroupManagerStatusVersionTarget versionTarget;
+    private ComputeInstanceGroupManagerStatusVersionTarget versionTarget;
 
     /**
      * A bit indicating whether the managed instance group is in a stable state.
@@ -41,9 +42,33 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
         this.isStable = isStable;
     }
 
+    /**
+     * A status of consistency of Instances' versions with their target version specified by version field on Instance Group Manager.
+     *
+     * @subresource gyro.google.compute.ComputeInstanceGroupManagerStatusVersionTarget
+     */
+    @Output
+    public ComputeInstanceGroupManagerStatusVersionTarget getVersionTarget() {
+        return versionTarget;
+    }
+
+    public void setVersionTarget(ComputeInstanceGroupManagerStatusVersionTarget versionTarget) {
+        this.versionTarget = versionTarget;
+    }
+
     @Override
     public void copyFrom(InstanceGroupManagerStatus model) {
         setIsStable(model.getIsStable());
+        setVersionTarget(
+            // versionTarget is not available from Google SDK yet.
+            Optional.ofNullable(model.get("versionTarget"))
+                .map(e -> {
+                    ComputeInstanceGroupManagerStatusVersionTarget versionTarget = newSubresource(
+                        ComputeInstanceGroupManagerStatusVersionTarget.class);
+                    versionTarget.copyFrom(e);
+                    return versionTarget;
+                })
+                .orElse(null));
     }
 
     @Override
