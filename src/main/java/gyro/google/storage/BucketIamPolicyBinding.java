@@ -82,7 +82,7 @@ public class BucketIamPolicyBinding extends Diffable implements Copyable<Policy.
         return String.format(
             "with role  '%s', members [ '%s' ] and condition '%s',
             getRole(),
-            String.join(",", getMembers()),
+            String.join("','", getMembers()),
             (getCondition() == null) ? "" : getCondition());
     }
 
