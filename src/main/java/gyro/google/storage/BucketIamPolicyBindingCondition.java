@@ -69,7 +69,7 @@ public class BucketIamPolicyBindingCondition extends Diffable implements Copyabl
 
     @Override
     public String primaryKey() {
-        return String.format("with title \"%s\" and expression of \"%s\"", getTitle(), getExpression());
+        return String.format("with title '%s' and expression of '%s'", getTitle(), getExpression());
     }
 
     @Override
