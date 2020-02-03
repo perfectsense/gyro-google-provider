@@ -106,10 +106,13 @@ public class RegionUrlMapFinder extends GoogleFinder<Compute, UrlMap, UrlMapReso
             do {
                 urlMapList =
                     client.regionUrlMaps().list(getProjectId(), getRegion()).setPageToken(nextPageToken).execute();
-                urlMaps.addAll(urlMapList.getItems().stream()
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList()));
                 nextPageToken = urlMapList.getNextPageToken();
+
+                if (urlMapList.getItems() != null) {
+                    urlMaps.addAll(urlMapList.getItems().stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
+                }
             } while (nextPageToken != null);
         }
         return urlMaps;
