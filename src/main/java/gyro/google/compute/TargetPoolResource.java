@@ -22,10 +22,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.HealthCheckReference;
 import com.google.api.services.compute.model.InstanceReference;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.TargetPool;
+import com.google.api.services.compute.model.TargetPoolsAddHealthCheckRequest;
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest;
+import com.google.api.services.compute.model.TargetPoolsRemoveHealthCheckRequest;
 import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest;
 import com.google.api.services.compute.model.TargetReference;
 import gyro.core.GyroUI;
@@ -35,6 +38,7 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.CollectionMax;
 import gyro.core.validation.DependsOn;
 import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
@@ -78,6 +82,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     private String description;
     private Float failoverRatio;
     private List<InstanceResource> instances;
+    private List<HttpHealthCheckResource> healthChecks;
     private String name;
     private String sessionAffinity;
     private String region;
@@ -136,6 +141,22 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
 
     public void setInstances(List<InstanceResource> instances) {
         this.instances = instances;
+    }
+
+    /**
+     * A list of legacy http health checks monitoring this pool. Only one health check may be specified.
+     */
+    @CollectionMax(1)
+    @Updatable
+    public List<HttpHealthCheckResource> getHealthChecks() {
+        if (healthChecks == null) {
+            healthChecks = new ArrayList<>();
+        }
+        return healthChecks;
+    }
+
+    public void setHealthChecks(List<HttpHealthCheckResource> healthChecks) {
+        this.healthChecks = healthChecks;
     }
 
     /**
@@ -202,6 +223,14 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
         if (instances != null) {
             setInstances(instances.stream().map(e -> findById(InstanceResource.class, e)).collect(Collectors.toList()));
         }
+
+        List<String> healthChecks = model.getHealthChecks();
+        setHealthChecks(null);
+        if (healthChecks != null) {
+            setHealthChecks(healthChecks.stream()
+                .map(e -> findById(HttpHealthCheckResource.class, e))
+                .collect(Collectors.toList()));
+        }
     }
 
     @Override
@@ -224,6 +253,8 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
         targetPool.setSessionAffinity(getSessionAffinity());
         targetPool.setInstances(
             getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
+        targetPool.setHealthChecks(
+            getHealthChecks().stream().map(HttpHealthCheckResource::getSelfLink).collect(Collectors.toList()));
 
         Compute client = createComputeClient();
         Operation operation = client.targetPools().insert(getProjectId(), getRegion(), targetPool).execute();
@@ -274,6 +305,38 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                 Operation response =
                     client.targetPools()
                         .addInstance(getProjectId(), getRegion(), getName(), addInstanceRequest)
+                        .execute();
+                waitForCompletion(client, response);
+            }
+        }
+
+        if (changedFieldNames.contains("health-checks")) {
+            List<HttpHealthCheckResource> removeHealthChecks = currentTargetPool.getHealthChecks();
+            removeHealthChecks.removeAll(getHealthChecks());
+            if (!removeHealthChecks.isEmpty()) {
+                TargetPoolsRemoveHealthCheckRequest removeHealthCheckRequest = new TargetPoolsRemoveHealthCheckRequest();
+                removeHealthCheckRequest.setHealthChecks(
+                    removeHealthChecks.stream()
+                        .map(e -> new HealthCheckReference().setHealthCheck(e.getSelfLink()))
+                        .collect(Collectors.toList()));
+                Operation response =
+                    client.targetPools()
+                        .removeHealthCheck(getProjectId(), getRegion(), getName(), removeHealthCheckRequest)
+                        .execute();
+                waitForCompletion(client, response);
+            }
+
+            List<HttpHealthCheckResource> newHealthChecks = getHealthChecks();
+            newHealthChecks.removeAll(currentTargetPool.getHealthChecks());
+            if (!newHealthChecks.isEmpty()) {
+                TargetPoolsAddHealthCheckRequest addHealthCheckRequest = new TargetPoolsAddHealthCheckRequest();
+                addHealthCheckRequest.setHealthChecks(
+                    newHealthChecks.stream()
+                        .map(e -> new HealthCheckReference().setHealthCheck(e.getSelfLink()))
+                        .collect(Collectors.toList()));
+                Operation response =
+                    client.targetPools()
+                        .addHealthCheck(getProjectId(), getRegion(), getName(), addHealthCheckRequest)
                         .execute();
                 waitForCompletion(client, response);
             }
