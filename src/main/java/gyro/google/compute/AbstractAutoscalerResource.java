@@ -17,6 +17,7 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -218,25 +219,40 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
     @Override
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
         throws Exception {
-        Autoscaler autoscaler = new Autoscaler();
-        boolean shouldPatch = false;
+        Autoscaler autoscaler = constructPatchRequest(changedFieldNames);
 
-        for (String changedFieldName : changedFieldNames) {
-            if (changedFieldName.equals("description")) {
-                autoscaler.setDescription(getDescription());
-                shouldPatch = true;
-            } else if (changedFieldName.equals("autoscaling-policy")) {
-                ComputeAutoscalingPolicy diffableAutoscalingPolicy = getAutoscalingPolicy();
-                autoscaler.setAutoscalingPolicy(diffableAutoscalingPolicy == null
-                    ? Data.nullOf(AutoscalingPolicy.class)
-                    : diffableAutoscalingPolicy.copyTo());
-                shouldPatch = true;
-            }
-        }
-
-        if (shouldPatch) {
+        if (autoscaler != null) {
             patch(autoscaler);
         }
         refresh();
+    }
+
+    private Autoscaler constructPatchRequest(Set<String> changedFieldNames) {
+        Autoscaler autoscaler = new Autoscaler();
+        Set<String> changedFields = new HashSet<>(changedFieldNames);
+        int count = changedFields.size();
+        boolean shouldPatch = false;
+
+        if (changedFields.remove("description")) {
+            autoscaler.setDescription(getDescription());
+
+            if (--count == 0) {
+                return autoscaler;
+            }
+            shouldPatch = true;
+        }
+
+        if (changedFields.remove("autoscaling-policy")) {
+            ComputeAutoscalingPolicy diffableAutoscalingPolicy = getAutoscalingPolicy();
+            autoscaler.setAutoscalingPolicy(diffableAutoscalingPolicy == null
+                ? Data.nullOf(AutoscalingPolicy.class)
+                : diffableAutoscalingPolicy.copyTo());
+
+            if (--count == 0) {
+                return autoscaler;
+            }
+            shouldPatch = true;
+        }
+        return shouldPatch ? autoscaler : null;
     }
 }
