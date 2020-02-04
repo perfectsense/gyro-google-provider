@@ -68,7 +68,7 @@ public class InstanceGroupManagerFinder
 
         String zone = filters.remove("zone");
 
-        if (StringUtils.isBlank(zone) || ObjectUtils.isBlank(filters)) {
+        if (zone == null && !ObjectUtils.isBlank(filters)) {
             return findAllInstanceGroupManagers(client, getProjectId(), ResourceScope.ZONE, filters);
         }
         Compute.InstanceGroupManagers instanceGroupManagers = client.instanceGroupManagers();
