@@ -1,0 +1,45 @@
+google::compute-instance-template instance-group-template-example
+    name: "instance-group-template-example"
+    description: "Instance group template example"
+
+    properties
+        disk
+            auto-delete: true
+            boot: true
+
+            initialize-params
+                disk-name: "instance-group-template-example-disk-1"
+                source-image: "projects/debian-cloud/global/images/family/debian-9"
+            end
+        end
+
+        machine-type: "f1-micro"
+
+        network-interface
+            network: $(external-query google::compute-network {name: "default"})
+
+            access-config
+                name: "External NAT"
+                type: "ONE_TO_ONE_NAT"
+                network-tier: "PREMIUM"
+            end
+        end
+
+        scheduling
+            automatic-restart: true
+            on-host-maintenance: "MIGRATE"
+            preemptible: false
+        end
+    end
+end
+
+zone: "us-central1-a"
+
+google::compute-instance-group-manager instance-group-manager-example
+    name: "instance-group-manager-example"
+    base-instance-name: "instance-group-manager-example"
+    description: "Instance group manager example"
+    instance-template: $(google::compute-instance-template instance-group-template-example)
+	target-size: 1
+    zone: $zone
+end
