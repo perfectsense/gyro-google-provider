@@ -19,6 +19,7 @@ package gyro.google.compute;
 import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.Min;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -49,6 +50,7 @@ public class ComputeAutoscalingPolicyCustomMetricUtilization extends Diffable
      * The target value of the metric that autoscaler should maintain.
      * This must be a positive value. A utilization metric scales number of virtual machines handling requests to increase or decrease proportionally to the metric. For example, a good metric to use as a utilization_target is compute.googleapis.com/instance/network/received_bytes_count. The autoscaler will work to keep this value constant for each of the instances.
      */
+    @Min(0)
     @Required
     @Updatable
     public Double getUtilizationTarget() {
