@@ -30,7 +30,7 @@ public class ComputeAutoscalingPolicyLoadBalancingUtilization extends Diffable
 
     /**
      * Fraction of backend capacity utilization (set in HTTP(S) load balancing configuration) that autoscaler should maintain.
-     * Must be a positive float value. If not defined, the default is 0.8.
+     * Must be a positive float value. If not defined, the default is ``0.8``.
      */
     @Range(min = 0, max = 1)
     @Required

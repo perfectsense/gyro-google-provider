@@ -50,7 +50,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
 
     /**
      * The number of seconds that the autoscaler should wait before it starts collecting information from a new instance.
-     * This prevents the autoscaler from collecting information when the instance is initializing, during which the collected usage would not be reliable. The default time autoscaler waits is 60 seconds. Virtual machine initialization times might vary because of numerous factors. We recommend that you test how long an instance may take to initialize. To do this, create an instance and time the startup process.
+     * This prevents the autoscaler from collecting information when the instance is initializing, during which the collected usage would not be reliable. The default time autoscaler waits is ``60`` seconds. Virtual machine initialization times might vary because of numerous factors. We recommend that you test how long an instance may take to initialize. To do this, create an instance and time the startup process.
      */
     @Updatable
     public Integer getCoolDownPeriodSec() {
@@ -124,7 +124,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
 
     /**
      * The minimum number of replicas that the autoscaler can scale down to.
-     * This cannot be less than 0. If not provided, autoscaler will choose a default value depending on maximum number of instances allowed.
+     * This cannot be less than ``0``. If not provided, autoscaler will choose a default value depending on maximum number of instances allowed.
      */
     @Min(0)
     @Updatable
@@ -137,7 +137,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
     }
 
     /**
-     * Operating mode for this policy.
+     * Operating mode for this policy. Valid values are ``OFF``, ``ON`` or ``ONLY_UP``.
      */
     @ValidStrings({
         "OFF",

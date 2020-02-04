@@ -78,7 +78,7 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
      * - ``custom-metric-utilizations``
      * - ``load-balancing-utilization``
      *
-     * If none of these are specified, the default will be to autoscale based on cpuUtilization to 0.6 or 60%.
+     * If none of these are specified, the default will be to autoscale based on ``cpu-utilization`` to ``0.6`` or 60%.
      *
      * @subresource gyro.google.compute.ComputeAutoscalingPolicy
      */
