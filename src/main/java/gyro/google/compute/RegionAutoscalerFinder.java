@@ -24,7 +24,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.RegionAutoscalerList;
 import com.psddev.dari.util.ObjectUtils;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
@@ -60,7 +59,7 @@ public class RegionAutoscalerFinder extends GoogleFinder<Compute, Autoscaler, Re
 
         String region = filters.remove("region");
 
-        if (StringUtils.isBlank(region) || ObjectUtils.isBlank(filters)) {
+        if (region == null && !ObjectUtils.isBlank(filters)) {
             return AutoscalerFinder.findAllAutoscalers(client, getProjectId(), ResourceScope.REGION, filters);
         }
         Compute.RegionAutoscalers regionAutoscalers = client.regionAutoscalers();
