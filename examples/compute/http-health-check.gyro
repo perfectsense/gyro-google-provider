@@ -1,0 +1,10 @@
+google::compute-http-health-check http-health-check-example
+    name: "http-health-check-example"
+    check-interval-sec: 30
+    description: "Health check description."
+    healthy-threshold: 8
+    timeout-sec: 29
+    unhealthy-threshold: 6
+    port: 8080
+    request-path: "/myapp"
+end

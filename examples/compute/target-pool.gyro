@@ -29,12 +29,25 @@ google::compute-instance instance-example-target-pool
     }
 end
 
+google::compute-http-health-check http-health-check-example-target-pool
+    name: "http-health-check-example-target-pool"
+    check-interval-sec: 30
+    description: "Health check description."
+    healthy-threshold: 8
+    timeout-sec: 29
+    unhealthy-threshold: 6
+    port: 8080
+    request-path: "/myapp"
+end
+
 google::compute-target-pool target-pool-example
     name: "target-pool-example"
     region: "us-central1"
     description: "Target pool description."
 
     instances: [ $(google::compute-instance instance-example-target-pool) ]
+
+    health-checks: [ $(google::compute-http-health-check http-health-check-example-target-pool) ]
 end
 
 google::compute-target-pool target-pool-backup-example
@@ -45,4 +58,6 @@ google::compute-target-pool target-pool-backup-example
     backup-pool: $(google::compute-target-pool target-pool-example)
 
     instances: [ $(google::compute-instance instance-example-target-pool) ]
+
+    health-checks: [ $(google::compute-http-health-check http-health-check-example-target-pool) ]
 end
