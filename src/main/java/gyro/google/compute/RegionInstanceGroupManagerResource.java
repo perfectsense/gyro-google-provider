@@ -16,11 +16,16 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTargetPoolsRequest;
 import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTemplateRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -133,11 +138,31 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
     @Override
     void setInstanceTemplate() throws Exception {
         RegionInstanceGroupManagersSetTemplateRequest request = new RegionInstanceGroupManagersSetTemplateRequest();
-        request.setInstanceTemplate(getInstanceTemplate().getSelfLink());
+        InstanceTemplateResource instanceTemplate = getInstanceTemplate();
+        request.setInstanceTemplate(instanceTemplate == null
+            ? Data.nullOf(String.class)
+            : instanceTemplate.getSelfLink());
 
         Compute client = createComputeClient();
         Operation operation = client.regionInstanceGroupManagers()
             .setInstanceTemplate(getProjectId(), getRegion(), getName(), request)
+            .execute();
+        waitForCompletion(client, operation);
+    }
+
+    @Override
+    void setTargetPools() throws Exception {
+        RegionInstanceGroupManagersSetTargetPoolsRequest request = new RegionInstanceGroupManagersSetTargetPoolsRequest();
+        List<TargetPoolResource> targetPoolResources = getTargetPools();
+        request.setTargetPools(targetPoolResources.isEmpty()
+            ? Data.nullOf(ArrayList.class)
+            : targetPoolResources.stream()
+                .map(TargetPoolResource::getSelfLink)
+                .collect(Collectors.toList()));
+
+        Compute client = createComputeClient();
+        Operation operation = client.regionInstanceGroupManagers()
+            .setTargetPools(getProjectId(), getRegion(), getName(), request)
             .execute();
         waitForCompletion(client, operation);
     }

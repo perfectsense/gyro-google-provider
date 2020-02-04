@@ -60,9 +60,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     private List<ComputeNamedPort> namedPort;
 
-    // TODO: target pool resource
-    // https://github.com/perfectsense/gyro-google-provider/issues/79
-    //    private List<AbstractTargetPoolResource> targetPools;
+    private List<TargetPoolResource> targetPools;
 
     private ComputeInstanceGroupManagerUpdatePolicy updatePolicy;
 
@@ -81,6 +79,8 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
     abstract void patch(InstanceGroupManager instanceGroupManager) throws Exception;
 
     abstract void setInstanceTemplate() throws Exception;
+
+    abstract void setTargetPools() throws Exception;
 
     /**
      * The base instance name to use for instances in this group.
@@ -203,22 +203,24 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         this.namedPort = namedPort;
     }
 
-    // TODO: target pool resource
-    // https://github.com/perfectsense/gyro-google-provider/issues/79
-    //    /**
-    //     * The URLs for all TargetPool resources to which instances in the instanceGroup field are added. The target pools automatically apply to all of the instances in the managed instance group.
-    //     */
-    //    public List<AbstractTargetPoolResource> getTargetPools() {
-    //        if (targetPools == null) {
-    //            targetPools = new ArrayList<>();
-    //        }
-    //
-    //        return targetPools;
-    //    }
-    //
-    //    public void setTargetPools(List<AbstractTargetPoolResource> targetPools) {
-    //        this.targetPools = targetPools;
-    //    }
+    /**
+     * All TargetPool resources to which instances in the instance group are added.
+     * The target pools automatically apply to all of the instances in the managed instance group.
+     *
+     * @resource gyro.google.compute.TargetPoolResource
+     */
+    @Updatable
+    public List<TargetPoolResource> getTargetPools() {
+        if (targetPools == null) {
+            targetPools = new ArrayList<>();
+        }
+
+        return targetPools;
+    }
+
+    public void setTargetPools(List<TargetPoolResource> targetPools) {
+        this.targetPools = targetPools;
+    }
 
     /**
      * The update policy for this managed instance group.
@@ -365,17 +367,16 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         }
         setNamedPort(diffableNamedPorts);
 
-        // TODO: https://github.com/perfectsense/gyro-google-provider/issues/79
-        //        List<AbstractTargetPoolResource> diffableTargetPools = null;
-        //        List<String> targetPools = model.getTargetPools();
-        //
-        //        if (targetPools != null && !targetPools.isEmpty()) {
-        //            diffableTargetPools = targetPools
-        //                .stream()
-        //                .map(e -> findById(AbstractTargetPoolResource.class, e))
-        //                .collect(Collectors.toList());
-        //        }
-        //        setTargetPools(diffableTargetPools);
+        List<TargetPoolResource> diffableTargetPools = null;
+        List<String> targetPools = model.getTargetPools();
+
+        if (targetPools != null && !targetPools.isEmpty()) {
+            diffableTargetPools = targetPools
+                .stream()
+                .map(e -> findById(TargetPoolResource.class, e))
+                .collect(Collectors.toList());
+        }
+        setTargetPools(diffableTargetPools);
 
         setUpdatePolicy(Optional.ofNullable(model.getUpdatePolicy())
             .map(e -> {
@@ -439,11 +440,10 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         instanceGroupManager.setNamedPorts(getNamedPort().stream()
             .map(ComputeNamedPort::copyTo)
             .collect(Collectors.toList()));
-        // TODO: https://github.com/perfectsense/gyro-google-provider/issues/79
-        //        instanceGroupManager.setTargetPools(getTargetPools()
-        //            .stream()
-        //            .map(AbstractTargetPoolResource::getSelfLink)
-        //            .collect(Collectors.toList()));
+        instanceGroupManager.setTargetPools(getTargetPools()
+            .stream()
+            .map(TargetPoolResource::getSelfLink)
+            .collect(Collectors.toList()));
         Optional.ofNullable(getUpdatePolicy())
             .map(ComputeInstanceGroupManagerUpdatePolicy::copyTo)
             .ifPresent(instanceGroupManager::setUpdatePolicy);
@@ -459,9 +459,6 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
     @Override
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
         throws Exception {
-        // TODO: target pool resource
-        // https://github.com/perfectsense/gyro-google-provider/issues/79
-
         // TODO: investigate as GCP UI allows updating of named ports.
 
         boolean shouldPatch = false;
@@ -471,6 +468,8 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
             // template changes
             if (changedFieldName.equals("instance-template")) {
                 setInstanceTemplate();
+            } else if (changedFieldName.equals("target-pools")) {
+                setTargetPools();
             } else if (changedFieldName.equals("target-size")) {
                 instanceGroupManager.setTargetSize(getTargetSize());
                 shouldPatch = true;
