@@ -19,7 +19,6 @@ package gyro.google.compute;
 import com.google.api.services.compute.model.AutoscalerStatusDetails;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
-import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class ComputeAutoscalerStatusDetails extends Diffable implements Copyable<AutoscalerStatusDetails> {
@@ -61,25 +60,6 @@ public class ComputeAutoscalerStatusDetails extends Diffable implements Copyable
      * - ``UNSUPPORTED_MAX_RATE_LOAD_BALANCING_CONFIGURATION`` (ERROR): Autoscaling does not work with an HTTP/S load balancer that has been configured for maxRate.
      * - ``ZONE_RESOURCE_STOCKOUT`` (ERROR): For zonal autoscalers: there is a resource stockout in the chosen zone. For regional autoscalers: in at least one of the zones you're using there is a resource stockout.
      */
-    @ValidStrings({
-        "ALL_INSTANCES_UNHEALTHY",
-        "BACKEND_SERVICE_DOES_NOT_EXIST",
-        "CAPPED_AT_MAX_NUM_REPLICAS",
-        "CUSTOM_METRIC_DATA_POINTS_TOO_SPARSE",
-        "CUSTOM_METRIC_INVALID",
-        "MIN_EQUALS_MAX",
-        "MISSING_CUSTOM_METRIC_DATA_POINTS",
-        "MISSING_LOAD_BALANCING_DATA_POINTS",
-        "MODE_OFF",
-        "MODE_ONLY_UP",
-        "MORE_THAN_ONE_BACKEND_SERVICE",
-        "NOT_ENOUGH_QUOTA_AVAILABLE",
-        "REGION_RESOURCE_STOCKOUT",
-        "SCALING_TARGET_DOES_NOT_EXIST",
-        "UNKNOWN",
-        "UNSUPPORTED_MAX_RATE_LOAD_BALANCING_CONFIGURATION",
-        "ZONE_RESOURCE_STOCKOUT"
-    })
     @Output
     public String getType() {
         return type;
