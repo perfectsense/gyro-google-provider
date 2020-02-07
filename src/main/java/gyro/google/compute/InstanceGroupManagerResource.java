@@ -16,9 +16,15 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest;
+import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest;
 import com.google.api.services.compute.model.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -103,11 +109,32 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
 
     @Override
     void setInstanceTemplate() throws Exception {
-        Compute client = createComputeClient();
         InstanceGroupManagersSetInstanceTemplateRequest request = new InstanceGroupManagersSetInstanceTemplateRequest();
-        request.setInstanceTemplate(getInstanceTemplate().getSelfLink());
+        InstanceTemplateResource instanceTemplate = getInstanceTemplate();
+        request.setInstanceTemplate(instanceTemplate == null
+            ? Data.nullOf(String.class)
+            : instanceTemplate.getSelfLink());
+
+        Compute client = createComputeClient();
         Operation operation = client.instanceGroupManagers()
             .setInstanceTemplate(getProjectId(), getZone(), getName(), request)
+            .execute();
+        waitForCompletion(client, operation);
+    }
+
+    @Override
+    void setTargetPools() throws Exception {
+        InstanceGroupManagersSetTargetPoolsRequest request = new InstanceGroupManagersSetTargetPoolsRequest();
+        List<TargetPoolResource> targetPoolResources = getTargetPools();
+        request.setTargetPools(targetPoolResources.isEmpty()
+            ? Data.nullOf(ArrayList.class)
+            : targetPoolResources.stream()
+                .map(TargetPoolResource::getSelfLink)
+                .collect(Collectors.toList()));
+
+        Compute client = createComputeClient();
+        Operation operation = client.instanceGroupManagers()
+            .setTargetPools(getProjectId(), getZone(), getName(), request)
             .execute();
         waitForCompletion(client, operation);
     }
