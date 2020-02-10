@@ -24,7 +24,6 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.RegionInstanceGroupManagerList;
 import com.psddev.dari.util.ObjectUtils;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
@@ -65,7 +64,7 @@ public class RegionInstanceGroupManagerFinder
 
         String region = filters.remove("region");
 
-        if (StringUtils.isBlank(region) || ObjectUtils.isBlank(filters)) {
+        if (region == null && !ObjectUtils.isBlank(filters)) {
             return InstanceGroupManagerFinder.findAllInstanceGroupManagers(
                 client,
                 getProjectId(),

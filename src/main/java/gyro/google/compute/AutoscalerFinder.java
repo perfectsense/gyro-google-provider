@@ -25,10 +25,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.InstanceGroupManagerAggregatedList;
-import com.google.api.services.compute.model.InstanceGroupManagerList;
-import com.google.api.services.compute.model.InstanceGroupManagersScopedList;
+import com.google.api.services.compute.model.Autoscaler;
+import com.google.api.services.compute.model.AutoscalerAggregatedList;
+import com.google.api.services.compute.model.AutoscalerList;
+import com.google.api.services.compute.model.AutoscalersScopedList;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
@@ -37,62 +37,60 @@ import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
 
 /**
- * Query an instance group manager.
+ * Query an autoscaler.
  *
  * You can provide an expression that filters resources. The expression must specify the field name, and the value that you want to use for filtering.
  *
- * Please see :doc:`compute-instance-group-manager` resource for available fields.
+ * Please see :doc:`compute-autoscaler` resource for available fields.
  *
  * Example
  * -------
  *
  * .. code-block:: gyro
  *
- *    instance-group-manager: $(external-query google::compute-instance-group-manager { name: 'instance-group-manager-example', zone: 'us-central1-a' })
+ *    autoscaler: $(external-query google::compute-autoscaler { name: 'compute-autoscaler-example', zone: 'us-central1-a' })
  */
-@Type("compute-instance-group-manager")
-public class InstanceGroupManagerFinder
-    extends GoogleFinder<Compute, InstanceGroupManager, InstanceGroupManagerResource> {
+@Type("compute-autoscaler")
+public class AutoscalerFinder extends GoogleFinder<Compute, Autoscaler, AutoscalerResource> {
 
     @Override
-    protected List<InstanceGroupManager> findAllGoogle(Compute client) throws Exception {
-        return findAllInstanceGroupManagers(client, getProjectId(), ResourceScope.ZONE, null);
+    protected List<Autoscaler> findAllGoogle(Compute client) throws Exception {
+        return findAllAutoscalers(client, getProjectId(), ResourceScope.ZONE, null);
     }
 
     @Override
-    protected List<InstanceGroupManager> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+    protected List<Autoscaler> findGoogle(Compute client, Map<String, String> filters) throws Exception {
         if (filters.containsKey("region")) {
-            throw new GyroException(
-                "For regional instance group manager, use 'compute-region-instance-group-manager' instead.");
+            throw new GyroException("For regional autoscaler, use 'compute-region-autoscaler' instead.");
         }
 
         String zone = filters.remove("zone");
 
         if (zone == null && !ObjectUtils.isBlank(filters)) {
-            return findAllInstanceGroupManagers(client, getProjectId(), ResourceScope.ZONE, filters);
+            return findAllAutoscalers(client, getProjectId(), ResourceScope.ZONE, filters);
         }
-        Compute.InstanceGroupManagers instanceGroupManagers = client.instanceGroupManagers();
-        List<InstanceGroupManager> allInstanceGroupManagers = new ArrayList<>();
+        Compute.Autoscalers instanceGroupManagers = client.autoscalers();
+        List<Autoscaler> allAutoscalers = new ArrayList<>();
 
-        Compute.InstanceGroupManagers.List request = instanceGroupManagers.list(getProjectId(), zone);
+        Compute.Autoscalers.List request = instanceGroupManagers.list(getProjectId(), zone);
         request.setFilter(Utils.convertToFilters(filters));
         String nextPageToken = null;
 
         do {
-            InstanceGroupManagerList response = request.execute();
-            List<InstanceGroupManager> items = response.getItems();
+            AutoscalerList response = request.execute();
+            List<Autoscaler> items = response.getItems();
 
             if (items == null) {
                 break;
             }
-            allInstanceGroupManagers.addAll(items);
+            allAutoscalers.addAll(items);
             nextPageToken = response.getNextPageToken();
             request.setPageToken(nextPageToken);
         } while (nextPageToken != null);
-        return allInstanceGroupManagers;
+        return allAutoscalers;
     }
 
-    protected static List<InstanceGroupManager> findAllInstanceGroupManagers(
+    protected static List<Autoscaler> findAllAutoscalers(
         Compute client,
         String projectId,
         ResourceScope scope,
@@ -103,27 +101,27 @@ public class InstanceGroupManagerFinder
         if (scope != null) {
             filters = StringUtils.join(Arrays.asList(scope.toFilterString(), filters), " ");
         }
-        Compute.InstanceGroupManagers.AggregatedList request = client.instanceGroupManagers()
+        Compute.Autoscalers.AggregatedList request = client.autoscalers()
             .aggregatedList(projectId);
         request.setFilter(filters);
         String nextPageToken = null;
-        List<InstanceGroupManager> allInstanceGroupManagers = new ArrayList<>();
+        List<Autoscaler> allAutoscalers = new ArrayList<>();
 
         do {
-            InstanceGroupManagerAggregatedList response = request.execute();
-            Map<String, InstanceGroupManagersScopedList> items = response.getItems();
+            AutoscalerAggregatedList response = request.execute();
+            Map<String, AutoscalersScopedList> items = response.getItems();
 
             if (items == null) {
                 break;
             }
             items.values().stream()
-                .map(InstanceGroupManagersScopedList::getInstanceGroupManagers)
+                .map(AutoscalersScopedList::getAutoscalers)
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
-                .collect(Collectors.toCollection(() -> allInstanceGroupManagers));
+                .collect(Collectors.toCollection(() -> allAutoscalers));
             nextPageToken = response.getNextPageToken();
             request.setPageToken(nextPageToken);
         } while (nextPageToken != null);
-        return allInstanceGroupManagers;
+        return allAutoscalers;
     }
 }

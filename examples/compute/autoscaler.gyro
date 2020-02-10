@@ -1,0 +1,56 @@
+google::compute-instance-template autoscaler-instance-group-template-example
+    name: "autoscaler-instance-group-template-example"
+    description: "Autoscaler instance group template example"
+
+    properties
+        disk
+            auto-delete: true
+            boot: true
+
+            initialize-params
+                disk-name: "autoscaler-instance-group-template-example-disk-1"
+                source-image: "projects/debian-cloud/global/images/family/debian-9"
+            end
+        end
+
+        machine-type: "f1-micro"
+
+        network-interface
+            network: $(external-query google::compute-network {name: "default"})
+
+            access-config
+                name: "External NAT"
+                type: "ONE_TO_ONE_NAT"
+                network-tier: "PREMIUM"
+            end
+        end
+
+        scheduling
+            automatic-restart: true
+            on-host-maintenance: "MIGRATE"
+            preemptible: false
+        end
+    end
+end
+
+zone: "us-central1-a"
+
+google::compute-instance-group-manager autoscaler-instance-group-manager-example
+    name: "autoscaler-instance-group-manager-example"
+    base-instance-name: "autoscaler-instance-group-manager-example"
+    description: "Autoscaler instance group manager example"
+    instance-template: $(google::compute-instance-template autoscaler-instance-group-template-example)
+    zone: $zone
+end
+
+google::compute-autoscaler autoscaler-example
+    name: "autoscaler-example"
+    description: "Autoscaler example"
+
+    autoscaling-policy
+        max-num-replicas: 5
+    end
+
+    instance-group-manager: $(google::compute-instance-group-manager autoscaler-instance-group-manager-example)
+    zone: $zone
+end
