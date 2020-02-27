@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.iam.v1.Iam;
+import com.google.api.services.iam.v1.model.ListRolesResponse;
 import com.google.api.services.iam.v1.model.Role;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
@@ -53,13 +54,24 @@ public class RoleCustomProjectRoleFinder extends GoogleFinder<Iam, Role, RoleCus
 
     @Override
     protected List<Role> findAllGoogle(Iam client) throws Exception {
-        return client.projects()
-            .roles()
-            .list("projects/" + getProjectId())
-            .set("view", "FULL")
-            .set("showDeleted", true)
-            .execute()
-            .getRoles();
+        List<Role> roles = new ArrayList<>();
+        ListRolesResponse rolesResponse;
+        String nextPageToken = null;
+
+        do {
+            rolesResponse = client.projects()
+                .roles()
+                .list("projects/" + getProjectId()).set("view", "FULL")
+                .set("showDeleted", true)
+                .setPageToken(nextPageToken).execute();
+
+            nextPageToken = rolesResponse.getNextPageToken();
+            if (rolesResponse.getRoles() != null) {
+                roles.addAll(rolesResponse.getRoles());
+            }
+        } while (nextPageToken != null);
+
+        return roles;
     }
 
     @Override

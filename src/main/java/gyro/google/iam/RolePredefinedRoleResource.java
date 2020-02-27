@@ -24,6 +24,9 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 
+/**
+ * This resource cannot be managed by Gyro and therefore can only be used via external query.
+ */
 @Type("iam-role-predefined")
 public class RolePredefinedRoleResource extends AbstractRoleResource {
 
@@ -34,7 +37,7 @@ public class RolePredefinedRoleResource extends AbstractRoleResource {
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        throw new GyroException(String.format("You cannot create a new predefined role. Create a custom role instead."));
+        throw new GyroException("You cannot create a new predefined role. Create a custom role instead.");
     }
 
     @Override

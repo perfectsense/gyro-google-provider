@@ -1,7 +1,0 @@
-google::iam-role-custom-project 'iam-role-custom-project-example'
-    role-id: "role.custom.proj.example"
-    title: "role-custom-proj-example-title"
-    description: "role-custom-proj-example-desc"
-    included-permissions: ['accessapproval.requests.approve', 'accessapproval.requests.get']
-    stage: "GA"
-end

@@ -36,31 +36,18 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
     private String stage;
 
     // Read-only
-    private String name;
     private Boolean deleted;
 
     /**
      * The role ID to use for this role. (Required)
      */
+    @Id
     public String getRoleId() {
         return roleId;
     }
 
     public void setRoleId(String roleId) {
         this.roleId = roleId;
-    }
-
-    /**
-     * The name of the role.
-     */
-    @Id
-    @Output
-    public String getName() {
-        return (this.name != null) ? this.name.substring(this.name.lastIndexOf("roles/")) : null;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     /**
@@ -88,7 +75,7 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
     }
 
     /**
-     * The names of the permissions this role grants when bound in an IAM policy.
+     * The names of the permissions this role grants when bound in an IAM policy. See `Understanding Roles <https://cloud.google.com/iam/docs/understanding-roles#predefined_roles>`_.
      */
     @Updatable
     public List<String> getIncludedPermissions() {
@@ -103,7 +90,7 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
     }
 
     /**
-     * The current launch stage of the role. Valid values are: ``ALPHA``, ``BETA``, ``GA``, ``DEPRECATED`` or ``EAP``. Defaults to ``ALPHA``.
+     * The current launch stage of the role. Valid values are ``ALPHA``, ``BETA``, ``GA``, ``DEPRECATED`` or ``EAP``. Defaults to ``ALPHA``.
      */
     @Updatable
     @ValidStrings({ "ALPHA", "BETA", "GA", "DEPRECATED", "DISABLED", "EAP" })
@@ -129,20 +116,15 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
 
     @Override
     public void copyFrom(Role model) throws Exception {
-        setName(model.getName());
         setDeleted(model.getDeleted());
         setDescription(model.getDescription());
         setIncludedPermissions(model.getIncludedPermissions());
         setTitle(model.getTitle());
-
-        if (model.getStage() != null) {
-            setStage(model.getStage());
-        }
+        setStage(model.getStage());
     }
 
     public Role toRole() {
         return new Role()
-            .setName(getName() != null ? "projects/" + getProjectId() + "/" + getName() : null)
             .setDescription(getDescription())
             .setTitle(getTitle())
             .setIncludedPermissions(getIncludedPermissions())

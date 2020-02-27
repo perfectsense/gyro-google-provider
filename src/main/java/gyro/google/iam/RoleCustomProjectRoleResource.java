@@ -21,7 +21,6 @@ import java.util.Set;
 import com.google.api.services.iam.v1.Iam;
 import com.google.api.services.iam.v1.model.CreateRoleRequest;
 import com.google.api.services.iam.v1.model.Role;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -50,12 +49,6 @@ public class RoleCustomProjectRoleResource extends AbstractRoleResource {
     protected void doCreate(GyroUI ui, State state) throws Exception {
         Iam client = createClient(Iam.class);
         Role role = toRole();
-
-        if (getName() != null) {
-            throw new GyroException(String.format(
-                "You cannot specify a name when creating a custom role. Provide the roleId instead."));
-        }
-
         CreateRoleRequest request = new CreateRoleRequest();
         request.setRole(role);
         request.setRoleId(getRoleId());
@@ -71,7 +64,7 @@ public class RoleCustomProjectRoleResource extends AbstractRoleResource {
         client.projects()
             .roles()
             .patch(
-                "projects/" + getProjectId() + "/" + (getName() != null ? getName() : "roles/" + getRoleId()),
+                "projects/" + getProjectId() + "/roles/" + getRoleId(),
                 toRole())
             .execute();
     }
@@ -81,7 +74,7 @@ public class RoleCustomProjectRoleResource extends AbstractRoleResource {
         Iam client = createClient(Iam.class);
         copyFrom(client.projects()
             .roles()
-            .get("projects/" + getProjectId() + "/" + (getName() != null ? getName() : "roles/" + getRoleId()))
+            .get("projects/" + getProjectId() + "/roles/" + getRoleId())
             .execute());
         return true;
     }
@@ -91,7 +84,7 @@ public class RoleCustomProjectRoleResource extends AbstractRoleResource {
         Iam client = createClient(Iam.class);
         client.projects()
             .roles()
-            .delete("projects/" + getProjectId() + "/" + (getName() != null ? getName() : "roles/" + getRoleId()))
+            .delete("projects/" + getProjectId() + "/roles/" + getRoleId())
             .execute();
     }
 }
