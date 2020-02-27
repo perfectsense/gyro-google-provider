@@ -36,6 +36,7 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
     private String stage;
 
     // Read-only
+    private String name;
     private Boolean deleted;
 
     /**
@@ -103,6 +104,18 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
     }
 
     /**
+     * The name of the role.
+     */
+    @Output
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
      * The current deleted state of the role.
      */
     @Output
@@ -116,6 +129,7 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
 
     @Override
     public void copyFrom(Role model) throws Exception {
+        setName(model.getName());
         setDeleted(model.getDeleted());
         setDescription(model.getDescription());
         setIncludedPermissions(model.getIncludedPermissions());
@@ -125,6 +139,7 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
 
     public Role toRole() {
         return new Role()
+            .setName(getName())
             .setDescription(getDescription())
             .setTitle(getTitle())
             .setIncludedPermissions(getIncludedPermissions())
