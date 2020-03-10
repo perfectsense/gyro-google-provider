@@ -261,6 +261,10 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
      */
     @Updatable
     public String getLocation() {
+        if (location != null) {
+            location = location.toLowerCase();
+        }
+
         return location;
     }
 
