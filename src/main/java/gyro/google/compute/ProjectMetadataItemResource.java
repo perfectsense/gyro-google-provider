@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -112,6 +113,11 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
 
         Metadata metadata = getMetadata(client);
         List<Metadata.Items> items = metadata.getItems();
+
+        if (items == null) {
+            items = new ArrayList<>();
+        }
+
         items.add(item);
         metadata.setItems(items);
 
