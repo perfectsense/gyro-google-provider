@@ -42,6 +42,7 @@ java {
 repositories {
     mavenLocal()
     mavenCentral()
+    google()
 
     maven {
         url 'https://artifactory.psdops.com/public'
@@ -63,6 +64,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-compute'
     implementation 'com.google.cloud:google-cloud-dns'
     implementation 'com.google.cloud:google-cloud-storage'
+    implementation 'com.google.cloud:google-cloud-kms'
     implementation 'com.google.guava:guava:23.0'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 
