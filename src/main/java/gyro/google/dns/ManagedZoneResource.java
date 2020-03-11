@@ -40,6 +40,7 @@ import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.ConflictsWith;
+import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
@@ -114,8 +115,9 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The DNS name of this managed zone, for instance ``example.com.``.
+     * The DNS name of this managed zone, for instance ``example.com.``. Must end with a single ``.``.
      */
+    @Regex(value = ".+(?<!\\.)\\.\\z", message = "a single @|bold .|@ at the end!")
     public String getDnsName() {
         return dnsName;
     }
