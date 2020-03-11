@@ -98,7 +98,6 @@ public class GoogleStorageFileBackend extends FileBackend {
     }
 
     private Storage client() {
-
         GoogleCredentials credentials = (GoogleCredentials) getRootScope().getSettings(CredentialsSettings.class)
                 .getCredentialsByName()
                 .get("google::" + getCredentials());
