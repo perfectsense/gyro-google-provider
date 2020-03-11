@@ -23,6 +23,24 @@ google::compute-firewall-rule firewall-rule-example-allow
     ]
 end
 
+google::compute-firewall-rule firewall-rule-example-allow-all
+    name: "firewall-rule-example-allow-all"
+    network: $(google::compute-network network-example-firewall-rule)
+    description: "firewall-rule-example-desc"
+    direction: "ingress"
+    priority: 1001
+
+    rule-type: "allow"
+
+    allowed
+        protocol: "all"
+    end
+
+    source-tags: [
+        "something"
+    ]
+end
+
 google::compute-firewall-rule firewall-rule-example-deny
     name: "firewall-rule-example-deny"
     network: $(google::compute-network network-example-firewall-rule)
