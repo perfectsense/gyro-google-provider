@@ -86,7 +86,7 @@ public class GoogleStorageFileBackend extends FileBackend {
                     upload.setName(prefixed(file));
                     client().objects().insert(getBucket(), upload, new ByteArrayContent(null, toByteArray())).execute();
                 } catch (Exception e) {
-                    throw new GyroException(String.format("Could not upload container config file %s.", prefixed(file)));
+                    throw new GyroException(String.format("Could not upload file %s.", prefixed(file)));
                 }
             }
         };
