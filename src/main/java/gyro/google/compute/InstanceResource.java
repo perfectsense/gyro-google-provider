@@ -20,13 +20,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstancesSetLabelsRequest;
+import gyro.core.GyroInstance;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.Wait;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
@@ -80,7 +83,7 @@ import gyro.google.Copyable;
  *      end
  */
 @Type("compute-instance")
-public class InstanceResource extends ComputeResource implements Copyable<Instance> {
+public class InstanceResource extends ComputeResource implements GyroInstance, Copyable<Instance> {
 
     private String name;
     private String zone;
@@ -93,6 +96,11 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     private String labelFingerprint;
     private List<InstanceAttachedDisk> initializeDisk;
     private String status;
+    private String hostName;
+    private String creationDate;
+    private String id;
+    private String publicIp;
+    private String privateIp;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
@@ -143,10 +151,11 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
     }
 
     /**
-     * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported.
+     * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported. (Required)
      *
      * @subresource gyro.google.compute.InstanceNetworkInterface
      */
+    @Required
     public List<InstanceNetworkInterface> getNetworkInterface() {
         if (networkInterface == null) {
             networkInterface = new ArrayList<>();
@@ -240,6 +249,66 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         this.status = status;
     }
 
+    /**
+     * The hostname of the instance.
+     */
+    @Output
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    /**
+     * The creation date of the instance.
+     */
+    @Output
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    /**
+     * The id of the instance.
+     */
+    @Output
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * The public ip of the instance.
+     */
+    @Output
+    public String getPublicIp() {
+        return publicIp;
+    }
+
+    public void setPublicIp(String publicIp) {
+        this.publicIp = publicIp;
+    }
+
+    /**
+     * The private ip of the instance.
+     */
+    @Output
+    public String getPrivateIp() {
+        return privateIp;
+    }
+
+    public void setPrivateIp(String privateIp) {
+        this.privateIp = privateIp;
+    }
+
     @Override
     public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
@@ -269,6 +338,14 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         waitForCompletion(
             client,
             client.instances().insert(getProjectId(), getZone(), content).execute());
+
+        Wait.atMost(2, TimeUnit.MINUTES)
+            .checkEvery(20, TimeUnit.SECONDS)
+            .prompt(false)
+            .until(() -> {
+                String status = client.instances().get(getProjectId(), getZone(), getName()).execute().getStatus();
+                return "RUNNING".equals(status) || "TERMINATED".equals(status);
+            });
 
         refresh();
     }
@@ -323,7 +400,7 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
         setLabels(model.getLabels());
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
-        if ("RUNNING".equals(getStatus()) || "TERMINATED".equals(getStatus())) {
+        if ("RUNNING".equals(model.getStatus()) || "TERMINATED".equals(model.getStatus())) {
             setStatus(model.getStatus());
         }
 
@@ -348,5 +425,56 @@ public class InstanceResource extends ComputeResource implements Copyable<Instan
                 })
                 .collect(Collectors.toList()));
         }
+
+        setCreationDate(model.getCreationTimestamp());
+        setHostName(model.getHostname());
+        setPrivateIp(getNetworkInterface().get(0).getNetworkIp());
+        setId(model.getId().toString());
+        setPublicIp(null);
+        getNetworkInterface().stream()
+            .filter(o -> !o.getAccessConfig().isEmpty())
+            .map(o -> o.getAccessConfig().get(0))
+            .findFirst().ifPresent(accessConfigPublicIp -> setPublicIp(accessConfigPublicIp.getNatIp()));
+
+    }
+
+    @Override
+    public String getGyroInstanceId() {
+        return getId();
+    }
+
+    @Override
+    public String getGyroInstanceState() {
+        return getStatus();
+    }
+
+    @Override
+    public String getGyroInstancePrivateIpAddress() {
+        return getPrivateIp();
+    }
+
+    @Override
+    public String getGyroInstancePublicIpAddress() {
+        return getPublicIp();
+    }
+
+    @Override
+    public String getGyroInstanceHostname() {
+        return getHostName();
+    }
+
+    @Override
+    public String getGyroInstanceName() {
+        return getName();
+    }
+
+    @Override
+    public String getGyroInstanceLaunchDate() {
+        return getCreationDate() != null ? getCreationDate().split("T")[0] : null;
+    }
+
+    @Override
+    public String getGyroInstanceLocation() {
+        return getZone();
     }
 }
