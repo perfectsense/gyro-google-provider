@@ -16,16 +16,24 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
+import com.google.api.services.compute.model.InstanceGroupManagersListManagedInstancesResponse;
 import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest;
 import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest;
+import com.google.api.services.compute.model.ManagedInstance;
 import com.google.api.services.compute.model.Operation;
+import gyro.core.GyroException;
+import gyro.core.GyroInstance;
+import gyro.core.GyroInstances;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
@@ -50,7 +58,7 @@ import gyro.google.util.Utils;
  *     end
  */
 @Type("compute-instance-group-manager")
-public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerResource {
+public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerResource implements GyroInstances {
 
     private String zone;
 
@@ -137,5 +145,53 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
             .setTargetPools(getProjectId(), getZone(), getName(), request)
             .execute();
         waitForCompletion(client, operation);
+    }
+
+    @Override
+    public List<GyroInstance> getInstances() {
+        List<GyroInstance> instances = new ArrayList<>();
+
+        Compute client = createComputeClient();
+
+        try {
+            InstanceGroupManagersListManagedInstancesResponse response = client.instanceGroupManagers()
+                .listManagedInstances(getProjectId(), getZone(), getName())
+                .execute();
+
+            List<String> instanceNameList = response.getManagedInstances().stream()
+                .filter(o -> o.getCurrentAction().equals("NONE"))
+                .map(ManagedInstance::getInstance)
+                .collect(Collectors.toList());
+
+            for (String instanceName : instanceNameList) {
+                Instance instance = getInstance(client, instanceName.substring(instanceName.lastIndexOf("/") + 1));
+
+                if (instance != null) {
+                    InstanceResource resource = newSubresource(InstanceResource.class);
+                    resource.copyFrom(instance);
+                    instances.add(resource);
+                }
+            }
+        } catch (GoogleJsonResponseException je) {
+           throw new GyroException(formatGoogleExceptionMessage(je));
+        } catch (Exception ex) {
+           throw new GyroException(ex);
+        }
+
+        return instances;
+    }
+
+    private Instance getInstance(Compute client, String name) throws IOException {
+        Instance instance = null;
+
+        try {
+            instance = client.instances().get(getProjectId(), getZone(), name).execute();
+        } catch (GoogleJsonResponseException ex) {
+            if (ex.getDetails().getCode() != 404) {
+                throw ex;
+            }
+        }
+
+        return instance;
     }
 }
