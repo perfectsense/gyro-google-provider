@@ -428,7 +428,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setLabelFingerprint(model.getLabelFingerprint());
         setLabels(model.getLabels());
 
-        InstanceMetadata copyMetadata = new InstanceMetadata();
+        InstanceMetadata copyMetadata = newSubresource(InstanceMetadata.class);
         copyMetadata.copyFrom(model.getMetadata());
         setMetadata(copyMetadata);
 

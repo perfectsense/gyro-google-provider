@@ -61,7 +61,7 @@ public class InstanceMetadata extends Diffable implements Copyable<Metadata> {
         setItem(
             model.getItems().stream().map(
                 i -> {
-                    InstanceMetadataItem item = new InstanceMetadataItem();
+                    InstanceMetadataItem item = newSubresource(InstanceMetadataItem.class);
                     item.copyFrom(i);
                     return item;
                 })
