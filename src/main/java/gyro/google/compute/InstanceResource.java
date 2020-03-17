@@ -101,6 +101,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String id;
     private String publicIp;
     private String privateIp;
+    private InstanceMetadata metadata;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
@@ -309,6 +310,19 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         this.privateIp = privateIp;
     }
 
+    /**
+     *
+     * @subresource gyro.google.compute.InstanceMetadata
+     */
+    @Updatable
+    public InstanceMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(InstanceMetadata metadata) {
+        this.metadata = metadata;
+    }
+
     @Override
     public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
@@ -334,6 +348,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         content.setDisks(getInitializeDisk().stream()
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
+        content.setMetadata(getMetadata() != null ? getMetadata().copyTo() : null);
 
         waitForCompletion(
             client,
@@ -380,6 +395,20 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             }
         }
 
+        if (changedFieldNames.contains("metadata")) {
+            waitForCompletion(
+                client,
+                client.instances()
+                    .setMetadata(
+                        getProjectId(),
+                        getZone(),
+                        getName(),
+                        getMetadata() != null ? getMetadata().copyTo() : null
+                    )
+                    .execute()
+            );
+        }
+
         refresh();
     }
 
@@ -398,6 +427,10 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setSelfLink(model.getSelfLink());
         setLabelFingerprint(model.getLabelFingerprint());
         setLabels(model.getLabels());
+
+        InstanceMetadata copyMetadata = new InstanceMetadata();
+        copyMetadata.copyFrom(model.getMetadata());
+        setMetadata(copyMetadata);
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
         if ("RUNNING".equals(model.getStatus()) || "TERMINATED".equals(model.getStatus())) {
