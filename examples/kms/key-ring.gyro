@@ -1,45 +1,21 @@
-#google::crypto-key crypto-key-example
-#    location: "us-east4"
-#    key-ring: "projects/aerobic-lock-236714/locations/us-east4/keyRings/example-in-different-location"
-#    name: "crypto-key-ring-example-15"
-#    purpose: ENCRYPT_DECRYPT
-#    rotation-period: 3
-#    next-rotation-time-in-seconds: 1586503600
-#    primary-key-version-id: 1
-#
-#    crypto-key-version-template
-#        algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
-#        protection-level: SOFTWARE
-#    end
-#end
-#
-#google::crypto-key crypto-key-example-2
-#    location: "us-east4"
-#    key-ring: "projects/aerobic-lock-236714/locations/us-east4/keyRings/example-in-different-location"
-#    name: "asymmetric-sign-1"
-#    purpose: ASYMMETRIC_SIGN
-#
-#    crypto-key-version-template
-#        algorithm: EC_SIGN_P256_SHA256
-#        protection-level: SOFTWARE
-#    end
-#
-#    labels: {
-#        "new-key": "new-value"
-#    }
-#end
+google::key-ring example-key-ring
+    location: "global"
+    name: "example-key-ring"
+end
 
 google::crypto-key crypto-key-example
-    location: "us-east4"
-    key-ring: "projects/aerobic-lock-236714/locations/us-east4/keyRings/example-in-different-location"
-    name: "crypto-key-ring-example-16"
+    key-ring: $(google::key-ring example-key-ring)
+    name: "crypto-key-ring-example"
     purpose: ENCRYPT_DECRYPT
     rotation-period: 1
     next-rotation-date: "03/21/2020"
-    primary-key-version-id: 1
 
     crypto-key-version-template
         algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
         protection-level: SOFTWARE
     end
+end
+
+google::crypto-key-version version-example
+    crypto-key: $(google::crypto-key crypto-key-example)
 end

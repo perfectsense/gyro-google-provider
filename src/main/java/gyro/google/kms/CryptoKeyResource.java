@@ -27,13 +27,35 @@ import gyro.core.scope.State;
 import gyro.core.validation.Min;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
+/**
+ * Add a cryto key to a king ring.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *    google::crypto-key crypto-key-example
+ *        key-ring: $(google::key-ring example-key-ring)
+ *        name: "crypto-key-ring-example"
+ *        purpose: ENCRYPT_DECRYPT
+ *        rotation-period: 1
+ *        next-rotation-date: "09/21/2020"
+ *        primary-key-version-id: 1
+ *
+ *        crypto-key-version-template
+ *            algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+ *            protection-level: SOFTWARE
+ *        end
+ *    end
+ */
 @Type("crypto-key")
 public class CryptoKeyResource extends GoogleResource implements Copyable<CryptoKey> {
 
-    private String location;
     private KeyRingResource keyRing;
     private String name;
     private Long rotationPeriod;
@@ -47,14 +69,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     private String id;
     private List<String> versions;
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
+    /**
+     * The key ring that holds the crypto key. (Required)
+     */
     @Required
     public KeyRingResource getKeyRing() {
         return keyRing;
@@ -64,7 +81,11 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.keyRing = keyRing;
     }
 
+    /**
+     * The name of the crypto key. (Required)
+     */
     @Required
+    @Regex("^([a-z]|[0-9]|-|_)*$")
     public String getName() {
         return name;
     }
@@ -73,7 +94,10 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.name = name;
     }
 
-    @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "Must match the mm/dd/yyyy format`")
+    /**
+     * The next date when the symmetric key should rotate. Must match the ``mm/dd/yyyy`` format.
+     */
+    @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "Must match the mm/dd/yyyy format")
     public String getNextRotationDate() {
         return nextRotationDate;
     }
@@ -82,6 +106,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.nextRotationDate = nextRotationDate;
     }
 
+    /**
+     * The period after which the symmetric key should automatically rotate. Minimum value ``1``.
+     */
     @Updatable
     @Min(1)
     public Long getRotationPeriod() {
@@ -92,6 +119,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.rotationPeriod = rotationPeriod;
     }
 
+    /**
+     * The immutable purpose of the key. (Required)
+     */
     @Required
     public CryptoKey.CryptoKeyPurpose getPurpose() {
         return purpose;
@@ -101,6 +131,11 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.purpose = purpose;
     }
 
+    /**
+     * The template describing settings for new crypto key versions. (Required)
+     *
+     * @subresource gyro.google.kms.CryptoKeyVersionTemplate
+     */
     @Updatable
     @Required
     public CryptoKeyVersionTemplate getCryptoKeyVersionTemplate() {
@@ -111,6 +146,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.cryptoKeyVersionTemplate = cryptoKeyVersionTemplate;
     }
 
+    /**
+     * The labels of the crypto key.
+     */
     @Updatable
     public Map<String, String> getLabels() {
         if (labels == null) {
@@ -124,6 +162,21 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.labels = labels;
     }
 
+    /**
+     * The ID of the primary key version.
+     */
+    @Updatable
+    public String getPrimaryKeyVersionId() {
+        return primaryKeyVersionId;
+    }
+
+    public void setPrimaryKeyVersionId(String primaryKeyVersionId) {
+        this.primaryKeyVersionId = primaryKeyVersionId;
+    }
+
+    /**
+     * The ID of the crypto key.
+     */
     @Output
     @Id
     public String getId() {
@@ -134,6 +187,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.id = id;
     }
 
+    /**
+     * The list of versions of the crypto key.
+     */
     @Output
     public List<String> getVersions() {
         if (versions == null) {
@@ -146,35 +202,29 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         this.versions = versions;
     }
 
-    @Updatable
-    public String getPrimaryKeyVersionId() {
-        return primaryKeyVersionId;
-    }
-
-    public void setPrimaryKeyVersionId(String primaryKeyVersionId) {
-        this.primaryKeyVersionId = primaryKeyVersionId;
-    }
-
     @Override
     public void copyFrom(CryptoKey model) throws Exception {
         setId(model.getName());
         setPurpose(model.getPurpose());
         setKeyRing(findById(KeyRingResource.class, String.join("/", Arrays.copyOfRange(getId().split("/"), 0, 6))));
         setName(getNameFromId());
-        setLocation(getLocationFromId());
+
         if (model.hasNextRotationTime()) {
             DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
             Date date = new Date(model.getNextRotationTime().getSeconds() * 1000L);
             setNextRotationDate(dateFormat.format(date));
         }
+
         if (model.hasRotationPeriod()) {
             setRotationPeriod(model.getRotationPeriod().getSeconds() / 86400);
         }
+
         if (model.getVersionTemplate() != null) {
             CryptoKeyVersionTemplate cryptoKeyVersionTemplate = newSubresource(CryptoKeyVersionTemplate.class);
             cryptoKeyVersionTemplate.copyFrom(model.getVersionTemplate());
             setCryptoKeyVersionTemplate(cryptoKeyVersionTemplate);
         }
+
         if (model.hasPrimary()) {
             setPrimaryKeyVersionId(model.getPrimary().getName().split("/")[9]);
         }
@@ -192,6 +242,8 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
 
         copyFrom(cryptoKey);
         refreshVersions(client);
+
+        client.shutdownNow();
 
         return true;
     }
@@ -216,13 +268,28 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
                 .build());
         }
 
-        String parent = KeyRingName.format(getProjectId(), getLocation(), getKeyRing().getNameFromId());
+        String parent = KeyRingName.format(
+            getProjectId(),
+            getKeyRing().getLocationFromId(),
+            getKeyRing().getNameFromId());
 
         CryptoKey response = client.createCryptoKey(parent, getName(), builder.build());
+
+        if (getPrimaryKeyVersionId() != null) {
+            String cryptoKeyPathName = CryptoKeyPathName.format(
+                getProjectId(),
+                getKeyRing().getLocationFromId(),
+                getKeyRing().getNameFromId(),
+                getName());
+
+            client.updateCryptoKeyPrimaryVersion(cryptoKeyPathName, getPrimaryKeyVersionId());
+        }
 
         copyFrom(response);
 
         refreshVersions(client);
+
+        client.shutdownNow();
     }
 
     @Override
@@ -253,18 +320,45 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
 
         String parent = CryptoKeyPathName.format(
             getProjectId(),
-            getLocation(),
+            getKeyRing().getLocationFromId(),
             getKeyRing().getNameFromId(),
             getName());
 
         if (changedFieldNames.contains("primary-key-version-id")) {
             client.updateCryptoKeyPrimaryVersion(parent, getPrimaryKeyVersionId());
         }
+
+        client.shutdownNow();
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
 
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (getPurpose().equals(CryptoKey.CryptoKeyPurpose.ENCRYPT_DECRYPT)) {
+            if (!configuredFields.contains("next-rotation-date") || !configuredFields.contains("rotation-period")) {
+                errors.add(new ValidationError(
+                    this,
+                    null,
+                    "Both 'next-rotation-date' and 'rotation-period' are required if 'purpose' is set to 'ENCRYPT_DECRYPT'"));
+            }
+
+        } else {
+            if (configuredFields.contains("next-rotation-date") || configuredFields.contains("rotation-period")
+                || configuredFields.contains("primary-key-version-id")) {
+                errors.add(new ValidationError(
+                    this,
+                    null,
+                    "The 'next-rotation-date', 'rotation-period' and 'primary-key-version-id' are cannot be set if the 'purpose' is 'ASYMMETRIC_SIGN' or 'ASYMMETRIC_DECRYPT'"));
+            }
+        }
+
+        return errors;
     }
 
     public String getLocationFromId() {

@@ -13,9 +13,23 @@ import gyro.core.resource.Id;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
+/**
+ * Create a new version for the crypto key.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *    google::crypto-key-version crypto-key-version-example
+ *        crypto-key: $(google::crypto-key example-crypto-key)
+ *        state: ENABLED
+ *    end
+ */
 @Type("crypto-key-version")
 public class CryptoKeyVersionResource extends GoogleResource implements Copyable<CryptoKeyVersion> {
 
@@ -25,6 +39,10 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
     // Read-Only
     private String id;
 
+    /**
+     * The crypto key for which to create the new version. (Required)
+     */
+    @Required
     public CryptoKeyResource getCryptoKey() {
         return cryptoKey;
     }
@@ -33,6 +51,9 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
         this.cryptoKey = cryptoKey;
     }
 
+    /**
+     * The state of the crypto key version. The default value is ``ENABLED``.
+     */
     @Updatable
     public CryptoKeyVersion.CryptoKeyVersionState getState() {
         if (state == null) {
@@ -45,6 +66,9 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
         this.state = state;
     }
 
+    /**
+     * The ID of the crypto key version.
+     */
     @Id
     public String getId() {
         return id;
@@ -72,6 +96,8 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
 
         copyFrom(cryptoKeyVersion);
 
+        client.shutdownNow();
+
         return true;
     }
 
@@ -90,6 +116,8 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
             CryptoKeyVersion.newBuilder().setState(getState()).build());
 
         setId(response.getName());
+
+        client.shutdownNow();
     }
 
     @Override
@@ -101,6 +129,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
             CryptoKeyVersion.newBuilder().setName(getId()).setState(getState()).build(),
             FieldMask.newBuilder().addPaths("state").build());
 
+        client.shutdownNow();
     }
 
     @Override
@@ -108,5 +137,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
         KeyManagementServiceClient client = createClient(KeyManagementServiceClient.class);
 
         client.destroyCryptoKeyVersion(getId());
+
+        client.shutdownNow();
     }
 }

@@ -13,6 +13,9 @@ public class CryptoKeyVersionTemplate extends Diffable
     private CryptoKeyVersion.CryptoKeyVersionAlgorithm algorithm;
     private ProtectionLevel protectionLevel;
 
+    /**
+     * The algorithm to use when creating a crypto key version based on this resource. (Required)
+     */
     @Required
     @Updatable
     public CryptoKeyVersion.CryptoKeyVersionAlgorithm getAlgorithm() {
@@ -23,6 +26,9 @@ public class CryptoKeyVersionTemplate extends Diffable
         this.algorithm = algorithm;
     }
 
+    /**
+     * The protection level to use when creating a crypto key version based on this resource. (Required)
+     */
     @Required
     public ProtectionLevel getProtectionLevel() {
         return protectionLevel;
