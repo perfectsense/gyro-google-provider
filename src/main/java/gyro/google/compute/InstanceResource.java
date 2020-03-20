@@ -312,7 +312,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
-     *
+     * The metadata of the instance.
      * @subresource gyro.google.compute.InstanceMetadata
      */
     @Updatable
