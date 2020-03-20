@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -316,6 +317,10 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
      */
     @Updatable
     public InstanceMetadata getMetadata() {
+        if (metadata == null) {
+            metadata = newSubresource(InstanceMetadata.class);
+        }
+
         return metadata;
     }
 
@@ -348,7 +353,9 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         content.setDisks(getInitializeDisk().stream()
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
-        content.setMetadata(getMetadata() != null ? getMetadata().copyTo() : null);
+
+        getMetadata().setFingerprint(getMetadataFingerprint());
+        content.setMetadata(getMetadata().copyTo());
 
         waitForCompletion(
             client,
@@ -396,6 +403,8 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         if (changedFieldNames.contains("metadata")) {
+            getMetadata().setFingerprint(getMetadataFingerprint());
+
             waitForCompletion(
                 client,
                 client.instances()
@@ -403,7 +412,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                         getProjectId(),
                         getZone(),
                         getName(),
-                        getMetadata() != null ? getMetadata().copyTo() : null
+                        getMetadata().copyTo()
                     )
                     .execute()
             );
@@ -428,9 +437,13 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setLabelFingerprint(model.getLabelFingerprint());
         setLabels(model.getLabels());
 
-        InstanceMetadata copyMetadata = newSubresource(InstanceMetadata.class);
-        copyMetadata.copyFrom(model.getMetadata());
-        setMetadata(copyMetadata);
+        if (model.getMetadata() != null && model.getMetadata().getItems() != null) {
+            InstanceMetadata copyMetadata = newSubresource(InstanceMetadata.class);
+            copyMetadata.copyFrom(model.getMetadata());
+            setMetadata(copyMetadata);
+        } else {
+            setMetadata(null);
+        }
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
         if ("RUNNING".equals(model.getStatus()) || "TERMINATED".equals(model.getStatus())) {
@@ -469,6 +482,23 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(o -> o.getAccessConfig().get(0))
             .findFirst().ifPresent(accessConfigPublicIp -> setPublicIp(accessConfigPublicIp.getNatIp()));
 
+    }
+
+    private String getMetadataFingerprint() {
+        Compute client = createComputeClient();
+        String fingerprint = null;
+
+        try {
+            Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
+            if (instance.getMetadata() != null) {
+                fingerprint = instance.getMetadata().getFingerprint();
+            }
+
+        } catch (IOException ex) {
+            // ignore
+        }
+
+        return fingerprint;
     }
 
     @Override
