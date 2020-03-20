@@ -81,6 +81,17 @@ import gyro.google.Copyable;
  *          labels: {
  *              "gyro": "install"
  *          }
+ *          
+ *          metadata
+ *              item
+ *                  key: "test-key"
+ *                  value: "test-value"
+ *              end
+ *
+ *              item
+ *                  key: "blank-item"
+ *              end
+ *          end
  *      end
  */
 @Type("compute-instance")
