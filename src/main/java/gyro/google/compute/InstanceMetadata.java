@@ -64,8 +64,7 @@ public class InstanceMetadata extends Diffable implements Copyable<Metadata> {
                     InstanceMetadataItem item = newSubresource(InstanceMetadataItem.class);
                     item.copyFrom(i);
                     return item;
-                })
-                .collect(Collectors.toList())
+                }).collect(Collectors.toList())
         );
         setFingerprint(model.getFingerprint());
         setKind(model.getKind());
