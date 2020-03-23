@@ -18,6 +18,7 @@ import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
+import gyro.google.util.Utils;
 
 /**
  * Create a key ring.
@@ -82,8 +83,8 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
     @Override
     public void copyFrom(KeyRing model) throws Exception {
         setId(model.getName());
-        setName(getNameFromId());
-        setLocation(getLocationFromId());
+        setName(Utils.getKmsKeyRingNameFromId(getId()));
+        setLocation(Utils.getKmsLocationFromId(getId()));
     }
 
     @Override
@@ -135,13 +136,5 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
 
-    }
-
-    public String getLocationFromId() {
-        return getId().split("/")[3];
-    }
-
-    public String getNameFromId() {
-        return getId().split("/")[5];
     }
 }

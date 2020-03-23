@@ -16,6 +16,8 @@
 
 package gyro.google.util;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,5 +64,23 @@ public final class Utils {
                 e.getValue())
             )
             .collect(Collectors.joining(" "));
+    }
+
+    public static String getKmsLocationFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("locations");
+        return list.get(index + 1);
+    }
+
+    public static String getKmsKeyRingNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("keyRings");
+        return list.get(index + 1);
+    }
+
+    public static String getKmsKeyNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("cryptoKeys");
+        return list.get(index + 1);
     }
 }

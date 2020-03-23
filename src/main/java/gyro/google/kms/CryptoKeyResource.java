@@ -31,6 +31,7 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
+import gyro.google.util.Utils;
 
 /**
  * Add a cryto key to a king ring.
@@ -208,7 +209,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         setId(model.getName());
         setPurpose(model.getPurpose());
         setKeyRing(findById(KeyRingResource.class, String.join("/", Arrays.copyOfRange(getId().split("/"), 0, 6))));
-        setName(getNameFromId());
+        setName(Utils.getKmsKeyNameFromId(getId()));
 
         if (model.hasNextRotationTime()) {
             DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
@@ -229,6 +230,8 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         if (model.hasPrimary()) {
             setPrimaryKeyVersionId(model.getPrimary().getName().split("/")[9]);
         }
+
+        refreshVersions();
     }
 
     @Override
@@ -242,7 +245,6 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         }
 
         copyFrom(cryptoKey);
-        refreshVersions(client);
 
         client.shutdownNow();
 
@@ -271,24 +273,22 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
 
         String parent = KeyRingName.format(
             getProjectId(),
-            getKeyRing().getLocationFromId(),
-            getKeyRing().getNameFromId());
+            Utils.getKmsLocationFromId(getKeyRing().getId()),
+            Utils.getKmsKeyRingNameFromId(getKeyRing().getId()));
 
         CryptoKey response = client.createCryptoKey(parent, getName(), builder.build());
 
         if (getPrimaryKeyVersionId() != null) {
             String cryptoKeyPathName = CryptoKeyPathName.format(
                 getProjectId(),
-                getKeyRing().getLocationFromId(),
-                getKeyRing().getNameFromId(),
+                Utils.getKmsLocationFromId(getKeyRing().getId()),
+                Utils.getKmsKeyRingNameFromId(getKeyRing().getId()),
                 getName());
 
             client.updateCryptoKeyPrimaryVersion(cryptoKeyPathName, getPrimaryKeyVersionId());
         }
 
         copyFrom(response);
-
-        refreshVersions(client);
 
         client.shutdownNow();
     }
@@ -321,8 +321,8 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
 
         String parent = CryptoKeyPathName.format(
             getProjectId(),
-            getKeyRing().getLocationFromId(),
-            getKeyRing().getNameFromId(),
+            Utils.getKmsLocationFromId(getKeyRing().getId()),
+            Utils.getKmsKeyRingNameFromId(getKeyRing().getId()),
             getName());
 
         if (changedFieldNames.contains("primary-key-version-id")) {
@@ -362,19 +362,8 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         return errors;
     }
 
-    public String getLocationFromId() {
-        return getId().split("/")[3];
-    }
-
-    public String getKeyRingNameFromId() {
-        return getId().split("/")[5];
-    }
-
-    public String getNameFromId() {
-        return getId().split("/")[7];
-    }
-
-    private void refreshVersions(KeyManagementServiceClient client) {
+    private void refreshVersions() {
+        KeyManagementServiceClient client = createClient(KeyManagementServiceClient.class);
         getVersions().clear();
         client.listCryptoKeyVersions(getId())
             .iterateAll()

@@ -11,12 +11,14 @@ import com.google.protobuf.FieldMask;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
+import gyro.google.util.Utils;
 
 /**
  * Create a new version for the crypto key.
@@ -71,6 +73,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
      * The ID of the crypto key version.
      */
     @Id
+    @Output
     public String getId() {
         return id;
     }
@@ -108,9 +111,9 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
 
         String parent = CryptoKeyName.format(
             getProjectId(),
-            getCryptoKey().getLocationFromId(),
-            getCryptoKey().getKeyRingNameFromId(),
-            getCryptoKey().getNameFromId());
+            Utils.getKmsLocationFromId(getCryptoKey().getId()),
+            Utils.getKmsKeyRingNameFromId(getCryptoKey().getId()),
+            Utils.getKmsKeyNameFromId(getCryptoKey().getId()));
 
         CryptoKeyVersion response = client.createCryptoKeyVersion(
             parent,
