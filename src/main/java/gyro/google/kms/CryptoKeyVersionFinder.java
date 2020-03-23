@@ -7,7 +7,6 @@ import java.util.Map;
 import com.google.cloud.kms.v1.CryptoKeyName;
 import com.google.cloud.kms.v1.CryptoKeyVersion;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -63,14 +62,17 @@ public class CryptoKeyVersionFinder
 
     @Override
     protected List<CryptoKeyVersion> findAllGoogle(KeyManagementServiceClient client) throws Exception {
-        throw new GyroException("'location', 'key-ring-name' and 'key-name' are required filters");
+        throw new UnsupportedOperationException(
+            "Finding all `crypto-key-versions` without any filter is not supported!!");
     }
 
     @Override
     protected List<CryptoKeyVersion> findGoogle(
         KeyManagementServiceClient client, Map<String, String> filters) throws Exception {
-        if (filters.containsKey("location") && filters.containsKey("key-ring-name") && filters.containsKey("key-name")) {
-            List<CryptoKeyVersion> keys = new ArrayList<>();
+        List<CryptoKeyVersion> keys = new ArrayList<>();
+
+        if (filters.containsKey("location") && filters.containsKey("key-ring-name")
+            && filters.containsKey("key-name")) {
 
             KeyManagementServiceClient.ListCryptoKeyVersionsPagedResponse response = client.listCryptoKeyVersions(
                 CryptoKeyName.format(
@@ -80,9 +82,7 @@ public class CryptoKeyVersionFinder
                     filters.get("key-name")));
             response.iterateAll().forEach(keys::add);
 
-            return keys;
-        } else {
-            throw new GyroException("'location', 'key-ring-name' and 'key-name' are required filters");
         }
+        return keys;
     }
 }

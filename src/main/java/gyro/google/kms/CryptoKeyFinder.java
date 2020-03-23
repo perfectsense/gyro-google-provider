@@ -49,24 +49,23 @@ public class CryptoKeyFinder extends GoogleFinder<KeyManagementServiceClient, Cr
 
     @Override
     protected List<CryptoKey> findAllGoogle(KeyManagementServiceClient client) throws Exception {
-        throw new GyroException("'location' and 'key-ring-name' are required filters");
+        throw new UnsupportedOperationException("Finding all `crypto-keys` without any filter is not supported!!");
     }
 
     @Override
     protected List<CryptoKey> findGoogle(
         KeyManagementServiceClient client, Map<String, String> filters) throws Exception {
-        if (filters.containsKey("location") && filters.containsKey("key-ring-name")) {
-            List<CryptoKey> keys = new ArrayList<>();
+        List<CryptoKey> keys = new ArrayList<>();
 
+        if (filters.containsKey("location") && filters.containsKey("key-ring-name")) {
             KeyManagementServiceClient.ListCryptoKeysPagedResponse response = client.listCryptoKeys(KeyRingName.format(
                 getProjectId(),
                 filters.get("location"),
                 filters.get("key-ring-name")));
             response.iterateAll().forEach(keys::add);
 
-            return keys;
-        } else {
-            throw new GyroException("'location' and 'key-ring-name' are required filters");
         }
+
+        return keys;
     }
 }
