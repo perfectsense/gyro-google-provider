@@ -7,7 +7,6 @@ import java.util.Map;
 import com.google.cloud.kms.v1.CryptoKey;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
 import com.google.cloud.kms.v1.KeyRingName;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -24,7 +23,7 @@ import gyro.google.GoogleFinder;
 @Type("crypto-key")
 public class CryptoKeyFinder extends GoogleFinder<KeyManagementServiceClient, CryptoKey, CryptoKeyResource> {
     private String location;
-    private String keyRingName;
+    private String name;
 
     /**
      * The location of the key ring.
@@ -40,12 +39,12 @@ public class CryptoKeyFinder extends GoogleFinder<KeyManagementServiceClient, Cr
     /**
      * The name of the key ring.
      */
-    public String getKeyRingName() {
-        return keyRingName;
+    public String getName() {
+        return name;
     }
 
-    public void setKeyRingName(String keyRingName) {
-        this.keyRingName = keyRingName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

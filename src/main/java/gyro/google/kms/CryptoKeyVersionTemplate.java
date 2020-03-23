@@ -1,6 +1,6 @@
 package gyro.google.kms;
 
-import com.google.cloud.kms.v1.CryptoKeyVersion;
+import com.google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionAlgorithm;
 import com.google.cloud.kms.v1.ProtectionLevel;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
@@ -10,7 +10,7 @@ import gyro.google.Copyable;
 public class CryptoKeyVersionTemplate extends Diffable
     implements Copyable<com.google.cloud.kms.v1.CryptoKeyVersionTemplate> {
 
-    private CryptoKeyVersion.CryptoKeyVersionAlgorithm algorithm;
+    private CryptoKeyVersionAlgorithm algorithm;
     private ProtectionLevel protectionLevel;
 
     /**
@@ -18,11 +18,11 @@ public class CryptoKeyVersionTemplate extends Diffable
      */
     @Required
     @Updatable
-    public CryptoKeyVersion.CryptoKeyVersionAlgorithm getAlgorithm() {
+    public CryptoKeyVersionAlgorithm getAlgorithm() {
         return algorithm;
     }
 
-    public void setAlgorithm(CryptoKeyVersion.CryptoKeyVersionAlgorithm algorithm) {
+    public void setAlgorithm(CryptoKeyVersionAlgorithm algorithm) {
         this.algorithm = algorithm;
     }
 

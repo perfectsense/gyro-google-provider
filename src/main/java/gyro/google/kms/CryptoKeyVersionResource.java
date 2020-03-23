@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.google.cloud.kms.v1.CryptoKeyName;
 import com.google.cloud.kms.v1.CryptoKeyVersion;
+import com.google.cloud.kms.v1.CryptoKeyVersion.CryptoKeyVersionState;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
 import com.google.protobuf.FieldMask;
 import gyro.core.GyroUI;
@@ -34,7 +35,7 @@ import gyro.google.GoogleResource;
 public class CryptoKeyVersionResource extends GoogleResource implements Copyable<CryptoKeyVersion> {
 
     private CryptoKeyResource cryptoKey;
-    private CryptoKeyVersion.CryptoKeyVersionState state;
+    private CryptoKeyVersionState state;
 
     // Read-Only
     private String id;
@@ -55,14 +56,14 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
      * The state of the crypto key version. The default value is ``ENABLED``.
      */
     @Updatable
-    public CryptoKeyVersion.CryptoKeyVersionState getState() {
+    public CryptoKeyVersionState getState() {
         if (state == null) {
-            state = CryptoKeyVersion.CryptoKeyVersionState.ENABLED;
+            state = CryptoKeyVersionState.ENABLED;
         }
         return state;
     }
 
-    public void setState(CryptoKeyVersion.CryptoKeyVersionState state) {
+    public void setState(CryptoKeyVersionState state) {
         this.state = state;
     }
 

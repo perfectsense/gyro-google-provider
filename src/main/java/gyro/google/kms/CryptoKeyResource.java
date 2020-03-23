@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.cloud.kms.v1.CryptoKey;
+import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose;
 import com.google.cloud.kms.v1.CryptoKeyPathName;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
 import com.google.cloud.kms.v1.KeyRingName;
@@ -59,7 +60,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     private KeyRingResource keyRing;
     private String name;
     private Long rotationPeriod;
-    private CryptoKey.CryptoKeyPurpose purpose;
+    private CryptoKeyPurpose purpose;
     private String nextRotationDate;
     private CryptoKeyVersionTemplate cryptoKeyVersionTemplate;
     private Map<String, String> labels;
@@ -123,11 +124,11 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
      * The immutable purpose of the key. (Required)
      */
     @Required
-    public CryptoKey.CryptoKeyPurpose getPurpose() {
+    public CryptoKeyPurpose getPurpose() {
         return purpose;
     }
 
-    public void setPurpose(CryptoKey.CryptoKeyPurpose purpose) {
+    public void setPurpose(CryptoKeyPurpose purpose) {
         this.purpose = purpose;
     }
 
@@ -340,7 +341,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
-        if (getPurpose().equals(CryptoKey.CryptoKeyPurpose.ENCRYPT_DECRYPT)) {
+        if (getPurpose().equals(CryptoKeyPurpose.ENCRYPT_DECRYPT)) {
             if (!configuredFields.contains("next-rotation-date") || !configuredFields.contains("rotation-period")) {
                 errors.add(new ValidationError(
                     this,
