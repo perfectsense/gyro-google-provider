@@ -34,6 +34,7 @@ public class InstanceMetadata extends Diffable implements Copyable<Metadata> {
 
     /**
      * The list of metadata entries consisting of key/value pairs.
+     *
      * @subresource gyro.google.compute.InstanceMetadataItem
      */
     @Updatable

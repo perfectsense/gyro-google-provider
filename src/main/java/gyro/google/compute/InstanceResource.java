@@ -81,7 +81,7 @@ import gyro.google.Copyable;
  *          labels: {
  *              "gyro": "install"
  *          }
- *          
+ *
  *          metadata
  *              item
  *                  key: "test-key"
@@ -324,6 +324,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     /**
      * The metadata of the instance.
+     *
      * @subresource gyro.google.compute.InstanceMetadata
      */
     @Updatable
