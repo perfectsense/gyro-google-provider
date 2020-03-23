@@ -86,7 +86,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
      * The name of the crypto key. (Required)
      */
     @Required
-    @Regex("^([a-z]|[0-9]|-|_)*$")
+    @Regex(value = "^(\\w|-|_)+$", message = "The name can be a string containing letters number")
     public String getName() {
         return name;
     }
@@ -108,7 +108,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The period after which the symmetric key should automatically rotate. Minimum value ``1``.
+     * The period after which the symmetric key should automatically rotate. Minimum value is ``1``.
      */
     @Updatable
     @Min(1)
@@ -355,7 +355,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
                 errors.add(new ValidationError(
                     this,
                     null,
-                    "The 'next-rotation-date', 'rotation-period' and 'primary-key-version-id' are cannot be set if the 'purpose' is 'ASYMMETRIC_SIGN' or 'ASYMMETRIC_DECRYPT'"));
+                    "The 'next-rotation-date', 'rotation-period' and 'primary-key-version-id' cannot be set if the 'purpose' is 'ASYMMETRIC_SIGN' or 'ASYMMETRIC_DECRYPT'"));
             }
         }
 

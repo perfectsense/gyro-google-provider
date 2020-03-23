@@ -37,7 +37,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
     private CryptoKeyResource cryptoKey;
     private CryptoKeyVersionState state;
 
-    // Read-Only
+    // Read-only
     private String id;
 
     /**
@@ -53,7 +53,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
     }
 
     /**
-     * The state of the crypto key version. The default value is ``ENABLED``.
+     * The state of the crypto key version. Defaults to ``ENABLED``.
      */
     @Updatable
     public CryptoKeyVersionState getState() {
