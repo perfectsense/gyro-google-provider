@@ -365,7 +365,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
 
-        getMetadata().setFingerprint(getMetadataFingerprint());
         content.setMetadata(getMetadata().copyTo());
 
         waitForCompletion(
@@ -495,18 +494,13 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     }
 
-    private String getMetadataFingerprint() {
+    private String getMetadataFingerprint() throws IOException {
         Compute client = createComputeClient();
         String fingerprint = null;
 
-        try {
-            Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
-            if (instance.getMetadata() != null) {
-                fingerprint = instance.getMetadata().getFingerprint();
-            }
-
-        } catch (IOException ex) {
-            // ignore
+        Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
+        if (instance.getMetadata() != null) {
+            fingerprint = instance.getMetadata().getFingerprint();
         }
 
         return fingerprint;
