@@ -32,7 +32,7 @@ public class InstanceMetadataItem extends Diffable implements Copyable<Metadata.
      * Key for the metadata entry. Keys must conform to the following regexp: ``[a-zA-Z0-9-_]+``, and be
      * less than 128 bytes in length. Must be unique across all metadata keys in the instance.
      */
-    @Regex("[a-zA-Z0-9-_]{1,128}")
+    @Regex(value = "[a-zA-Z0-9-_]{1,128}", message = "only alphanumeric characters, dashes, and underscores, and must be within 128 characters in length.")
     @Required
     public String getKey() {
         return key;
@@ -45,7 +45,7 @@ public class InstanceMetadataItem extends Diffable implements Copyable<Metadata.
     /**
      * Value for the metadata entry. The size must be less than or equal to 262144 bytes (256 KiB).
      */
-    @Regex(".{0,262144}")
+    @Regex(value = ".{0,262144}", message = "a length within 262144 characters.")
     @Updatable
     public String getValue() {
         if (value == null) {
