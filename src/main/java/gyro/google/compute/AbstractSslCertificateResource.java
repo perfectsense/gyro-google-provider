@@ -16,16 +16,18 @@
 
 package gyro.google.compute;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStreamReader;
 
 import com.google.api.services.compute.model.SslCertificate;
+import com.google.common.io.CharStreams;
 import gyro.core.GyroException;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
+
+import static java.nio.charset.StandardCharsets.*;
 
 public abstract class AbstractSslCertificateResource extends ComputeResource implements Copyable<SslCertificate> {
 
@@ -38,7 +40,7 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
     private String selfLink;
 
     /**
-     * The full path to the file containing the certificate(s) (in PEM format). The certificate chain must be no greater than 5 certs long. The chain must include at least one intermediate cert. Only used when creating the SSL certificate. (Required)
+     * The full path to the file containing the certificate(s) (in PEM format). The certificate chain must be no greater than 5 certs long. The chain must include at least one intermediate cert. (Required)
      */
     @Required
     public String getCertificatePath() {
@@ -73,7 +75,7 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
     }
 
     /**
-     * The full path to the file containing the private key (in PEM format). Only used when creating the SSL certificate. (Required)
+     * The full path to the file containing the private key (in PEM format). (Required)
      */
     @Required
     public String getPrivateKeyPath() {
@@ -106,7 +108,7 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
 
     protected String readCertificateFile() {
         try {
-            return new String(Files.readAllBytes(Paths.get(getCertificatePath())));
+            return CharStreams.toString(new InputStreamReader(openInput(getCertificatePath()), UTF_8));
         } catch (Exception ex) {
             throw new GyroException("Failed reading certificate file: " + getCertificatePath());
         }
@@ -114,7 +116,7 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
 
     protected String readPrivateKeyFile() {
         try {
-            return new String(Files.readAllBytes(Paths.get(getPrivateKeyPath())));
+            return CharStreams.toString(new InputStreamReader(openInput(getPrivateKeyPath()), UTF_8));
         } catch (Exception ex) {
             throw new GyroException("Failed reading private key file: " + getPrivateKeyPath());
         }
