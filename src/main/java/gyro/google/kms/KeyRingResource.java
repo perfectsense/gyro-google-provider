@@ -59,7 +59,7 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
     private String id;
 
     /**
-     * The location of the key ring. The valid values are ``asia-east1`` or ``asia-east2`` or ``asia-northeast1`` or ``asia-northeast2`` or ``asia-northeast3`` or ``asia-south1`` or ``asia-southeast1`` or ``australia-southeast1`` or ``europe-north1`` or ``europe-west1`` or ``europe-west2`` or ``europe-west3`` or ``europe-west4`` or ``europe-west6`` or ``northamerica-northeast1`` or ``us-central1`` or ``us-east1`` or ``us-east4`` or ``us-west1`` or ``us-west2`` or ``us-west3`` or ``southamerica-east1`` or ``eur4`` or ``nam4`` or ``global`` or ``asia`` or ``europe`` or ``us``. (Required)
+     * The location of the key ring. (Required)
      */
     @Required
     public String getLocation() {
@@ -74,7 +74,7 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
      * The name of the key ring. Can be letters, numbers, underscores or hyphens. (Required)
      */
     @Required
-    @Regex("^([a-z]|[0-9]|-|_)*$")
+    @Regex(value = "^(\\w|-|_)+$", message = "The name can be a string containing letters number")
     public String getName() {
         return name;
     }

@@ -100,7 +100,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The name of the crypto key. (Required)
+     * The name of the crypto key. Can be letters, numbers, underscores or hyphens. (Required)
      */
     @Required
     @Regex(value = "^(\\w|-|_)+$", message = "The name can be a string containing letters number")
