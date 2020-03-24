@@ -30,7 +30,6 @@ public class InstanceMetadata extends Diffable implements Copyable<Metadata> {
 
     private String fingerprint;
     private List<InstanceMetadataItem> item;
-    private String kind;
 
     /**
      * The list of metadata entries consisting of key/value pairs.
@@ -63,18 +62,6 @@ public class InstanceMetadata extends Diffable implements Copyable<Metadata> {
         this.fingerprint = fingerprint;
     }
 
-    /**
-     * The type of the resource. The value is always ``compute#metadata`` for metadata.
-     */
-    @Output
-    public String getKind() {
-        return kind;
-    }
-
-    public void setKind(String kind) {
-        this.kind = kind;
-    }
-
     @Override
     public String primaryKey() {
         return "";
@@ -91,7 +78,6 @@ public class InstanceMetadata extends Diffable implements Copyable<Metadata> {
                 }).collect(Collectors.toList())
         );
         setFingerprint(model.getFingerprint());
-        setKind(model.getKind());
     }
 
     public Metadata copyTo() {
@@ -104,7 +90,6 @@ public class InstanceMetadata extends Diffable implements Copyable<Metadata> {
                 : null
         );
         metadata.setFingerprint(getFingerprint());
-        metadata.setKind(getKind());
 
         return metadata;
     }
