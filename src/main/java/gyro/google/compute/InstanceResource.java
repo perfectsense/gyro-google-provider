@@ -112,6 +112,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String publicIp;
     private String privateIp;
     private Map<String, String> metadata;
+    private InstanceTags tags;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
@@ -349,6 +350,24 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         this.metadata = metadata;
     }
 
+    /**
+     * The set of tags for the instance.
+     *
+     * @subresource gyro.google.compute.InstanceTags
+     */
+    @Updatable
+    public InstanceTags getTags() {
+        if (tags == null) {
+            tags = newSubresource(InstanceTags.class);
+        }
+
+        return tags;
+    }
+
+    public void setTags(InstanceTags tags) {
+        this.tags = tags;
+    }
+
     @Override
     public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
@@ -375,6 +394,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
         content.setCanIpForward(getCanIpForward());
+        content.setTags(getTags().copyTo());
 
         content.setMetadata(buildMetadata(null));
 
@@ -438,6 +458,21 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             );
         }
 
+        if (changedFieldNames.contains("tags")) {
+            getTags().setFingerprint(getTagsFingerprint());
+
+            waitForCompletion(
+                client,
+                client.instances()
+                    .setTags(
+                        getProjectId(),
+                        getZone(),
+                        getName(),
+                        getTags().copyTo()
+                    )
+                    .execute());
+        }
+
         refresh();
     }
 
@@ -463,6 +498,14 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             setMetadata(model.getMetadata().getItems().stream()
                 .collect(Collectors.toMap(Metadata.Items::getKey, Metadata.Items::getValue))
             );
+        }
+
+        if (model.getTags() != null && model.getTags().getItems() != null) {
+            InstanceTags copyTags = newSubresource(InstanceTags.class);
+            copyTags.copyFrom(model.getTags());
+            setTags(copyTags);
+        } else {
+            setTags(null);
         }
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
@@ -531,6 +574,18 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         metadata.setFingerprint(fingerprint);
 
         return metadata;
+    }
+
+    public String getTagsFingerprint() throws IOException {
+        Compute client = createComputeClient();
+        String fingerprint = null;
+
+        Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
+        if (instance.getTags() != null) {
+            fingerprint = instance.getTags().getFingerprint();
+        }
+
+        return fingerprint;
     }
 
     @Override
