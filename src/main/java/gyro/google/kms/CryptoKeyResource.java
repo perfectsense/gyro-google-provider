@@ -243,7 +243,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         }
 
         if (model.hasPrimary()) {
-            setPrimaryKeyVersionId(Utils.getKmsPrimaryKeyVersionFromId(model.getPrimary().getName()));
+            setPrimaryKeyVersionId(model.getPrimary().getName());
         }
 
         refreshVersions();
@@ -300,7 +300,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
                 Utils.getKmsKeyRingNameFromId(getKeyRing().getId()),
                 getName());
 
-            client.updateCryptoKeyPrimaryVersion(cryptoKeyPathName, getPrimaryKeyVersionId());
+            client.updateCryptoKeyPrimaryVersion(cryptoKeyPathName, Utils.getKmsPrimaryKeyVersionFromId(getPrimaryKeyVersionId()));
         }
 
         copyFrom(response);
@@ -341,7 +341,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
             getName());
 
         if (changedFieldNames.contains("primary-key-version-id")) {
-            client.updateCryptoKeyPrimaryVersion(parent, getPrimaryKeyVersionId());
+            client.updateCryptoKeyPrimaryVersion(parent, Utils.getKmsPrimaryKeyVersionFromId(getPrimaryKeyVersionId()));
         }
 
         client.shutdownNow();
