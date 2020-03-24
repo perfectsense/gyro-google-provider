@@ -1,0 +1,7 @@
+google::compute-region-ssl-certificate region-ssl-certificate-example
+    name: "region-ssl-certificate-example"
+    description: "region-ssl-certificate-example-desc"
+    certificate-path: "../path/to/certificate-file.pem"
+    private-key-path: "../path/to/private-key-file.pem"
+    region: "us-east1"
+end
