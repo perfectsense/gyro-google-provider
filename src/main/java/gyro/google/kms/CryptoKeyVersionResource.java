@@ -16,7 +16,6 @@
 
 package gyro.google.kms;
 
-import java.util.Arrays;
 import java.util.Set;
 
 import com.google.cloud.kms.v1.CryptoKeyName;
@@ -101,7 +100,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
     @Override
     public void copyFrom(CryptoKeyVersion model) throws Exception {
         setId(model.getName());
-        setCryptoKey(findById(CryptoKeyResource.class, String.join("/", Arrays.copyOfRange(getId().split("/"), 0, 8))));
+        setCryptoKey(findById(CryptoKeyResource.class, Utils.getKmsKeyIdFromId(getId())));
     }
 
     @Override

@@ -19,7 +19,6 @@ package gyro.google.kms;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -224,7 +223,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     public void copyFrom(CryptoKey model) throws Exception {
         setId(model.getName());
         setPurpose(model.getPurpose());
-        setKeyRing(findById(KeyRingResource.class, String.join("/", Arrays.copyOfRange(getId().split("/"), 0, 6))));
+        setKeyRing(findById(KeyRingResource.class, Utils.getKmsKeyRingIdFromId(getId())));
         setName(Utils.getKmsKeyNameFromId(getId()));
 
         if (model.hasNextRotationTime()) {
@@ -244,7 +243,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         }
 
         if (model.hasPrimary()) {
-            setPrimaryKeyVersionId(model.getPrimary().getName().split("/")[9]);
+            setPrimaryKeyVersionId(Utils.getKmsPrimaryKeyVersionFromId(model.getPrimary().getName()));
         }
 
         refreshVersions();
@@ -384,5 +383,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         client.listCryptoKeyVersions(getId())
             .iterateAll()
             .forEach(v -> getVersions().add(v.getName()));
+
+        client.shutdownNow();
     }
 }

@@ -83,4 +83,24 @@ public final class Utils {
         int index = list.indexOf("cryptoKeys");
         return list.get(index + 1);
     }
+
+    public static String getKmsKeyRingIdFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int indexStart = list.indexOf("projects");
+        int indexEnd = list.indexOf("keyRings") + 1;
+        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd));
+    }
+
+    public static String getKmsKeyIdFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int indexStart = list.indexOf("projects");
+        int indexEnd = list.indexOf("cryptoKeys") + 1;
+        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd));
+    }
+
+    public static String getKmsPrimaryKeyVersionFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("cryptoKeyVersions");
+        return list.get(index + 1);
+    }
 }
