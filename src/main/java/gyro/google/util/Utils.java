@@ -88,14 +88,14 @@ public final class Utils {
         List<String> list = Arrays.asList(id.split("/"));
         int indexStart = list.indexOf("projects");
         int indexEnd = list.indexOf("keyRings") + 1;
-        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd));
+        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd + 1));
     }
 
     public static String getKmsKeyIdFromId(String id) {
         List<String> list = Arrays.asList(id.split("/"));
         int indexStart = list.indexOf("projects");
         int indexEnd = list.indexOf("cryptoKeys") + 1;
-        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd));
+        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd + 1));
     }
 
     public static String getKmsPrimaryKeyVersionFromId(String id) {
