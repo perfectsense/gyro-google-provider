@@ -71,10 +71,10 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
     }
 
     /**
-     * The name of the key ring. Can be letters, numbers, underscores or hyphens. (Required)
+     * The name of the key ring. Can be a string containing letters, numbers, underscores or hyphens. (Required)
      */
     @Required
-    @Regex(value = "^(\\w|-|_)+$", message = "The name can be a string containing letters number")
+    @Regex(value = "^(\\w|-)+$", message = "The name can be a string containing letters, numbers, underscores or hyphens")
     public String getName() {
         return name;
     }
@@ -130,8 +130,7 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
         } catch (NotFoundException ex) {
             if (ex.getStatusCode().getCode().equals(StatusCode.Code.NOT_FOUND)) {
                 throw new GyroException(String.format(
-                    "The value provided for the location, %s, is invalid. Please provide a valid location.",
-                    getLocation()));
+                    "Invalid value: %s, for 'location'", getLocation()));
             }
         }
 
