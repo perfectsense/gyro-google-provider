@@ -18,15 +18,18 @@ package gyro.google.compute;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstancesSetLabelsRequest;
+import com.google.api.services.compute.model.Metadata;
 import gyro.core.GyroInstance;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -39,6 +42,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 /**
@@ -82,16 +86,10 @@ import gyro.google.Copyable;
  *              "gyro": "install"
  *          }
  *
- *          metadata
- *              item
- *                  key: "test-key"
- *                  value: "test-value"
- *              end
- *
- *              item
- *                  key: "blank-item"
- *              end
- *          end
+ *          metadata: {
+ *              test-key: "test-value",
+ *              test-blank: ""
+ *          }
  *      end
  */
 @Type("compute-instance")
@@ -113,7 +111,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String id;
     private String publicIp;
     private String privateIp;
-    private InstanceMetadata metadata;
+    private Map<String, String> metadata;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
@@ -323,20 +321,20 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
-     * The metadata of the instance.
-     *
-     * @subresource gyro.google.compute.InstanceMetadata
+     * The metadata of the instance, specified with key/value pairs.
+     * Keys may only contain alphanumeric characters, dashes, and underscores, and must be 1-128 characters in length.
+     * Values must be 0-262144 characters in length.
      */
     @Updatable
-    public InstanceMetadata getMetadata() {
+    public Map<String, String> getMetadata() {
         if (metadata == null) {
-            metadata = newSubresource(InstanceMetadata.class);
+            metadata = new HashMap<>();
         }
 
         return metadata;
     }
 
-    public void setMetadata(InstanceMetadata metadata) {
+    public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
     }
 
@@ -366,7 +364,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
 
-        content.setMetadata(getMetadata().copyTo());
+        content.setMetadata(buildMetadata(null));
 
         waitForCompletion(
             client,
@@ -414,7 +412,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         if (changedFieldNames.contains("metadata")) {
-            getMetadata().setFingerprint(getMetadataFingerprint());
 
             waitForCompletion(
                 client,
@@ -423,7 +420,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                         getProjectId(),
                         getZone(),
                         getName(),
-                        getMetadata().copyTo()
+                        buildMetadata(getMetadataFingerprint())
                     )
                     .execute()
             );
@@ -448,12 +445,11 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setLabelFingerprint(model.getLabelFingerprint());
         setLabels(model.getLabels());
 
+        getMetadata().clear();
         if (model.getMetadata() != null && model.getMetadata().getItems() != null) {
-            InstanceMetadata copyMetadata = newSubresource(InstanceMetadata.class);
-            copyMetadata.copyFrom(model.getMetadata());
-            setMetadata(copyMetadata);
-        } else {
-            setMetadata(null);
+            setMetadata(model.getMetadata().getItems().stream()
+                .collect(Collectors.toMap(Metadata.Items::getKey, Metadata.Items::getValue))
+            );
         }
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
@@ -505,6 +501,54 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         return fingerprint;
+    }
+
+    private Metadata buildMetadata(String fingerprint) {
+        Metadata metadata = new Metadata();
+        metadata.setItems(
+            getMetadata().entrySet().stream()
+                .map(e -> {
+                    Metadata.Items item = new Metadata.Items();
+                    item.setKey(e.getKey());
+                    item.setValue(e.getValue());
+                    return item;
+                })
+                .collect(Collectors.toList())
+        );
+        metadata.setFingerprint(fingerprint);
+
+        return metadata;
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        Pattern keyPattern = Pattern.compile("[a-zA-Z0-9-_]{1,128}");
+
+        if (!getMetadata().isEmpty() && configuredFields.contains("metadata")) {
+            for (String key : getMetadata().keySet()) {
+                if (!keyPattern.matcher(key).matches()) {
+                    errors.add(new ValidationError(
+                        this,
+                        "metadata",
+                        "Keys may only contain alphanumeric characters, dashes, and underscores, and must be within 1-128 characters in length."));
+                    break;
+                }
+            }
+
+            for (String value : getMetadata().values()) {
+                if (value.length() > 262144) {
+                    errors.add(new ValidationError(
+                        this,
+                        "metadata",
+                        "Values must be within 0-262144 characters in length."));
+                    break;
+                }
+            }
+        }
+
+        return errors;
     }
 
     @Override
