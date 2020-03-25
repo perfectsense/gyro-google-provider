@@ -74,7 +74,7 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
      * The name of the key ring. Can be a string containing letters, numbers, underscores or hyphens. (Required)
      */
     @Required
-    @Regex(value = "^(\\w|-)+$", message = "The name can be a string containing letters, numbers, underscores or hyphens")
+    @Regex(value = "^(\\w|-)+$", message = "a string containing letters, numbers, underscores or hyphens")
     public String getName() {
         return name;
     }
