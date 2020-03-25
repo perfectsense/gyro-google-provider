@@ -87,8 +87,7 @@ import gyro.google.Copyable;
  *          }
  *
  *          metadata: {
- *              test-key: "test-value",
- *              test-blank: ""
+ *              test-key: "test-value"
  *          }
  *      end
  */
