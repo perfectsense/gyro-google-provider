@@ -95,6 +95,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private Map<String, String> labels;
     private String labelFingerprint;
     private List<InstanceAttachedDisk> initializeDisk;
+    private Boolean canIpForward;
     private String status;
     private String hostName;
     private String creationDate;
@@ -165,6 +166,17 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     public void setNetworkInterface(List<InstanceNetworkInterface> networkInterface) {
         this.networkInterface = networkInterface;
+    }
+
+    /**
+     * If enabled allows this instance to send and receive packets with non-matching destination or source IPs. Defaults to ``false``.
+     */
+    public Boolean getCanIpForward() {
+        return canIpForward;
+    }
+
+    public void setCanIpForward(Boolean canIpForward) {
+        this.canIpForward = canIpForward;
     }
 
     /**
@@ -334,6 +346,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         content.setDisks(getInitializeDisk().stream()
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
+        content.setCanIpForward(getCanIpForward());
 
         waitForCompletion(
             client,
@@ -398,6 +411,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setSelfLink(model.getSelfLink());
         setLabelFingerprint(model.getLabelFingerprint());
         setLabels(model.getLabels());
+        setCanIpForward(model.getCanIpForward());
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
         if ("RUNNING".equals(model.getStatus()) || "TERMINATED".equals(model.getStatus())) {
