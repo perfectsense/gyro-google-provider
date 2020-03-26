@@ -63,6 +63,9 @@ public class AddressResource extends AbstractAddressResource {
         this.networkTier = networkTier;
     }
 
+    /**
+     * The region where this address resides. (Required)
+     */
     @Required
     public String getRegion() {
         return region;
