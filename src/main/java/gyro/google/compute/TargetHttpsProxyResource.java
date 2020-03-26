@@ -28,6 +28,7 @@ import com.google.api.services.compute.model.TargetHttpsProxiesSetQuicOverrideRe
 import com.google.api.services.compute.model.TargetHttpsProxiesSetSslCertificatesRequest;
 import com.google.api.services.compute.model.TargetHttpsProxy;
 import com.google.api.services.compute.model.UrlMapReference;
+import com.google.cloud.compute.v1.ProjectGlobalTargetHttpsProxyName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -218,5 +219,9 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
         Compute client = createComputeClient();
         Operation response = client.targetHttpsProxies().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, response);
+    }
+
+    static boolean isTargetHttpsProxy(String selfLink) {
+        return selfLink != null && ProjectGlobalTargetHttpsProxyName.isParsableFrom(formatResource(null, selfLink));
     }
 }
