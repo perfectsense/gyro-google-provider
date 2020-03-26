@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ public class InstanceTags extends Diffable implements Copyable<Tags> {
 
     /**
      * A string which is essentially a hash of the tags' contents and changes after every request to modify or update tags.
-     * An up-to-date fingerprint must always be provided in order to update or change tags.
      */
     @Output
     public String getFingerprint() {
@@ -84,6 +83,7 @@ public class InstanceTags extends Diffable implements Copyable<Tags> {
                 : null
         );
         tags.setFingerprint(getFingerprint());
+
         return tags;
     }
 }
