@@ -49,7 +49,7 @@ import gyro.google.Copyable;
  *     google::compute-route route-example
  *         name: "route-example"
  *         description: "route-example-description"
- *         network: $(google::network network-example-route)
+ *         network: $(google::compute-network network-example-route)
  *         next-hop-ip: "10.0.0.5"
  *         dest-range: "0.0.0.0/0"
  *     end
