@@ -30,6 +30,7 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstancesSetLabelsRequest;
 import com.google.api.services.compute.model.Metadata;
+import com.google.api.services.compute.model.Tags;
 import gyro.core.GyroInstance;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -39,6 +40,7 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.CollectionMax;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -89,6 +91,8 @@ import gyro.google.Copyable;
  *          metadata: {
  *              test-key: "test-value"
  *          }
+ *
+ *          tags: ["test-tag"]
  *      end
  */
 @Type("compute-instance")
@@ -112,7 +116,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String publicIp;
     private String privateIp;
     private Map<String, String> metadata;
-    private InstanceTags tags;
+    private List<String> tags;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
@@ -351,20 +355,21 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
-     * The set of tags for the instance.
-     *
-     * @subresource gyro.google.compute.InstanceTags
+     * The set of tags for the instance. Each tag must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     * All tags for an instance must be unique. You can assign up to 64 different tags per instance.
      */
     @Updatable
-    public InstanceTags getTags() {
+    @CollectionMax(64)
+    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
+    public List<String> getTags() {
         if (tags == null) {
-            tags = newSubresource(InstanceTags.class);
+            tags = new ArrayList<>();
         }
 
         return tags;
     }
 
-    public void setTags(InstanceTags tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 
@@ -394,8 +399,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
         content.setCanIpForward(getCanIpForward());
-        content.setTags(getTags().copyTo());
-
+        content.setTags(buildTags(null));
         content.setMetadata(buildMetadata(null));
 
         waitForCompletion(
@@ -444,7 +448,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         if (changedFieldNames.contains("metadata")) {
-
             waitForCompletion(
                 client,
                 client.instances()
@@ -459,8 +462,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         if (changedFieldNames.contains("tags")) {
-            getTags().setFingerprint(getTagsFingerprint());
-
             waitForCompletion(
                 client,
                 client.instances()
@@ -468,7 +469,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                         getProjectId(),
                         getZone(),
                         getName(),
-                        getTags().copyTo()
+                        buildTags(getTagsFingerprint())
                     )
                     .execute());
         }
@@ -500,12 +501,9 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             );
         }
 
+        getTags().clear();
         if (model.getTags() != null && model.getTags().getItems() != null) {
-            InstanceTags copyTags = newSubresource(InstanceTags.class);
-            copyTags.copyFrom(model.getTags());
-            setTags(copyTags);
-        } else {
-            setTags(null);
+            setTags(model.getTags().getItems());
         }
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
@@ -576,7 +574,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         return metadata;
     }
 
-    public String getTagsFingerprint() throws IOException {
+    private String getTagsFingerprint() throws IOException {
         Compute client = createComputeClient();
         String fingerprint = null;
 
@@ -586,6 +584,14 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         return fingerprint;
+    }
+
+    private Tags buildTags(String fingerprint) {
+        Tags tags = new Tags();
+        tags.setItems(getTags());
+        tags.setFingerprint(fingerprint);
+
+        return tags;
     }
 
     @Override
