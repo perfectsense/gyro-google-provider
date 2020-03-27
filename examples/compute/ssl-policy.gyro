@@ -1,0 +1,12 @@
+google::compute-ssl-policy ssl-policy-example
+    name: "ssl-policy-example"
+    profile: "MODERN"
+    min-tls-version: "TLS_1_0"
+end
+
+google::compute-ssl-policy custom-ssl-policy-example
+    name: "custom-ssl-policy-example"
+    profile: "CUSTOM"
+    min-tls-version: "TLS_1_2"
+    custom-features: [ "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256" ]
+end
