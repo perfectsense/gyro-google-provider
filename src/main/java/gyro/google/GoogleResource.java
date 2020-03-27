@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClient;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
@@ -29,13 +28,13 @@ import gyro.core.scope.State;
 
 public abstract class GoogleResource extends Resource {
 
-    protected static <T extends AbstractGoogleJsonClient> T createClient(
+    protected static <T> T createClient(
         Class<T> clientClass,
         GoogleCredentials credentials) {
         return credentials.createClient(clientClass);
     }
 
-    protected <T extends AbstractGoogleJsonClient> T createClient(Class<T> clientClass) {
+    protected <T> T createClient(Class<T> clientClass) {
         return createClient(clientClass, credentials(GoogleCredentials.class));
     }
 
