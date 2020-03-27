@@ -109,6 +109,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     /**
      * The network to associate this route with. (Required)
      */
+    @Required
     public NetworkResource getNetwork() {
         return network;
     }
