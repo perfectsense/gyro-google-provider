@@ -21,6 +21,7 @@ import java.util.Set;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.UrlMapReference;
+import com.google.cloud.compute.v1.ProjectGlobalTargetHttpProxyName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -76,5 +77,9 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
         Compute client = createComputeClient();
         Operation response = client.targetHttpProxies().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, response);
+    }
+
+    static boolean isTargetHttpProxy(String selfLink) {
+        return selfLink != null && ProjectGlobalTargetHttpProxyName.isParsableFrom(formatResource(null, selfLink));
     }
 }

@@ -42,6 +42,7 @@ java {
 repositories {
     mavenLocal()
     mavenCentral()
+    google()
 
     maven {
         url 'https://artifactory.psdops.com/public'
@@ -58,12 +59,13 @@ configurations {
 
 dependencies {
     api 'gyro:gyro-core:0.99.1-SNAPSHOT'
-    implementation enforcedPlatform('com.google.cloud:libraries-bom:3.3.0')
+    implementation enforcedPlatform('com.google.cloud:libraries-bom:4.2.0')
     implementation 'com.google.auth:google-auth-library-oauth2-http:0.18.0'
     implementation 'com.google.apis:google-api-services-iam:v1-rev309-1.25.0'
     implementation 'com.google.cloud:google-cloud-compute'
     implementation 'com.google.cloud:google-cloud-dns'
     implementation 'com.google.cloud:google-cloud-storage'
+    implementation 'com.google.cloud:google-cloud-kms'
     implementation 'com.google.guava:guava:23.0'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 

@@ -44,5 +44,5 @@ google::compute-forwarding-rule forwarding-rule-example
     ip-protocol: "TCP"
     load-balancing-scheme: "EXTERNAL"
     port-range: "80-80"
-    target-pool: "https://www.googleapis.com/compute/v1/projects/aerobic-lock-236714/regions/us-central1/targetPools/test-console"
+    target-pool: $(google::compute-target-pool target-pool-example-forwarding-rule)
 end

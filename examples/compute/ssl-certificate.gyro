@@ -1,0 +1,6 @@
+google::compute-ssl-certificate ssl-certificate-example
+    name: "ssl-certificate-example"
+    description: "ssl-certificate-example-desc"
+    certificate-path: "../path/to/certificate-file.pem"
+    private-key-path: "../path/to/private-key-file.pem"
+end
