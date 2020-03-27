@@ -16,6 +16,8 @@
 
 package gyro.google.util;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,5 +64,15 @@ public final class Utils {
                 e.getValue())
             )
             .collect(Collectors.joining(" "));
+    }
+
+    public static String getServiceAccountIdFromName(String name, String projectId) {
+        return "projects/" + projectId + "/serviceAccounts/" + name + "@" + projectId + ".iam.gserviceaccount.com";
+    }
+
+    public static String getServiceAccountNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("serviceAccounts");
+        return list.get(index + 1).split("@")[0];
     }
 }
