@@ -42,6 +42,10 @@ google::compute-instance gyro-dev-1
     labels: {
         "gyro": "install"
     }
+
+    metadata: {
+        test-key: "test-value"
+    }
 end
 
 google::compute-instance gyro-dev-2
@@ -66,6 +70,10 @@ google::compute-instance gyro-dev-2
 
     labels: {
         "gyro": "install"
+    }
+
+    metadata: {
+        test-key: "test-value"
     }
 end
 
