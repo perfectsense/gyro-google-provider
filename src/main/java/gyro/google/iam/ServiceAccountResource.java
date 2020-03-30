@@ -101,7 +101,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     }
 
     /**
-     * Enable or disable the service account.
+     * Enable or disable the service account. Defaults to ``enable``.
      */
     @Updatable
     public Boolean getEnableAccount() {
@@ -148,11 +148,6 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     }
 
     @Override
-    public String primaryKey() {
-        return super.primaryKey();
-    }
-
-    @Override
     protected boolean doRefresh() throws Exception {
         Iam client = createClient(Iam.class);
 
@@ -192,8 +187,11 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
             .execute();
 
         setId(response.getName());
+        state.save();
 
-        changeServiceAccountStatus(client);
+        if (getEnableAccount() != null && getEnableAccount().equals(Boolean.FALSE)) {
+            changeServiceAccountStatus(client);
+        }
 
         copyFrom(response);
     }
