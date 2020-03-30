@@ -75,4 +75,42 @@ public final class Utils {
         int index = list.indexOf("serviceAccounts");
         return list.get(index + 1).split("@")[0];
     }
+  
+    public static String getKmsLocationFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("locations");
+        return list.get(index + 1);
+    }
+
+    public static String getKmsKeyRingNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("keyRings");
+        return list.get(index + 1);
+    }
+
+    public static String getKmsKeyNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("cryptoKeys");
+        return list.get(index + 1);
+    }
+
+    public static String getKmsKeyRingIdFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int indexStart = list.indexOf("projects");
+        int indexEnd = list.indexOf("keyRings") + 1;
+        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd + 1));
+    }
+
+    public static String getKmsKeyIdFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int indexStart = list.indexOf("projects");
+        int indexEnd = list.indexOf("cryptoKeys") + 1;
+        return String.join("/", Arrays.copyOfRange(id.split("/"), indexStart, indexEnd + 1));
+    }
+
+    public static String getKmsPrimaryKeyVersionFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("cryptoKeyVersions");
+        return list.get(index + 1);
+    }
 }

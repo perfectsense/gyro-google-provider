@@ -1,0 +1,21 @@
+google::key-ring example-key-ring
+    location: "global"
+    name: "example-key-ring"
+end
+
+google::crypto-key crypto-key-example
+    key-ring: $(google::key-ring example-key-ring)
+    name: "crypto-key-ring-example"
+    purpose: ENCRYPT_DECRYPT
+    rotation-period: 1
+    next-rotation-date: "03/21/2020"
+
+    crypto-key-version-template
+        algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+        protection-level: SOFTWARE
+    end
+end
+
+google::crypto-key-version version-example
+    crypto-key: $(google::crypto-key crypto-key-example)
+end

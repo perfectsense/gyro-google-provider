@@ -1,0 +1,38 @@
+google::bucket bucket-example-target-https-proxy
+    name: "bucket-example-target-https-proxy"
+    location: "US-CENTRAL1"
+end
+
+google::compute-backend-bucket backend-bucket-example-target-https-proxy
+    name: "backend-bucket-example-target-https-proxy"
+    description: "Global backend bucket."
+    bucket: $(google::bucket bucket-example-target-https-proxy)
+end
+
+google::compute-url-map url-map-example-target-https-proxy
+    name: "url-map-example-target-https-proxy"
+    description: "URL map description."
+    default-backend-bucket: $(google::compute-backend-bucket backend-bucket-example-target-https-proxy)
+end
+
+google::compute-ssl-policy ssl-policy-example-target-https-proxy
+    name: "ssl-policy-example-target-https-proxy"
+    profile: "MODERN"
+    min-tls-version: "TLS_1_0"
+end
+
+google::compute-ssl-certificate ssl-certificate-example-target-https-proxy
+    name: "ssl-certificate-example-target-https-proxy"
+    description: "SSL certificate description."
+    certificate-path: "../path/to/certificate-file.pem"
+    private-key-path: "../path/to/private-key-file.pem"
+end
+
+google::compute-target-https-proxy target-https-proxy-example
+    name: "target-https-proxy-example"
+    description: "Target https proxy description."
+    quic-override: "ENABLE"
+    url-map: $(google::compute-url-map url-map-example-target-https-proxy)
+    ssl-policy: $(google::compute-ssl-policy ssl-policy-example-target-https-proxy)
+    ssl-certificates: [ $(google::compute-ssl-certificate ssl-certificate-example-target-https-proxy) ]
+end

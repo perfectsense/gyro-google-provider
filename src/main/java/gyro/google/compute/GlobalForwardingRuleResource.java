@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
@@ -27,7 +29,7 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
-import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 
 /**
  * Creates a global forwarding rule.
@@ -51,12 +53,12 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
 
     // TODO: this can be any target resources.
     private TargetHttpProxyResource targetHttpProxy;
+    private TargetHttpsProxyResource targetHttpsProxy;
 
     /**
      * The target http proxy to receive the matched traffic.
      */
     @Updatable
-    @Required
     public TargetHttpProxyResource getTargetHttpProxy() {
         return targetHttpProxy;
     }
@@ -65,13 +67,33 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
         this.targetHttpProxy = targetHttpProxy;
     }
 
+    /**
+     * The target https proxy to receive the matched traffic.
+     */
+    @Updatable
+    public TargetHttpsProxyResource getTargetHttpsProxy() {
+        return targetHttpsProxy;
+    }
+
+    public void setTargetHttpsProxy(TargetHttpsProxyResource targetHttpsProxy) {
+        this.targetHttpsProxy = targetHttpsProxy;
+    }
+
     @Override
     public void copyFrom(ForwardingRule forwardingRule) {
         super.copyFrom(forwardingRule);
 
-        // Multiple type of targets needs to checked when multiple targets are defined.
+        String target = forwardingRule.getTarget();
 
-        setTargetHttpProxy(findById(TargetHttpProxyResource.class, forwardingRule.getTarget()));
+        setTargetHttpProxy(null);
+        if (TargetHttpProxyResource.isTargetHttpProxy(target)) {
+            setTargetHttpProxy(findById(TargetHttpProxyResource.class, target));
+        }
+
+        setTargetHttpsProxy(null);
+        if (TargetHttpsProxyResource.isTargetHttpsProxy(target)) {
+            setTargetHttpsProxy(findById(TargetHttpsProxyResource.class, target));
+        }
     }
 
     @Override
@@ -86,9 +108,7 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
         Compute client = createComputeClient();
 
         ForwardingRule forwardingRule = toForwardingRule();
-        if (getTargetHttpProxy() != null) {
-            forwardingRule.setTarget(getTargetHttpProxy().getSelfLink());
-        }
+        forwardingRule.setTarget(getTarget());
 
         Operation response = client.globalForwardingRules().insert(getProjectId(), forwardingRule).execute();
         waitForCompletion(client, response);
@@ -100,9 +120,9 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
-        if (changedFieldNames.contains("target-http-proxy")) {
+        if (changedFieldNames.contains("target-http-proxy") || changedFieldNames.contains("target-https-proxy")) {
             TargetReference targetReference = new TargetReference();
-            targetReference.setTarget(getTargetHttpProxy().getSelfLink());
+            targetReference.setTarget(getTarget());
             Operation response =
                 client.globalForwardingRules().setTarget(getProjectId(), getName(), targetReference).execute();
             waitForCompletion(client, response);
@@ -116,5 +136,30 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
         Compute client = createComputeClient();
         Operation response = client.globalForwardingRules().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, response);
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (getTargetHttpProxy() == null && getTargetHttpsProxy() == null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "Either 'target-http-proxy' or 'target-https-proxy' is required!"));
+        }
+        return errors;
+    }
+
+    private String getTarget() {
+        if (getTargetHttpProxy() != null) {
+            return getTargetHttpProxy().getSelfLink();
+        }
+
+        if (getTargetHttpsProxy() != null) {
+            return getTargetHttpsProxy().getSelfLink();
+        }
+
+        return "";
     }
 }
