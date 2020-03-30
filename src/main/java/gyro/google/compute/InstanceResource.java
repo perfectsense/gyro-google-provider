@@ -30,6 +30,7 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstancesSetLabelsRequest;
 import com.google.api.services.compute.model.Metadata;
+import com.google.api.services.compute.model.Tags;
 import gyro.core.GyroInstance;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -39,6 +40,7 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.CollectionMax;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -89,6 +91,8 @@ import gyro.google.Copyable;
  *          metadata: {
  *              test-key: "test-value"
  *          }
+ *
+ *          tags: ["test-tag"]
  *      end
  */
 @Type("compute-instance")
@@ -112,6 +116,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String publicIp;
     private String privateIp;
     private Map<String, String> metadata;
+    private List<String> tags;
 
     /**
      * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
@@ -349,6 +354,25 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         this.metadata = metadata;
     }
 
+    /**
+     * The set of tags for the instance. Each tag must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     * All tags for an instance must be unique. You can assign up to 64 different tags per instance.
+     */
+    @Updatable
+    @CollectionMax(64)
+    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
+    public List<String> getTags() {
+        if (tags == null) {
+            tags = new ArrayList<>();
+        }
+
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
@@ -375,7 +399,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
         content.setCanIpForward(getCanIpForward());
-
+        content.setTags(buildTags(null));
         content.setMetadata(buildMetadata(null));
 
         waitForCompletion(
@@ -424,7 +448,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         if (changedFieldNames.contains("metadata")) {
-
             waitForCompletion(
                 client,
                 client.instances()
@@ -436,6 +459,19 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                     )
                     .execute()
             );
+        }
+
+        if (changedFieldNames.contains("tags")) {
+            waitForCompletion(
+                client,
+                client.instances()
+                    .setTags(
+                        getProjectId(),
+                        getZone(),
+                        getName(),
+                        buildTags(getTagsFingerprint())
+                    )
+                    .execute());
         }
 
         refresh();
@@ -463,6 +499,11 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             setMetadata(model.getMetadata().getItems().stream()
                 .collect(Collectors.toMap(Metadata.Items::getKey, Metadata.Items::getValue))
             );
+        }
+
+        getTags().clear();
+        if (model.getTags() != null && model.getTags().getItems() != null) {
+            setTags(model.getTags().getItems());
         }
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
@@ -531,6 +572,26 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         metadata.setFingerprint(fingerprint);
 
         return metadata;
+    }
+
+    private String getTagsFingerprint() throws IOException {
+        Compute client = createComputeClient();
+        String fingerprint = null;
+
+        Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
+        if (instance.getTags() != null) {
+            fingerprint = instance.getTags().getFingerprint();
+        }
+
+        return fingerprint;
+    }
+
+    private Tags buildTags(String fingerprint) {
+        Tags tags = new Tags();
+        tags.setItems(getTags());
+        tags.setFingerprint(fingerprint);
+
+        return tags;
     }
 
     @Override
