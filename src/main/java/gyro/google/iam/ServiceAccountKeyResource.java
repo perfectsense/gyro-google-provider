@@ -16,9 +16,7 @@
 
 package gyro.google.iam;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.api.services.iam.v1.Iam;
 import com.google.api.services.iam.v1.model.CreateServiceAccountKeyRequest;
@@ -91,18 +89,18 @@ public class ServiceAccountKeyResource extends GoogleResource implements Copyabl
     protected boolean doRefresh() throws Exception {
         Iam client = createClient(Iam.class);
 
-        List<ServiceAccountKey> keys = client.projects()
+        ServiceAccountKey serviceAccountKey = client.projects()
             .serviceAccounts()
             .keys()
             .list(getServiceAccount().getId())
             .execute()
-            .getKeys().stream().filter(r -> r.getName().equals(getId())).collect(Collectors.toList());
+            .getKeys().stream().filter(r -> r.getName().equals(getId())).findFirst().orElse(null);
 
-        if (keys.isEmpty()) {
+        if (serviceAccountKey == null) {
             return false;
         }
 
-        copyFrom(keys.get(0));
+        copyFrom(serviceAccountKey);
 
         return true;
     }

@@ -17,9 +17,7 @@
 package gyro.google.iam;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.api.services.iam.v1.Iam;
 import com.google.api.services.iam.v1.model.CreateServiceAccountRequest;
@@ -158,21 +156,17 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     protected boolean doRefresh() throws Exception {
         Iam client = createClient(Iam.class);
 
-        List<ServiceAccount> serviceAccounts = client.projects()
+        ServiceAccount serviceAccount = client.projects()
             .serviceAccounts()
             .list("projects/" + getProjectId())
             .execute()
-            .getAccounts()
-            .stream()
-            .filter(r -> r.getName().equals(getId()))
-            .collect(
-                Collectors.toList());
+            .getAccounts().stream().filter(r -> r.getName().equals(getId())).findFirst().orElse(null);
 
-        if (serviceAccounts.isEmpty()) {
+        if (serviceAccount == null) {
             return false;
         }
 
-        copyFrom(serviceAccounts.get(0));
+        copyFrom(serviceAccount);
 
         return true;
     }
