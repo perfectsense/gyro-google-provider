@@ -17,7 +17,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    service-account-key: $(external-query google::service-account-key {service-account-id: "projects/aerobic-lock-236714/serviceAccounts/example-service-account@aerobic-lock-236714.iam.gserviceaccount.com"})
+ *    service-account-key: $(external-query google::service-account-key {service-account-id: "projects/[PROJECT_NAME]/serviceAccounts/[SERVICE_ACCOUNT_EMAIL]"})
  */
 @Type("service-account-key")
 public class ServiceAccountKeyFinder extends GoogleFinder<Iam, ServiceAccountKey, ServiceAccountKeyResource> {
