@@ -243,4 +243,11 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
                 .execute();
         }
     }
+
+    public com.google.api.services.compute.model.ServiceAccount toComputeServiceAccount() {
+        com.google.api.services.compute.model.ServiceAccount serviceAccount = new com.google.api.services.compute.model.ServiceAccount();
+        serviceAccount.setEmail(Utils.getServiceAccountEmailFromId(getId()));
+
+        return serviceAccount;
+    }
 }

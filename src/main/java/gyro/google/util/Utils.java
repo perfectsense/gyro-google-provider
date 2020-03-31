@@ -75,7 +75,13 @@ public final class Utils {
         int index = list.indexOf("serviceAccounts");
         return list.get(index + 1).split("@")[0];
     }
-  
+
+    public static String getServiceAccountEmailFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("serviceAccounts");
+        return list.get(index + 1);
+    }
+
     public static String getKmsLocationFromId(String id) {
         List<String> list = Arrays.asList(id.split("/"));
         int index = list.indexOf("locations");
