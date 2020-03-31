@@ -34,6 +34,8 @@ import com.google.api.services.compute.model.ServiceAccount;
 import com.google.api.services.compute.model.ShieldedInstanceConfig;
 import com.google.api.services.compute.model.Tags;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.CollectionMax;
+import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -65,7 +67,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
 
     private ComputeShieldedInstanceConfig shieldedInstanceConfig;
 
-    private ComputeTags tags;
+    private List<String> tags;
 
     /**
      * Enables instances created based on this template to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own.
@@ -255,14 +257,18 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     /**
      * Tags to apply to the instances that are created from this template.
      * The tags identify valid sources or targets for network firewalls.
-     *
-     * @subresource gyro.google.compute.ComputeTags
      */
-    public ComputeTags getTags() {
+    @CollectionMax(64)
+    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
+    public List<String> getTags() {
+        if (tags == null) {
+            tags = new ArrayList<>();
+        }
+
         return tags;
     }
 
-    public void setTags(ComputeTags tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 
@@ -388,15 +394,13 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         }
         setShieldedInstanceConfig(diffableShieldedInstanceConfig);
 
-        ComputeTags diffableTags = null;
         Tags tags = model.getTags();
 
-        if (tags != null) {
-            diffableTags = Optional.ofNullable(getTags())
-                .orElse(newSubresource(ComputeTags.class));
-            diffableTags.copyFrom(tags);
-        }
-        setTags(diffableTags);
+        List<String> copiedTags = tags != null
+            ? tags.getItems()
+            : new ArrayList<>();
+
+        setTags(copiedTags);
     }
 
     public InstanceProperties toInstanceProperties() {
@@ -476,11 +480,15 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
             instanceProperties.setShieldedInstanceConfig(shieldedInstanceConfig.toShieldedInstanceConfig());
         }
 
-        ComputeTags tags = getTags();
-
         if (tags != null) {
-            instanceProperties.setTags(tags.toTags());
+            instanceProperties.setTags(buildTags());
         }
         return instanceProperties;
+    }
+
+    private Tags buildTags() {
+        Tags tags = new Tags();
+        tags.setItems(getTags());
+        return tags;
     }
 }
