@@ -46,6 +46,8 @@ google::compute-instance gyro-dev-1
     metadata: {
         test-key: "test-value"
     }
+
+    tags: ["test-tag"]
 end
 
 google::compute-instance gyro-dev-2
@@ -75,6 +77,8 @@ google::compute-instance gyro-dev-2
     metadata: {
         test-key: "test-value"
     }
+
+    tags: ["test-tag"]
 end
 
 google::compute-instance-attached-disk gyro-disk-1
