@@ -16,13 +16,17 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
+import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
 import com.google.api.services.compute.model.InstanceGroupManagerVersion;
@@ -494,5 +498,19 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
             patch(instanceGroupManager);
         }
         refresh();
+    }
+
+    Instance getInstance(Compute client, String name, String zone) throws IOException {
+        Instance instance = null;
+
+        try {
+            instance = client.instances().get(getProjectId(), zone, name).execute();
+        } catch (GoogleJsonResponseException ex) {
+            if (ex.getDetails().getCode() != 404) {
+                throw ex;
+            }
+        }
+
+        return instance;
     }
 }
