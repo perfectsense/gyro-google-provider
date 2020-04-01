@@ -67,7 +67,7 @@ public final class Utils {
     }
 
     public static String getServiceAccountIdFromName(String name, String projectId) {
-        return "projects/" + projectId + "/serviceAccounts/" + name + "@" + projectId + ".iam.gserviceaccount.com";
+        return String.format("projects/%1$s/serviceAccounts/%2$s@%1$s.iam.gserviceaccount.com", projectId, name);
     }
 
     public static String getServiceAccountNameFromId(String id) {

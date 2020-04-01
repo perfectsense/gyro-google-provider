@@ -153,7 +153,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
 
         ServiceAccount serviceAccount = client.projects()
             .serviceAccounts()
-            .list("projects/" + getProjectId())
+            .list(String.format("projects/%s", getProjectId()))
             .execute()
             .getAccounts().stream().filter(r -> r.getName().equals(getId())).findFirst().orElse(null);
 
@@ -183,7 +183,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
 
         ServiceAccount response = client.projects()
             .serviceAccounts()
-            .create("projects/" + getProjectId(), request)
+            .create(String.format("projects/%s", getProjectId()), request)
             .execute();
 
         setId(response.getName());
