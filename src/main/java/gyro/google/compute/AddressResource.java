@@ -90,7 +90,7 @@ public class AddressResource extends AbstractAddressResource {
         Compute compute = createClient(Compute.class);
         Address address = copyTo()
             .setRegion(getRegion())
-            .setNetworkTier(getNetwork() != null ? getNetwork().getSelfLink() : null);
+            .setNetworkTier(getNetworkTier());
 
         // When Network/Subnetwork have just been created they may still be unavailable, so wait until ready.
         boolean success = Wait.atMost(30, TimeUnit.SECONDS)

@@ -49,7 +49,7 @@ import gyro.google.Copyable;
  *     google::compute-route route-example
  *         name: "route-example"
  *         description: "route-example-description"
- *         network: $(google::network network-example-route)
+ *         network: $(google::compute-network network-example-route)
  *         next-hop-ip: "10.0.0.5"
  *         dest-range: "0.0.0.0/0"
  *     end
@@ -109,6 +109,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     /**
      * The network to associate this route with. (Required)
      */
+    @Required
     public NetworkResource getNetwork() {
         return network;
     }
@@ -252,7 +253,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         copyFrom(route);
         if (route.getWarnings() != null && !route.getWarnings().isEmpty()) {
             GyroCore.ui().write(
-                "@|orange Route created with warnings:|@ %s\n",
+                "\n@|cyan Route created with warnings:|@ %s\n",
                 route.getWarnings().stream().map(Route.Warnings::getMessage).collect(Collectors.joining("\n")));
         }
     }

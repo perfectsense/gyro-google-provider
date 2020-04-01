@@ -1,21 +1,21 @@
-google::network network-example-route
+google::compute-network network-example-route
     name: "vpc-example-route"
     description: "vpc-example-desc-route"
     routing-mode: "REGIONAL"
 end
 
-google::subnet subnet-example-route
+google::compute-subnet subnet-example-route
     name: "subnet-example-route"
     description: "subnet-example-description-route"
     ip-cidr-range: "10.0.0.0/16"
-    network: $(google::network network-example-route)
+    network: $(google::compute-network network-example-route)
     region: "us-east1"
 end
 
 google::compute-route route-example
     name: "route-example"
     description: "route-example-description"
-    network: $(google::network network-example-route)
+    network: $(google::compute-network network-example-route)
     next-hop-ip: "10.0.0.5"
     dest-range: "0.0.0.0/0"
 end
