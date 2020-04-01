@@ -87,6 +87,12 @@ import gyro.google.Copyable;
  *                 on-host-maintenance: "MIGRATE"
  *                 preemptible: false
  *             end
+ *
+ *             metadata: {
+ *                 test-key: "test-value"
+ *             }
+ *
+ *             tags: ["test-tag"]
  *         end
  *     end
  */
