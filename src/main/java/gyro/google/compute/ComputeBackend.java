@@ -17,7 +17,6 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.model.Backend;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
@@ -29,7 +28,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     private String balancingMode;
     private Float capacityScaler;
     private String description;
-    private InstanceGroupResource group;
+    private String group;
     private Integer maxConnections;
     private Integer maxConnectionsPerEndpoint;
     private Integer maxConnectionsPerInstance;
@@ -77,14 +76,17 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     }
 
     /**
-     * The instance group that the backend would be supporting. (Required)
+     * The fully-qualified URL of an instance group or network endpoint group (NEG) resource.
+     * When ``load-balancing-scheme`` is set to either ``EXTERNAL``, ``INTERNAL_SELF_MANAGED``, or
+     * ``INTERNAL_MANAGED``, the group can be a instance group or a NEG. If set to ``INTERNAL``
+     * the group needs to be an instance group in the same region as the backend service.
      */
     @Required
-    public InstanceGroupResource getGroup() {
+    public String getGroup() {
         return group;
     }
 
-    public void setGroup(InstanceGroupResource group) {
+    public void setGroup(String group) {
         this.group = group;
     }
 
@@ -180,12 +182,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
         setCapacityScaler(model.getCapacityScaler());
         setDescription(model.getDescription());
         InstanceGroupResource instanceGroup = null;
-        String group = model.getGroup();
-
-        if (group != null) {
-            instanceGroup = findById(InstanceGroupResource.class, group);
-        }
-        setGroup(instanceGroup);
+        setGroup(model.getGroup());
         setMaxConnections(model.getMaxConnections());
         setMaxConnectionsPerEndpoint(model.getMaxConnectionsPerEndpoint());
         setMaxConnectionsPerInstance(model.getMaxConnectionsPerInstance());
@@ -197,19 +194,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
 
     @Override
     public String primaryKey() {
-        // When Region InstanceGroup and Network Endpoint Group are added, modify this.
-
-        String primaryKey = "";
-
-        if (getGroup() != null) {
-            if (!ObjectUtils.isBlank(getGroup().getSelfLink())) {
-                primaryKey = String.format("linked to %s", getGroup().getSelfLink());
-            } else {
-                primaryKey = getGroup().getName();
-            }
-        }
-
-        return primaryKey;
+        return String.format("linked to %s", getGroup());
     }
 
     public Backend toBackend() {
@@ -217,7 +202,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
         backend.setBalancingMode(getBalancingMode());
         backend.setCapacityScaler(getCapacityScaler());
         backend.setDescription(getDescription());
-        backend.setGroup(getGroup().getSelfLink());
+        backend.setGroup(getGroup());
         backend.setMaxConnections(getMaxConnections());
         backend.setMaxConnectionsPerEndpoint(getMaxConnectionsPerEndpoint());
         backend.setMaxConnectionsPerInstance(getMaxConnectionsPerInstance());
