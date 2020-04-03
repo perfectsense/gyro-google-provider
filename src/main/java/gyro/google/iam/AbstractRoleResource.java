@@ -42,7 +42,6 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
     /**
      * The role ID to use for this role. (Required)
      */
-    @Id
     public String getRoleId() {
         return roleId;
     }
@@ -107,6 +106,7 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
      * The name of the role.
      */
     @Output
+    @Id
     public String getName() {
         return this.name;
     }

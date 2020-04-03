@@ -82,6 +82,11 @@ public final class Utils {
         return list.get(index + 1);
     }
 
+    public static boolean isRoleIdForCustomRole(String roleId) {
+        return Arrays.asList(roleId.split("/")).size() > 2;
+
+    }
+
     public static String getKmsLocationFromId(String id) {
         List<String> list = Arrays.asList(id.split("/"));
         int index = list.indexOf("locations");
