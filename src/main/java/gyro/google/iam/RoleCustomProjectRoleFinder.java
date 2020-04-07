@@ -80,7 +80,7 @@ public class RoleCustomProjectRoleFinder extends GoogleFinder<Iam, Role, RoleCus
         if (filters.containsKey("name")) {
             roles.add(client.projects()
                 .roles()
-                .get("projects/" + getProjectId() + "/" + filters.get("name")).execute());;
+                .get("projects/" + getProjectId() + "/" + filters.get("name")).execute());
         }
 
         return roles;
