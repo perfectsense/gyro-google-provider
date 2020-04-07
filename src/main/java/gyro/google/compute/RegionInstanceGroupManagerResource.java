@@ -21,17 +21,25 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
+import com.google.api.services.compute.model.ManagedInstance;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.RegionInstanceGroupManagersListInstancesResponse;
 import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTargetPoolsRequest;
 import com.google.api.services.compute.model.RegionInstanceGroupManagersSetTemplateRequest;
+import gyro.core.GyroException;
+import gyro.core.GyroInstance;
+import gyro.core.GyroInstances;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Creates a region instance group manager.
@@ -51,7 +59,7 @@ import gyro.google.util.Utils;
  *     end
  */
 @Type("compute-region-instance-group-manager")
-public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupManagerResource {
+public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupManagerResource implements GyroInstances {
 
     private ComputeDistributionPolicy distributionPolicy;
 
@@ -165,5 +173,40 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
             .setTargetPools(getProjectId(), getRegion(), getName(), request)
             .execute();
         waitForCompletion(client, operation);
+    }
+
+    @Override
+    public List<GyroInstance> getInstances() {
+        List<GyroInstance> instances = new ArrayList<>();
+
+        Compute client = createComputeClient();
+
+        try {
+            RegionInstanceGroupManagersListInstancesResponse response = client.regionInstanceGroupManagers()
+                .listManagedInstances(getProjectId(), getRegion(), getName())
+                .execute();
+
+            List<String> instanceNameList = response.getManagedInstances().stream()
+                .filter(o -> o.getCurrentAction().equals("NONE"))
+                .map(ManagedInstance::getInstance)
+                .collect(Collectors.toList());
+
+            for (String instanceName : instanceNameList) {
+                String zone = StringUtils.substringBetween(instanceName, "/zones/", "/instances/");
+                Instance instance = getInstance(client, instanceName.substring(instanceName.lastIndexOf("/") + 1), zone);
+
+                if (instance != null) {
+                    InstanceResource resource = newSubresource(InstanceResource.class);
+                    resource.copyFrom(instance);
+                    instances.add(resource);
+                }
+            }
+        } catch (GoogleJsonResponseException je) {
+            throw new GyroException(formatGoogleExceptionMessage(je));
+        } catch (Exception ex) {
+            throw new GyroException(ex);
+        }
+
+        return instances;
     }
 }

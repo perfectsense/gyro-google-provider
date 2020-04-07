@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -164,7 +163,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
                 .collect(Collectors.toList());
 
             for (String instanceName : instanceNameList) {
-                Instance instance = getInstance(client, instanceName.substring(instanceName.lastIndexOf("/") + 1));
+                Instance instance = getInstance(client, instanceName.substring(instanceName.lastIndexOf("/") + 1), getZone());
 
                 if (instance != null) {
                     InstanceResource resource = newSubresource(InstanceResource.class);
@@ -179,19 +178,5 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
         }
 
         return instances;
-    }
-
-    private Instance getInstance(Compute client, String name) throws IOException {
-        Instance instance = null;
-
-        try {
-            instance = client.instances().get(getProjectId(), getZone(), name).execute();
-        } catch (GoogleJsonResponseException ex) {
-            if (ex.getDetails().getCode() != 404) {
-                throw ex;
-            }
-        }
-
-        return instance;
     }
 }
