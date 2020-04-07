@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.google.api.services.compute.model.ServiceAccount;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.iam.ServiceAccountResource;
 import gyro.google.util.Utils;
@@ -32,8 +33,9 @@ public class ComputeServiceAccount extends Diffable implements Copyable<ServiceA
     private List<String> scopes;
 
     /**
-     * The service account resource.
+     * The service account.
      */
+    @Required
     public ServiceAccountResource getServiceAccount() {
         return serviceAccount;
     }

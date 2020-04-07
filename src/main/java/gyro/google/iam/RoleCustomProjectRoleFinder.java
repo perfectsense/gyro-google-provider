@@ -34,7 +34,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    role-custom-project: $(external-query google::iam-role-custom-project { name: 'projects/[PROJECT_NAME]/roles/role.custom.example' })
+ *    role-custom-project: $(external-query google::iam-role-custom-project { name: 'roles/role.custom.example' })
  */
 @Type("iam-role-custom-project")
 public class RoleCustomProjectRoleFinder extends GoogleFinder<Iam, Role, RoleCustomProjectRoleResource> {
@@ -80,7 +80,7 @@ public class RoleCustomProjectRoleFinder extends GoogleFinder<Iam, Role, RoleCus
         if (filters.containsKey("name")) {
             roles.add(client.projects()
                 .roles()
-                .get(filters.get("name")).execute());
+                .get("projects/" + getProjectId() + "/" + filters.get("name")).execute());;
         }
 
         return roles;

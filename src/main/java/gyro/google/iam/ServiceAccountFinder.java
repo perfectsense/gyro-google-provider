@@ -42,6 +42,9 @@ public class ServiceAccountFinder extends GoogleFinder<Iam, ServiceAccount, Serv
     private String name;
     private String displayName;
 
+    /**
+     * The name of the service account.
+     */
     public String getName() {
         return name;
     }
@@ -50,6 +53,9 @@ public class ServiceAccountFinder extends GoogleFinder<Iam, ServiceAccount, Serv
         this.name = name;
     }
 
+    /**
+     * The display name of the service account.
+     */
     public String getDisplayName() {
         return displayName;
     }
