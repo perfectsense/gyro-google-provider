@@ -60,7 +60,7 @@ google::compute-backend-service backend-service-example
     description: 'backend-service-example-desc'
 
     backend
-        group: $(google::compute-instance-group instance-group-example-backend-service)
+        group: $(google::compute-instance-group instance-group-example-backend-service).self-link
         balancing-mode: "UTILIZATION"
     end
 
