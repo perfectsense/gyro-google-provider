@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.AcceleratorConfig;
@@ -34,7 +36,10 @@ import com.google.api.services.compute.model.ServiceAccount;
 import com.google.api.services.compute.model.ShieldedInstanceConfig;
 import com.google.api.services.compute.model.Tags;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.CollectionMax;
+import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class ComputeInstanceProperties extends Diffable implements Copyable<InstanceProperties> {
@@ -51,7 +56,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
 
     private String machineType;
 
-    private List<ProjectMetadataItemResource> metadata;
+    private Map<String, String> metadata;
 
     private String minCpuPlatform;
 
@@ -65,7 +70,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
 
     private ComputeShieldedInstanceConfig shieldedInstanceConfig;
 
-    private ComputeTags tags;
+    private List<String> tags;
 
     /**
      * Enables instances created based on this template to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own.
@@ -151,17 +156,17 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
 
     /**
      * The metadata key/value pairs to assign to instances that are created from this template.
-     *
-     * @resource gyro.google.compute.ProjectMetadataItemResource
+     * Keys may only contain alphanumeric characters, dashes, and underscores, and must be 1-128 characters in length.
+     * Values must be 0-262144 characters in length.
      */
-    public List<ProjectMetadataItemResource> getMetadata() {
+    public Map<String, String> getMetadata() {
         if (metadata == null) {
-            metadata = new ArrayList<>();
+            metadata = new HashMap<>();
         }
         return metadata;
     }
 
-    public void setMetadata(List<ProjectMetadataItemResource> metadata) {
+    public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
     }
 
@@ -255,14 +260,18 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     /**
      * Tags to apply to the instances that are created from this template.
      * The tags identify valid sources or targets for network firewalls.
-     *
-     * @subresource gyro.google.compute.ComputeTags
      */
-    public ComputeTags getTags() {
+    @CollectionMax(64)
+    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
+    public List<String> getTags() {
+        if (tags == null) {
+            tags = new ArrayList<>();
+        }
+
         return tags;
     }
 
-    public void setTags(ComputeTags tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 
@@ -307,25 +316,15 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         setLabels(model.getLabels());
         setMachineType(model.getMachineType());
 
-        List<ProjectMetadataItemResource> diffableMetadataItemResource = null;
         Metadata metadata = model.getMetadata();
 
-        if (metadata != null) {
-            List<Metadata.Items> items = metadata.getItems();
+        Map<String, String> copiedMetadata =
+            metadata != null && metadata.getItems() != null
+                ? metadata.getItems().stream().collect(Collectors.toMap(Metadata.Items::getKey, Metadata.Items::getValue))
+                : new HashMap<>();
 
-            if (items != null) {
-                diffableMetadataItemResource = items
-                    .stream()
-                    .map(networkInterface -> {
-                        ProjectMetadataItemResource diffableNetworkInterface = newSubresource(
-                            ProjectMetadataItemResource.class);
-                        diffableNetworkInterface.copyFrom(networkInterface);
-                        return diffableNetworkInterface;
-                    })
-                    .collect(Collectors.toList());
-            }
-        }
-        setMetadata(diffableMetadataItemResource);
+        setMetadata(copiedMetadata);
+
         setMinCpuPlatform(model.getMinCpuPlatform());
 
         List<InstanceNetworkInterface> diffableNetworkInterfaces = null;
@@ -388,15 +387,13 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         }
         setShieldedInstanceConfig(diffableShieldedInstanceConfig);
 
-        ComputeTags diffableTags = null;
         Tags tags = model.getTags();
 
-        if (tags != null) {
-            diffableTags = Optional.ofNullable(getTags())
-                .orElse(newSubresource(ComputeTags.class));
-            diffableTags.copyFrom(tags);
-        }
-        setTags(diffableTags);
+        List<String> copiedTags = tags != null
+            ? tags.getItems()
+            : new ArrayList<>();
+
+        setTags(copiedTags);
     }
 
     public InstanceProperties toInstanceProperties() {
@@ -423,21 +420,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         }
         instanceProperties.setLabels(getLabels());
         instanceProperties.setMachineType(getMachineType());
-
-        List<ProjectMetadataItemResource> projectMetadata = getMetadata();
-
-        if (!projectMetadata.isEmpty()) {
-            Metadata metadata = new Metadata();
-            metadata.setItems(projectMetadata
-                .stream()
-                .map(e -> {
-                    Metadata.Items items = new Metadata.Items();
-                    items.setKey(e.getKey());
-                    items.setValue(e.getValue());
-                    return items;
-                })
-                .collect(Collectors.toList()));
-        }
+        instanceProperties.setMetadata(buildMetadata());
         instanceProperties.setMinCpuPlatform(getMinCpuPlatform());
 
         List<InstanceNetworkInterface> networkInterface = getNetworkInterface();
@@ -476,11 +459,62 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
             instanceProperties.setShieldedInstanceConfig(shieldedInstanceConfig.toShieldedInstanceConfig());
         }
 
-        ComputeTags tags = getTags();
-
         if (tags != null) {
-            instanceProperties.setTags(tags.toTags());
+            instanceProperties.setTags(buildTags());
         }
         return instanceProperties;
+    }
+
+    private Tags buildTags() {
+        Tags tags = new Tags();
+        tags.setItems(getTags());
+        return tags;
+    }
+
+    private Metadata buildMetadata() {
+        Metadata metadata = new Metadata();
+        metadata.setItems(
+            getMetadata().entrySet().stream()
+                .map(e -> {
+                    Metadata.Items item = new Metadata.Items();
+                    item.setKey(e.getKey());
+                    item.setValue(e.getValue());
+                    return item;
+                })
+                .collect(Collectors.toList())
+        );
+
+        return metadata;
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        Pattern keyPattern = Pattern.compile("[a-zA-Z0-9-_]{1,128}");
+
+        if (!getMetadata().isEmpty() && configuredFields.contains("metadata")) {
+            for (String key : getMetadata().keySet()) {
+                if (!keyPattern.matcher(key).matches()) {
+                    errors.add(new ValidationError(
+                        this,
+                        "metadata",
+                        "Keys may only contain alphanumeric characters, dashes, and underscores, and must be within 1-128 characters in length."));
+                    break;
+                }
+            }
+
+            for (String value : getMetadata().values()) {
+                if (value.length() > 262144) {
+                    errors.add(new ValidationError(
+                        this,
+                        "metadata",
+                        "Values must be within 0-262144 characters in length."));
+                    break;
+                }
+            }
+        }
+
+        return errors;
     }
 }
