@@ -224,14 +224,14 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
             .create(String.format("projects/%s", getProjectId()), request)
             .execute();
 
-        setId(response.getName());
+        copyFrom(response, false);
         state.save();
 
         if (getEnableAccount() != null && getEnableAccount().equals(Boolean.FALSE)) {
             changeServiceAccountStatus(client);
         }
 
-        copyFrom(response, false);
+        state.save();
 
         if (!getPredefinedRoles().isEmpty() || !getCustomRoles().isEmpty()) {
             manageIamPolicies();
@@ -271,6 +271,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
         getCustomRoles().clear();
         getPredefinedRoles().clear();
 
+        // Revoke granted roles
         manageIamPolicies();
 
         client.projects()
@@ -341,16 +342,16 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
         newClient.projects().setIamPolicy(getProjectId(), setIamPolicyRequest).execute();
     }
 
-    private void copyFrom(ServiceAccount model, Boolean refreshRoles) throws IOException {
+    private void copyFrom(ServiceAccount model, Boolean refreshRolesAndStatus) throws IOException {
         setId(model.getName());
         setEmail(model.getEmail());
         setName(Utils.getServiceAccountNameFromId(model.getName()));
         setDescription(model.getDescription());
         setDisplayName(model.getDisplayName());
-        setEnableAccount((model.getDisabled() == null || model.getDisabled().equals(Boolean.FALSE))
-            ? Boolean.TRUE
-            : Boolean.FALSE);
-        if (refreshRoles) {
+        if (refreshRolesAndStatus) {
+            setEnableAccount((model.getDisabled() == null || model.getDisabled().equals(Boolean.FALSE))
+                ? Boolean.TRUE
+                : Boolean.FALSE);
             refreshRoles();
         }
     }
