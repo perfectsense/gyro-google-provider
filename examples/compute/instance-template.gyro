@@ -8,7 +8,8 @@ google::compute-instance-template instance-template-example
             boot: true
 
             initialize-params
-                disk-name: "instance-template-example-disk-1"
+                #disk-name: "instance-template-example-disk-1"
+                prim-key: "instance-template-example-disk-1"
                 source-image: "projects/debian-cloud/global/images/family/debian-9"
             end
         end
@@ -18,7 +19,8 @@ google::compute-instance-template instance-template-example
             boot: false
 
             initialize-params
-                disk-name: "instance-template-example-disk-2"
+                #disk-name: "instance-template-example-disk-2"
+                prim-key: "instance-template-example-disk-2"
                 source-image: "projects/debian-cloud/global/images/family/debian-9"
             end
         end

@@ -39,6 +39,15 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     private EncryptionKey sourceImageEncryptionKey;
     private EncryptionKey sourceSnapshotEncryptionKey;
     private List<ResourcePolicyResource> resourcePolicy;
+    private String primKey;
+
+    public String getPrimKey() {
+        return primKey;
+    }
+
+    public void setPrimKey(String primKey) {
+        this.primKey = primKey;
+    }
 
     /**
      * The source image to create this disk in the form of a URL path. See `Images <https://cloud.google.com/compute/docs/images/>`_.
@@ -67,7 +76,7 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
     /**
      * The disk name. If the disk with the instance name exists already in the given zone/region a new name will be automatically generated.
      */
-    @Required
+    //@Required
     @Regex("(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)")
     public String getDiskName() {
         return diskName;
@@ -155,6 +164,9 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
 
     @Override
     public String primaryKey() {
+        if (getPrimKey() != null) {
+            return getPrimKey();
+        }
         return getDiskName();
     }
 
