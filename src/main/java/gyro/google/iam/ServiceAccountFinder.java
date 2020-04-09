@@ -66,7 +66,11 @@ public class ServiceAccountFinder extends GoogleFinder<Iam, ServiceAccount, Serv
 
     @Override
     protected List<ServiceAccount> findAllGoogle(Iam client) throws Exception {
-        return client.projects().serviceAccounts().list(String.format("projects/%s", getProjectId())).execute().getAccounts();
+        return client.projects()
+            .serviceAccounts()
+            .list(String.format("projects/%s", getProjectId()))
+            .execute()
+            .getAccounts();
     }
 
     @Override

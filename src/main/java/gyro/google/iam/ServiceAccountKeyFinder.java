@@ -37,6 +37,7 @@ import gyro.google.GoogleFinder;
  */
 @Type("service-account-key")
 public class ServiceAccountKeyFinder extends GoogleFinder<Iam, ServiceAccountKey, ServiceAccountKeyResource> {
+
     private String serviceAccountId;
 
     /**
@@ -60,7 +61,12 @@ public class ServiceAccountKeyFinder extends GoogleFinder<Iam, ServiceAccountKey
         List<ServiceAccountKey> keys = new ArrayList<>();
 
         if (filters.containsKey("service-account-id")) {
-            keys = client.projects().serviceAccounts().keys().list(filters.get("service-account-id")).execute().getKeys();
+            keys = client.projects()
+                .serviceAccounts()
+                .keys()
+                .list(filters.get("service-account-id"))
+                .execute()
+                .getKeys();
         }
 
         return keys;

@@ -123,7 +123,6 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
         this.enableAccount = enableAccount;
     }
 
-
     /**
      * A list of predefined roles to attach to the service account.
      */
