@@ -80,7 +80,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
      * When ``load-balancing-scheme`` is set to either ``EXTERNAL``, ``INTERNAL_SELF_MANAGED``, or
      * ``INTERNAL_MANAGED``, the group can be a instance group or a NEG. If set to ``INTERNAL``
      * the group needs to be an instance group in the same region as the backend service. When referencing
-     * instance group manager/ region intance group manager, use the attribute ``instance-group-link`` 
+     * instance group manager/ region intance group manager, use the attribute ``instance-group-link``
      * instead of ``self-link``.
      */
     @Required
