@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,6 +70,17 @@ public final class Utils {
 
     public static String getServiceAccountIdFromName(String name, String projectId) {
         return String.format("projects/%1$s/serviceAccounts/%2$s@%1$s.iam.gserviceaccount.com", projectId, name);
+    }
+
+    public static String getServiceAccountIdFromEmail(String email) {
+        Pattern pattern = Pattern.compile("(?<=@)[^.]+(?=\\.)");
+        Matcher m = pattern.matcher(email);
+
+        if (m.find()) {
+            return String.format("projects/%s/serviceAccounts/%s", m.group(0), email);
+        }
+
+        return email;
     }
 
     public static String getServiceAccountNameFromId(String id) {

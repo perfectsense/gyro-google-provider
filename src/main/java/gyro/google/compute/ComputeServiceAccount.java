@@ -60,7 +60,7 @@ public class ComputeServiceAccount extends Diffable implements Copyable<ServiceA
 
     @Override
     public void copyFrom(ServiceAccount model) {
-        setServiceAccount(findById(ServiceAccountResource.class, model.getEmail()));
+        setServiceAccount(findById(ServiceAccountResource.class, Utils.getServiceAccountIdFromEmail(model.getEmail())));
         setScopes(model.getScopes());
     }
 
