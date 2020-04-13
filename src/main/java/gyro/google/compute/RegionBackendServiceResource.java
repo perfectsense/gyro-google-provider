@@ -42,7 +42,7 @@ import gyro.core.validation.Required;
  *         description: 'regional-backend-service-example-desc'
  *
  *         backend
- *             group: $(google::compute-instance-group instance-group-example-regional-backend-service)
+ *             group: $(google::compute-instance-group instance-group-example-regional-backend-service).self-link
  *             balancing-mode: "UTILIZATION"
  *         end
  *

@@ -36,24 +36,24 @@ google::compute-instance-group instance-group-example-regional-backend-service
     end
 end
 
-    google::compute-region-backend-service regional-backend-service-example
-        name: 'regional-backend-service-example'
-        region: "us-central1"
-        description: 'regional-backend-service-example-desc'
+google::compute-region-backend-service regional-backend-service-example
+    name: 'regional-backend-service-example'
+    region: "us-central1"
+    description: 'regional-backend-service-example-desc'
 
-        backend
-            group: $(google::compute-instance-group instance-group-example-regional-backend-service)
-            balancing-mode: "UTILIZATION"
-        end
-
-        health-check: [ $(google::compute-health-check health-check-example-regional-backend-service) ]
-
-        connection-draining
-            draining-timeout-sec: 41
-        end
-
-        load-balancing-scheme: "INTERNAL"
-
-        protocol: "HTTPS"
-        session-affinity: "NONE"
+    backend
+        group: $(google::compute-instance-group instance-group-example-regional-backend-service).self-link
+        balancing-mode: "UTILIZATION"
     end
+
+    health-check: [ $(google::compute-health-check health-check-example-regional-backend-service) ]
+
+    connection-draining
+        draining-timeout-sec: 41
+    end
+
+    load-balancing-scheme: "INTERNAL"
+
+    protocol: "HTTPS"
+    session-affinity: "NONE"
+end

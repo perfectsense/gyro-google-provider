@@ -47,7 +47,7 @@ import gyro.core.validation.ValidationError;
  *         description: 'backend-service-example-desc'
  *
  *         backend
- *             group: $(google::compute-instance-group instance-group-example-backend-service)
+ *             group: $(google::compute-instance-group instance-group-example-backend-service).self-link
  *         end
  *
  *         health-check: [ $(google::compute-health-check health-check-example-backend-service) ]
