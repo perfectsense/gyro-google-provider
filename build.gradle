@@ -62,6 +62,7 @@ dependencies {
     implementation enforcedPlatform('com.google.cloud:libraries-bom:4.2.0')
     implementation 'com.google.auth:google-auth-library-oauth2-http:0.18.0'
     implementation 'com.google.apis:google-api-services-iam:v1-rev309-1.25.0'
+    implementation 'com.google.apis:google-api-services-cloudresourcemanager:v1-rev20200311-1.30.9'
     implementation 'com.google.cloud:google-cloud-compute'
     implementation 'com.google.cloud:google-cloud-dns'
     implementation 'com.google.cloud:google-cloud-storage'

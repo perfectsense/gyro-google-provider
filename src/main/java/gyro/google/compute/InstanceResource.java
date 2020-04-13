@@ -46,6 +46,7 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
+import gyro.google.iam.ServiceAccountResource;
 
 /**
  * Creates an instance.
@@ -115,6 +116,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String id;
     private String publicIp;
     private String privateIp;
+    private List<ServiceAccountResource> serviceAccounts;
     private Map<String, String> metadata;
     private List<String> tags;
 
@@ -337,6 +339,21 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
+     * The list of service accounts that are authorized for the instance.
+     */
+    public List<ServiceAccountResource> getServiceAccounts() {
+        if (serviceAccounts == null) {
+            serviceAccounts = new ArrayList<>();
+        }
+
+        return serviceAccounts;
+    }
+
+    public void setServiceAccounts(List<ServiceAccountResource> serviceAccounts) {
+        this.serviceAccounts = serviceAccounts;
+    }
+
+    /**
      * The metadata of the instance, specified with key/value pairs.
      * Keys may only contain alphanumeric characters, dashes, and underscores, and must be 1-128 characters in length.
      * Values must be 0-262144 characters in length.
@@ -399,6 +416,9 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
         content.setCanIpForward(getCanIpForward());
+        content.setServiceAccounts(getServiceAccounts().stream()
+            .map(ServiceAccountResource::toComputeServiceAccount)
+            .collect(Collectors.toList()));
         content.setTags(buildTags(null));
         content.setMetadata(buildMetadata(null));
 

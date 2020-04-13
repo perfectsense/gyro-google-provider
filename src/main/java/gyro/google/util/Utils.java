@@ -66,6 +66,27 @@ public final class Utils {
             .collect(Collectors.joining(" "));
     }
 
+    public static String getServiceAccountIdFromName(String name, String projectId) {
+        return String.format("projects/%1$s/serviceAccounts/%2$s@%1$s.iam.gserviceaccount.com", projectId, name);
+    }
+
+    public static String getServiceAccountNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("serviceAccounts");
+        return list.get(index + 1).split("@")[0];
+    }
+
+    public static String getServiceAccountEmailFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("serviceAccounts");
+        return list.get(index + 1);
+    }
+
+    public static boolean isRoleIdForCustomRole(String roleId) {
+        return Arrays.asList(roleId.split("/")).size() > 2;
+
+    }
+
     public static String getKmsLocationFromId(String id) {
         List<String> list = Arrays.asList(id.split("/"));
         int index = list.indexOf("locations");

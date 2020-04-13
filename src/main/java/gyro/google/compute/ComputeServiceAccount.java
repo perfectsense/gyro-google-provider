@@ -21,23 +21,27 @@ import java.util.List;
 
 import com.google.api.services.compute.model.ServiceAccount;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
+import gyro.google.iam.ServiceAccountResource;
+import gyro.google.util.Utils;
 
 public class ComputeServiceAccount extends Diffable implements Copyable<ServiceAccount> {
 
-    private String email;
+    private ServiceAccountResource serviceAccount;
 
     private List<String> scopes;
 
     /**
-     * Email address of the service account.
+     * The service account.
      */
-    public String getEmail() {
-        return email;
+    @Required
+    public ServiceAccountResource getServiceAccount() {
+        return serviceAccount;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setServiceAccount(ServiceAccountResource serviceAccount) {
+        this.serviceAccount = serviceAccount;
     }
 
     /**
@@ -56,20 +60,20 @@ public class ComputeServiceAccount extends Diffable implements Copyable<ServiceA
 
     @Override
     public void copyFrom(ServiceAccount model) {
-        setEmail(model.getEmail());
+        setServiceAccount(findById(ServiceAccountResource.class, model.getEmail()));
         setScopes(model.getScopes());
     }
 
     public ServiceAccount toServiceAccount() {
         ServiceAccount serviceAccount = new ServiceAccount();
-        serviceAccount.setEmail(getEmail());
+        serviceAccount.setEmail(Utils.getServiceAccountEmailFromId(getServiceAccount().getId()));
         serviceAccount.setScopes(getScopes());
         return serviceAccount;
     }
 
     @Override
     public String primaryKey() {
-        String email = getEmail();
+        String email = Utils.getServiceAccountEmailFromId(getServiceAccount().getId() == null ? getServiceAccount().getName() : getServiceAccount().getId());
 
         if (email != null) {
             return email;
