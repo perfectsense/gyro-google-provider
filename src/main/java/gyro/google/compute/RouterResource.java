@@ -48,22 +48,26 @@ import gyro.google.util.Utils;
  *
  * .. code-block:: gyro
  *
- *      google::router router-example-2
- *          name: "ex-2"
- *          description: "example"
+ *      google::router router-example
+ *          name: "router-example"
+ *          description: "example description"
  *          network: $(google::compute-network network-example-subnet)
+ *          region: "us-east1"
+ *
  *          router-bgp
  *              asn: 64512
  *              advertise-mode: "CUSTOM"
+ *
  *              advertised-groups: [
  *                  "ALL_SUBNETS"
  *              ]
+ *
  *              ip-range
  *                  range: "192.168.1.0/24"
  *                  description: "example ip range updated"
  *              end
  *          end
- *          region: "us-east1"
+ *
  *          router-bgp-peer
  *              name: "ex-2"
  *              interface-name: "if-ex-2"
@@ -72,24 +76,31 @@ import gyro.google.util.Utils;
  *              advertise-mode: "DEFAULT"
  *              advertised-route-priority: 1
  *          end
+ *
  *          router-interface
  *              name: "if-ex-2"
  *              ip-range: "169.254.0.1/30"
  *          end
+ *
  *          router-nat
  *              icmp-idle-timeout-sec: 35
+ *
  *              log-config
  *                  enable: true
  *                  filter: "ALL"
  *              end
+ *
  *              min-ports-per-vm: 32
  *              name: "nats-example"
  *              ip-allocation-option: "AUTO_ONLY"
+ *
  *              source-subnetwork-ip-ranges-to-nat: [
  *                  "LIST_OF_SUBNETWORKS"
  *              ]
+ *
  *              subnet
  *                  subnet: $(google::compute-subnet subnet-example)
+ *
  *                  source-ip-ranges-to-nat: [
  *                      "ALL_IP_RANGES"
  *                  ]
@@ -174,7 +185,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     }
 
     /**
-     * The list of Network Address Translation (NAT) gateways created in this router.
+     * The list of Network Address Translation (NAT) gateway configuration to be created in this router.
      *
      * @subresource gyro.google.compute.RouterBgp
      */

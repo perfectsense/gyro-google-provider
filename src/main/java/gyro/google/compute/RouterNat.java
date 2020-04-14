@@ -108,7 +108,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The list address resources used for this Nat service.
+     * The list address resources used for this NAT service.
      */
     @Updatable
     public List<AddressResource> getNatIp() {
@@ -123,7 +123,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The option for the type of subnet IP ranges. Valid values are ``ALL_SUBNETWORKS_ALL_IP_RANGES`` or ``ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES`` or ``LIST_OF_SUBNETWORKS`` or ``SUBNETWORK_IP_RANGE_TO_NAT_OPTION_UNSPECIFIED``.
+     * The option for the type of subnet IP ranges. Valid values are ``ALL_SUBNETWORKS_ALL_IP_RANGES``, ``ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES``, ``LIST_OF_SUBNETWORKS`` or ``SUBNETWORK_IP_RANGE_TO_NAT_OPTION_UNSPECIFIED``.
      */
     @ValidStrings({
         "ALL_SUBNETWORKS_ALL_IP_RANGES",

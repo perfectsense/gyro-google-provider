@@ -40,7 +40,7 @@ public class RouterNatLogConfig extends Diffable
     }
 
     /**
-     * The desired filtering of logs for NAT gateway. Valid values are ``ERRORS_ONLY`` or ``TRANSLATIONS_ONLY`` or ``ALL``.
+     * The desired filtering of logs for NAT gateway. Valid values are ``ERRORS_ONLY``, ``TRANSLATIONS_ONLY`` or ``ALL``.
      */
     @ValidStrings({ "ERRORS_ONLY", "TRANSLATIONS_ONLY", "ALL" })
     @Updatable

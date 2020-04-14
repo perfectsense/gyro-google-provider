@@ -48,7 +48,7 @@ public class RouterNatSubnetworkToNat extends Diffable
     }
 
     /**
-     * The options to select which IP ranges of the subnet are allowed to the NAT gateway. Defaults ``ALL_IP_RANGES``.
+     * The options to select which IP ranges of the subnet are allowed to the NAT gateway. Valid values are ``ALL_IP_RANGES``, ``PRIMARY_IP_RANGE``, ``LIST_OF_SECONDARY_IP_RANGES`` or ``NAT_IP_RANGE_OPTION_UNSPECIFIED``. Defaults to ``ALL_IP_RANGES``.
      */
     @ValidStrings({
         "ALL_IP_RANGES",

@@ -65,7 +65,7 @@ public class RouterBgp extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The list of prefix groups to advertise in ``CUSTOM`` mode. Valid values are ``ALL_SUBNETS`` or ``ALL_VPC_SUBNETS`` or ``ALL_PEER_VPC_SUBNETS``.
+     * The list of prefix groups when ``advertise-mode`` is set to ``CUSTOM``. Valid values are ``ALL_SUBNETS``, ``ALL_VPC_SUBNETS`` or ``ALL_PEER_VPC_SUBNETS``.
      */
     @ValidStrings({ "ALL_SUBNETS", "ALL_VPC_SUBNETS", "ALL_PEER_VPC_SUBNETS" })
     @Updatable
@@ -82,7 +82,7 @@ public class RouterBgp extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The list of individual IP ranges to advertise in ``CUSTOM`` mode.
+     * The list of individual IP ranges when ``advertise-mode`` is set to ``CUSTOM``.
      *
      * @subresource gyro.google.compute.RouterIpRange
      */
