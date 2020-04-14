@@ -146,6 +146,10 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
      */
     @Updatable
     public List<RouterNatSubnetworkToNat> getSubnet() {
+        if (subnet == null) {
+            subnet = new ArrayList<>();
+        }
+
         return subnet;
     }
 

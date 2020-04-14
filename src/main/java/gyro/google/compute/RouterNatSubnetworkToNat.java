@@ -92,8 +92,8 @@ public class RouterNatSubnetworkToNat extends Diffable
     @Override
     public void copyFrom(com.google.api.services.compute.model.RouterNatSubnetworkToNat model) {
         setSubnet(findById(SubnetworkResource.class, model.getName()));
-        setSourceIpRangesToNat(model.getSourceIpRangesToNat() == null ? new ArrayList<>() : model.getSourceIpRangesToNat());
-        setSecondaryIpRangeNames(model.getSecondaryIpRangeNames() == null ? new ArrayList<>() : model.getSecondaryIpRangeNames());
+        setSourceIpRangesToNat(model.getSourceIpRangesToNat());
+        setSecondaryIpRangeNames(model.getSecondaryIpRangeNames());
     }
 
     com.google.api.services.compute.model.RouterNatSubnetworkToNat toRouterNatSubnetworkToNat() {
