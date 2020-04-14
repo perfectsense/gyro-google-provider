@@ -99,18 +99,9 @@ public class RouterInterface extends Diffable
     com.google.api.services.compute.model.RouterInterface toRouterInterface() {
         com.google.api.services.compute.model.RouterInterface routerInterface = new com.google.api.services.compute.model.RouterInterface();
         routerInterface.setName(getName());
-
-        if (getIpRange() != null) {
-            routerInterface.setIpRange(getIpRange());
-        }
-
-        if (getLinkedInterconnectAttachment() != null) {
-            routerInterface.setLinkedInterconnectAttachment(getLinkedInterconnectAttachment());
-        }
-
-        if (getLinkedVpnTunnel() != null) {
-            routerInterface.setLinkedVpnTunnel(getLinkedVpnTunnel());
-        }
+        routerInterface.setIpRange(getIpRange());
+        routerInterface.setLinkedInterconnectAttachment(getLinkedInterconnectAttachment());
+        routerInterface.setLinkedVpnTunnel(getLinkedVpnTunnel());
 
         return routerInterface;
     }

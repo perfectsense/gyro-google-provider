@@ -183,7 +183,7 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
 
         if (model.getAdvertisedIpRanges() != null) {
             setIpRange(model.getAdvertisedIpRanges().stream().map(i -> {
-                RouterIpRange routerIpRange = new RouterIpRange();
+                RouterIpRange routerIpRange = newSubresource(RouterIpRange.class);
                 routerIpRange.copyFrom(i);
                 return routerIpRange;
             }).collect(Collectors.toList()));

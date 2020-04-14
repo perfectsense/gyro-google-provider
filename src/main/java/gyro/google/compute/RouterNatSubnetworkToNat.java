@@ -57,6 +57,10 @@ public class RouterNatSubnetworkToNat extends Diffable
         "NAT_IP_RANGE_OPTION_UNSPECIFIED" })
     @Updatable
     public List<String> getSourceIpRangesToNat() {
+        if (sourceIpRangesToNat == null) {
+            sourceIpRangesToNat = new ArrayList<>();
+        }
+
         return sourceIpRangesToNat;
     }
 
@@ -69,6 +73,10 @@ public class RouterNatSubnetworkToNat extends Diffable
      */
     @Updatable
     public List<String> getSecondaryIpRangeNames() {
+        if (secondaryIpRangeNames == null) {
+            secondaryIpRangeNames = new ArrayList<>();
+        }
+
         return secondaryIpRangeNames;
     }
 
@@ -84,19 +92,16 @@ public class RouterNatSubnetworkToNat extends Diffable
     @Override
     public void copyFrom(com.google.api.services.compute.model.RouterNatSubnetworkToNat model) {
         setSubnet(findById(SubnetworkResource.class, model.getName()));
-        setSourceIpRangesToNat(model.getSourceIpRangesToNat());
-        setSecondaryIpRangeNames(model.getSecondaryIpRangeNames());
+        setSourceIpRangesToNat(model.getSourceIpRangesToNat() == null ? new ArrayList<>() : model.getSourceIpRangesToNat());
+        setSecondaryIpRangeNames(model.getSecondaryIpRangeNames() == null ? new ArrayList<>() : model.getSecondaryIpRangeNames());
     }
 
     com.google.api.services.compute.model.RouterNatSubnetworkToNat toRouterNatSubnetworkToNat() {
         com.google.api.services.compute.model.RouterNatSubnetworkToNat routerNatSubnetworkToNat = new com.google.api.services.compute.model.RouterNatSubnetworkToNat();
         routerNatSubnetworkToNat.setName(subnet.getSelfLink());
+        routerNatSubnetworkToNat.setSecondaryIpRangeNames(getSecondaryIpRangeNames());
 
-        if (getSecondaryIpRangeNames() != null) {
-            routerNatSubnetworkToNat.setSecondaryIpRangeNames(getSecondaryIpRangeNames());
-        }
-
-        if (getSourceIpRangesToNat() != null) {
+        if (!getSourceIpRangesToNat().isEmpty()) {
             routerNatSubnetworkToNat.setSourceIpRangesToNat(getSourceIpRangesToNat());
         }
 

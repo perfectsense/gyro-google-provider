@@ -208,6 +208,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
         setTcpTransitoryIdleTimeoutSec(model.getTcpTransitoryIdleTimeoutSec());
         setUdpIdleTimeoutSec(model.getUdpIdleTimeoutSec());
 
+        getNatIp().clear();
         if (model.getNatIps() != null) {
             setNatIp(model.getNatIps()
                 .stream()
@@ -215,6 +216,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
                 .collect(Collectors.toList()));
         }
 
+        getSubnet().clear();
         if (model.getSubnetworks() != null) {
             setSubnet(model.getSubnetworks().stream().map(s -> {
                 RouterNatSubnetworkToNat routerNatSubnetworkToNat = newSubresource(RouterNatSubnetworkToNat.class);
