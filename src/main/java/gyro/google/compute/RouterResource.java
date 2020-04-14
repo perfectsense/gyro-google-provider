@@ -19,17 +19,13 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
 import com.google.api.services.compute.model.Router;
 import gyro.core.GyroUI;
 import gyro.core.Type;
-import gyro.core.Wait;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
@@ -332,6 +328,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
         }
 
         Operation operation = client.routers().insert(getProjectId(), getRegion(), router).execute();
+        waitForCompletion(client, operation);
 
         setSelfLink(operation.getTargetLink());
 
@@ -341,23 +338,8 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
             Router newRouter = new Router();
             newRouter.setNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
 
-            Wait.atMost(30, TimeUnit.SECONDS)
-                .checkEvery(5, TimeUnit.SECONDS)
-                .prompt(false)
-                .until(() -> {
-                    try {
-                        client.routers().patch(getProjectId(), getRegion(), getName(), newRouter).execute();
-                        return true;
-                    } catch (GoogleJsonResponseException e) {
-                        if (e.getDetails().getErrors().stream()
-                            .map(GoogleJsonError.ErrorInfo::getReason)
-                            .anyMatch("resourceNotReady"::equals)) {
-                            return false;
-                        }
-
-                        throw e;
-                    }
-                });
+            Operation operation1 = client.routers().patch(getProjectId(), getRegion(), getName(), newRouter).execute();
+            waitForCompletion(client, operation1);
         }
     }
 
@@ -394,14 +376,16 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 .collect(Collectors.toList()));
         }
 
-        client.routers().patch(getProjectId(), getRegion(), getName(), router).execute();
+        Operation operation = client.routers().patch(getProjectId(), getRegion(), getName(), router).execute();
+        waitForCompletion(client, operation);
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         Compute client = createComputeClient();
 
-        client.routers().delete(getProjectId(), getRegion(), getName()).execute();
+        Operation operation = client.routers().delete(getProjectId(), getRegion(), getName()).execute();
+        waitForCompletion(client, operation);
     }
 
     private Router getRouter(Compute client) throws java.io.IOException {
