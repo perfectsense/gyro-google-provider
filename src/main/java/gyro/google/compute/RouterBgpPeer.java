@@ -219,18 +219,11 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
                 "At least one of 'interface-name' or 'ip-address' or 'peer-ip-address' is required"));
         }
 
-        if (!getAdvertisedGroups().isEmpty() && getAdvertiseMode() != null && !getAdvertiseMode().equals("CUSTOM")) {
+        if (getAdvertiseMode() != null && !getAdvertiseMode().equals("CUSTOM") && (!getIpRange().isEmpty() || !getAdvertisedGroups().isEmpty())) {
             errors.add(new ValidationError(
                 this,
-                "advertised-groups",
-                "'advertised-groups' can only be set if 'advertise-mode' is 'CUSTOM'"));
-        }
-
-        if (!getIpRange().isEmpty() && getAdvertiseMode() != null && !getAdvertiseMode().equals("CUSTOM")) {
-            errors.add(new ValidationError(
-                this,
-                "ip-ranges",
-                "'ip-ranges' can only be set if 'advertise-mode' is 'CUSTOM'"));
+                null,
+                "'ip-ranges' and 'advertised-groups' can only be set if 'advertise-mode' is set to 'CUSTOM'"));
         }
 
         return errors;
