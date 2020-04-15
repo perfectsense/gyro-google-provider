@@ -46,7 +46,6 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
-import gyro.google.iam.ServiceAccountResource;
 
 /**
  * Creates an instance.
@@ -116,7 +115,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String id;
     private String publicIp;
     private String privateIp;
-    private List<ServiceAccountResource> serviceAccounts;
+    private List<ComputeServiceAccount> serviceAccounts;
     private Map<String, String> metadata;
     private List<String> tags;
 
@@ -341,7 +340,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     /**
      * The list of service accounts that are authorized for the instance.
      */
-    public List<ServiceAccountResource> getServiceAccounts() {
+    public List<ComputeServiceAccount> getServiceAccounts() {
         if (serviceAccounts == null) {
             serviceAccounts = new ArrayList<>();
         }
@@ -349,7 +348,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         return serviceAccounts;
     }
 
-    public void setServiceAccounts(List<ServiceAccountResource> serviceAccounts) {
+    public void setServiceAccounts(List<ComputeServiceAccount> serviceAccounts) {
         this.serviceAccounts = serviceAccounts;
     }
 
@@ -417,7 +416,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .collect(Collectors.toList()));
         content.setCanIpForward(getCanIpForward());
         content.setServiceAccounts(getServiceAccounts().stream()
-            .map(ServiceAccountResource::toComputeServiceAccount)
+            .map(ComputeServiceAccount::toServiceAccount)
             .collect(Collectors.toList()));
         content.setTags(buildTags(null));
         content.setMetadata(buildMetadata(null));
@@ -549,6 +548,17 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                     InstanceAttachedDisk instanceAttachedDisk = newSubresource(InstanceAttachedDisk.class);
                     instanceAttachedDisk.copyFrom(disk);
                     return instanceAttachedDisk;
+                })
+                .collect(Collectors.toList()));
+        }
+
+        getServiceAccounts().clear();
+        if (model.getServiceAccounts() != null) {
+            setServiceAccounts(model.getServiceAccounts().stream()
+                .map(sa -> {
+                    ComputeServiceAccount serviceAccount = newSubresource(ComputeServiceAccount.class);
+                    serviceAccount.copyFrom(sa);
+                    return serviceAccount;
                 })
                 .collect(Collectors.toList()));
         }
