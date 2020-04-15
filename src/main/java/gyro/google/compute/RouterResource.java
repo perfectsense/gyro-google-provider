@@ -338,8 +338,8 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
             Router newRouter = new Router();
             newRouter.setNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
 
-            Operation operation1 = client.routers().patch(getProjectId(), getRegion(), getName(), newRouter).execute();
-            waitForCompletion(client, operation1);
+            operation = client.routers().patch(getProjectId(), getRegion(), getName(), newRouter).execute();
+            waitForCompletion(client, operation);
         }
     }
 
