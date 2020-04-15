@@ -115,7 +115,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String id;
     private String publicIp;
     private String privateIp;
-    private List<ComputeServiceAccount> serviceAccounts;
+    private List<ComputeServiceAccount> serviceAccount;
     private Map<String, String> metadata;
     private List<String> tags;
 
@@ -340,16 +340,16 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     /**
      * The list of service accounts that are authorized for the instance.
      */
-    public List<ComputeServiceAccount> getServiceAccounts() {
-        if (serviceAccounts == null) {
-            serviceAccounts = new ArrayList<>();
+    public List<ComputeServiceAccount> getServiceAccount() {
+        if (serviceAccount == null) {
+            serviceAccount = new ArrayList<>();
         }
 
-        return serviceAccounts;
+        return serviceAccount;
     }
 
-    public void setServiceAccounts(List<ComputeServiceAccount> serviceAccounts) {
-        this.serviceAccounts = serviceAccounts;
+    public void setServiceAccount(List<ComputeServiceAccount> serviceAccount) {
+        this.serviceAccount = serviceAccount;
     }
 
     /**
@@ -415,7 +415,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
         content.setCanIpForward(getCanIpForward());
-        content.setServiceAccounts(getServiceAccounts().stream()
+        content.setServiceAccounts(getServiceAccount().stream()
             .map(ComputeServiceAccount::toServiceAccount)
             .collect(Collectors.toList()));
         content.setTags(buildTags(null));
@@ -552,9 +552,9 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                 .collect(Collectors.toList()));
         }
 
-        getServiceAccounts().clear();
+        getServiceAccount().clear();
         if (model.getServiceAccounts() != null) {
-            setServiceAccounts(model.getServiceAccounts().stream()
+            setServiceAccount(model.getServiceAccounts().stream()
                 .map(sa -> {
                     ComputeServiceAccount serviceAccount = newSubresource(ComputeServiceAccount.class);
                     serviceAccount.copyFrom(sa);
