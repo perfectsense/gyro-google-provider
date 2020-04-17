@@ -16,17 +16,25 @@
 
 package gyro.google.compute;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.BackendService;
+import com.google.api.services.compute.model.HealthStatus;
 import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.ResourceGroupReference;
 import com.google.api.services.compute.model.SecurityPolicyReference;
 import com.google.cloud.compute.v1.ProjectGlobalBackendServiceName;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -278,6 +286,37 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         }
 
         return errors;
+    }
+
+    public Map<String, Integer> instanceHealth() {
+        Map<String, Integer> healthMap = new HashMap<>();
+        int total = 0;
+
+        Compute client = createComputeClient();
+
+        for (ComputeBackend backend : getBackend()) {
+            ResourceGroupReference resourceGroupReference = new ResourceGroupReference();
+            resourceGroupReference.setGroup(backend.getGroup());
+            List<HealthStatus> healthStatuses;
+
+            try {
+                healthStatuses = Optional.ofNullable(client.backendServices()
+                    .getHealth(getProjectId(), getName(), resourceGroupReference)
+                    .execute()
+                    .getHealthStatus())
+                    .orElse(Collections.emptyList());
+            } catch (IOException ex) {
+                throw new GyroException("Failed getting backend statuses!", ex);
+            }
+
+            for (HealthStatus healthStatus : healthStatuses) {
+                int count = healthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                healthMap.put(healthStatus.getHealthState(), count + 1);
+            }
+        }
+
+        healthMap.put("Total", total);
+        return healthMap;
     }
 
     static boolean isBackendService(String selfLink) {
