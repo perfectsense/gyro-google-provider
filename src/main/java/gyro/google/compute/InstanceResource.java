@@ -46,7 +46,6 @@ import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
-import gyro.google.iam.ServiceAccountResource;
 
 /**
  * Creates an instance.
@@ -116,7 +115,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private String id;
     private String publicIp;
     private String privateIp;
-    private List<ServiceAccountResource> serviceAccounts;
+    private List<ComputeServiceAccount> serviceAccount;
     private Map<String, String> metadata;
     private List<String> tags;
 
@@ -341,16 +340,16 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     /**
      * The list of service accounts that are authorized for the instance.
      */
-    public List<ServiceAccountResource> getServiceAccounts() {
-        if (serviceAccounts == null) {
-            serviceAccounts = new ArrayList<>();
+    public List<ComputeServiceAccount> getServiceAccount() {
+        if (serviceAccount == null) {
+            serviceAccount = new ArrayList<>();
         }
 
-        return serviceAccounts;
+        return serviceAccount;
     }
 
-    public void setServiceAccounts(List<ServiceAccountResource> serviceAccounts) {
-        this.serviceAccounts = serviceAccounts;
+    public void setServiceAccount(List<ComputeServiceAccount> serviceAccount) {
+        this.serviceAccount = serviceAccount;
     }
 
     /**
@@ -416,8 +415,8 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             .map(InstanceAttachedDisk::copyTo)
             .collect(Collectors.toList()));
         content.setCanIpForward(getCanIpForward());
-        content.setServiceAccounts(getServiceAccounts().stream()
-            .map(ServiceAccountResource::toComputeServiceAccount)
+        content.setServiceAccounts(getServiceAccount().stream()
+            .map(ComputeServiceAccount::toServiceAccount)
             .collect(Collectors.toList()));
         content.setTags(buildTags(null));
         content.setMetadata(buildMetadata(null));
@@ -549,6 +548,17 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                     InstanceAttachedDisk instanceAttachedDisk = newSubresource(InstanceAttachedDisk.class);
                     instanceAttachedDisk.copyFrom(disk);
                     return instanceAttachedDisk;
+                })
+                .collect(Collectors.toList()));
+        }
+
+        getServiceAccount().clear();
+        if (model.getServiceAccounts() != null) {
+            setServiceAccount(model.getServiceAccounts().stream()
+                .map(sa -> {
+                    ComputeServiceAccount serviceAccount = newSubresource(ComputeServiceAccount.class);
+                    serviceAccount.copyFrom(sa);
+                    return serviceAccount;
                 })
                 .collect(Collectors.toList()));
         }
