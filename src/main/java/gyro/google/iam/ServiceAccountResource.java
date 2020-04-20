@@ -242,7 +242,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
             client.projects().serviceAccounts().update(getId(), serviceAccount).execute();
         }
 
-        if (changedFieldNames.contains("predefined-roles") || changedFieldNames.contains("custom-roles")) {
+        if (changedFieldNames.contains("service-account-role")) {
             manageIamPolicies();
         }
     }
@@ -278,9 +278,9 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     }
 
     private void manageIamPolicies() throws IOException {
-        CloudResourceManager newClient = createClient(CloudResourceManager.class);
+        CloudResourceManager client = createClient(CloudResourceManager.class);
 
-        Policy policy = newClient.projects().getIamPolicy(getProjectId(), new GetIamPolicyRequest()).execute();
+        Policy policy = client.projects().getIamPolicy(getProjectId(), new GetIamPolicyRequest()).execute();
         List<Binding> currentBindings = policy.getBindings();
         List<Binding> newBindings = new ArrayList<>();
         String member = String.format("serviceAccount:%s", getEmail());
@@ -299,6 +299,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
                     binding.setCondition(b.getCondition());
                     newBindings.add(binding);
                 }
+
             } else {
                 newBindings.add(b);
             }
@@ -321,7 +322,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
         SetIamPolicyRequest setIamPolicyRequest = new SetIamPolicyRequest();
         setIamPolicyRequest.setPolicy(policy);
 
-        newClient.projects().setIamPolicy(getProjectId(), setIamPolicyRequest).execute();
+        client.projects().setIamPolicy(getProjectId(), setIamPolicyRequest).execute();
     }
 
     private void copyFrom(ServiceAccount model, Boolean refreshRolesAndStatus) throws Exception {
@@ -340,33 +341,42 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     }
 
     private void refreshRoles() throws Exception {
-        CloudResourceManager newClient = createClient(CloudResourceManager.class);
-        Policy policy = newClient.projects().getIamPolicy(getProjectId(), new GetIamPolicyRequest()).execute();
+        CloudResourceManager client = createClient(CloudResourceManager.class);
+        Policy policy = client.projects().getIamPolicy(getProjectId(), new GetIamPolicyRequest()).execute();
+
+        List<ServiceAccountRole> tempRoles = new ArrayList<>(getServiceAccountRole());
 
         getServiceAccountRole().clear();
 
         String member = String.format("serviceAccount:%s", getEmail());
 
-        List<Binding> bindings = policy.getBindings()
+        List<String> roles = policy.getBindings()
             .stream()
             .filter(b -> b.getMembers().contains(member) && !b.getRole().equals("roles/owner"))
+            .map(Binding::getRole)
             .collect(Collectors.toList());
 
-        for (Binding b : bindings) {
-            ServiceAccountRole role = new ServiceAccountRole();
+        for (String r : roles) {
+            ServiceAccountRole role = newSubresource(ServiceAccountRole.class);
+            String roleId = Utils.removeConditionFromRoleId(r);
 
-            if (Utils.isRoleIdForCustomRole(b.getRole())) {
-                role.setCustomRole(findById(RoleCustomProjectRoleResource.class, role));
+            if (Utils.isRoleIdForCustomRole(roleId)) {
+                role.setCustomRole(findById(RoleCustomProjectRoleResource.class, roleId));
 
             } else {
-                role.setPredefinedRole(findById(RolePredefinedRoleResource.class, role));
+                role.setPredefinedRole(findById(RolePredefinedRoleResource.class, roleId));
             }
 
-            if (b.getCondition() != null) {
-                Expr expr = newSubresource(Expr.class);
-                expr.copyFrom(b.getCondition());
-                role.setCondition(expr);
+            ServiceAccountRole roleToAdd = tempRoles.stream()
+                .filter(s -> s.getRoleName().equals(roleId))
+                .findFirst()
+                .orElse(null);
+
+            if (roleToAdd != null && roleToAdd.getCondition() != null) {
+                role.setCondition(roleToAdd.getCondition());
             }
+
+            getServiceAccountRole().add(role);
         }
 
     }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidationError;
 
@@ -41,6 +42,7 @@ public class ServiceAccountRole extends Diffable {
     /**
      * The conditions upon which to attach the role to the service account.
      */
+    @Updatable
     public Expr getCondition() {
         return condition;
     }
@@ -55,8 +57,10 @@ public class ServiceAccountRole extends Diffable {
             return String.format(
                 "Role: %s",
                 getCustomRole().getRoleId() == null ? getCustomRole().getName() : getCustomRole().getRoleId());
+
         } else if (getPredefinedRole() != null) {
             return String.format("Role: %s", getPredefinedRole().getName());
+
         } else {
             return null;
         }
@@ -76,6 +80,7 @@ public class ServiceAccountRole extends Diffable {
     public String getRoleName() {
         if (getCustomRole() != null) {
             return getCustomRole().getName();
+
         } else {
             return getPredefinedRole().getName();
         }

@@ -137,4 +137,8 @@ public final class Utils {
         int index = list.indexOf("cryptoKeyVersions");
         return list.get(index + 1);
     }
+
+    public static String removeConditionFromRoleId(String id) {
+        return Arrays.asList(id.split("_withcond")).get(0);
+    }
 }
