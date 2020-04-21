@@ -350,15 +350,14 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
 
         String member = String.format("serviceAccount:%s", getEmail());
 
-        List<String> roles = policy.getBindings()
+        List<Binding> bindings = policy.getBindings()
             .stream()
             .filter(b -> b.getMembers().contains(member) && !b.getRole().equals("roles/owner"))
-            .map(Binding::getRole)
             .collect(Collectors.toList());
 
-        for (String r : roles) {
+        for (Binding b : bindings) {
             ServiceAccountRole role = newSubresource(ServiceAccountRole.class);
-            String roleId = Utils.removeConditionFromRoleId(r);
+            String roleId = Utils.removeConditionFromRoleId(b.getRole());
 
             if (Utils.isRoleIdForCustomRole(roleId)) {
                 role.setCustomRole(findById(RoleCustomProjectRoleResource.class, roleId));
@@ -367,13 +366,20 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
                 role.setPredefinedRole(findById(RolePredefinedRoleResource.class, roleId));
             }
 
-            ServiceAccountRole roleToAdd = tempRoles.stream()
-                .filter(s -> s.getRoleName().equals(roleId))
-                .findFirst()
-                .orElse(null);
+            if (b.getCondition() != null) {
+                Expr expr = newSubresource(Expr.class);
+                expr.copyFrom(b.getCondition());
+                role.setCondition(expr);
 
-            if (roleToAdd != null && roleToAdd.getCondition() != null) {
-                role.setCondition(roleToAdd.getCondition());
+            } else {
+                ServiceAccountRole roleToAdd = tempRoles.stream()
+                    .filter(s -> s.getRoleName().equals(roleId))
+                    .findFirst()
+                    .orElse(null);
+
+                if (roleToAdd != null && roleToAdd.getCondition() != null) {
+                    role.setCondition(roleToAdd.getCondition());
+                }
             }
 
             getServiceAccountRole().add(role);
