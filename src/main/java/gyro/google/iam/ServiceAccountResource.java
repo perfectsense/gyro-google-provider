@@ -370,7 +370,6 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
                 Expr expr = newSubresource(Expr.class);
                 expr.copyFrom(b.getCondition());
                 role.setCondition(expr);
-
             }
 
             getServiceAccountRole().add(role);
