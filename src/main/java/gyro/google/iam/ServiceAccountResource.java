@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.cloudresourcemanager.CloudResourceManager;
 import com.google.api.services.cloudresourcemanager.model.Binding;
 import com.google.api.services.cloudresourcemanager.model.GetIamPolicyRequest;
+import com.google.api.services.cloudresourcemanager.model.GetPolicyOptions;
 import com.google.api.services.cloudresourcemanager.model.Policy;
 import com.google.api.services.cloudresourcemanager.model.SetIamPolicyRequest;
 import com.google.api.services.iam.v1.Iam;
@@ -280,7 +281,8 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     private void manageIamPolicies() throws IOException {
         CloudResourceManager client = createClient(CloudResourceManager.class);
 
-        Policy policy = client.projects().getIamPolicy(getProjectId(), new GetIamPolicyRequest()).execute();
+        Policy policy = getPolicy(client);
+
         List<Binding> currentBindings = policy.getBindings();
         List<Binding> newBindings = new ArrayList<>();
         String member = String.format("serviceAccount:%s", getEmail());
@@ -342,9 +344,8 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
 
     private void refreshRoles() throws Exception {
         CloudResourceManager client = createClient(CloudResourceManager.class);
-        Policy policy = client.projects().getIamPolicy(getProjectId(), new GetIamPolicyRequest()).execute();
 
-        List<ServiceAccountRole> tempRoles = new ArrayList<>(getServiceAccountRole());
+        Policy policy = getPolicy(client);
 
         getServiceAccountRole().clear();
 
@@ -357,13 +358,12 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
 
         for (Binding b : bindings) {
             ServiceAccountRole role = newSubresource(ServiceAccountRole.class);
-            String roleId = Utils.removeConditionFromRoleId(b.getRole());
 
-            if (Utils.isRoleIdForCustomRole(roleId)) {
-                role.setCustomRole(findById(RoleCustomProjectRoleResource.class, roleId));
+            if (Utils.isRoleIdForCustomRole(b.getRole())) {
+                role.setCustomRole(findById(RoleCustomProjectRoleResource.class, b.getRole()));
 
             } else {
-                role.setPredefinedRole(findById(RolePredefinedRoleResource.class, roleId));
+                role.setPredefinedRole(findById(RolePredefinedRoleResource.class, b.getRole()));
             }
 
             if (b.getCondition() != null) {
@@ -371,15 +371,6 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
                 expr.copyFrom(b.getCondition());
                 role.setCondition(expr);
 
-            } else {
-                ServiceAccountRole roleToAdd = tempRoles.stream()
-                    .filter(s -> s.getRoleName().equals(roleId))
-                    .findFirst()
-                    .orElse(null);
-
-                if (roleToAdd != null && roleToAdd.getCondition() != null) {
-                    role.setCondition(roleToAdd.getCondition());
-                }
             }
 
             getServiceAccountRole().add(role);
@@ -392,5 +383,14 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
         serviceAccount.setEmail(Utils.getServiceAccountEmailFromId(getId()));
 
         return serviceAccount;
+    }
+
+    private Policy getPolicy(CloudResourceManager client) throws IOException {
+        GetIamPolicyRequest request = new GetIamPolicyRequest();
+        GetPolicyOptions policyOptions = new GetPolicyOptions();
+        policyOptions.setRequestedPolicyVersion(3);
+        request.setOptions(policyOptions);
+
+        return client.projects().getIamPolicy(getProjectId(), request).execute();
     }
 }
