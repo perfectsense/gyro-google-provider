@@ -1,6 +1,7 @@
 package gyro.google.iam;
 
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -26,6 +27,7 @@ public class Expr extends Diffable implements Copyable<com.google.api.services.c
     /**
      * The description of the expression.
      */
+    @Updatable
     public String getDescription() {
         return description;
     }
@@ -37,6 +39,7 @@ public class Expr extends Diffable implements Copyable<com.google.api.services.c
     /**
      * Textual representation of an expression in Common Expression Language syntax. See `Cloud IAM Conditions <https://cloud.google.com/iam/docs/conditions-overview/>`_.
      */
+    @Updatable
     public String getExpression() {
         return expression;
     }
@@ -48,6 +51,7 @@ public class Expr extends Diffable implements Copyable<com.google.api.services.c
     /**
      * The location of the expression for error reporting.
      */
+    @Updatable
     public String getLocation() {
         return location;
     }
