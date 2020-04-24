@@ -147,6 +147,7 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
             for (HealthStatus healthStatus : healthStatuses) {
                 int count = healthMap.getOrDefault(healthStatus.getHealthState(), 0);
                 healthMap.put(healthStatus.getHealthState(), count + 1);
+                total++;
             }
         }
 
