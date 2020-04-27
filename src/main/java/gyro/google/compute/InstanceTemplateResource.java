@@ -197,7 +197,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     @Override
     protected boolean doRefresh() throws Exception {
         Compute client = createComputeClient();
-        copyFrom(client.instanceTemplates().get(getProjectId(), getName()).execute());
+        copyFrom(client.instanceTemplates().get(getProjectId(), getName()).execute(), false);
         return true;
     }
 
@@ -243,17 +243,25 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
 
     @Override
     public void copyFrom(InstanceTemplate model) {
+        copyFrom(model, true);
+    }
+
+    public void copyFrom(InstanceTemplate model, boolean refreshProperties) {
         setDescription(model.getDescription());
         setName(model.getName());
-        ComputeInstanceProperties diffableProperties = null;
-        InstanceProperties properties = model.getProperties();
 
-        if (properties != null) {
-            diffableProperties = Optional.ofNullable(getProperties())
-                .orElse(newSubresource(ComputeInstanceProperties.class));
-            diffableProperties.copyFrom(properties);
+        if (refreshProperties) {
+            ComputeInstanceProperties diffableProperties = null;
+            InstanceProperties properties = model.getProperties();
+
+            if (properties != null) {
+                diffableProperties = Optional.ofNullable(getProperties())
+                    .orElse(newSubresource(ComputeInstanceProperties.class));
+                diffableProperties.copyFrom(properties);
+            }
+            setProperties(diffableProperties);
         }
-        setProperties(diffableProperties);
+
         setSelfLink(model.getSelfLink());
         String sourceInstance = model.getSourceInstance();
 
