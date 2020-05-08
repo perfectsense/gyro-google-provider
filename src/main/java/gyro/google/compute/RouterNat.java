@@ -201,9 +201,6 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     @Override
     public void copyFrom(com.google.api.services.compute.model.RouterNat model) throws Exception {
         setIcmpIdleTimeoutSec(model.getIcmpIdleTimeoutSec());
-        RouterNatLogConfig logConfig = newSubresource(RouterNatLogConfig.class);
-        logConfig.copyFrom(model.getLogConfig());
-        setLogConfig(logConfig);
         setMinPortsPerVm(model.getMinPortsPerVm());
         setName(model.getName());
         setIpAllocationOption(model.getNatIpAllocateOption());
@@ -211,6 +208,13 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
         setTcpEstablishedIdleTimeoutSec(model.getTcpEstablishedIdleTimeoutSec());
         setTcpTransitoryIdleTimeoutSec(model.getTcpTransitoryIdleTimeoutSec());
         setUdpIdleTimeoutSec(model.getUdpIdleTimeoutSec());
+
+        setLogConfig(null);
+        if (model.getLogConfig() != null) {
+            RouterNatLogConfig logConfig = newSubresource(RouterNatLogConfig.class);
+            logConfig.copyFrom(model.getLogConfig());
+            setLogConfig(logConfig);
+        }
 
         getNatIp().clear();
         if (model.getNatIps() != null) {
@@ -233,7 +237,6 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     com.google.api.services.compute.model.RouterNat toRouterNat() {
         com.google.api.services.compute.model.RouterNat routerNat = new com.google.api.services.compute.model.RouterNat();
         routerNat.setIcmpIdleTimeoutSec(getIcmpIdleTimeoutSec());
-        routerNat.setLogConfig(getLogConfig().toRouterNatLogConfig());
         routerNat.setMinPortsPerVm(getMinPortsPerVm());
         routerNat.setName(getName());
         routerNat.setNatIpAllocateOption(getIpAllocationOption());
@@ -247,6 +250,10 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
         routerNat.setTcpEstablishedIdleTimeoutSec(getTcpEstablishedIdleTimeoutSec());
         routerNat.setTcpTransitoryIdleTimeoutSec(getTcpTransitoryIdleTimeoutSec());
         routerNat.setUdpIdleTimeoutSec(getUdpIdleTimeoutSec());
+
+        if (getLogConfig() != null) {
+            routerNat.setLogConfig(getLogConfig().toRouterNatLogConfig());
+        }
 
         return routerNat;
     }
