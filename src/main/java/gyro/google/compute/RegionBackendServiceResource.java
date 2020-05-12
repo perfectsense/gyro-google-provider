@@ -51,7 +51,10 @@ import gyro.core.validation.Required;
  *         description: 'regional-backend-service-example-desc'
  *
  *         backend
- *             group: $(google::compute-instance-group instance-group-example-regional-backend-service).self-link
+ *             group
+ *                 instance-group: $(google::compute-instance-group instance-group-example-regional-backend-service)
+ *             end
+ *
  *             balancing-mode: "UTILIZATION"
  *         end
  *
@@ -131,7 +134,7 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
 
         for (ComputeBackend backend : getBackend()) {
             ResourceGroupReference resourceGroupReference = new ResourceGroupReference();
-            resourceGroupReference.setGroup(backend.getGroup());
+            resourceGroupReference.setGroup(backend.getGroup().referenceLink());
             List<HealthStatus> healthStatuses;
 
             try {
