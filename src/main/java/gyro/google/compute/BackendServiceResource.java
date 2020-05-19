@@ -278,7 +278,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     @Override
     public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
-        if (getEnableCdn() && getSecurityPolicy() != null) {
+        if (getEnableCdn() != null && getEnableCdn().equals(Boolean.TRUE) && getSecurityPolicy() != null) {
             errors.add(new ValidationError(
                 this,
                 "enable-cdn",
