@@ -6,11 +6,11 @@ google::compute-instance gyro-instance-group-instance-a
     zone: $zone
     machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
 
-    network-interfaces
+    network-interface
         network: $(external-query google::compute-network {name: "default"})
     end
 
-    initialize-disks
+    initialize-disk
         boot: true
         auto-delete: true
 
@@ -31,11 +31,11 @@ google::compute-instance gyro-instance-group-instance-b
     zone: $zone
     machine-type: "zones/$(zone)/machineTypes/n1-standard-1"
 
-    network-interfaces
+    network-interface
         network: $(external-query google::compute-network {name: "default"})
     end
 
-    initialize-disks
+    initialize-disk
         boot: true
         auto-delete: true
 
