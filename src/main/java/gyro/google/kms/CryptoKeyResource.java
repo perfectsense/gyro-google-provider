@@ -243,7 +243,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         }
 
         if (model.hasPrimary()) {
-            setPrimaryKeyVersionId(model.getPrimary().getName());
+            setPrimaryKeyVersionId(Utils.getKmsPrimaryKeyVersionFromId(model.getPrimary().getName()));
         }
 
         refreshVersions();
