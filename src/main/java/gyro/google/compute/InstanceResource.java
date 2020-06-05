@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstancesSetLabelsRequest;
+import com.google.api.services.compute.model.InstancesSetMachineTypeRequest;
 import com.google.api.services.compute.model.Metadata;
 import com.google.api.services.compute.model.Tags;
 import gyro.core.GyroInstance;
@@ -159,6 +160,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     /**
      * Full or partial URL of the machine type resource to use for this instance, in the format: zones/zone/machineTypes/machine-type. See `creating custom machine types <https://cloud.google.com/compute/docs/instances/creating-instance-with-custom-machine-type#specifications/>`_.
      */
+    @Updatable
     public String getMachineType() {
         return machineType;
     }
@@ -491,6 +493,20 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                         buildTags(getTagsFingerprint())
                     )
                     .execute());
+        }
+
+        if (changedFieldNames.contains("machine-type")) {
+            waitForCompletion(
+                client,
+                client.instances()
+                    .setMachineType(
+                        getProjectId(),
+                        getZone(),
+                        getName(),
+                        new InstancesSetMachineTypeRequest().setMachineType(getMachineType())
+                    )
+                    .execute()
+            );
         }
 
         refresh();
