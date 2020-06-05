@@ -201,9 +201,13 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     @Override
     public void copyFrom(com.google.api.services.compute.model.RouterNat model) throws Exception {
         setIcmpIdleTimeoutSec(model.getIcmpIdleTimeoutSec());
-        RouterNatLogConfig logConfig = newSubresource(RouterNatLogConfig.class);
-        logConfig.copyFrom(model.getLogConfig());
-        setLogConfig(logConfig);
+
+        if (model.getLogConfig() != null) {
+            RouterNatLogConfig logConfig = newSubresource(RouterNatLogConfig.class);
+            logConfig.copyFrom(model.getLogConfig());
+            setLogConfig(logConfig);
+        }
+
         setMinPortsPerVm(model.getMinPortsPerVm());
         setName(model.getName());
         setIpAllocationOption(model.getNatIpAllocateOption());
