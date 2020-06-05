@@ -66,7 +66,7 @@ public class ComputeBackendGroup extends Diffable implements Copyable<String> {
 
     @Override
     public String primaryKey() {
-        String groupLink;
+        String groupLink = "";
 
         if (getInstanceGroup() != null) {
             groupLink = ObjectUtils.isBlank(getInstanceGroup().getSelfLink())
@@ -76,7 +76,7 @@ public class ComputeBackendGroup extends Diffable implements Copyable<String> {
             groupLink = ObjectUtils.isBlank(getInstanceGroupManager().getSelfLink())
                 ? getInstanceGroupManager().getName()
                 : getInstanceGroupManager().getSelfLink();
-        } else {
+        } else if (getRegionInstanceGroupManager() != null) {
             groupLink = ObjectUtils.isBlank(getRegionInstanceGroupManager().getSelfLink())
                 ? getRegionInstanceGroupManager().getName()
                 : getRegionInstanceGroupManager().getSelfLink();
