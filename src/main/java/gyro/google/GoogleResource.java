@@ -57,7 +57,7 @@ public abstract class GoogleResource extends Resource {
                 throw new GyroException(formatGoogleExceptionMessage(je));
             }
         } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+            throw new GyroException(ex);
         }
     }
 
@@ -72,7 +72,7 @@ public abstract class GoogleResource extends Resource {
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(formatGoogleExceptionMessage(je));
         } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+            throw new GyroException(ex);
         }
     }
 
@@ -88,7 +88,7 @@ public abstract class GoogleResource extends Resource {
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(formatGoogleExceptionMessage(je));
         } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+            throw new GyroException(ex);
         }
     }
 
@@ -103,7 +103,7 @@ public abstract class GoogleResource extends Resource {
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(formatGoogleExceptionMessage(je));
         } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+            throw new GyroException(ex);
         }
     }
 
