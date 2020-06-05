@@ -123,16 +123,21 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
         waitForCompletion(client, response);
     }
 
-    public Map<String, Integer> instanceHealth() {
-        Map<String, Integer> healthMap = new HashMap<>();
-        int total = 0;
+    public Map<String, Map<String, Integer>> instanceHealth() {
+        Map<String, Map<String, Integer>> healthMap = new HashMap<>();
+        Map<String, Integer> allHealthMap = new HashMap<>();
+        healthMap.put("all", allHealthMap);
+        int allTotal = 0;
 
         Compute client = createComputeClient();
 
         for (ComputeBackend backend : getBackend()) {
+            int backendTotal = 0;
             ResourceGroupReference resourceGroupReference = new ResourceGroupReference();
             resourceGroupReference.setGroup(backend.getGroup());
             List<HealthStatus> healthStatuses;
+            Map<String, Integer> backendHealthMap = new HashMap<>();
+            healthMap.put(backend.getGroup(), backendHealthMap);
 
             try {
                 healthStatuses = Optional.ofNullable(client.regionBackendServices()
@@ -145,13 +150,19 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
             }
 
             for (HealthStatus healthStatus : healthStatuses) {
-                int count = healthMap.getOrDefault(healthStatus.getHealthState(), 0);
-                healthMap.put(healthStatus.getHealthState(), count + 1);
-                total++;
+                int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                backendHealthMap.put(healthStatus.getHealthState(), backendCount + 1);
+                backendTotal++;
+
+                int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                allHealthMap.put(healthStatus.getHealthState(), allCount + 1);
+                allTotal++;
             }
+
+            backendHealthMap.put("Total", backendTotal);
         }
 
-        healthMap.put("Total", total);
+        allHealthMap.put("Total", allTotal);
         return healthMap;
     }
 
