@@ -36,12 +36,12 @@ google::compute-instance gyro-network-endpoint-group-example-a
     zone: "us-east1-b"
     machine-type: "zones/us-east1-b/machineTypes/n1-standard-1"
 
-    network-interfaces
+    network-interface
         network: $(google::compute-network network-example-network-endpoint-group)
         subnetwork: $(google::compute-subnet subnet-example-network-endpoint-group)
     end
 
-    initialize-disks
+    initialize-disk
         boot: true
         auto-delete: true
 
