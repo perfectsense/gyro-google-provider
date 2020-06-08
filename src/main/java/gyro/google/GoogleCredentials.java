@@ -132,4 +132,9 @@ public class GoogleCredentials extends Credentials {
                 String.format("Unable to create %s client", clientClass.getSimpleName()));
         }
     }
+
+    @Override
+    public void refresh() {
+        getGoogleCredentials();
+    }
 }
