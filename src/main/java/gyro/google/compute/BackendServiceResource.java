@@ -304,7 +304,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
             resourceGroupReference.setGroup(backend.getGroup().referenceLink());
             List<HealthStatus> healthStatuses;
             Map<String, Integer> backendHealthMap = new HashMap<>();
-            healthMap.put(backend.getGroup(), backendHealthMap);
+            healthMap.put(backend.getGroup().primaryKey(), backendHealthMap);
 
             try {
                 healthStatuses = Optional.ofNullable(client.backendServices()
