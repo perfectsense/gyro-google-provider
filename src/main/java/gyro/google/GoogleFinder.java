@@ -44,7 +44,7 @@ public abstract class GoogleFinder<C, M, R extends GoogleResource> extends Finde
         } catch (GoogleJsonResponseException je) {
             throw new GyroException(GoogleResource.formatGoogleExceptionMessage(je));
         } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+            throw new GyroException(ex);
         }
     }
 
@@ -63,7 +63,7 @@ public abstract class GoogleFinder<C, M, R extends GoogleResource> extends Finde
                 throw new GyroException(GoogleResource.formatGoogleExceptionMessage(je));
             }
         } catch (Exception ex) {
-            throw new GyroException(ex.getMessage(), ex.getCause());
+            throw new GyroException(ex);
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class GoogleFinder<C, M, R extends GoogleResource> extends Finde
             } catch (GoogleJsonResponseException je) {
                 throw new GyroException(GoogleResource.formatGoogleExceptionMessage(je));
             } catch (Exception ex) {
-                throw new GyroException(ex.getMessage(), ex.getCause());
+                throw new GyroException(ex);
             }
         }
 
