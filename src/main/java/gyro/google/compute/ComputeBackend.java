@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Backend;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
@@ -28,7 +29,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     private String balancingMode;
     private Float capacityScaler;
     private String description;
-    private String group;
+    private ComputeBackendGroup group;
     private Integer maxConnections;
     private Integer maxConnectionsPerEndpoint;
     private Integer maxConnectionsPerInstance;
@@ -84,11 +85,11 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
      * instead of ``self-link``.
      */
     @Required
-    public String getGroup() {
+    public ComputeBackendGroup getGroup() {
         return group;
     }
 
-    public void setGroup(String group) {
+    public void setGroup(ComputeBackendGroup group) {
         this.group = group;
     }
 
@@ -183,8 +184,6 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
         setBalancingMode(model.getBalancingMode());
         setCapacityScaler(model.getCapacityScaler());
         setDescription(model.getDescription());
-        InstanceGroupResource instanceGroup = null;
-        setGroup(model.getGroup());
         setMaxConnections(model.getMaxConnections());
         setMaxConnectionsPerEndpoint(model.getMaxConnectionsPerEndpoint());
         setMaxConnectionsPerInstance(model.getMaxConnectionsPerInstance());
@@ -192,6 +191,10 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
         setMaxRatePerEndpoint(model.getMaxRatePerEndpoint());
         setMaxRatePerInstance(model.getMaxRatePerInstance());
         setMaxUtilization(model.getMaxUtilization());
+
+        ComputeBackendGroup backendGroup = newSubresource(ComputeBackendGroup.class);
+        backendGroup.copyFrom(model.getGroup());
+        setGroup(backendGroup);
     }
 
     @Override
@@ -204,7 +207,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
         backend.setBalancingMode(getBalancingMode());
         backend.setCapacityScaler(getCapacityScaler());
         backend.setDescription(getDescription());
-        backend.setGroup(getGroup());
+        backend.setGroup(getGroup().referenceLink());
         backend.setMaxConnections(getMaxConnections());
         backend.setMaxConnectionsPerEndpoint(getMaxConnectionsPerEndpoint());
         backend.setMaxConnectionsPerInstance(getMaxConnectionsPerInstance());
@@ -213,5 +216,17 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
         backend.setMaxRatePerInstance(getMaxRatePerInstance());
         backend.setMaxUtilization(getMaxUtilization());
         return backend;
+    }
+
+    Compute getClient() {
+        AbstractBackendServiceResource parent = (AbstractBackendServiceResource) parent();
+
+        return parent.createComputeClient();
+    }
+
+    String getProject() {
+        AbstractBackendServiceResource parent = (AbstractBackendServiceResource) parent();
+
+        return parent.getProject();
     }
 }

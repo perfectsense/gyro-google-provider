@@ -59,7 +59,7 @@ configurations {
 
 dependencies {
     api 'gyro:gyro-core:0.99.1-SNAPSHOT'
-    implementation enforcedPlatform('com.google.cloud:libraries-bom:4.2.0')
+    implementation enforcedPlatform('com.google.cloud:libraries-bom:5.3.0')
     implementation 'com.google.auth:google-auth-library-oauth2-http:0.18.0'
     implementation 'com.google.apis:google-api-services-iam:v1-rev309-1.25.0'
     implementation 'com.google.apis:google-api-services-cloudresourcemanager:v1-rev20200311-1.30.9'

@@ -405,4 +405,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
         return backendService;
     }
+
+    String getProject() {
+        return getProjectId();
+    }
 }
