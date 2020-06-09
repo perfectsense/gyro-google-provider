@@ -105,7 +105,7 @@ public class GoogleCredentials extends Credentials {
         throw new GyroException(String.format("No client found for class %s", clientClass.getSimpleName()));
     }
 
-    private com.google.auth.oauth2.GoogleCredentials getGoogleCredentials() {
+    public com.google.auth.oauth2.GoogleCredentials getGoogleCredentials() {
         try (GyroInputStream input = openInput(getCredentialFilePath())) {
             return com.google.auth.oauth2.GoogleCredentials.fromStream(input)
                 .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
@@ -131,5 +131,10 @@ public class GoogleCredentials extends Credentials {
             throw new GyroException(
                 String.format("Unable to create %s client", clientClass.getSimpleName()));
         }
+    }
+
+    @Override
+    public void refresh() {
+        getGoogleCredentials();
     }
 }
