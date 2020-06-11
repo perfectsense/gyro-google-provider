@@ -17,7 +17,7 @@ To learn more about Gyro see [getgyro.io](https://getgyro.io) and [gyro](https:/
 
 ### Google Account ###
 
-Before you can use Google provider, you will need an Google account. Please see [Sign Up for Google](https://cloud.google.com/gcp/) to create an Google Account.
+Before you can use the Google provider, you will need a Google account. Please see [Sign Up for Google](https://cloud.google.com/gcp/) to create an Google Account.
 
 Once your account is set up and ready to be used, you need to set up a [Google service account](https://cloud.google.com/docs/authentication/getting-started) and save the credentials of that account in a json file in the following format
 
@@ -63,6 +63,8 @@ See [Google authentication for Gyro](https://gyro.dev/providers/google/index.htm
 * [Compute](https://gyro.dev/providers/google/compute/index.html)
 * [DNS](https://gyro.dev/providers/google/dns/index.html)
 * [Storage](https://gyro.dev/providers/google/bucket/index.html)
+* [KMS](https://gyro.dev/providers/google/kms/index.html)
+* [IAM](https://gyro.dev/providers/google/iam/index.html)
 
 ## Developing the Google Provider
 

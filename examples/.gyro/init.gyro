@@ -1,9 +1,2 @@
 @highlander: true
 @repository: 'https://artifactory.psdops.com/public'
-@repository: 'https://artifactory.psdops.com/gyro-snapshots'
-@plugin: 'gyro:gyro-google-provider:0.99.1-SNAPSHOT'
-
-@credentials 'google::credentials'
-    credential-file-path: "\($(ENV).HOME)/.gyro/google-creds.json"
-    project-id: "\($(ENV).GOOGLE_PROJECT)"
-@end
