@@ -19,15 +19,17 @@ package gyro.google;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.storage.Storage;
+import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
-
 import com.psddev.dari.util.ObjectUtils;
-
 import gyro.core.FileBackend;
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.core.auth.CredentialsSettings;
@@ -69,7 +71,34 @@ public class GoogleStorageFileBackend extends FileBackend {
 
     @Override
     public Stream<String> list() throws Exception {
-        return null;
+        if (this.equals(GyroCore.getStateBackend(getName()))) {
+            List<StorageObject> storageObjects = new ArrayList<>();
+            Storage client = client();
+            String nextPageToken = null;
+            int count = 0;
+
+            do {
+                Objects objects = client.objects()
+                    .list(getBucket())
+                    .setPrefix(prefixed(""))
+                    .setPageToken(nextPageToken)
+                    .execute();
+
+                if (objects.getItems() != null) {
+                    storageObjects.addAll(objects.getItems());
+                }
+
+                nextPageToken = objects.getNextPageToken();
+                count++;
+            } while (nextPageToken != null || count < 10);
+
+            return storageObjects.stream()
+                .map(StorageObject::getName)
+                .filter(f -> f.endsWith(".gyro"))
+                .map(this::removePrefix);
+        }
+
+        return Stream.empty();
     }
 
     @Override
@@ -107,6 +136,14 @@ public class GoogleStorageFileBackend extends FileBackend {
 
     private String prefixed(String file) {
         return getPrefix() != null ? getPrefix() + '/' + file : file;
+    }
+
+    private String removePrefix(String file) {
+        if (getPrefix() != null && file.startsWith(getPrefix() + "/")) {
+            return file.substring(getPrefix().length() + 1);
+        }
+
+        return file;
     }
 
 }
