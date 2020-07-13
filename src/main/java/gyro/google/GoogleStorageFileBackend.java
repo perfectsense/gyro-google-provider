@@ -19,13 +19,12 @@ package gyro.google;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Spliterators;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.storage.Storage;
-import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.FileBackend;
@@ -72,27 +71,9 @@ public class GoogleStorageFileBackend extends FileBackend {
     @Override
     public Stream<String> list() throws Exception {
         if (this.equals(GyroCore.getStateBackend(getName()))) {
-            List<StorageObject> storageObjects = new ArrayList<>();
-            Storage client = client();
-            String nextPageToken = null;
-            int count = 0;
-
-            do {
-                Objects objects = client.objects()
-                    .list(getBucket())
-                    .setPrefix(prefixed(""))
-                    .setPageToken(nextPageToken)
-                    .execute();
-
-                if (objects.getItems() != null) {
-                    storageObjects.addAll(objects.getItems());
-                }
-
-                nextPageToken = objects.getNextPageToken();
-                count++;
-            } while (nextPageToken != null || count < 10);
-
-            return storageObjects.stream()
+            return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(new StorageObjectIterator(getBucket(), prefixed(""), client()), 0),
+                false)
                 .map(StorageObject::getName)
                 .filter(f -> f.endsWith(".gyro"))
                 .map(this::removePrefix);
@@ -109,6 +90,7 @@ public class GoogleStorageFileBackend extends FileBackend {
     @Override
     public OutputStream openOutput(String file) throws Exception {
         return new ByteArrayOutputStream() {
+
             public void close() {
                 try {
                     StorageObject upload = new StorageObject();
@@ -128,8 +110,8 @@ public class GoogleStorageFileBackend extends FileBackend {
 
     private Storage client() {
         GoogleCredentials credentials = (GoogleCredentials) getRootScope().getSettings(CredentialsSettings.class)
-                .getCredentialsByName()
-                .get("google::" + getCredentials());
+            .getCredentialsByName()
+            .get("google::" + getCredentials());
 
         return credentials.createClient(Storage.class);
     }
@@ -145,5 +127,4 @@ public class GoogleStorageFileBackend extends FileBackend {
 
         return file;
     }
-
 }
