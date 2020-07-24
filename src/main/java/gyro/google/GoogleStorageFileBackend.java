@@ -21,12 +21,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.stream.Stream;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.StorageObject;
-
 import com.psddev.dari.util.ObjectUtils;
-
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.Type;
@@ -94,7 +93,14 @@ public class GoogleStorageFileBackend extends FileBackend {
 
     @Override
     public void delete(String file) throws Exception {
-        client().objects().delete(getBucket(), prefixed(file)).execute();
+        // Delete if exists.
+        try {
+            client().objects().delete(getBucket(), prefixed(file)).execute();
+        } catch (GoogleJsonResponseException e) {
+            if (e.getStatusCode() != 404) {
+                throw e;
+            }
+        }
     }
 
     private Storage client() {
