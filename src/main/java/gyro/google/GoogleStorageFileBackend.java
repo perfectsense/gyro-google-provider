@@ -96,6 +96,16 @@ public class GoogleStorageFileBackend extends FileBackend {
         service().delete(getBucket(), prefixed(file));
     }
 
+    @Override
+    public boolean exists(String file) throws Exception {
+        return service().get(getBucket(), prefixed(file)) != null;
+    }
+
+    @Override
+    public void copy(String source, String destination) throws Exception {
+        service().copy(Storage.CopyRequest.of(getBucket(), prefixed(source), prefixed(destination))).getResult();
+    }
+
     private Storage service() {
         return Optional.ofNullable(getRootScope())
             .map(e -> e.getSettings(CredentialsSettings.class))
