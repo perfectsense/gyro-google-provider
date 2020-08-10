@@ -29,7 +29,6 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.FileBackend;
-import gyro.core.FileBackendAccess;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.Type;
@@ -88,10 +87,10 @@ public class GoogleStorageFileBackend extends FileBackend {
     }
 
     @Override
-    public OutputStream openOutput(String file, FileBackendAccess acl) throws Exception {
+    public OutputStream openOutput(String file) throws Exception {
         return Channels.newOutputStream(service().writer(
             BlobInfo.newBuilder(getBucket(), prefixed(file)).build(),
-            Storage.BlobWriteOption.predefinedAcl(predefinedAcl(acl))));
+            Storage.BlobWriteOption.predefinedAcl(Storage.PredefinedAcl.PRIVATE)));
     }
 
     @Override
@@ -105,13 +104,14 @@ public class GoogleStorageFileBackend extends FileBackend {
     }
 
     @Override
-    public void copy(String source, String destination, FileBackendAccess acl) throws Exception {
+    public void copy(String source, String destination) throws Exception {
         String bucket = getBucket();
         service().copy(Storage.CopyRequest.newBuilder()
             .setSource(bucket, prefixed(source))
             .setTarget(
                 BlobInfo.newBuilder(bucket, prefixed(destination)).build(),
-                Storage.BlobTargetOption.predefinedAcl(predefinedAcl(acl)))
+
+                Storage.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PRIVATE))
             .build()).getResult();
     }
 
@@ -139,14 +139,5 @@ public class GoogleStorageFileBackend extends FileBackend {
         }
 
         return file;
-    }
-
-    private Storage.PredefinedAcl predefinedAcl(FileBackendAccess acl) {
-        Storage.PredefinedAcl predefinedAcl = Storage.PredefinedAcl.PRIVATE;
-
-        if (acl == FileBackendAccess.PUBLIC) {
-            predefinedAcl = Storage.PredefinedAcl.PUBLIC_READ;
-        }
-        return predefinedAcl;
     }
 }
