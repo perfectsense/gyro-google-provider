@@ -16,17 +16,17 @@
 
 package gyro.google;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Spliterators;
+import java.nio.channels.Channels;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.http.ByteArrayContent;
-import com.google.api.services.storage.Storage;
-import com.google.api.services.storage.model.StorageObject;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
@@ -72,10 +72,8 @@ public class GoogleStorageFileBackend extends FileBackend {
     @Override
     public Stream<String> list() throws Exception {
         if (this.equals(GyroCore.getStateBackend(getName()))) {
-            return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(new StorageObjectIterator(getBucket(), prefixed(""), client()), 0),
-                false)
-                .map(StorageObject::getName)
+            return StreamSupport.stream(service().list(getBucket()).iterateAll().spliterator(), false)
+                .map(Blob::getName)
                 .filter(f -> f.endsWith(".gyro"))
                 .map(this::removePrefix);
         }
@@ -85,43 +83,50 @@ public class GoogleStorageFileBackend extends FileBackend {
 
     @Override
     public InputStream openInput(String file) throws Exception {
-        return client().objects().get(getBucket(), prefixed(file)).executeMediaAsInputStream();
+        return Channels.newInputStream(service().reader(getBucket(), prefixed(file)));
     }
 
     @Override
     public OutputStream openOutput(String file) throws Exception {
-        return new ByteArrayOutputStream() {
-
-            public void close() {
-                try {
-                    StorageObject upload = new StorageObject();
-                    upload.setName(prefixed(file));
-                    client().objects().insert(getBucket(), upload, new ByteArrayContent(null, toByteArray())).execute();
-                } catch (Exception e) {
-                    throw new GyroException(String.format("Could not upload file %s.", prefixed(file)));
-                }
-            }
-        };
+        return Channels.newOutputStream(service().writer(
+            BlobInfo.newBuilder(getBucket(), prefixed(file)).build(),
+            Storage.BlobWriteOption.predefinedAcl(Storage.PredefinedAcl.PRIVATE)));
     }
 
     @Override
     public void delete(String file) throws Exception {
-        // Delete if exists.
-        try {
-            client().objects().delete(getBucket(), prefixed(file)).execute();
-        } catch (GoogleJsonResponseException e) {
-            if (e.getStatusCode() != 404) {
-                throw e;
-            }
-        }
+        service().delete(getBucket(), prefixed(file));
     }
 
-    private Storage client() {
-        GoogleCredentials credentials = (GoogleCredentials) getRootScope().getSettings(CredentialsSettings.class)
-            .getCredentialsByName()
-            .get("google::" + getCredentials());
+    @Override
+    public boolean exists(String file) throws Exception {
+        return service().get(getBucket(), prefixed(file)) != null;
+    }
 
-        return credentials.createClient(Storage.class);
+    @Override
+    public void copy(String source, String destination) throws Exception {
+        String bucket = getBucket();
+        service().copy(Storage.CopyRequest.newBuilder()
+            .setSource(bucket, prefixed(source))
+            .setTarget(
+                BlobInfo.newBuilder(bucket, prefixed(destination)).build(),
+
+                Storage.BlobTargetOption.predefinedAcl(Storage.PredefinedAcl.PRIVATE))
+            .build()).getResult();
+    }
+
+    private Storage service() {
+        return Optional.ofNullable(getRootScope())
+            .map(e -> e.getSettings(CredentialsSettings.class))
+            .map(CredentialsSettings::getCredentialsByName)
+            .map(e -> e.get("google::" + getCredentials()))
+            .filter(GoogleCredentials.class::isInstance)
+            .map(GoogleCredentials.class::cast)
+            .map(e -> StorageOptions.newBuilder()
+                .setCredentials(e.getGoogleCredentials())
+                .build()
+                .getService())
+            .orElseThrow(() -> new GyroException("No storage service available!"));
     }
 
     private String prefixed(String file) {

@@ -58,16 +58,17 @@ configurations {
 }
 
 dependencies {
-    api 'gyro:gyro-core:0.99.1-SNAPSHOT'
-    implementation enforcedPlatform('com.google.cloud:libraries-bom:5.3.0')
-    implementation 'com.google.auth:google-auth-library-oauth2-http:0.18.0'
-    implementation 'com.google.apis:google-api-services-iam:v1-rev309-1.25.0'
-    implementation 'com.google.apis:google-api-services-cloudresourcemanager:v1-rev20200311-1.30.9'
+    api 'gyro:gyro-core:0.99.5' + (releaseBuild ? '' : '-SNAPSHOT')
+
+    implementation enforcedPlatform('com.google.cloud:libraries-bom:8.1.0')
+    // XXX: com.google.apis:google-api-services-iam:v1-rev316-1.25.0 uses older version of com.google.api-client:google-api-client
+    implementation 'com.google.api-client:google-api-client:1.30.9'
+    implementation 'com.google.apis:google-api-services-iam:v1-rev316-1.25.0'
     implementation 'com.google.cloud:google-cloud-compute'
     implementation 'com.google.cloud:google-cloud-dns'
-    implementation 'com.google.cloud:google-cloud-storage'
     implementation 'com.google.cloud:google-cloud-kms'
-    implementation 'com.google.guava:guava:23.0'
+    implementation 'com.google.cloud:google-cloud-resourcemanager'
+    implementation 'com.google.cloud:google-cloud-storage'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 
     gyroDoclet "gyro:gyro-doclet:0.99.0-SNAPSHOT"
