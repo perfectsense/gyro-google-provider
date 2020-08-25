@@ -51,6 +51,10 @@ repositories {
     maven {
         url 'https://artifactory.psdops.com/gyro-snapshots'
     }
+
+    maven {
+        url 'https://artifactory.psdops.com/gyro-releases'
+    }
 }
 
 configurations {
