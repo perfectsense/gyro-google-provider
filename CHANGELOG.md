@@ -1,4 +1,13 @@
-## 0.99.2 (Unreleased)
+## 0.99.2 (August 25th, 2020)
+
+ENHANCEMENTS:
+
+* [190](https://github.com/perfectsense/gyro-google-provider/issues/190): Allow GCP storage to work with remote state backends.
+
+MISC:
+
+* [193](https://github.com/perfectsense/gyro-google-provider/issues/193): Fix remote file backend to only delete a file if it exists.
+* [195](https://github.com/perfectsense/gyro-google-provider/issues/195): Add `exists(String file)` and `copy(String source, String dest)` methods to FileBackend.
 
 ## 0.99.1 (June 10th, 2020)
 
