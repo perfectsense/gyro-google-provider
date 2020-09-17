@@ -27,19 +27,16 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.Type;
-import gyro.core.auth.CredentialsSettings;
 
 @Type("storage")
 public class GoogleStorageFileBackend extends FileBackend {
 
     private String bucket;
     private String prefix;
-    private String credentials;
 
     public String getBucket() {
         return bucket;
@@ -55,18 +52,6 @@ public class GoogleStorageFileBackend extends FileBackend {
 
     public void setPrefix(String prefix) {
         this.prefix = prefix;
-    }
-
-    public void setCredentials(String credentials) {
-        this.credentials = credentials;
-    }
-
-    public String getCredentials() {
-        if (ObjectUtils.isBlank(credentials)) {
-            setCredentials("default");
-        }
-
-        return credentials;
     }
 
     @Override
@@ -116,10 +101,7 @@ public class GoogleStorageFileBackend extends FileBackend {
     }
 
     private Storage service() {
-        return Optional.ofNullable(getRootScope())
-            .map(e -> e.getSettings(CredentialsSettings.class))
-            .map(CredentialsSettings::getCredentialsByName)
-            .map(e -> e.get("google::" + getCredentials()))
+        return Optional.ofNullable(getCredentials("google"))
             .filter(GoogleCredentials.class::isInstance)
             .map(GoogleCredentials.class::cast)
             .map(e -> StorageOptions.newBuilder()
