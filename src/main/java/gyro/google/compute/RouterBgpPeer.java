@@ -93,6 +93,8 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
 
     /**
      * Peer BGP Autonomous System Number (ASN). Valid values belong in between ``64512`` to ``65534`` for a 16-bit ASN or between ``4200000000`` to ``4294967294`` for a 32-bit ASN. (Required)
+     *
+     * @no-doc Range, Ranges
      */
     @Required
     @Range(min = 64512, max = 65534)

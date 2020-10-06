@@ -57,9 +57,10 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     private BackendServiceCdnPolicy cdnPolicy;
 
     /**
-     * If set to 0, the cookie is non-persistent and lasts only until the end of the browser session (or equivalent). Valid values are ``0`` to ``86400``. Defaults to ``0``.
+     * If set to ``0``, the cookie is non-persistent and lasts only until the end of the browser session (or equivalent). Valid values are ``0`` to ``86400``. Defaults to ``0``.
      */
     @Updatable
+    @Range(min = 0, max = 86400)
     public Integer getAffinityCookieTtlSec() {
         return affinityCookieTtlSec;
     }
