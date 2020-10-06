@@ -71,6 +71,9 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
         this.ipAddress = ipAddress;
     }
 
+    /**
+     * The health status of the network endpoint.
+     */
     @Output
     public List<String> getHealthStatus() {
         if (healthStatus == null) {
