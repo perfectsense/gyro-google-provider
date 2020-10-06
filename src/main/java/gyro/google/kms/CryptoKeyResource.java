@@ -43,6 +43,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Min;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
@@ -140,6 +141,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
      * The immutable purpose of the key. (Required)
      */
     @Required
+    @ValidStrings({"ENCRYPT_DECRYPT", "ASYMMETRIC_SIGN", "ASYMMETRIC_DECRYPT"})
     public CryptoKeyPurpose getPurpose() {
         return purpose;
     }

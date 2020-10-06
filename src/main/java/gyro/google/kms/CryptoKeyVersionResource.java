@@ -31,6 +31,7 @@ import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 import gyro.google.util.Utils;
@@ -73,6 +74,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
      * The state of the crypto key version. Defaults to ``ENABLED``.
      */
     @Updatable
+    @ValidStrings({"ENABLED", "DISABLED"})
     public CryptoKeyVersionState getState() {
         if (state == null) {
             state = CryptoKeyVersionState.ENABLED;
