@@ -18,6 +18,7 @@ package gyro.google.compute;
 
 import com.google.api.services.compute.model.AccessConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class InstanceAccessConfig extends Diffable implements Copyable<AccessConfig> {
@@ -54,6 +55,7 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * Signifies the networking tier used for configuring this access configuration. Valid values are ``PREMIUM`` or ``STANDARD``. If specified without a valid external IP address, an ephemeral IP will be created with this networkTier. If a valid external IP address is specified, it must match that of the networkTier associated with the Address resource owning that IP.
      */
+    @ValidStrings({"PREMIUM", "STANDARD"})
     public String getNetworkTier() {
         return networkTier;
     }

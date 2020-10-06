@@ -22,6 +22,7 @@ import java.util.List;
 import com.google.api.services.compute.model.SchedulingNodeAffinity;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<SchedulingNodeAffinity> {
@@ -45,9 +46,9 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
     }
 
     /**
-     * Defines the operation of node selection. Valid operators are ``IN`` for affinity and ``NOT_IN`` for
-     * anti-affinity.
+     * Defines the operation of node selection. Valid operators are ``IN`` for affinity and ``NOT_IN`` for anti-affinity.
      */
+    @ValidStrings({"IN", "NOT_IN"})
     public String getOperator() {
         return operator;
     }
