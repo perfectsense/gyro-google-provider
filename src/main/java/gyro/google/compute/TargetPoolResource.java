@@ -95,7 +95,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     private String selfLink;
 
     /**
-     * The backup target pool handles traffic if the health of this target pool falls below the failover ratio. If set, ``failover-ratio`` must also be set.
+     * The backup target pool handles traffic if the health of this target pool falls below the failover ratio.
      */
     @DependsOn("failover-ratio")
     @Updatable
@@ -119,7 +119,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * The percentage of healthy instances below which a failover to the backup target pool is triggered. The value must be between 0 and 1. If set, ``backup-pool`` must also be set.
+     * The percentage of healthy instances below which a failover to the backup target pool is triggered. The value must be between 0 and 1.
      */
     @DependsOn("backup-pool")
     @Range(min = 0, max = 1)
