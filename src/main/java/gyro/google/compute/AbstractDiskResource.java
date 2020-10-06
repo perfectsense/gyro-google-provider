@@ -101,7 +101,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The source snapshot used to create the disk. Conflicts with ``source-image``.
+     * The source snapshot used to create the disk.
      */
     @ConflictsWith("source-image")
     public SnapshotResource getSourceSnapshot() {

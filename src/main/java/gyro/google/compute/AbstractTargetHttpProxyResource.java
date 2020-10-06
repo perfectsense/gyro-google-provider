@@ -64,7 +64,7 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
     }
 
     /**
-     * The URL map resource that defines the mapping from URL to a backend service or bucket. Conflicts with ``region-url-map``.
+     * The URL map resource that defines the mapping from URL to a backend service or bucket.
      */
     @Updatable
     @ConflictsWith("region-url-map")
@@ -77,7 +77,7 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
     }
 
     /**
-     * The region URL map resource that defines the mapping from URL to a backend service or bucket. Conflicts with ``url-map``.
+     * The region URL map resource that defines the mapping from URL to a backend service or bucket.
      */
     @Updatable
     @ConflictsWith("url-map")

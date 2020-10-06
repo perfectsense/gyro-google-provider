@@ -161,7 +161,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The parameters of the raw disk image. Conflicts with ``source-snapshot``, ``source-disk``, and ``source-image``.
+     * The parameters of the raw disk image.
      *
      * @subresource gyro.google.compute.ImageRawDisk
      */
@@ -203,7 +203,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The source disk used to create this image. Regional disks are not yet supported when creating images. Images can not be created from disks that are currently in use by an instance. Conflicts with ``raw-disk``, ``source-snapshot``, and ``source-image``.
+     * The source disk used to create this image. Regional disks are not yet supported when creating images. Images can not be created from disks that are currently in use by an instance.
      */
     @ConflictsWith({ "raw-disk", "source-snapshot", "source-image" })
     public DiskResource getSourceDisk() {
@@ -215,7 +215,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The encryption key of the source disk. This is required if the source disk is protected by a customer-supplied encryption key. Conflicts with ``source-snapshot-encryption-key`` and ``source-image-encryption-key``.
+     * The encryption key of the source disk. This is required if the source disk is protected by a customer-supplied encryption key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
@@ -229,7 +229,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The source image used to create this image. Conflicts with ``raw-disk``, ``source-disk``, and ``source-snapshot``.
+     * The source image used to create this image.
      */
     @ConflictsWith({ "raw-disk", "source-disk", "source-snapshot" })
     public ImageResource getSourceImage() {
@@ -241,7 +241,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The customer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. Conflicts with ``source-snapshot-encryption-key`` and ``source-disk-encryption-key``.
+     * The customer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */
@@ -255,7 +255,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The source snapshot used to create this image. Conflicts with ``raw-disk``, ``source-disk``, and ``source-image``.
+     * The source snapshot used to create this image.
      */
     @ConflictsWith({ "raw-disk", "source-disk", "source-image" })
     public SnapshotResource getSourceSnapshot() {
@@ -267,7 +267,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The customer-supplied encryption key of the source snapshot. Required if the source snapshot is protected by a customer-supplied encryption key. Conflicts with ``source-disk-encryption-key`` and ``source-image-encryption-key``.
+     * The customer-supplied encryption key of the source snapshot. Required if the source snapshot is protected by a customer-supplied encryption key.
      *
      * @subresource gyro.google.compute.EncryptionKey
      */

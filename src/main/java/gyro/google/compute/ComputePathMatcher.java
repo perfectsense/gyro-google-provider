@@ -64,7 +64,7 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     }
 
     /**
-     * The default backend bucket resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-service`` and ``default-region-backend-service``.
+     * The default backend bucket resource to which traffic is directed if none of the host rules match.
      */
     @ConflictsWith({ "default-backend-service", "default-region-backend-service" })
     public BackendBucketResource getDefaultBackendBucket() {
@@ -76,7 +76,7 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     }
 
     /**
-     * The default backend service resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-bucket`` and ``default-region-backend-service``.
+     * The default backend service resource to which traffic is directed if none of the host rules match.
      */
     @ConflictsWith({ "default-backend-bucket", "default-region-backend-service" })
     public BackendServiceResource getDefaultBackendService() {
@@ -88,7 +88,7 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     }
 
     /**
-     * The default region backend service resource to which traffic is directed if none of the host rules match. Conflicts with ``default-backend-bucket`` and ``default-backend-service``.
+     * The default region backend service resource to which traffic is directed if none of the host rules match.
      */
     @ConflictsWith({ "default-backend-bucket", "default-backend-service" })
     public RegionBackendServiceResource getDefaultRegionBackendService() {

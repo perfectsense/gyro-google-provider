@@ -107,7 +107,7 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     /**
-     * The source image used to create this disk. Conflicts with ``source-snapshot``.
+     * The source image used to create this disk.
      */
     @ConflictsWith("source-snapshot")
     public ImageResource getSourceImage() {

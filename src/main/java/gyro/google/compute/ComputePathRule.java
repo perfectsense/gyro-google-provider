@@ -35,7 +35,7 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     private List<String> paths;
 
     /**
-     * The backend bucket resource to which traffic is directed if this rule is matched. Conflicts with ``backend-service`` and ``region-backend-service``.
+     * The backend bucket resource to which traffic is directed if this rule is matched.
      */
     @ConflictsWith({ "backend-service", "region-backend-service" })
     public BackendBucketResource getBackendBucket() {
@@ -47,7 +47,7 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     }
 
     /**
-     * The backend service resource to which traffic is directed if this rule is matched. Conflicts with ``backend-bucket`` and ``region-backend-service``.
+     * The backend service resource to which traffic is directed if this rule is matched.
      */
     @ConflictsWith({ "backend-bucket", "region-backend-service" })
     public BackendServiceResource getBackendService() {
@@ -59,7 +59,7 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     }
 
     /**
-     * The region backend service resource to which traffic is directed if this rule is matched. Conflicts with ``backend-bucket`` and ``backend-service``.
+     * The region backend service resource to which traffic is directed if this rule is matched.
      */
     @ConflictsWith({ "backend-bucket", "backend-service" })
     public RegionBackendServiceResource getRegionBackendService() {

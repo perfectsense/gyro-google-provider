@@ -131,7 +131,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The source disk used to create this snapshot. Conflicts with ``region-source-disk``.
+     * The source disk used to create this snapshot.
      */
     @ConflictsWith("region-source-disk")
     public DiskResource getSourceDisk() {
@@ -143,7 +143,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The regional source disk used to create this snapshot. Conflicts with ``source-disk``.
+     * The regional source disk used to create this snapshot.
      */
     @ConflictsWith("source-disk")
     public RegionDiskResource getSourceRegionDisk() {
