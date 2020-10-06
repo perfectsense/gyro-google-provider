@@ -37,7 +37,7 @@ public class FirewallRule extends Diffable {
     private Set<String> ports;
 
     /**
-     * The protocol that is going to be matched for the incoming/outgoing requests. Valid values are ``tcp``, ``udp``, ``icmp``, ``esp``, ``ah``, ``ipip``, ``sctp``, an IP protocol number, or ``all``. (Required)
+     * The protocol that is going to be matched for the incoming/outgoing requests. Valid values are ``tcp``, ``udp``, ``icmp``, ``esp``, ``ah``, ``ipip``, ``sctp``, an IP protocol number, or ``all``.
      *
      * @no-doc ValidStrings
      */

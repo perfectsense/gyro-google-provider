@@ -119,7 +119,7 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
     }
 
     /**
-     * The name of the http health check. The name must be 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash. (Required)
+     * The name of the http health check. The name must be 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
      */
     @Required
     @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")

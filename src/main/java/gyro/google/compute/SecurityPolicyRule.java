@@ -51,7 +51,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The priority of the security policy rule. (Required)
+     * The priority of the security policy rule.
      */
     @Required
     public Integer getPriority() {
@@ -63,7 +63,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The action to take for this rule. Valid values are ``allow``, ``deny(403)``, ``deny(404)`` or ``deny(502)``. (Required)
+     * The action to take for this rule. Valid values are ``allow``, ``deny(403)``, ``deny(404)`` or ``deny(502)``.
      */
     @Updatable
     @Required
@@ -89,7 +89,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The match condition that incoming traffic is evaluated against for this rule. (Required)
+     * The match condition that incoming traffic is evaluated against for this rule.
      *
      * @subresource gyro.google.compute.SecurityPolicyRuleMatcher
      */

@@ -88,7 +88,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     private List<String> versions;
 
     /**
-     * The key ring that holds the crypto key. (Required)
+     * The key ring that holds the crypto key.
      */
     @Required
     public KeyRingResource getKeyRing() {
@@ -100,7 +100,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The name of the crypto key. Can be a string containing letters, numbers, underscores or hyphens. (Required)
+     * The name of the crypto key. Can be a string containing letters, numbers, underscores or hyphens.
      */
     @Required
     @Regex(value = "^(\\w|-)+$", message = "a string containing letters, numbers, underscores or hyphens")
@@ -138,7 +138,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The immutable purpose of the key. (Required)
+     * The immutable purpose of the key.
      */
     @Required
     @ValidStrings({"ENCRYPT_DECRYPT", "ASYMMETRIC_SIGN", "ASYMMETRIC_DECRYPT"})
@@ -151,7 +151,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The template describing settings for new crypto key versions. (Required)
+     * The template describing settings for new crypto key versions.
      *
      * @subresource gyro.google.kms.CryptoKeyVersionTemplate
      */

@@ -54,7 +54,7 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
     private TargetPoolResource targetPool;
 
     /**
-     * The region this forwarding rule should live in. (Required)
+     * The region this forwarding rule should live in.
      */
     @Required
     public String getRegion() {
@@ -66,7 +66,7 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
     }
 
     /**
-     * The target pool resource to receive the matched traffic. This target pool must live in the same region as the forwarding rule. (Required)
+     * The target pool resource to receive the matched traffic. This target pool must live in the same region as the forwarding rule.
      */
     @Required
     @Updatable

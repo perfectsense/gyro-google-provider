@@ -107,7 +107,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     private String labelFingerprint;
 
     /**
-     * The name of the snapshot. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
+     * The name of the snapshot. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``.
      */
     @Required
     @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")

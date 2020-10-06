@@ -82,7 +82,7 @@ public class DiskResource extends AbstractDiskResource {
     private EncryptionKey sourceImageEncryptionKey;
 
     /**
-     * The zone where the disk resides. (Required)
+     * The zone where the disk resides.
      */
     @Required
     public String getZone() {

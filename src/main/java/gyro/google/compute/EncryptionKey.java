@@ -17,7 +17,7 @@ public class EncryptionKey extends Diffable implements Copyable<CustomerEncrypti
     private String sha256;
 
     /**
-     * The 256-bit encryption key, encoded in RFC 4648 base64, that protects this resource. See `Encrypt disks with customer-supplied encryption keys <https://cloud.google.com/compute/docs/disks/customer-supplied-encryption>`_. (Required)
+     * The 256-bit encryption key, encoded in RFC 4648 base64, that protects this resource. See `Encrypt disks with customer-supplied encryption keys <https://cloud.google.com/compute/docs/disks/customer-supplied-encryption>`_.
      */
     @Required
     public String getRawKey() {

@@ -83,7 +83,7 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
     }
 
     /**
-     * List of region SSL certificates that are used to authenticate connections between users and the load balancer. Currently, you may specify up to 15 SSL certificates. (Required)
+     * List of region SSL certificates that are used to authenticate connections between users and the load balancer. Currently, you may specify up to 15 SSL certificates.
      */
     @Required
     @CollectionMax(15)

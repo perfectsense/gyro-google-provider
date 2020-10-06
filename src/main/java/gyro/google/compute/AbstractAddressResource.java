@@ -43,7 +43,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     private String selfLink;
 
     /**
-     * Name for the resource. See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements. (Required)
+     * Name for the resource. See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements.
      */
     @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
     @Required

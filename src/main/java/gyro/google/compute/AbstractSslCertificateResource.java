@@ -40,7 +40,7 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
     private String selfLink;
 
     /**
-     * The full path to the file containing the certificate(s) (in PEM format). The certificate chain must be no greater than 5 certs long. The chain must include at least one intermediate cert. (Required)
+     * The full path to the file containing the certificate(s) (in PEM format). The certificate chain must be no greater than 5 certs long. The chain must include at least one intermediate cert.
      */
     @Required
     public String getCertificatePath() {
@@ -63,7 +63,7 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
     }
 
     /**
-     * The name of the SSL certificate. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
+     * The name of the SSL certificate. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``.
      */
     @Required
     @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
@@ -76,7 +76,7 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
     }
 
     /**
-     * The full path to the file containing the private key (in PEM format). (Required)
+     * The full path to the file containing the private key (in PEM format).
      */
     @Required
     public String getPrivateKeyPath() {

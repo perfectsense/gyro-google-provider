@@ -72,7 +72,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     private String selfLink;
 
     /**
-     * The name of the route. (Required)
+     * The name of the route.
      */
     @Required
     public String getName() {
@@ -95,7 +95,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     }
 
     /**
-     * The destination range of outgoing packets that this route applies to. (Required)
+     * The destination range of outgoing packets that this route applies to.
      */
     @Required
     public String getDestRange() {
@@ -107,7 +107,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     }
 
     /**
-     * The network to associate this route with. (Required)
+     * The network to associate this route with.
      */
     @Required
     public NetworkResource getNetwork() {

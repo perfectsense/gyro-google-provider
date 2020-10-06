@@ -64,7 +64,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     private String selfLink;
 
     /**
-     * The name of the subnet. (Required)
+     * The name of the subnet.
      */
     @Required
     public String getName() {
@@ -87,7 +87,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * The IPv4 network range for the subnet, in CIDR notation. (Required)
+     * The IPv4 network range for the subnet, in CIDR notation.
      */
     @Required
     public String getIpCidrRange() {
@@ -99,7 +99,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * The network to create this subnet in. (Required)
+     * The network to create this subnet in.
      */
     @Required
     public NetworkResource getNetwork() {
@@ -111,7 +111,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * The region to create this subnet in. (Required)
+     * The region to create this subnet in.
      */
     @Required
     public String getRegion() {

@@ -64,7 +64,7 @@ public class AddressResource extends AbstractAddressResource {
     }
 
     /**
-     * The region where this address resides. (Required)
+     * The region where this address resides.
      */
     @Required
     public String getRegion() {

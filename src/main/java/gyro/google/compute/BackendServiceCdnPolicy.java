@@ -35,7 +35,7 @@ public class BackendServiceCdnPolicy extends Diffable
     private List<String> signedUrlKeyNames;
 
     /**
-     * Maximum number of seconds the response to a signed URL request will be considered fresh. (Required)
+     * Maximum number of seconds the response to a signed URL request will be considered fresh.
      */
     @Required
     @Updatable

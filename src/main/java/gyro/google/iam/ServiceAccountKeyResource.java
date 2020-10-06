@@ -53,7 +53,7 @@ public class ServiceAccountKeyResource extends GoogleResource implements Copyabl
     private String id;
 
     /**
-     * The service account for which a key should be a created. (Required)
+     * The service account for which a key should be a created.
      */
     @Required
     public ServiceAccountResource getServiceAccount() {

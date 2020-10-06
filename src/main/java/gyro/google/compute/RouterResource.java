@@ -120,7 +120,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     private String selfLink;
 
     /**
-     * The name of the router. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen. (Required)
+     * The name of the router. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.
      */
     @Required
     @Regex(value = "^[a-z]([-a-z0-9]*[a-z0-9])?$", message = "a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.")
@@ -145,7 +145,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     }
 
     /**
-     * The region where the router resides. (Required)
+     * The region where the router resides.
      */
     @Required
     public String getRegion() {
@@ -157,7 +157,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     }
 
     /**
-     * The network to which this router belongs. (Required)
+     * The network to which this router belongs.
      */
     @Required
     public NetworkResource getNetwork() {

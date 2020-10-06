@@ -93,7 +93,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     private String selfLink;
 
     /**
-     * The name of the firewall rule. Needs to follow Google firewall rule naming convention. Must be 1-63 characters long consisting only of dash, lowercase letter, or digit. First character needs to be a letter and the last character can either be a letter or a digit. (Required)
+     * The name of the firewall rule. Needs to follow Google firewall rule naming convention. Must be 1-63 characters long consisting only of dash, lowercase letter, or digit. First character needs to be a letter and the last character can either be a letter or a digit.
      */
     @Required
     @Id
@@ -106,7 +106,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * The network to create this firewall rule in. (Required)
+     * The network to create this firewall rule in.
      */
     @Required
     public NetworkResource getNetwork() {
@@ -130,7 +130,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * Allow or Deny requests that matches the rules. Valid values are ``ALLOW`` or ``DENY``. (Required)
+     * Allow or Deny requests that matches the rules. Valid values are ``ALLOW`` or ``DENY``.
      */
     @Required
     @ValidStrings({ "ALLOW", "DENY" })
@@ -198,7 +198,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * The direction specifies the type of requests this rule applies to. INGRESS for incoming and EGRESS for outgoing requests. Valid values are ``INGRESS`` or ``EGRESS``. (Required)
+     * The direction specifies the type of requests this rule applies to. INGRESS for incoming and EGRESS for outgoing requests. Valid values are ``INGRESS`` or ``EGRESS``.
      */
     @Required
     @ValidStrings({ "INGRESS", "EGRESS" })

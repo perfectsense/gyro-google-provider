@@ -59,7 +59,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
     private String id;
 
     /**
-     * The crypto key for which to create the new version. (Required)
+     * The crypto key for which to create the new version.
      */
     @Required
     public CryptoKeyResource getCryptoKey() {

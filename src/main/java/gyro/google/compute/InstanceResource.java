@@ -170,7 +170,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
-     * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported. (Required)
+     * List of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported.
      *
      * @subresource gyro.google.compute.InstanceNetworkInterface
      */

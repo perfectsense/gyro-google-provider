@@ -13,7 +13,7 @@ public class Expr extends Diffable implements Copyable<com.google.api.services.c
     private String location;
 
     /**
-     * The title of the expression. (Required)
+     * The title of the expression.
      */
     @Required
     public String getTitle() {

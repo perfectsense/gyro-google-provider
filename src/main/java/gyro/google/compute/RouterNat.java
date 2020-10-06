@@ -82,7 +82,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The name of the NAT gateway. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen. (Required)
+     * The name of the NAT gateway. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.
      */
     @Required
     @Regex(value = "^[a-z]([-a-z0-9]*[a-z0-9])?$", message = "a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.")

@@ -39,7 +39,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     private Float maxUtilization;
 
     /**
-     * The balancing mode for the backend. Valid values are ``RATE``, ``CONNECTION`` or ``UTILIZATION``. (Required)
+     * The balancing mode for the backend. Valid values are ``RATE``, ``CONNECTION`` or ``UTILIZATION``.
      */
     @Required
     @Updatable

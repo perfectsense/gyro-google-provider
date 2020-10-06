@@ -49,7 +49,7 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
     private String region;
 
     /**
-     * The region of the target http proxy. (Required)
+     * The region of the target http proxy.
      */
     @Required
     public String getRegion() {

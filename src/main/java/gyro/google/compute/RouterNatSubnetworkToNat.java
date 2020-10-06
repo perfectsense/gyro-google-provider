@@ -35,7 +35,7 @@ public class RouterNatSubnetworkToNat extends Diffable
     private List<String> secondaryIpRangeNames;
 
     /**
-     * The subnet that will use this NAT gateway. (Required)
+     * The subnet that will use this NAT gateway.
      */
     @Required
     @Updatable

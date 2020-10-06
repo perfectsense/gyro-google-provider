@@ -37,7 +37,7 @@ public class RouterBgp extends Diffable implements Copyable<com.google.api.servi
     private List<RouterIpRange> ipRange;
 
     /**
-     * Local BGP Autonomous System Number (ASN). Valid values belong in between ``64512`` to ``65534`` for a 16-bit ASN or between ``4200000000`` to ``4294967294`` for a 32-bit ASN. (Required)
+     * Local BGP Autonomous System Number (ASN). Valid values belong in between ``64512`` to ``65534`` for a 16-bit ASN or between ``4200000000`` to ``4294967294`` for a 32-bit ASN.
      *
      * @no-doc Range, Ranges
      */
