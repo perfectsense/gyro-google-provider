@@ -242,6 +242,8 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
 
     /**
      * The customer-supplied encryption key of the source image. Required if the source image is protected by a customer-supplied encryption key. Conflicts with ``source-snapshot-encryption-key`` and ``source-disk-encryption-key``.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     @ConflictsWith({ "source-snapshot-encryption-key", "source-disk-encryption-key" })
     public EncryptionKey getSourceImageEncryptionKey() {
@@ -266,6 +268,8 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
 
     /**
      * The customer-supplied encryption key of the source snapshot. Required if the source snapshot is protected by a customer-supplied encryption key. Conflicts with ``source-disk-encryption-key`` and ``source-image-encryption-key``.
+     *
+     * @subresource gyro.google.compute.EncryptionKey
      */
     @ConflictsWith({ "source-disk-encryption-key", "source-image-encryption-key" })
     public EncryptionKey getSourceSnapshotEncryptionKey() {

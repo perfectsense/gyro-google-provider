@@ -29,6 +29,8 @@ public class SnapshotSchedulePolicySchedule extends Diffable implements Copyable
 
     /**
      * Define a schedule that runs every nth day of the month.
+     *
+     * @subresource gyro.google.compute.DailyCycle
      */
     @ConflictsWith({ "hourly-schedule", "weekly-schedule" })
     public DailyCycle getDailySchedule() {
@@ -41,6 +43,8 @@ public class SnapshotSchedulePolicySchedule extends Diffable implements Copyable
 
     /**
      * Define a schedule that runs every nth hour.
+     *
+     * @subresource gyro.google.compute.HourlyCycle
      */
     @ConflictsWith({ "daily-schedule", "weekly-schedule" })
     public HourlyCycle getHourlySchedule() {
@@ -53,6 +57,8 @@ public class SnapshotSchedulePolicySchedule extends Diffable implements Copyable
 
     /**
      * Define a schedule that runs on specified days of the week.
+     *
+     * @subresource gyro.google.compute.WeeklyCycle
      */
     @ConflictsWith({ "daily-schedule", "hourly-schedule" })
     public WeeklyCycle getWeeklySchedule() {

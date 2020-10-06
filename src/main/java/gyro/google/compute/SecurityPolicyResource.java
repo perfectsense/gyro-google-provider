@@ -115,6 +115,8 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
     /**
      * The rule of the security policy.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRule
      */
     @Updatable
     public List<SecurityPolicyRule> getRule() {
@@ -141,6 +143,8 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
     /**
      * The default rule for this security policy.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRule
      */
     @Output
     public SecurityPolicyRule getDefaultRule() {

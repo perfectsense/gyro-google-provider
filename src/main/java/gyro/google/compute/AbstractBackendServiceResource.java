@@ -87,6 +87,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
     /**
      * Connection draining configuration for the backend service.
+     *
+     * @subresource gyro.google.compute.ComputeConnectionDraining
      */
     @Updatable
     public ComputeConnectionDraining getConnectionDraining() {
@@ -250,6 +252,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
     /**
      * CDN configuration for this backend service.
+     *
+     * @subresource gyro.google.compute.BackendServiceCdnPolicy
      */
     @Updatable
     public BackendServiceCdnPolicy getCdnPolicy() {

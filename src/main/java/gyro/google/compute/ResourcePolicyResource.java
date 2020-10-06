@@ -121,6 +121,8 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
 
     /**
      * Resource policy for persistent disks for creating snapshots.
+     *
+     * @subresource gyro.google.compute.SnapshotSchedulePolicy
      */
     @Required
     public SnapshotSchedulePolicy getSnapshotSchedulePolicy() {

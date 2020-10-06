@@ -170,6 +170,8 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
     /**
      * The Border Gateway Protocol (BGP) information specific to the router.
+     *
+     * @subresource gyro.google.compute.RouterBgp
      */
     @Updatable
     public RouterBgp getRouterBgp() {
@@ -183,7 +185,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     /**
      * The list of Network Address Translation (NAT) gateway configuration to be created in this router.
      *
-     * @subresource gyro.google.compute.RouterBgp
+     * @subresource gyro.google.compute.RouterNat
      */
     @Updatable
     public List<RouterNat> getRouterNat() {

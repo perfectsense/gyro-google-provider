@@ -147,6 +147,8 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
 
     /**
      * CDN configuration for this BackendBucket.
+     *
+     * @subresource gyro.google.compute.BackendBucketCdnPolicy
      */
     @Updatable
     public BackendBucketCdnPolicy getCdnPolicy() {

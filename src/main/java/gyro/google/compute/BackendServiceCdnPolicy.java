@@ -49,6 +49,8 @@ public class BackendServiceCdnPolicy extends Diffable
 
     /**
      * The cache key configuration for this backend service cdn configuration.
+     *
+     * @subresource gyro.google.compute.BackendServiceCdnCacheKeyPolicy
      */
     @Updatable
     public BackendServiceCdnCacheKeyPolicy getCacheKeyPolicy() {

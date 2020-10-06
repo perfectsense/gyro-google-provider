@@ -30,6 +30,8 @@ public class SecurityPolicyRuleMatcher extends Diffable
 
     /**
      * The configuration for the security policy rule matcher. (Required)
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRuleMatcherConfig
      */
     @Required
     @Updatable

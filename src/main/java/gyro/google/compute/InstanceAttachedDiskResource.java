@@ -72,6 +72,8 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
 
     /**
      * Configuration for attached disk. (Required)
+     *
+     * @subresource gyro.google.compute.InstanceAttachedDisk
      */
     @Required
     @Updatable

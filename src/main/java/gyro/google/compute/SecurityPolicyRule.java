@@ -90,6 +90,8 @@ public class SecurityPolicyRule extends ComputeResource
 
     /**
      * The match condition that incoming traffic is evaluated against for this rule. (Required)
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRuleMatcher
      */
     @Updatable
     @Required
