@@ -289,7 +289,6 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         return sourceTags;
     }
 
-    @Updatable
     public void setSourceTags(Set<String> sourceTags) {
         this.sourceTags = sourceTags;
     }
