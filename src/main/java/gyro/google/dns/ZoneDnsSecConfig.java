@@ -53,7 +53,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
     }
 
     /**
-     * Specifies the mechanism for authenticated denial-of-existence responses. Valid values are ``nsec`` or ``nsec3``.
+     * Specifies the mechanism for authenticated denial-of-existence responses.
      */
     @Updatable
     @ValidStrings({ "nsec", "nsec3" })
@@ -66,7 +66,7 @@ public class ZoneDnsSecConfig extends Diffable implements Copyable<ManagedZoneDn
     }
 
     /**
-     * Specifies whether DNSSEC is enabled, and what mode it is in. Valid values are ``on``, ``off`` or ``transfer``.
+     * Specifies whether DNSSEC is enabled, and what mode it is in.
      */
     @Updatable
     @ValidStrings({ "on", "off", "transfer" })

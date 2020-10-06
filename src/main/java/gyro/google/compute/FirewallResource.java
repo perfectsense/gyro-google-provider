@@ -130,7 +130,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * Allow or Deny requests that matches the rules. Valid values are ``ALLOW`` or ``DENY``.
+     * Allow or Deny requests that matches the rules.
      */
     @Required
     @ValidStrings({ "ALLOW", "DENY" })
@@ -198,7 +198,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * The direction specifies the type of requests this rule applies to. INGRESS for incoming and EGRESS for outgoing requests. Valid values are ``INGRESS`` or ``EGRESS``.
+     * The direction specifies the type of requests this rule applies to. INGRESS for incoming and EGRESS for outgoing requests.
      */
     @Required
     @ValidStrings({ "INGRESS", "EGRESS" })
@@ -228,7 +228,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * The priority of the firewall rule, when there are multiple that match a certain requests. Lower the number higher the priority. Defaults to ``1000``. Valid values are between ``0`` and ``65535``.
+     * The priority of the firewall rule, when there are multiple that match a certain requests. Lower the number higher the priority. Defaults to ``1000``.
      */
     @Updatable
     @Range(min = 0, max = 65535)

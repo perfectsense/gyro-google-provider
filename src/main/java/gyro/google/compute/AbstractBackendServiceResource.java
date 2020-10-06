@@ -57,7 +57,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     private BackendServiceCdnPolicy cdnPolicy;
 
     /**
-     * If set to ``0``, the cookie is non-persistent and lasts only until the end of the browser session (or equivalent). Valid values are ``0`` to ``86400``. Defaults to ``0``.
+     * If set to ``0``, the cookie is non-persistent and lasts only until the end of the browser session (or equivalent). Defaults to ``0``.
      */
     @Updatable
     @Range(min = 0, max = 86400)
@@ -156,6 +156,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
     /**
      * Indicates whether the backend service will be used with internal or external load balancing.Valid values are ``INTERNAL``, ``INTERNAL_MANAGED`, ``INTERNAL_SELF_MANAGED`` or ``EXTERNAL``. Defaults to ``EXTERNAL``.
+     *
+     * @no-docs ValidStrings
      */
     @ValidStrings({"INTERNAL", "INTERNAL_MANAGED", "INTERNAL_SELF_MANAGED", "EXTERNAL"})
     public String getLoadBalancingScheme() {
@@ -167,7 +169,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * The load balancing algorithm used within the scope of the locality. Valid values are ``ROUND_ROBIN``, ``LEAST_REQUEST``, ``RING_HASH``, ``RANDOM``, ``ORIGINAL_DESTINATION`` or ``MAGLEV``.
+     * The load balancing algorithm used within the scope of the locality.
      */
     @Updatable
     @ValidStrings({ "ROUND_ROBIN", "LEAST_REQUEST", "RING_HASH", "RANDOM", "ORIGINAL_DESTINATION", "MAGLEV" })
@@ -193,7 +195,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * The protocol this backend service uses to communicate. Valid values are ``HTTP``, ``HTTPS``, ``TCP``, ``SSL``, or ``UDP``. Default to ``HTTPS``
+     * The protocol this backend service uses to communicate. Default to ``HTTPS``
      */
     @Updatable
     @ValidStrings({ "HTTP", "HTTPS", "TCP", "SSL", "UDP" })

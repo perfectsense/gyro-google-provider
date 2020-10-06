@@ -94,7 +94,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     }
 
     /**
-     * Specifies the QUIC override policy for this target proxy. Valid values are ``NONE``, ``ENABLE``, or ``DISABLE``. Default value is ``NONE``.
+     * Specifies the QUIC override policy for this target proxy. Default value is ``NONE``.
      */
     @Updatable
     @ValidStrings({ "NONE", "ENABLE", "DISABLE" })

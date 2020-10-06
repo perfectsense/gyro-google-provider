@@ -84,7 +84,7 @@ public class BucketAccessControlResource extends GoogleResource implements Copya
     }
 
     /**
-     * The access permission for the entity. Valid values are ``OWNER``, ``READER``, or ``WRITER``.
+     * The access permission for the entity.
      */
     @Required
     @Updatable

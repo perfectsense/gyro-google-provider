@@ -177,7 +177,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * Session affinity option. Valid values are ``NONE``, ``CLIENT_IP``, or ``CLIENT_IP_PROTO``. Defaults to ``NONE``.
+     * Session affinity option. Defaults to ``NONE``.
      */
     @ValidStrings({ "NONE", "CLIENT_IP", "CLIENT_IP_PROTO" })
     public String getSessionAffinity() {

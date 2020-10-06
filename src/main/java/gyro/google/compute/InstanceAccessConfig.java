@@ -53,7 +53,7 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     }
 
     /**
-     * Signifies the networking tier used for configuring this access configuration. Valid values are ``PREMIUM`` or ``STANDARD``. If specified without a valid external IP address, an ephemeral IP will be created with this networkTier. If a valid external IP address is specified, it must match that of the networkTier associated with the Address resource owning that IP.
+     * Signifies the networking tier used for configuring this access configuration. If specified without a valid external IP address, an ephemeral IP will be created with this networkTier. If a valid external IP address is specified, it must match that of the networkTier associated with the Address resource owning that IP.
      */
     @ValidStrings({"PREMIUM", "STANDARD"})
     public String getNetworkTier() {
@@ -87,8 +87,9 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     }
 
     /**
-     * The type of configuration. The default and only valid value is ``ONE_TO_ONE_NAT``.
+     * The type of configuration. Defaults to ``ONE_TO_ONE_NAT``.
      */
+    @ValidStrings("ONE_TO_ONE_NAT")
     public String getType() {
         return type;
     }

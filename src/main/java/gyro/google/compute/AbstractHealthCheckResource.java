@@ -31,6 +31,7 @@ import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public abstract class AbstractHealthCheckResource extends ComputeResource implements Copyable<HealthCheck> {
@@ -174,8 +175,9 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     /**
-     * The type of health check. Valid values are: ``TCP``, ``SSL``, ``HTTP``, ``HTTPS`` or ``HTTP2``.
+     * The type of health check.
      */
+    @ValidStrings({"TCP", "SSL", "HTTP", "HTTPS", "HTTP2"})
     public String getType() {
         return type;
     }

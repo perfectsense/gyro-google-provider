@@ -46,7 +46,7 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
     }
 
     /**
-     * Defines the operation of node selection. Valid operators are ``IN`` for affinity and ``NOT_IN`` for anti-affinity.
+     * Defines the operation of node selection.
      */
     @ValidStrings({"IN", "NOT_IN"})
     public String getOperator() {

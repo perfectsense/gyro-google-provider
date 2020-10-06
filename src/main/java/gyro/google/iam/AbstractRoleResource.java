@@ -90,7 +90,7 @@ public abstract class AbstractRoleResource extends ComputeResource implements Co
     }
 
     /**
-     * The current launch stage of the role. Valid values are ``ALPHA``, ``BETA``, ``GA``, ``DEPRECATED`` or ``EAP``. Defaults to ``ALPHA``.
+     * The current launch stage of the role. Defaults to ``ALPHA``.
      */
     @Updatable
     @ValidStrings({ "ALPHA", "BETA", "GA", "DEPRECATED", "DISABLED", "EAP" })

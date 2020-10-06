@@ -137,7 +137,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
     }
 
     /**
-     * Operating mode for this policy. Valid values are ``OFF``, ``ON`` or ``ONLY_UP``.
+     * Operating mode for this policy.
      */
     @ValidStrings({
         "OFF",

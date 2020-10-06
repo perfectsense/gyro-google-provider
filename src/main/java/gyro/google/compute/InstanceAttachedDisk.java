@@ -118,7 +118,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     }
 
     /**
-     * Disk interface to use for attaching this disk. Valid values are ``SCSI`` or ``NVME``. Default is ``SCSI``. Persistent disks must always use ``SCSI`` and the request will fail if you attempt to attach a persistent disk in any other format than ``SCSI``.
+     * Disk interface to use for attaching this disk. Default is ``SCSI``. Persistent disks must always use ``SCSI`` and the request will fail if you attempt to attach a persistent disk in any other format than ``SCSI``.
      */
     @ValidStrings({ "SCSI", "NVME" })
     public String getDiskInterface() {
@@ -130,7 +130,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     }
 
     /**
-     * The mode in which to attach this disk. Valid values are ``READ_WRITE`` or ``READ_ONLY``. Default is ``READ_WRITE``.
+     * The mode in which to attach this disk. Default is ``READ_WRITE``.
      */
     @ValidStrings({ "READ_WRITE", "READ_ONLY" })
     public String getMode() {
@@ -156,7 +156,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     }
 
     /**
-     * Type of the disk, valid values are ``SCRATCH`` or ``PERSISTENT``. Default is ``PERSISTENT``.
+     * Type of the disk, Default is ``PERSISTENT``.
      */
     @ValidStrings({ "SCRATCH", "PERSISTENT" })
     public String getType() {

@@ -99,7 +99,7 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
     }
 
     /**
-     * Specifies the QUIC override policy for this target proxy. Valid values are ``NONE``, ``ENABLE``, or ``DISABLE``. Default value is ``NONE``.
+     * Specifies the QUIC override policy for this target proxy. Default value is ``NONE``.
      */
     @ValidStrings({ "NONE", "ENABLE", "DISABLE" })
     public String getQuicOverride() {

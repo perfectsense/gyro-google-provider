@@ -27,7 +27,7 @@ public class ComputeConnectionDraining extends Diffable implements Copyable<Conn
     private Integer drainingTimeoutSec;
 
     /**
-     * The amount of time in seconds to allow existing connections to persist while on unhealthy backend instances. Only applicable if the protocol is not ``UDP``. Valid values are from ``0`` to ``3600``.
+     * The amount of time in seconds to allow existing connections to persist while on unhealthy backend instances. Only applicable if the protocol is not ``UDP``.
      */
     @Updatable
     @Range(min = 0, max = 3600)

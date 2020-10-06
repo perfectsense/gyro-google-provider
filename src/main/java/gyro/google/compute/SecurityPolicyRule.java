@@ -63,7 +63,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The action to take for this rule. Valid values are ``allow``, ``deny(403)``, ``deny(404)`` or ``deny(502)``.
+     * The action to take for this rule.
      */
     @Updatable
     @Required

@@ -82,7 +82,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     }
 
     /**
-     * The routing mode for the network. Valid values are ``GLOBAL`` or ``REGIONAL``.
+     * The routing mode for the network.
      */
     @Required
     @ValidStrings({ "GLOBAL", "REGIONAL" })

@@ -154,7 +154,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The physical block size of the disk, in bytes. Valid values are ``4096`` or ``16384``. Defaults to ``4096``.
+     * The physical block size of the disk, in bytes. Defaults to ``4096``.
      */
     @ValidNumbers({ 4096, 16384 })
     public Long getPhysicalBlockSizeBytes() {

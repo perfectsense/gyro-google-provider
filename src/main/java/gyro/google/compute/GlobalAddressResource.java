@@ -43,7 +43,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
     private String ipVersion;
 
     /**
-     * IP version that will be used by this address. Valid values are ``IPV4`` or ``IPV6``. Defaults to ``IPV4``.
+     * IP version that will be used by this address. Defaults to ``IPV4``.
      */
     @ValidStrings({"IPV4", "IPV6"})
     public String getIpVersion() {

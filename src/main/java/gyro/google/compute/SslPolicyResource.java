@@ -104,7 +104,7 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     }
 
     /**
-     * The minimum version of SSL protocol that can be used by the clients to establish a connection with the load balancer. Valid values are ``TLS_1_0``, ``TLS_1_1``, or ``TLS_1_2``.
+     * The minimum version of SSL protocol that can be used by the clients to establish a connection with the load balancer.
      */
     @Required
     @Updatable
@@ -131,7 +131,7 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     }
 
     /**
-     * Specifies the set of SSL features that can be used by the load balancer when negotiating SSL with clients. Valid values are ``COMPATIBLE``, ``MODERN``, ``RESTRICTED``, or ``CUSTOM``. If using ``CUSTOM``, the set of SSL features to enable must be specified in the ``custom-features`` field.
+     * Specifies the set of SSL features that can be used by the load balancer when negotiating SSL with clients. If using ``CUSTOM``, the set of SSL features to enable must be specified in the ``custom-features`` field.
      */
     @Required
     @Updatable

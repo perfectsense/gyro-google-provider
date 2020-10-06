@@ -57,7 +57,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The IP protocol for the forwarding rule. Valid values are ``TCP``, ``UDP``, ``ESP``, ``AH``, ``SCTP`` or ``ICMP``.
+     * The IP protocol for the forwarding rule.
      */
     @Required
     @ValidStrings({ "TCP", "UDP", "ESP", "AH", "SCTP", "ICMP" })
@@ -92,7 +92,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The IP Version that will be used by this forwarding rule. Valid values are ``IPV4`` or ``IPV6``.
+     * The IP Version that will be used by this forwarding rule.
      */
     @ValidStrings({ "IPV4", "IPV6" })
     public String getIpVersion() {
@@ -104,7 +104,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * This signifies what the forwarding rule will be used for. Valid values are ``INTERNAL``, ``INTERNAL_SELF_MANAGED`` or ``EXTERNAL``.
+     * This signifies what the forwarding rule will be used for.
      */
     @ValidStrings({ "INTERNAL", "INTERNAL_SELF_MANAGED", "EXTERNAL" })
     public String getLoadBalancingScheme() {
@@ -129,7 +129,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The networking tier used for configuring the load balancer with this forwarding rule. Valid values are ``PREMIUM`` or ``STANDARD``.
+     * The networking tier used for configuring the load balancer with this forwarding rule.
      */
     @ValidStrings({ "PREMIUM", "STANDARD" })
     public String getNetworkTier() {
