@@ -40,10 +40,10 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
     private String selfLink;
 
     /**
-     * The name of the target proxy. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     * The name of the target proxy.
      */
     @Required
-    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
+    @Regex(value = "^[a-z]([-a-z0-9]{1,61}[a-z0-9])?", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }

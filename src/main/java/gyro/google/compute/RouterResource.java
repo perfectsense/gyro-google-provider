@@ -120,7 +120,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     private String selfLink;
 
     /**
-     * The name of the router. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.
+     * The name of the router.
      */
     @Required
     @Regex(value = "^[a-z]([-a-z0-9]*[a-z0-9])?$", message = "a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.")

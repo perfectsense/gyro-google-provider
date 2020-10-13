@@ -64,10 +64,10 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private String labelFingerprint;
 
     /**
-     * The name of the disk. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``.
+     * The name of the disk.
      */
     @Required
-    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and match the regular expression `[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }

@@ -100,10 +100,10 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The name of the crypto key. Can be a string containing letters, numbers, underscores or hyphens.
+     * The name of the crypto key.
      */
     @Required
-    @Regex(value = "^(\\w|-)+$", message = "a string containing letters, numbers, underscores or hyphens")
+    @Regex(value = "^(\\w|-)+$", message = "")
     public String getName() {
         return name;
     }
@@ -113,9 +113,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The next date when the symmetric key should rotate. Must match the ``mm/dd/yyyy`` format.
+     * The next date when the symmetric key should rotate.
      */
-    @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "the mm/dd/yyyy format")
+    @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "a string matching the @|bold mm/dd/yyyy|@ format")
     public String getNextRotationDate() {
         return nextRotationDate;
     }

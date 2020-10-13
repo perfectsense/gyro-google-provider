@@ -262,7 +262,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
      * The tags identify valid sources or targets for network firewalls.
      */
     @CollectionMax(64)
-    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
+    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "a string with only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
     public List<String> getTags() {
         if (tags == null) {
             tags = new ArrayList<>();

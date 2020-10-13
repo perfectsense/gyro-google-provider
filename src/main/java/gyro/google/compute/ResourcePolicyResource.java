@@ -96,9 +96,9 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
     }
 
     /**
-     * The name of the resource policy. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     * The name of the resource policy.
      */
-    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
+    @Regex(value = "^[a-z]([-a-z0-9]{1,61}[a-z0-9])?", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     @Required
     public String getName() {
         return name;

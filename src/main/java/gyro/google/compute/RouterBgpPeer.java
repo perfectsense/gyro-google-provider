@@ -43,7 +43,7 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
     private List<RouterIpRange> ipRange;
 
     /**
-     * The name of the BGP peer. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.
+     * The name of the BGP peer.
      */
     @Required
     @Regex(value = "^[a-z]([-a-z0-9]*[a-z0-9])?$", message = "a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.")

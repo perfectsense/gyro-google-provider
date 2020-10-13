@@ -121,9 +121,9 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private List<String> tags;
 
     /**
-     * The name of the resource when initially creating the resource. Must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     * The name of the resource when initially creating the resource.
      */
-    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
+    @Regex(value = "^[a-z]([-a-z0-9]{1,61}[a-z0-9])?", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     @Required
     public String getName() {
         return name;
@@ -373,7 +373,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
-     * The set of tags for the instance. Each tag must be 1-63 characters, first character must be a lowercase letter and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash.
+     * The set of tags for the instance.
      * All tags for an instance must be unique. You can assign up to 64 different tags per instance.
      */
     @Updatable

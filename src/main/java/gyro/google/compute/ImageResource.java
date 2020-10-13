@@ -110,10 +110,10 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     private String status;
 
     /**
-     * The name of the image. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``.
+     * The name of the image.
      */
     @Required
-    @Regex("(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)")
+    @Regex(value = "(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -134,9 +134,9 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     /**
-     * The name of the image family to which this image belongs. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``.
+     * The name of the image family to which this image belongs.
      */
-    @Regex("(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)")
+    @Regex(value = "(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getFamily() {
         return family;
     }

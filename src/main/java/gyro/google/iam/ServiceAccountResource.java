@@ -99,7 +99,7 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     }
 
     /**
-     * The unique name of the service account. It can be a string starting with a lowercase letter followed by lower case alphanumerical characters or hyphens and between 6 and 30 characters.
+     * The unique name of the service account.
      */
     @Required
     @Regex(value = "^[a-z]([a-z]|[0-9]|-){5,29}$", message = "a string starting with a lowercase letter followed by lower case alphanumerical characters or hyphens and between 6 and 30 characters.")

@@ -69,7 +69,7 @@ public class InstanceAttachedDiskInitializeParams extends Diffable implements Co
      * The disk name. If the disk with the instance name exists already in the given zone/region a new name will be automatically generated.
      */
     @Required
-    @Regex("(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)")
+    @Regex(value = "(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getDiskName() {
         return diskName;
     }
