@@ -39,7 +39,6 @@ public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrP
 
     /**
      * Specifies a fixed number of VM instances.
-     * This must be a positive integer.
      */
     @ConflictsWith("percent")
     @Min(0)

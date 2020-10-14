@@ -261,7 +261,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * A set of service accounts that the incoming requests are going to be matched with only if it originated from instances of the accounts specified.  Can only be set when 'direction' set to 'INGRESS'. Only one of 'source-service-accounts' or 'source-tags' can be set.
+     * A set of service accounts that the incoming requests are going to be matched with only if it originated from instances of the accounts specified.  Can only be set when 'direction' set to 'INGRESS'.
      */
     @Updatable
     @ConflictsWith({ "source-tags", "target-tags" })
@@ -310,7 +310,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * A set of service accounts that the outgoing requests are going to be matched with only if it is targeted from instances of the accounts specified. Only one of 'target-service-accounts' or 'target-tags' can be set.
+     * A set of service accounts that the outgoing requests are going to be matched with only if it is targeted from instances of the accounts specified.
      */
     @Updatable
     @ConflictsWith({ "target-tags", "source-tags" })

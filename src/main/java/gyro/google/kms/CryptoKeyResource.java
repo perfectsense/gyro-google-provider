@@ -125,7 +125,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The period after which the symmetric key should automatically rotate. Minimum value is ``1``.
+     * The period after which the symmetric key should automatically rotate.
      */
     @Updatable
     @Min(1)

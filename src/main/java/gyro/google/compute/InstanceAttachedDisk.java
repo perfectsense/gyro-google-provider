@@ -104,7 +104,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     }
 
     /**
-     * Parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance. This property is mutually exclusive with the source property; you can only define one or the other, but not both.
+     * Parameters for a new disk that will be created alongside the new instance. Use initialization parameters to create boot disks or local SSDs attached to the new instance.
      *
      * @subresource gyro.google.compute.InstanceAttachedDiskInitializeParams
      */

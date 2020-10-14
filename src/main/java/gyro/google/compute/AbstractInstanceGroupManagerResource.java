@@ -133,7 +133,6 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     /**
      * The autohealing policy for this managed instance group.
-     * You can specify only one value.
      *
      * @subresource gyro.google.compute.ComputeInstanceGroupManagerAutoHealingPolicy
      */

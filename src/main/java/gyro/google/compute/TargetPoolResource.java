@@ -119,7 +119,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * The percentage of healthy instances below which a failover to the backup target pool is triggered. The value must be between 0 and 1.
+     * The percentage of healthy instances below which a failover to the backup target pool is triggered.
      */
     @DependsOn("backup-pool")
     @Range(min = 0, max = 1)
@@ -148,7 +148,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * A list of legacy http health checks monitoring this pool. Only one health check may be specified.
+     * A list of legacy http health checks monitoring this pool.
      */
     @CollectionMax(1)
     @Updatable

@@ -77,7 +77,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     }
 
     /**
-     * List of SSL certificates that are used to authenticate connections between users and the load balancer. Currently, you may specify up to 15 SSL certificates.
+     * List of SSL certificates that are used to authenticate connections between users and the load balancer.
      */
     @Required
     @Updatable

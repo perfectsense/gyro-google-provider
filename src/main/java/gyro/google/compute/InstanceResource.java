@@ -374,7 +374,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     /**
      * The set of tags for the instance.
-     * All tags for an instance must be unique. You can assign up to 64 different tags per instance.
+     * All tags for an instance must be unique.
      */
     @Updatable
     @CollectionMax(64)
