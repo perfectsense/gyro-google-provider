@@ -93,7 +93,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     private String selfLink;
 
     /**
-     * The name of the firewall rule. Needs to follow Google firewall rule naming convention. Must be 1-63 characters long consisting only of dash, lowercase letter, or digit. First character needs to be a letter and the last character can either be a letter or a digit. (Required)
+     * The name of the firewall rule. Needs to follow Google firewall rule naming convention. Must be 1-63 characters long consisting only of dash, lowercase letter, or digit. First character needs to be a letter and the last character can either be a letter or a digit.
      */
     @Required
     @Id
@@ -106,7 +106,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * The network to create this firewall rule in. (Required)
+     * The network to create this firewall rule in.
      */
     @Required
     public NetworkResource getNetwork() {
@@ -130,7 +130,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * Allow or Deny requests that matches the rules. Valid values are ``ALLOW`` or ``DENY``. (Required)
+     * Allow or Deny requests that matches the rules.
      */
     @Required
     @ValidStrings({ "ALLOW", "DENY" })
@@ -198,7 +198,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * The direction specifies the type of requests this rule applies to. INGRESS for incoming and EGRESS for outgoing requests. Valid values are ``INGRESS`` or ``EGRESS``. (Required)
+     * The direction specifies the type of requests this rule applies to. INGRESS for incoming and EGRESS for outgoing requests.
      */
     @Required
     @ValidStrings({ "INGRESS", "EGRESS" })
@@ -228,7 +228,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * The priority of the firewall rule, when there are multiple that match a certain requests. Lower the number higher the priority. Defaults to ``1000``. Valid values are between ``0`` and ``65535``.
+     * The priority of the firewall rule, when there are multiple that match a certain requests. Lower the number higher the priority. Defaults to ``1000``.
      */
     @Updatable
     @Range(min = 0, max = 65535)
@@ -261,7 +261,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * A set of service accounts that the incoming requests are going to be matched with only if it originated from instances of the accounts specified.  Can only be set when 'direction' set to 'INGRESS'. Only one of 'source-service-accounts' or 'source-tags' can be set.
+     * A set of service accounts that the incoming requests are going to be matched with only if it originated from instances of the accounts specified.  Can only be set when 'direction' set to 'INGRESS'.
      */
     @Updatable
     @ConflictsWith({ "source-tags", "target-tags" })
@@ -289,7 +289,6 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         return sourceTags;
     }
 
-    @Updatable
     public void setSourceTags(Set<String> sourceTags) {
         this.sourceTags = sourceTags;
     }
@@ -311,7 +310,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     /**
-     * A set of service accounts that the outgoing requests are going to be matched with only if it is targeted from instances of the accounts specified. Only one of 'target-service-accounts' or 'target-tags' can be set.
+     * A set of service accounts that the outgoing requests are going to be matched with only if it is targeted from instances of the accounts specified.
      */
     @Updatable
     @ConflictsWith({ "target-tags", "source-tags" })

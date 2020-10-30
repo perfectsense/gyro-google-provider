@@ -43,7 +43,7 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
     private List<RouterIpRange> ipRange;
 
     /**
-     * The name of the BGP peer. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen. (Required)
+     * The name of the BGP peer.
      */
     @Required
     @Regex(value = "^[a-z]([-a-z0-9]*[a-z0-9])?$", message = "a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.")
@@ -92,7 +92,9 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
     }
 
     /**
-     * Peer BGP Autonomous System Number (ASN). Valid values belong in between ``64512`` to ``65534`` for a 16-bit ASN or between ``4200000000`` to ``4294967294`` for a 32-bit ASN. (Required)
+     * Peer BGP Autonomous System Number (ASN). Valid values belong in between ``64512`` to ``65534`` for a 16-bit ASN or between ``4200000000`` to ``4294967294`` for a 32-bit ASN.
+     *
+     * @no-doc Range, Ranges
      */
     @Required
     @Range(min = 64512, max = 65534)
@@ -118,7 +120,7 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
     }
 
     /**
-     * The mode to use for advertisement. Valid values are ``DEFAULT`` or ``CUSTOM``.
+     * The mode to use for advertisement.
      */
     @ValidStrings({ "DEFAULT", "CUSTOM" })
     @Updatable
@@ -131,7 +133,7 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
     }
 
     /**
-     * The list of prefix groups when ``advertise-mode`` is set to ``CUSTOM``. Valid values are ``ALL_SUBNETS``, ``ALL_VPC_SUBNETS`` or ``ALL_PEER_VPC_SUBNETS``.
+     * The list of prefix groups when ``advertise-mode`` is set to ``CUSTOM``.
      */
     @ValidStrings({ "ALL_SUBNETS", "ALL_VPC_SUBNETS", "ALL_PEER_VPC_SUBNETS" })
     @Updatable

@@ -75,7 +75,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-storage'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 
-    gyroDoclet "gyro:gyro-doclet:0.99.0-SNAPSHOT"
+    gyroDoclet "gyro:gyro-doclet:0.99.1"
 }
 
 checkstyle {

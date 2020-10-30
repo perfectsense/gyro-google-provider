@@ -55,7 +55,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The port specification determines how the port is selected for health checking. Valid values are ``USE_FIXED_PORT``, ``USE_NAMED_PORT`` or ``USE_SERVING_PORT``.
+     * The port specification determines how the port is selected for health checking.
      */
     @Updatable
     @ValidStrings({ "USE_FIXED_PORT", "USE_NAMED_PORT", "USE_SERVING_PORT" })
@@ -68,7 +68,7 @@ public abstract class AbstractHealthCheck extends Diffable {
     }
 
     /**
-     * The proxy header to append before sending data to the backend. Valid values are ``NONE`` or ``PROXY_V1``.
+     * The proxy header to append before sending data to the backend.
      */
     @Updatable
     @ValidStrings({ "NONE", "PROXY_V1" })

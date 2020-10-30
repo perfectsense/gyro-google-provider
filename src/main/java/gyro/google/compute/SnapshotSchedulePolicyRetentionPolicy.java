@@ -38,7 +38,7 @@ public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements C
     }
 
     /**
-     * The behavior to apply to scheduled snapshots when the source disk is deleted. Valid values are ``APPLY_RETENTION_POLICY``, ``KEEP_AUTO_SNAPSHOTS`` or ``UNSPECIFIED_ON_SOURCE_DISK_DELETE``.
+     * The behavior to apply to scheduled snapshots when the source disk is deleted.
      */
     @ValidStrings({"APPLY_RETENTION_POLICY", "KEEP_AUTO_SNAPSHOTS", "UNSPECIFIED_ON_SOURCE_DISK_DELETE"})
     public String getOnSourceDiskDelete() {

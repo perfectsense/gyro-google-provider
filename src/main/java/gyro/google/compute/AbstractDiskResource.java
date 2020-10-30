@@ -64,10 +64,10 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private String labelFingerprint;
 
     /**
-     * The name of the disk. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
+     * The name of the disk.
      */
     @Required
-    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and match the regular expression `[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -101,7 +101,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The source snapshot used to create the disk. Conflicts with ``source-image``.
+     * The source snapshot used to create the disk.
      */
     @ConflictsWith("source-image")
     public SnapshotResource getSourceSnapshot() {
@@ -154,7 +154,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The physical block size of the disk, in bytes. Valid values are ``4096`` or ``16384``. Defaults to ``4096``.
+     * The physical block size of the disk, in bytes. Defaults to ``4096``.
      */
     @ValidNumbers({ 4096, 16384 })
     public Long getPhysicalBlockSizeBytes() {

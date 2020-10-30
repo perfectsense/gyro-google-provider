@@ -50,7 +50,7 @@ public class RegionSslCertificateResource extends AbstractSslCertificateResource
     private String region;
 
     /**
-     * The region for the SSL certificate. (Required)
+     * The region for the SSL certificate.
      */
     @Required
     public String getRegion() {

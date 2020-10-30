@@ -43,7 +43,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     private String selfLink;
 
     /**
-     * Name for the resource. See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements. (Required)
+     * Name for the resource. See `Fields <https://cloud.google.com/compute/docs/reference/rest/v1/addresses#Address.FIELDS-table/>`_ for formatting requirements.
      */
     @Regex("[a-z]([-a-z0-9]*[a-z0-9])?")
     @Required
@@ -89,7 +89,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * Type of address to reserve. Valid values are ``INTERNAL`` or ``EXTERNAL``. Defaults to ``EXTERNAL``.
+     * Type of address to reserve. Defaults to ``EXTERNAL``.
      */
     @ValidStrings({ "EXTERNAL", "INTERNAL" })
     public String getAddressType() {
@@ -101,7 +101,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * Purpose for this resource. This field can only be used with ``INTERNAL`` type. Valid values are ``GCE_ENDPOINT``, ``DNS_RESOLVER``, ``VPC_PEERING`` or ``NAT_AUTO``.
+     * Purpose for this resource. This field can only be used with ``INTERNAL`` type.
      */
     @ValidStrings({ "GCE_ENDPOINT", "DNS_RESOLVER", "VPC_PEERING", "NAT_AUTO" })
     public String getPurpose() {

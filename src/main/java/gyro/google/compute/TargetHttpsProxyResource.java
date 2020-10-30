@@ -77,7 +77,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     }
 
     /**
-     * List of SSL certificates that are used to authenticate connections between users and the load balancer. Currently, you may specify up to 15 SSL certificates. (Required)
+     * List of SSL certificates that are used to authenticate connections between users and the load balancer.
      */
     @Required
     @Updatable
@@ -94,7 +94,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     }
 
     /**
-     * Specifies the QUIC override policy for this target proxy. Valid values are ``NONE``, ``ENABLE``, or ``DISABLE``. Default value is ``NONE``.
+     * Specifies the QUIC override policy for this target proxy. Default value is ``NONE``.
      */
     @Updatable
     @ValidStrings({ "NONE", "ENABLE", "DISABLE" })

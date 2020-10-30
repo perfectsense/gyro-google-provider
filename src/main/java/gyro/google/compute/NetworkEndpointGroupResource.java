@@ -78,7 +78,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     private Integer size;
 
     /**
-     * The name of the network endpoint group. (Required)
+     * The name of the network endpoint group.
      */
     @Required
     public String getName() {
@@ -90,7 +90,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     /**
-     * The zone where the network endpoint group will reside. The zone needs to belong to the region of the subnet attached. (Required)
+     * The zone where the network endpoint group will reside. The zone needs to belong to the region of the subnet attached.
      */
     @Required
     public String getZone() {
@@ -102,7 +102,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     /**
-     * The default port for the network endpoint group. This port is used if no port is specified in the attached network endpoint. (Required)
+     * The default port for the network endpoint group. This port is used if no port is specified in the attached network endpoint.
      */
     @Required
     public Integer getDefaultPort() {
@@ -125,7 +125,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     /**
-     * The network to create the network endpoint group in. (Required)
+     * The network to create the network endpoint group in.
      */
     @Required
     public NetworkResource getNetwork() {
@@ -137,7 +137,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     /**
-     * The subnet to attach with the network endpoint group. All attached network endpoint needs to belong to this subnet. (Required)
+     * The subnet to attach with the network endpoint group. All attached network endpoint needs to belong to this subnet.
      */
     @Required
     public SubnetworkResource getSubnet() {

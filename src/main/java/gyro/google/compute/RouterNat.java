@@ -82,7 +82,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The name of the NAT gateway. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen. (Required)
+     * The name of the NAT gateway.
      */
     @Required
     @Regex(value = "^[a-z]([-a-z0-9]*[a-z0-9])?$", message = "a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.")
@@ -95,7 +95,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The NAT gateway IP allocation option. Valid values are ``MANUAL_ONLY`` or ``AUTO_ONLY``.
+     * The NAT gateway IP allocation option.
      */
     @ValidStrings({ "MANUAL_ONLY", "AUTO_ONLY" })
     @Updatable
@@ -123,7 +123,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     }
 
     /**
-     * The option for the type of subnet IP ranges. Valid values are ``ALL_SUBNETWORKS_ALL_IP_RANGES``, ``ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES``, ``LIST_OF_SUBNETWORKS`` or ``SUBNETWORK_IP_RANGE_TO_NAT_OPTION_UNSPECIFIED``.
+     * The option for the type of subnet IP ranges.
      */
     @ValidStrings({
         "ALL_SUBNETWORKS_ALL_IP_RANGES",

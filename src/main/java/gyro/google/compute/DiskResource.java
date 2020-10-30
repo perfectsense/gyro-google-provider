@@ -82,7 +82,7 @@ public class DiskResource extends AbstractDiskResource {
     private EncryptionKey sourceImageEncryptionKey;
 
     /**
-     * The zone where the disk resides. (Required)
+     * The zone where the disk resides.
      */
     @Required
     public String getZone() {
@@ -107,7 +107,7 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     /**
-     * The source image used to create this disk. Conflicts with ``source-snapshot``.
+     * The source image used to create this disk.
      */
     @ConflictsWith("source-snapshot")
     public ImageResource getSourceImage() {

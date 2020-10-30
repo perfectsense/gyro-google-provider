@@ -64,7 +64,7 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
     private RegionBackendServiceResource defaultRegionBackendService;
 
     /**
-     * The region for the URL map. (Required)
+     * The region for the URL map.
      */
     @Required
     public String getRegion() {
@@ -76,7 +76,7 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
     }
 
     /**
-     * The default region backend service resource to which traffic is directed if none of the host rules match. (Required)
+     * The default region backend service resource to which traffic is directed if none of the host rules match.
      */
     @Required
     public RegionBackendServiceResource getDefaultRegionBackendService() {

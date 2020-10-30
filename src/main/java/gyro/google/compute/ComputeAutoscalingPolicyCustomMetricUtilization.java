@@ -48,7 +48,7 @@ public class ComputeAutoscalingPolicyCustomMetricUtilization extends Diffable
 
     /**
      * The target value of the metric that autoscaler should maintain.
-     * This must be a positive value. A utilization metric scales number of virtual machines handling requests to increase or decrease proportionally to the metric. For example, a good metric to use as a utilization_target is compute.googleapis.com/instance/network/received_bytes_count. The autoscaler will work to keep this value constant for each of the instances.
+     * A utilization metric scales number of virtual machines handling requests to increase or decrease proportionally to the metric. For example, a good metric to use as a utilization_target is compute.googleapis.com/instance/network/received_bytes_count. The autoscaler will work to keep this value constant for each of the instances.
      */
     @Min(0)
     @Required

@@ -43,6 +43,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Min;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
@@ -87,7 +88,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     private List<String> versions;
 
     /**
-     * The key ring that holds the crypto key. (Required)
+     * The key ring that holds the crypto key.
      */
     @Required
     public KeyRingResource getKeyRing() {
@@ -99,10 +100,10 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The name of the crypto key. Can be a string containing letters, numbers, underscores or hyphens. (Required)
+     * The name of the crypto key.
      */
     @Required
-    @Regex(value = "^(\\w|-)+$", message = "a string containing letters, numbers, underscores or hyphens")
+    @Regex(value = "^(\\w|-)+$", message = "")
     public String getName() {
         return name;
     }
@@ -112,9 +113,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The next date when the symmetric key should rotate. Must match the ``mm/dd/yyyy`` format.
+     * The next date when the symmetric key should rotate.
      */
-    @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "the mm/dd/yyyy format")
+    @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "a string matching the @|bold mm/dd/yyyy|@ format")
     public String getNextRotationDate() {
         return nextRotationDate;
     }
@@ -124,7 +125,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The period after which the symmetric key should automatically rotate. Minimum value is ``1``.
+     * The period after which the symmetric key should automatically rotate.
      */
     @Updatable
     @Min(1)
@@ -137,9 +138,10 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The immutable purpose of the key. (Required)
+     * The immutable purpose of the key.
      */
     @Required
+    @ValidStrings({"ENCRYPT_DECRYPT", "ASYMMETRIC_SIGN", "ASYMMETRIC_DECRYPT"})
     public CryptoKeyPurpose getPurpose() {
         return purpose;
     }
@@ -149,7 +151,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The template describing settings for new crypto key versions. (Required)
+     * The template describing settings for new crypto key versions.
      *
      * @subresource gyro.google.kms.CryptoKeyVersionTemplate
      */

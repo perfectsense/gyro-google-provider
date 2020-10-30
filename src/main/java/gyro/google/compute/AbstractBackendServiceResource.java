@@ -32,6 +32,7 @@ import gyro.core.GyroException;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -56,9 +57,10 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     private BackendServiceCdnPolicy cdnPolicy;
 
     /**
-     * If set to 0, the cookie is non-persistent and lasts only until the end of the browser session (or equivalent). Valid values are ``0`` to ``86400``. Defaults to ``0``.
+     * If set to ``0``, the cookie is non-persistent and lasts only until the end of the browser session (or equivalent). Defaults to ``0``.
      */
     @Updatable
+    @Range(min = 0, max = 86400)
     public Integer getAffinityCookieTtlSec() {
         return affinityCookieTtlSec;
     }
@@ -85,6 +87,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
     /**
      * Connection draining configuration for the backend service.
+     *
+     * @subresource gyro.google.compute.ComputeConnectionDraining
      */
     @Updatable
     public ComputeConnectionDraining getConnectionDraining() {
@@ -135,7 +139,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * A list of health check for the backend service. Currently only one health check is supported. (Required)
+     * A list of health check for the backend service. Currently only one health check is supported.
      */
     @Required
     @Updatable
@@ -152,7 +156,10 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
     /**
      * Indicates whether the backend service will be used with internal or external load balancing.Valid values are ``INTERNAL``, ``INTERNAL_MANAGED`, ``INTERNAL_SELF_MANAGED`` or ``EXTERNAL``. Defaults to ``EXTERNAL``.
+     *
+     * @no-docs ValidStrings
      */
+    @ValidStrings({"INTERNAL", "INTERNAL_MANAGED", "INTERNAL_SELF_MANAGED", "EXTERNAL"})
     public String getLoadBalancingScheme() {
         return loadBalancingScheme;
     }
@@ -162,7 +169,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * The load balancing algorithm used within the scope of the locality. Valid values are ``ROUND_ROBIN``, ``LEAST_REQUEST``, ``RING_HASH``, ``RANDOM``, ``ORIGINAL_DESTINATION`` or ``MAGLEV``.
+     * The load balancing algorithm used within the scope of the locality.
      */
     @Updatable
     @ValidStrings({ "ROUND_ROBIN", "LEAST_REQUEST", "RING_HASH", "RANDOM", "ORIGINAL_DESTINATION", "MAGLEV" })
@@ -175,10 +182,10 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * The name of the backend service. The name must be 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash. (Required)
+     * The name of the backend service.
      */
     @Required
-    @Regex("(?:(?:[-a-z0-9]{1,63}\\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))")
+    @Regex(value = "(?:(?:[-a-z0-9]{1,63}\\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -188,7 +195,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * The protocol this backend service uses to communicate. Valid values are ``HTTP``, ``HTTPS``, ``TCP``, ``SSL``, or ``UDP``. Default to ``HTTPS``
+     * The protocol this backend service uses to communicate. Default to ``HTTPS``
      */
     @Updatable
     @ValidStrings({ "HTTP", "HTTPS", "TCP", "SSL", "UDP" })
@@ -247,6 +254,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
     /**
      * CDN configuration for this backend service.
+     *
+     * @subresource gyro.google.compute.BackendServiceCdnPolicy
      */
     @Updatable
     public BackendServiceCdnPolicy getCdnPolicy() {

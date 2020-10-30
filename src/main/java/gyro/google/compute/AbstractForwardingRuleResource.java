@@ -57,7 +57,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The IP protocol for the forwarding rule. Valid values are ``TCP``, ``UDP``, ``ESP``, ``AH``, ``SCTP`` or ``ICMP``.
+     * The IP protocol for the forwarding rule.
      */
     @Required
     @ValidStrings({ "TCP", "UDP", "ESP", "AH", "SCTP", "ICMP" })
@@ -92,7 +92,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The IP Version that will be used by this forwarding rule. Valid values are ``IPV4`` or ``IPV6``.
+     * The IP Version that will be used by this forwarding rule.
      */
     @ValidStrings({ "IPV4", "IPV6" })
     public String getIpVersion() {
@@ -104,7 +104,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * This signifies what the forwarding rule will be used for. Valid values are ``INTERNAL``, ``INTERNAL_SELF_MANAGED`` or ``EXTERNAL``.
+     * This signifies what the forwarding rule will be used for.
      */
     @ValidStrings({ "INTERNAL", "INTERNAL_SELF_MANAGED", "EXTERNAL" })
     public String getLoadBalancingScheme() {
@@ -116,10 +116,10 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The name of the forwarding rule. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
+     * The name of the forwarding rule.
      */
     @Required
-    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and match the regular expression `[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -129,7 +129,7 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * The networking tier used for configuring the load balancer with this forwarding rule. Valid values are ``PREMIUM`` or ``STANDARD``.
+     * The networking tier used for configuring the load balancer with this forwarding rule.
      */
     @ValidStrings({ "PREMIUM", "STANDARD" })
     public String getNetworkTier() {
@@ -166,9 +166,9 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     /**
-     * A prefix to the service name for this forwarding rule. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``.
+     * A prefix to the service name for this forwarding rule.
      */
-    @Regex("^[a-z]([-a-z0-9]{1,61}[a-z0-9])?")
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and match the regular expression `[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?` which means the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getServiceLabel() {
         return serviceLabel;
     }

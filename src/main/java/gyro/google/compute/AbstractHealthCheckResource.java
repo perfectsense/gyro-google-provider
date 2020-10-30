@@ -31,6 +31,7 @@ import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public abstract class AbstractHealthCheckResource extends ComputeResource implements Copyable<HealthCheck> {
@@ -50,10 +51,10 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     private Integer unhealthyThreshold;
 
     /**
-     * The name of the health check. The name must be 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash. (Required)
+     * The name of the health check.
      */
     @Required
-    @Regex("(?:(?:[-a-z0-9]{1,63}\\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))")
+    @Regex(value = "(?:(?:[-a-z0-9]{1,63}\\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -174,8 +175,9 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     /**
-     * The type of health check. Valid values are: ``TCP``, ``SSL``, ``HTTP``, ``HTTPS`` or ``HTTP2``.
+     * The type of health check.
      */
+    @ValidStrings({"TCP", "SSL", "HTTP", "HTTPS", "HTTP2"})
     public String getType() {
         return type;
     }

@@ -28,6 +28,8 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
 
     /**
      * Retention policy applied to snapshots created by this resource policy.
+     *
+     * @subresource gyro.google.compute.SnapshotSchedulePolicyRetentionPolicy
      */
     public SnapshotSchedulePolicyRetentionPolicy getRetentionPolicy() {
         return retentionPolicy;
@@ -39,6 +41,8 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
 
     /**
      * Specifies what kind of infrastructure maintenance Google is allowed to perform on this VM and when. Schedule that is applied to disks covered by this policy.
+     *
+     * @subresource gyro.google.compute.SnapshotSchedulePolicySchedule
      */
     public SnapshotSchedulePolicySchedule getSchedule() {
         return schedule;
@@ -50,6 +54,8 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
 
     /**
      * Properties with which snapshots are created such as labels and storage locations.
+     *
+     * @subresource gyro.google.compute.SnapshotSchedulePolicySnapshotProperties
      */
     public SnapshotSchedulePolicySnapshotProperties getSnapshotProperties() {
         return snapshotProperties;

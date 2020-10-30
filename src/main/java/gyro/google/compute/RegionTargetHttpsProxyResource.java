@@ -83,7 +83,7 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
     }
 
     /**
-     * List of region SSL certificates that are used to authenticate connections between users and the load balancer. Currently, you may specify up to 15 SSL certificates. (Required)
+     * List of region SSL certificates that are used to authenticate connections between users and the load balancer.
      */
     @Required
     @CollectionMax(15)
@@ -99,7 +99,7 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
     }
 
     /**
-     * Specifies the QUIC override policy for this target proxy. Valid values are ``NONE``, ``ENABLE``, or ``DISABLE``. Default value is ``NONE``.
+     * Specifies the QUIC override policy for this target proxy. Default value is ``NONE``.
      */
     @ValidStrings({ "NONE", "ENABLE", "DISABLE" })
     public String getQuicOverride() {

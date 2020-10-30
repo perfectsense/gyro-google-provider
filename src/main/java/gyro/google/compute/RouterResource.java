@@ -120,7 +120,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     private String selfLink;
 
     /**
-     * The name of the router. Must be a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen. (Required)
+     * The name of the router.
      */
     @Required
     @Regex(value = "^[a-z]([-a-z0-9]*[a-z0-9])?$", message = "a string starting with a lowercase letter, followed by hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.")
@@ -145,7 +145,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     }
 
     /**
-     * The region where the router resides. (Required)
+     * The region where the router resides.
      */
     @Required
     public String getRegion() {
@@ -157,7 +157,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     }
 
     /**
-     * The network to which this router belongs. (Required)
+     * The network to which this router belongs.
      */
     @Required
     public NetworkResource getNetwork() {
@@ -170,6 +170,8 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
     /**
      * The Border Gateway Protocol (BGP) information specific to the router.
+     *
+     * @subresource gyro.google.compute.RouterBgp
      */
     @Updatable
     public RouterBgp getRouterBgp() {
@@ -183,7 +185,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     /**
      * The list of Network Address Translation (NAT) gateway configuration to be created in this router.
      *
-     * @subresource gyro.google.compute.RouterBgp
+     * @subresource gyro.google.compute.RouterNat
      */
     @Updatable
     public List<RouterNat> getRouterNat() {

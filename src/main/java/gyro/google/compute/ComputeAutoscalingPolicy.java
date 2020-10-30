@@ -124,7 +124,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
 
     /**
      * The minimum number of replicas that the autoscaler can scale down to.
-     * This cannot be less than ``0``. If not provided, autoscaler will choose a default value depending on maximum number of instances allowed.
+     * If not provided, autoscaler will choose a default value depending on maximum number of instances allowed.
      */
     @Min(0)
     @Updatable
@@ -137,7 +137,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
     }
 
     /**
-     * Operating mode for this policy. Valid values are ``OFF``, ``ON`` or ``ONLY_UP``.
+     * Operating mode for this policy.
      */
     @ValidStrings({
         "OFF",

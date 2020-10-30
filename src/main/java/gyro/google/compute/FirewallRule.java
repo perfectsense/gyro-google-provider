@@ -37,7 +37,9 @@ public class FirewallRule extends Diffable {
     private Set<String> ports;
 
     /**
-     * The protocol that is going to be matched for the incoming/outgoing requests. Valid values are ``tcp``, ``udp``, ``icmp``, ``esp``, ``ah``, ``ipip``, ``sctp``, an IP protocol number, or ``all``. (Required)
+     * The protocol that is going to be matched for the incoming/outgoing requests. Valid values are ``tcp``, ``udp``, ``icmp``, ``esp``, ``ah``, ``ipip``, ``sctp``, an IP protocol number, or ``all``.
+     *
+     * @no-doc ValidStrings
      */
     @Required
     public String getProtocol() {
@@ -50,6 +52,8 @@ public class FirewallRule extends Diffable {
 
     /**
      * A list of ports associated with the protocol. Can only be set when 'protocol' set to  ``tcp`` or ``udp``. Valid values are valid port number or port number range. Ex. ``22`` or ``22-443``.
+     *
+     * @no-doc ValidStrings
      */
     @Updatable
     public Set<String> getPorts() {

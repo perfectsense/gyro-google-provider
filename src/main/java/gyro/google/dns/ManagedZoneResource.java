@@ -115,9 +115,9 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The DNS name of this managed zone, for instance ``example.com.``. Must end with a single ``.``.
+     * The DNS name of this managed zone, for instance ``example.com.``. 
      */
-    @Regex(value = ".+(?<!\\.)\\.\\z", message = "a single @|bold .|@ at the end!")
+    @Regex(value = ".+(?<!\\.)\\.\\z", message = "a string ending with a single @|bold .|@ at the end")
     public String getDnsName() {
         return dnsName;
     }
@@ -225,7 +225,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources. Valid values are ``private`` or ``public``.
+     * The zone's visibility: public zones are exposed to the Internet, while private zones are visible only to Virtual Private Cloud resources.
      */
     @ValidStrings({ "private", "public" })
     public String getVisibility() {

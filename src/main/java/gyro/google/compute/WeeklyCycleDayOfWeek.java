@@ -28,7 +28,7 @@ public class WeeklyCycleDayOfWeek extends Diffable implements Copyable<ResourceP
     private String startTime;
 
     /**
-     * Define schedule that runs on a specified day of the week. Valid values are ``FRIDAY``, ``MONDAY``, ``SATURDAY``, ``SUNDAY``, ``THURSDAY``, ``TUESDAY`` and ``WEDNESDAY``.
+     * Define schedule that runs on a specified day of the week.
      */
     @Required
     @ValidStrings({"FRIDAY", "MONDAY", "SATURDAY", "SUNDAY", "THURSDAY", "TUESDAY", "WEDNESDAY"})

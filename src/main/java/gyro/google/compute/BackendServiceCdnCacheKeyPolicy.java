@@ -69,7 +69,7 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
     }
 
     /**
-     * Names of query string parameters to exclude from cache keys. Conflicts with ``query-string-white-list``.
+     * Names of query string parameters to exclude from cache keys.
      */
     @Updatable
     public List<String> getQueryStringBlacklist() {
@@ -85,7 +85,7 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
     }
 
     /**
-     * Names of query string parameters to include in cache keys. Conflicts with ``query-string-black-list``.
+     * Names of query string parameters to include in cache keys.
      */
     @Updatable
     public List<String> getQueryStringWhitelist() {

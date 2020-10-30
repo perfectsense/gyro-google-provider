@@ -52,7 +52,7 @@ public class AddressResource extends AbstractAddressResource {
     private String region;
 
     /**
-     * Networking tier used for configuring this address. Valid values are ``PREMIUM`` or ``STANDARD``. Defaults to ``PREMIUM``.
+     * Networking tier used for configuring this address. Defaults to ``PREMIUM``.
      */
     @ValidStrings({ "PREMIUM", "STANDARD" })
     public String getNetworkTier() {
@@ -64,7 +64,7 @@ public class AddressResource extends AbstractAddressResource {
     }
 
     /**
-     * The region where this address resides. (Required)
+     * The region where this address resides.
      */
     @Required
     public String getRegion() {

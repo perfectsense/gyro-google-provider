@@ -20,6 +20,7 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Backend;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.Range;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -39,7 +40,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     private Float maxUtilization;
 
     /**
-     * The balancing mode for the backend. Valid values are ``RATE``, ``CONNECTION`` or ``UTILIZATION``. (Required)
+     * The balancing mode for the backend.
      */
     @Required
     @Updatable
@@ -53,9 +54,10 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     }
 
     /**
-     * The multiplier applied to the group's maximum servicing capacity. Valid values are from ``0.0`` to ``1.0``.
+     * The multiplier applied to the group's maximum servicing capacity.
      */
     @Updatable
+    @Range(min = 0.0, max = 1.0)
     public Float getCapacityScaler() {
         return capacityScaler;
     }
@@ -166,9 +168,10 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     }
 
     /**
-     * The maximum average CPU utilization of a backend instance in an instance group. Valid values are from ``0.0`` to ``1.0``.
+     * The maximum average CPU utilization of a backend instance in an instance group.
      */
     @Updatable
+    @Range(min = 0.0, max = 1.0)
     public Float getMaxUtilization() {
         return maxUtilization;
     }

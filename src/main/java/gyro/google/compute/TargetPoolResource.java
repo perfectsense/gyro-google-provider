@@ -95,7 +95,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     private String selfLink;
 
     /**
-     * The backup target pool handles traffic if the health of this target pool falls below the failover ratio. If set, ``failover-ratio`` must also be set.
+     * The backup target pool handles traffic if the health of this target pool falls below the failover ratio.
      */
     @DependsOn("failover-ratio")
     @Updatable
@@ -119,7 +119,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * The percentage of healthy instances below which a failover to the backup target pool is triggered. The value must be between 0 and 1. If set, ``backup-pool`` must also be set.
+     * The percentage of healthy instances below which a failover to the backup target pool is triggered.
      */
     @DependsOn("backup-pool")
     @Range(min = 0, max = 1)
@@ -148,7 +148,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * A list of legacy http health checks monitoring this pool. Only one health check may be specified.
+     * A list of legacy http health checks monitoring this pool.
      */
     @CollectionMax(1)
     @Updatable
@@ -164,9 +164,10 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * The name of the target pool. The name must be 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash. (Required)
+     * The name of the target pool.
      */
-    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
+    @Required
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -176,7 +177,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * Session affinity option. Valid values are ``NONE``, ``CLIENT_IP``, or ``CLIENT_IP_PROTO``. Defaults to ``NONE``.
+     * Session affinity option. Defaults to ``NONE``.
      */
     @ValidStrings({ "NONE", "CLIENT_IP", "CLIENT_IP_PROTO" })
     public String getSessionAffinity() {
@@ -188,7 +189,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     }
 
     /**
-     * Region where the target pool resides. (Required)
+     * Region where the target pool resides.
      */
     @Required
     public String getRegion() {

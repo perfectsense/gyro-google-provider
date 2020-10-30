@@ -44,7 +44,7 @@ public class BucketIamPolicyBindingCondition extends Diffable implements Copyabl
     }
 
     /**
-     * The attribute-based logic expression. See also `Conditions Overview <https://cloud.google.com/iam/docs/conditions-overview#attributes>`_. (Required)
+     * The attribute-based logic expression. See also `Conditions Overview <https://cloud.google.com/iam/docs/conditions-overview#attributes>`_.
      */
     @Required
     public String getExpression() {
@@ -56,7 +56,7 @@ public class BucketIamPolicyBindingCondition extends Diffable implements Copyabl
     }
 
     /**
-     * The title of the condition. (Required)
+     * The title of the condition.
      */
     @Required
     public String getTitle() {

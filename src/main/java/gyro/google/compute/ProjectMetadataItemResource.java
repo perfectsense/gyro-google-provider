@@ -54,7 +54,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     private String value;
 
     /**
-     * The key of the metadata item. Allowed characters include letters, digits, ``-``, and ``_``. (Required)
+     * The key of the metadata item. Allowed characters include letters, digits, ``-``, and ``_``.
      */
     @Required
     public String getKey() {

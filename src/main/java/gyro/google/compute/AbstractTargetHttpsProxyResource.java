@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.TargetHttpsProxy;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public abstract class AbstractTargetHttpsProxyResource extends ComputeResource implements Copyable<TargetHttpsProxy> {
@@ -42,9 +43,10 @@ public abstract class AbstractTargetHttpsProxyResource extends ComputeResource i
     }
 
     /**
-     * The name of the target proxy. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
+     * The name of the target proxy.
      */
-    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
+    @Required
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }

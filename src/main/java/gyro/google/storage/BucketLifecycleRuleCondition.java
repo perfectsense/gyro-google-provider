@@ -71,7 +71,7 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     }
 
     /**
-     * Matches objects having any of the storage classes specified. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI_REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``.
+     * Matches objects having any of the storage classes specified.
      */
     @ValidStrings({ "STANDARD", "NEARLINE", "COLDLINE", "MULTI_REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY" })
     public List<String> getMatchesStorageClass() {

@@ -28,7 +28,7 @@ public class RouterIpRange extends Diffable implements Copyable<RouterAdvertised
     private String description;
 
     /**
-     * The IP range to advertise. (Required)
+     * The IP range to advertise.
      */
     @Required
     public String getRange() {

@@ -107,10 +107,10 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     private String labelFingerprint;
 
     /**
-     * The name of the snapshot. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
+     * The name of the snapshot.
      */
     @Required
-    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -131,7 +131,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The source disk used to create this snapshot. Conflicts with ``region-source-disk``.
+     * The source disk used to create this snapshot.
      */
     @ConflictsWith("region-source-disk")
     public DiskResource getSourceDisk() {
@@ -143,7 +143,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     /**
-     * The regional source disk used to create this snapshot. Conflicts with ``source-disk``.
+     * The regional source disk used to create this snapshot.
      */
     @ConflictsWith("source-disk")
     public RegionDiskResource getSourceRegionDisk() {

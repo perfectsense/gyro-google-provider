@@ -92,7 +92,7 @@ public class RegionDiskResource extends AbstractDiskResource {
     private String type;
 
     /**
-     * The region where the disk resides. (Required)
+     * The region where the disk resides.
      */
     @Required
     public String getRegion() {
@@ -104,7 +104,7 @@ public class RegionDiskResource extends AbstractDiskResource {
     }
 
     /**
-     * The zones where the disk should be replicated to. (Required)
+     * The zones where the disk should be replicated to.
      */
     @Required
     public List<String> getReplicaZones() {

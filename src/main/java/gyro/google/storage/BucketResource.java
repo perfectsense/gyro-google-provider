@@ -173,7 +173,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     private String selfLink;
 
     /**
-     *  Sets predefined access controls to the bucket. Valid values are ``authenticatedRead``, ``private``, ``projectPrivate``, ``publicRead`` and ``publicReadWrite``. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
+     *  Sets predefined access controls to the bucket. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
      */
     @Updatable
     @ValidStrings({ "authenticatedRead", "private", "projectPrivate", "publicRead", "publicReadWrite" })
@@ -186,7 +186,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * Set predefined default object access controls to the bucket. Valid values are ``authenticatedRead``, ``bucketOwnerFullControl``, ``bucketOwnerRead``, ``private``, ``projectPrivate`` and ``publicRead``. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
+     * Set predefined default object access controls to the bucket. See `Access Control Lists <https://cloud.google.com/storage/docs/access-control/lists/>`_.
      */
     @ValidStrings({
         "authenticatedRead",
@@ -385,7 +385,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     }
 
     /**
-     * Bucket's default storage class used whenever no ``storageClass`` is specified for a newly-created object. Valid values are ``STANDARD``, ``NEARLINE``, ``COLDLINE``, ``MULTI-REGIONAL``, ``REGIONAL`` or ``DURABLE_REDUCED_AVAILABILITY``. Defaults to ``STANDARD``.
+     * Bucket's default storage class used whenever no ``storageClass`` is specified for a newly-created object. Defaults to ``STANDARD``.
      */
     @Updatable
     @ValidStrings({ "STANDARD", "NEARLINE", "COLDLINE", "MULTI-REGIONAL", "REGIONAL", "DURABLE_REDUCED_AVAILABILITY" })

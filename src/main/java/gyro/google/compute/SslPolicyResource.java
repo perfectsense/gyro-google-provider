@@ -104,7 +104,7 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     }
 
     /**
-     * The minimum version of SSL protocol that can be used by the clients to establish a connection with the load balancer. Valid values are ``TLS_1_0``, ``TLS_1_1``, or ``TLS_1_2``. (Required)
+     * The minimum version of SSL protocol that can be used by the clients to establish a connection with the load balancer.
      */
     @Required
     @Updatable
@@ -118,10 +118,10 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     }
 
     /**
-     * The name of the SSL policy. Must be 1-63 characters long, and the first character must be a lowercase letter. All other characters must be a lowercase letter, digit, or ``-``, except the last character, which cannot be a ``-``. (Required)
+     * The name of the SSL policy.
      */
     @Required
-    @Regex("[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?")
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "a string 1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
     public String getName() {
         return name;
     }
@@ -131,7 +131,7 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     }
 
     /**
-     * Specifies the set of SSL features that can be used by the load balancer when negotiating SSL with clients. Valid values are ``COMPATIBLE``, ``MODERN``, ``RESTRICTED``, or ``CUSTOM``. If using ``CUSTOM``, the set of SSL features to enable must be specified in the ``custom-features`` field. (Required)
+     * Specifies the set of SSL features that can be used by the load balancer when negotiating SSL with clients. If using ``CUSTOM``, the set of SSL features to enable must be specified in the ``custom-features`` field.
      */
     @Required
     @Updatable

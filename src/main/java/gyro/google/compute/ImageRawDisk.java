@@ -29,7 +29,7 @@ public class ImageRawDisk extends Diffable implements Copyable<Image.RawDisk> {
     private String source;
 
     /**
-     *  The full Google Cloud Storage URL of the storage file that should be the source of the image. File must use ``.tar.gz`` extension and the file inside the archive must be named ``disk.raw``. See `Manually importing virtual disks  <https://cloud.google.com/compute/docs/import/import-existing-image>`_ for instructions on how to create the file. (Required)
+     *  The full Google Cloud Storage URL of the storage file that should be the source of the image. File must use ``.tar.gz`` extension and the file inside the archive must be named ``disk.raw``. See `Manually importing virtual disks  <https://cloud.google.com/compute/docs/import/import-existing-image>`_ for instructions on how to create the file.
      */
     @Required
     public String getSource() {

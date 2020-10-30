@@ -29,7 +29,9 @@ public class SecurityPolicyRuleMatcher extends Diffable
     private String versionedExpr;
 
     /**
-     * The configuration for the security policy rule matcher. (Required)
+     * The configuration for the security policy rule matcher.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRuleMatcherConfig
      */
     @Required
     @Updatable
@@ -42,7 +44,7 @@ public class SecurityPolicyRuleMatcher extends Diffable
     }
 
     /**
-     * The versioned expression of the security policy rule matcher. Currently only supported value is ``SRC_IPS_V1``. (Required)
+     * The versioned expression of the security policy rule matcher. Currently only supported value is ``SRC_IPS_V1``.
      */
     @Required
     @Updatable

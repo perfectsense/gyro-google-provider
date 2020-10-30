@@ -37,7 +37,7 @@ public class BucketIamPolicyBinding extends Diffable implements Copyable<Policy.
     private BucketIamPolicyBindingCondition condition;
 
     /**
-     * The role associated with this binding. (Required)
+     * The role associated with this binding.
      */
     @Required
     public String getRole() {
@@ -49,7 +49,7 @@ public class BucketIamPolicyBinding extends Diffable implements Copyable<Policy.
     }
 
     /**
-     * A list of identifiers for members who may assume the provided role. (Required)
+     * A list of identifiers for members who may assume the provided role.
      */
     @Required
     public List<String> getMembers() {

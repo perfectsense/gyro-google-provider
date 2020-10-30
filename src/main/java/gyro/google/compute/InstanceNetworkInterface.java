@@ -39,7 +39,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     private String name;
 
     /**
-     * Network for this instance. If neither the network or subnetwork is specified, the default network ``global/networks/default`` is used and if the network is not specified but the subnetwork is specified, the network is inferred. (Required)
+     * Network for this instance. If neither the network or subnetwork is specified, the default network ``global/networks/default`` is used and if the network is not specified but the subnetwork is specified, the network is inferred.
      *
      * @resource gyro.google.compute.NetworkResource
      */
