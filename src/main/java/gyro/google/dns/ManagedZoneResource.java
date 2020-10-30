@@ -115,7 +115,7 @@ public class ManagedZoneResource extends GoogleResource implements Copyable<Mana
     }
 
     /**
-     * The DNS name of this managed zone, for instance ``example.com.``. 
+     * The DNS name of this managed zone, for instance ``example.com.``.
      */
     @Regex(value = ".+(?<!\\.)\\.\\z", message = "a string ending with a single @|bold .|@ at the end")
     public String getDnsName() {
