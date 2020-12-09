@@ -1,0 +1,7 @@
+google::topic topic-example
+    name: "topic-example"
+
+    labels: {
+        name: "topic-example"
+    }
+end
