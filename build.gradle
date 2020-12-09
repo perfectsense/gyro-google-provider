@@ -73,6 +73,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-kms'
     implementation 'com.google.cloud:google-cloud-resourcemanager'
     implementation 'com.google.cloud:google-cloud-storage'
+    implementation 'com.google.cloud:google-cloud-pubsub'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 
     gyroDoclet "gyro:gyro-doclet:0.99.1"
