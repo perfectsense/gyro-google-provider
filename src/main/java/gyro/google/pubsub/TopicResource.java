@@ -30,6 +30,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
+import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -62,6 +63,7 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
     private Map<String, String> labels;
     private MessageStoragePolicy messageStoragePolicy;
     private String name;
+    private String referenceName;
 
     /**
      * The Cloud KMS CryptoKey to be used to protect access to messages published on this topic.
@@ -106,7 +108,6 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
     /**
      * The name of the topic.
      */
-    @Id
     @Required
     public String getName() {
         return name;
@@ -114,6 +115,19 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * The full name of the topic along with project path.
+     */
+    @Id
+    @Output
+    public String getReferenceName() {
+        return referenceName;
+    }
+
+    public void setReferenceName(String referenceName) {
+        this.referenceName = referenceName;
     }
 
     @Override
@@ -124,6 +138,7 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
 
         setLabels(model.getLabelsMap());
         setName(Utils.getTopicNameFromId(model.getName()));
+        setReferenceName(model.getName());
 
         setMessageStoragePolicy(null);
         if (model.hasMessageStoragePolicy()) {
@@ -131,7 +146,6 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
             storagePolicy.copyFrom(model.getMessageStoragePolicy());
             setMessageStoragePolicy(storagePolicy);
         }
-
     }
 
     @Override
@@ -161,23 +175,22 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
     protected void doCreate(GyroUI ui, State state) throws Exception {
         TopicAdminClient client = createClient(TopicAdminClient.class);
 
+        Topic.Builder builder = Topic.newBuilder().setName(TopicName.format(getProjectId(), getName()));
+
+        if (!getLabels().isEmpty()) {
+            builder.putAllLabels(getLabels());
+        }
+
+        if (getKmsKey() != null) {
+            builder.setKmsKeyName(getKmsKey().getId());
+        }
+
+        if (getMessageStoragePolicy() != null) {
+            builder.setMessageStoragePolicy(getMessageStoragePolicy().toMessageStoragePolicy());
+        }
+
         try {
-            Topic topic = client.createTopic(TopicName.format(getProjectId(), getName()));
-
-            if (!getLabels().isEmpty()) {
-                state.save();
-                updateLabels(topic, client);
-            }
-
-            if (getKmsKey() != null) {
-                state.save();
-                updateKmskey(topic, client);
-            }
-
-            if (getMessageStoragePolicy() != null) {
-                state.save();
-                updateMessageStoragePolicy(topic, client);
-            }
+            client.createTopic(builder.build());
         } finally {
             client.shutdownNow();
         }
@@ -192,17 +205,17 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
 
         try {
             if (changedFieldNames.contains("labels")) {
-                Topic topic = client.getTopic(TopicName.format(getProjectId(), getName()));
+                Topic topic = client.getTopic(getReferenceName());
                 updateLabels(topic, client);
             }
 
             if (changedFieldNames.contains("kms-key")) {
-                Topic topic = client.getTopic(TopicName.format(getProjectId(), getName()));
+                Topic topic = client.getTopic(getReferenceName());
                 updateKmskey(topic, client);
             }
 
             if (changedFieldNames.contains("message-storage-policy")) {
-                Topic topic = client.getTopic(TopicName.format(getProjectId(), getName()));
+                Topic topic = client.getTopic(getReferenceName());
                 updateMessageStoragePolicy(topic, client);
             }
         } finally {
@@ -215,7 +228,7 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
         TopicAdminClient client = createClient(TopicAdminClient.class);
 
         try {
-            client.deleteTopic(TopicName.format(getProjectId(), getName()));
+            client.deleteTopic(getReferenceName());
         } finally {
             client.shutdownNow();
         }
@@ -235,7 +248,11 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
     private void updateKmskey(Topic topic, TopicAdminClient client) {
         Topic.Builder builder = topic.toBuilder();
         builder.clearKmsKeyName();
-        builder.setKmsKeyName(getKmsKey().getId());
+
+        if (getKmsKey() != null) {
+            builder.setKmsKeyName(getKmsKey().getId());
+        }
+
         UpdateTopicRequest updateTopicRequest = UpdateTopicRequest.newBuilder()
             .setUpdateMask(FieldMask.newBuilder().addPaths("kms_key_name").build())
             .setTopic(builder.build())
@@ -246,7 +263,11 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
     private void updateMessageStoragePolicy(Topic topic, TopicAdminClient client) {
         Topic.Builder builder = topic.toBuilder();
         builder.clearMessageStoragePolicy();
-        builder.setMessageStoragePolicy(getMessageStoragePolicy().toMessageStoragePolicy());
+
+        if (getMessageStoragePolicy() != null) {
+            builder.setMessageStoragePolicy(getMessageStoragePolicy().toMessageStoragePolicy());
+        }
+        
         UpdateTopicRequest updateTopicRequest = UpdateTopicRequest.newBuilder()
             .setUpdateMask(FieldMask.newBuilder().addPaths("message_storage_policy").build())
             .setTopic(builder.build())
