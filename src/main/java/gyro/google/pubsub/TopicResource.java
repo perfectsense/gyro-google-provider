@@ -204,20 +204,34 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
         TopicAdminClient client = createClient(TopicAdminClient.class);
 
         try {
+            Topic topic = client.getTopic(getReferenceName());
+
+            Topic.Builder topicBuilder = topic.toBuilder();
+
+            FieldMask.Builder fieldMaskBuilder = FieldMask.newBuilder();
+
             if (changedFieldNames.contains("labels")) {
-                Topic topic = client.getTopic(getReferenceName());
-                updateLabels(topic, client);
+                topicBuilder.clearLabels();
+                topicBuilder.putAllLabels(getLabels());
+                fieldMaskBuilder.addPaths("labels");
             }
 
             if (changedFieldNames.contains("kms-key")) {
-                Topic topic = client.getTopic(getReferenceName());
-                updateKmskey(topic, client);
+                topicBuilder.clearKmsKeyName();
+                topicBuilder.setKmsKeyName(getKmsKey().getName());
+                fieldMaskBuilder.addPaths("kms_key_name");
             }
 
             if (changedFieldNames.contains("message-storage-policy")) {
-                Topic topic = client.getTopic(getReferenceName());
-                updateMessageStoragePolicy(topic, client);
+                topicBuilder.clearMessageStoragePolicy();
+                topicBuilder.setMessageStoragePolicy(getMessageStoragePolicy().toMessageStoragePolicy());
+                fieldMaskBuilder.addPaths("message_storage_policy");
             }
+
+            client.updateTopic(UpdateTopicRequest.newBuilder()
+                .setUpdateMask(fieldMaskBuilder.build())
+                .setTopic(topicBuilder.build())
+                .build());
         } finally {
             client.shutdownNow();
         }
@@ -232,46 +246,5 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
         } finally {
             client.shutdownNow();
         }
-    }
-
-    private void updateLabels(Topic topic, TopicAdminClient client) {
-        Topic.Builder builder = topic.toBuilder();
-        builder.clearLabels();
-        builder.putAllLabels(getLabels());
-        UpdateTopicRequest updateTopicRequest = UpdateTopicRequest.newBuilder()
-            .setUpdateMask(FieldMask.newBuilder().addPaths("labels").build())
-            .setTopic(builder.build())
-            .build();
-        client.updateTopic(updateTopicRequest);
-    }
-
-    private void updateKmskey(Topic topic, TopicAdminClient client) {
-        Topic.Builder builder = topic.toBuilder();
-        builder.clearKmsKeyName();
-
-        if (getKmsKey() != null) {
-            builder.setKmsKeyName(getKmsKey().getId());
-        }
-
-        UpdateTopicRequest updateTopicRequest = UpdateTopicRequest.newBuilder()
-            .setUpdateMask(FieldMask.newBuilder().addPaths("kms_key_name").build())
-            .setTopic(builder.build())
-            .build();
-        client.updateTopic(updateTopicRequest);
-    }
-
-    private void updateMessageStoragePolicy(Topic topic, TopicAdminClient client) {
-        Topic.Builder builder = topic.toBuilder();
-        builder.clearMessageStoragePolicy();
-
-        if (getMessageStoragePolicy() != null) {
-            builder.setMessageStoragePolicy(getMessageStoragePolicy().toMessageStoragePolicy());
-        }
-        
-        UpdateTopicRequest updateTopicRequest = UpdateTopicRequest.newBuilder()
-            .setUpdateMask(FieldMask.newBuilder().addPaths("message_storage_policy").build())
-            .setTopic(builder.build())
-            .build();
-        client.updateTopic(updateTopicRequest);
     }
 }
