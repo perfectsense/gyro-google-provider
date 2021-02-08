@@ -62,7 +62,8 @@ public class Expr extends Diffable implements Copyable<com.google.api.services.c
 
     @Override
     public String primaryKey() {
-        return String.format("Expr: %s", getTitle());
+        return String.format("Title: %s, Description: %s, Expression: %s, Location: %s",
+            getTitle(), getDescription(), getExpression(), getLocation());
     }
 
     @Override

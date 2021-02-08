@@ -53,17 +53,23 @@ public class ServiceAccountRole extends Diffable {
 
     @Override
     public String primaryKey() {
+        StringBuilder sb = new StringBuilder();
+
         if (getCustomRole() != null) {
-            return String.format(
+            sb.append(String.format(
                 "Role: %s",
-                getCustomRole().getRoleId() == null ? getCustomRole().getName() : getCustomRole().getRoleId());
+                getCustomRole().getRoleId() == null ? getCustomRole().getName() : getCustomRole().getRoleId()));
 
         } else if (getPredefinedRole() != null) {
-            return String.format("Role: %s", getPredefinedRole().getName());
+            sb.append(String.format("Role: %s", getPredefinedRole().getName()));
 
-        } else {
-            return null;
         }
+
+        if (getCondition() != null) {
+            sb.append(String.format(" Condition: (%s)", getCondition().primaryKey()));
+        }
+
+        return sb.toString();
     }
 
     @Override
