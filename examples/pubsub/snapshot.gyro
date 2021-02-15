@@ -6,45 +6,6 @@ google::topic topic-example-for-subscription
     }
 end
 
-google::subscription subscription-pull-example
-    name: "subscription-pull-example"
-    topic: $(google::topic topic-example-for-subscription)
-
-    ack-deadline-seconds: 15
-    enable-message-ordering: false
-    filter: ""
-    retain-acked-messages: false
-    detached: true
-
-    expiration-policy
-        ttl
-            seconds: 2678400
-            nanos: 0
-        end
-    end
-
-    message-retention
-        seconds: 525780
-        nanos: 0
-    end
-
-    retry-policy
-        maximum-backoff
-            seconds: 600
-            nanos: 0
-        end
-
-        minimum-backoff
-            seconds: 600
-            nanos: 0
-        end
-    end
-
-    labels: {
-        name: "subscription-pull-example"
-    }
-end
-
 google::subscription subscription-push-example
     name: "subscription-push-example"
     topic: $(google::topic topic-example-for-subscription)
@@ -53,7 +14,6 @@ google::subscription subscription-push-example
     enable-message-ordering: false
     filter: ""
     retain-acked-messages: true
-    #detached: true
 
     dead-letter-policy
         dead-letter-topic: $(google::topic topic-example-for-subscription)
@@ -87,6 +47,15 @@ google::subscription subscription-push-example
     push-config
         push-endpoint: "https://google.com"
     end
+
+    labels: {
+        "example-label": "example-value"
+    }
+end
+
+google::snapshot example-snapshot
+    name: "example-snapshot"
+    subscription: $(google::subscription subscription-push-example)
 
     labels: {
         "example-label": "example-value"

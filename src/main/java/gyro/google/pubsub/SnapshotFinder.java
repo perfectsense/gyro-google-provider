@@ -19,32 +19,33 @@ package gyro.google.pubsub;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.SubscriptionAdminClient;
 import com.google.pubsub.v1.ProjectName;
-import com.google.pubsub.v1.ProjectSubscriptionName;
-import com.google.pubsub.v1.Subscription;
+import com.google.pubsub.v1.Snapshot;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
- * Query for subscriptions.
+ * Query for snapshot.
  *
  * Example
  * -------
  *
  * .. code-block:: gyro
  *
- *    subscription: $(external-query google::subscription {name: "subscription-example"})
+ *    snapshot: $(external-query google::snapshot {name: "example-snapshot"})
  */
-@Type("subscription")
-public class SubscriptionFinder extends GoogleFinder<SubscriptionAdminClient, Subscription, SubscriptionResource> {
+@Type("snapshot")
+public class SnapshotFinder extends GoogleFinder<SubscriptionAdminClient, Snapshot, SnapshotResource> {
 
     private String name;
 
     /**
-     * The name of the subscription.
+     * The name of the snapshot.
      */
     public String getName() {
         return name;
@@ -55,36 +56,41 @@ public class SubscriptionFinder extends GoogleFinder<SubscriptionAdminClient, Su
     }
 
     @Override
-    protected List<Subscription> findAllGoogle(SubscriptionAdminClient client) throws Exception {
-        List<Subscription> subscriptions = new ArrayList<>();
+    protected List<Snapshot> findAllGoogle(SubscriptionAdminClient client) throws Exception {
+        List<Snapshot> snapshots = new ArrayList<>();
 
         try {
-            client.listSubscriptions(ProjectName.format(getProjectId())).iterateAll().forEach(subscriptions::add);
+            client.listSnapshots(ProjectName.format(getProjectId())).iterateAll().forEach(snapshots::add);
         } catch (NotFoundException ignore) {
-            // Either topic or subscription not found
+            // Project not found
         } finally {
             client.shutdownNow();
         }
 
-        return subscriptions;
+        return snapshots;
     }
 
     @Override
-    protected List<Subscription> findGoogle(
-        SubscriptionAdminClient client, Map<String, String> filters) throws Exception {
-        List<Subscription> subscriptions = new ArrayList<>();
+    protected List<Snapshot> findGoogle(SubscriptionAdminClient client, Map<String, String> filters) throws Exception {
+        List<Snapshot> snapshots = new ArrayList<>();
 
         try {
-            Subscription subscription = client.getSubscription(ProjectSubscriptionName.format(
-                getProjectId(),
-                filters.get("name")));
-            subscriptions.add(subscription);
+            Snapshot snapshot = StreamSupport.stream(client.listSnapshots(ProjectName.newBuilder()
+                .setProject(getProjectId())
+                .build()).iterateAll().spliterator(), false)
+                .filter(r -> Utils.getSnapshotNameFromId(r.getName()).equals(filters.get("name")))
+                .findFirst()
+                .orElse(null);
+
+            if (snapshot != null) {
+                snapshots.add(snapshot);
+            }
         } catch (NotFoundException ignore) {
             // Subscription not found
         } finally {
             client.shutdownNow();
         }
 
-        return subscriptions;
+        return snapshots;
     }
 }

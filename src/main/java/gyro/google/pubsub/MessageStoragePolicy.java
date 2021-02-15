@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Brightspot.
+ * Copyright 2021, Brightspot.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class MessageStoragePolicy extends Diffable implements Copyable<com.googl
     private List<String> allowedPersistenceRegions;
 
     /**
-     * A list of IDs of GCP regions where messages that are published to the topic may be persisted in storage.
+     * The list of IDs of GCP regions where messages that are published to the topic may be persisted in storage.
      */
     @Required
     public List<String> getAllowedPersistenceRegions() {

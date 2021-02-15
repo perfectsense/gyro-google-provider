@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Brightspot.
+ * Copyright 2021, Brightspot.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,8 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
     private Map<String, String> labels;
     private MessageStoragePolicy messageStoragePolicy;
     private String name;
+
+    // Read-only
     private String referenceName;
 
     /**
@@ -78,7 +80,7 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
     }
 
     /**
-     * A set of labels for the topic.
+     * The set of labels for the topic.
      */
     @Updatable
     public Map<String, String> getLabels() {
@@ -95,6 +97,8 @@ public class TopicResource extends GoogleResource implements Copyable<Topic> {
 
     /**
      * The message storage policy configuration.
+     *
+     * @subresource gyro.google.pubsub.MessageStoragePolicy
      */
     @Updatable
     public MessageStoragePolicy getMessageStoragePolicy() {

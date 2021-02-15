@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021, Brightspot.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.google.pubsub;
 
 import com.google.pubsub.v1.PushConfig;
@@ -7,11 +23,10 @@ import gyro.google.Copyable;
 public class OidcToken extends Diffable implements Copyable<PushConfig.OidcToken> {
 
     private String audience;
-
     private String serviceAccountEmail;
 
     /**
-     * Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.
+     * The audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for.
      */
     public String getAudience() {
         return audience;
@@ -22,7 +37,7 @@ public class OidcToken extends Diffable implements Copyable<PushConfig.OidcToken
     }
 
     /**
-     * [Service account email](https://cloud.google.com/iam/docs/service-accounts) to be used for generating the OIDC token. The caller (for CreateSubscription, UpdateSubscription, and ModifyPushConfig RPCs) must have the iam.serviceAccounts.actAs permission for the service account.
+     * The email of the service account to be used for generating the OIDC token.
      */
     public String getServiceAccountEmail() {
         return serviceAccountEmail;
