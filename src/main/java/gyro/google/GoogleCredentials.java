@@ -35,6 +35,10 @@ import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
 import com.google.cloud.kms.v1.KeyManagementServiceSettings;
+import com.google.cloud.pubsub.v1.SubscriptionAdminClient;
+import com.google.cloud.pubsub.v1.SubscriptionAdminSettings;
+import com.google.cloud.pubsub.v1.TopicAdminClient;
+import com.google.cloud.pubsub.v1.TopicAdminSettings;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.auth.Credentials;
@@ -123,6 +127,26 @@ public class GoogleCredentials extends Credentials {
                         .build();
 
                 return (T) KeyManagementServiceClient.create(keyManagementServiceSettings);
+            } catch (IOException ex) {
+                throw new GyroException(
+                    String.format("Unable to create %s client", clientClass.getSimpleName()));
+            }
+        } else if (clientClass.getSimpleName().equals("TopicAdminClient")) {
+            try {
+                TopicAdminSettings topicAdminSettings = TopicAdminSettings.newBuilder()
+                    .setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials()))
+                    .build();
+                return (T) TopicAdminClient.create(topicAdminSettings);
+            } catch (IOException ex) {
+                throw new GyroException(
+                    String.format("Unable to create %s client", clientClass.getSimpleName()));
+            }
+        } else if (clientClass.getSimpleName().equals("SubscriptionAdminClient")) {
+            try {
+                SubscriptionAdminSettings subscriptionAdminSettings = SubscriptionAdminSettings.newBuilder()
+                    .setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials()))
+                    .build();
+                return (T) SubscriptionAdminClient.create(subscriptionAdminSettings);
             } catch (IOException ex) {
                 throw new GyroException(
                     String.format("Unable to create %s client", clientClass.getSimpleName()));

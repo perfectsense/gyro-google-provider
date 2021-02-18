@@ -137,4 +137,22 @@ public final class Utils {
         int index = list.indexOf("cryptoKeyVersions");
         return list.get(index + 1);
     }
+
+    public static String getTopicNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("topics");
+        return list.get(index + 1);
+    }
+
+    public static String getSubscriptionNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("subscriptions");
+        return list.get(index + 1);
+    }
+
+    public static String getSnapshotNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("snapshots");
+        return list.get(index + 1);
+    }
 }

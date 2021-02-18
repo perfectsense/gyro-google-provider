@@ -1,0 +1,63 @@
+google::topic topic-example-for-snapshot
+    name: "topic-example-for-snapshot"
+
+    labels: {
+        name: "topic-example-for-snapshot"
+    }
+end
+
+google::subscription subscription-push-example
+    name: "subscription-push-example-for-snapshot"
+    topic: $(google::topic topic-example-for-snapshot)
+
+    ack-deadline-seconds: 10
+    enable-message-ordering: false
+    filter: ""
+    retain-acked-messages: true
+
+    dead-letter-policy
+        dead-letter-topic: $(google::topic topic-example-for-snapshot)
+        max-delivery-attempts: 5
+    end
+
+    expiration-policy
+        ttl
+            seconds: 604800
+            nanos: 0
+        end
+    end
+
+    retry-policy
+        maximum-backoff
+            seconds: 600
+            nanos: 0
+        end
+
+        minimum-backoff
+            seconds: 600
+            nanos: 0
+        end
+    end
+
+    message-retention
+        seconds: 604800
+        nanos: 0
+    end
+
+    push-config
+        push-endpoint: "https://google.com"
+    end
+
+    labels: {
+        name: "subscription-push-example-for-snapshot"
+    }
+end
+
+google::snapshot example-snapshot
+    name: "example-snapshot"
+    subscription: $(google::subscription subscription-push-example)
+
+    labels: {
+        name: "example-snapshot"
+    }
+end
