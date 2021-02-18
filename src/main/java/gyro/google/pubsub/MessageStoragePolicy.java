@@ -51,9 +51,7 @@ public class MessageStoragePolicy extends Diffable implements Copyable<com.googl
     @Override
     public void copyFrom(com.google.pubsub.v1.MessageStoragePolicy model) throws Exception {
         getAllowedPersistenceRegions().clear();
-        for (int i = 0; i < model.getAllowedPersistenceRegionsCount(); i++) {
-            getAllowedPersistenceRegions().add(model.getAllowedPersistenceRegions(i));
-        }
+        setAllowedPersistenceRegions(new ArrayList<>(model.getAllowedPersistenceRegionsList()));
     }
 
     protected com.google.pubsub.v1.MessageStoragePolicy toMessageStoragePolicy() {
