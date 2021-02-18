@@ -89,6 +89,6 @@ google::subscription subscription-push-example
     end
 
     labels: {
-        "example-label": "example-value"
+        name: "subscription-push-example"
     }
 end
