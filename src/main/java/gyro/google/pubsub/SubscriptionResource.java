@@ -365,7 +365,6 @@ public class SubscriptionResource extends GoogleResource implements Copyable<Sub
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         SubscriptionAdminClient client = createClient(SubscriptionAdminClient.class);
-        TopicAdminClient topicClient = createClient(TopicAdminClient.class);
 
         Subscription.Builder builder = Subscription.newBuilder()
             .setTopic(getTopic().getReferenceName());
@@ -420,8 +419,14 @@ public class SubscriptionResource extends GoogleResource implements Copyable<Sub
             copyFrom(subscription);
 
             if (getDetached().equals(Boolean.TRUE)) {
-                topicClient.detachSubscription(DetachSubscriptionRequest.newBuilder()
-                    .setSubscription(getReferenceName()).build());
+                TopicAdminClient topicClient = createClient(TopicAdminClient.class);
+
+                try {
+                    topicClient.detachSubscription(DetachSubscriptionRequest.newBuilder()
+                        .setSubscription(getReferenceName()).build());
+                } finally {
+                    topicClient.shutdown();
+                }
             }
         } finally {
             client.shutdownNow();
@@ -432,15 +437,20 @@ public class SubscriptionResource extends GoogleResource implements Copyable<Sub
     protected void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         SubscriptionAdminClient client = createClient(SubscriptionAdminClient.class);
-        TopicAdminClient topicClient = createClient(TopicAdminClient.class);
 
         try {
             if (changedFieldNames.contains("detached") && getDetached().equals(Boolean.TRUE)) {
-                topicClient.detachSubscription(DetachSubscriptionRequest.newBuilder()
-                    .setSubscription(getReferenceName()).build());
-            }
+                TopicAdminClient topicClient = createClient(TopicAdminClient.class);
 
-            changedFieldNames.remove("detached");
+                try {
+                    topicClient.detachSubscription(DetachSubscriptionRequest.newBuilder()
+                        .setSubscription(getReferenceName()).build());
+                } finally {
+                    topicClient.shutdown();
+                }
+
+                changedFieldNames.remove("detached");
+            }
 
             if (!changedFieldNames.isEmpty()) {
                 Subscription subscription = client.getSubscription(getReferenceName());
@@ -510,7 +520,6 @@ public class SubscriptionResource extends GoogleResource implements Copyable<Sub
             }
         } finally {
             client.shutdownNow();
-            topicClient.shutdown();
         }
     }
 
