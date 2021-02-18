@@ -14,7 +14,6 @@ google::subscription subscription-pull-example
     enable-message-ordering: false
     filter: ""
     retain-acked-messages: false
-    detached: true
 
     expiration-policy
         ttl
@@ -53,7 +52,6 @@ google::subscription subscription-push-example
     enable-message-ordering: false
     filter: ""
     retain-acked-messages: true
-    #detached: true
 
     dead-letter-policy
         dead-letter-topic: $(google::topic topic-example-for-subscription)

@@ -57,7 +57,6 @@ import gyro.google.util.Utils;
  *        enable-message-ordering: false
  *        filter: ""
  *        retain-acked-messages: false
- *        detached: true
  *
  *        expiration-policy
  *            ttl
@@ -159,7 +158,7 @@ public class SubscriptionResource extends GoogleResource implements Copyable<Sub
     }
 
     /**
-     * When set to ``true``, the subscription is detached from its topic.
+     * When set to ``true``, the subscription is detached from its topic. Once detached cannot be re attached.
      */
     @Updatable
     public Boolean getDetached() {
@@ -439,7 +438,7 @@ public class SubscriptionResource extends GoogleResource implements Copyable<Sub
         SubscriptionAdminClient client = createClient(SubscriptionAdminClient.class);
 
         try {
-            if (changedFieldNames.contains("detached") && getDetached().equals(Boolean.TRUE)) {
+            if (changedFieldNames.contains("detached")) {
                 TopicAdminClient topicClient = createClient(TopicAdminClient.class);
 
                 try {
