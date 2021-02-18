@@ -76,7 +76,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-pubsub'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 
-    gyroDoclet "gyro:gyro-doclet:0.99.1"
+    gyroDoclet "gyro:gyro-doclet:1.0.0"
 }
 
 checkstyle {
