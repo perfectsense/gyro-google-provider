@@ -1,14 +1,14 @@
-google::topic topic-example-for-subscription
-    name: "topic-example-for-subscription"
+google::topic topic-example-for-snapshot
+    name: "topic-example-for-snapshot"
 
     labels: {
-        name: "topic-example-for-subscription"
+        name: "topic-example-for-snapshot"
     }
 end
 
 google::subscription subscription-push-example
-    name: "subscription-push-example"
-    topic: $(google::topic topic-example-for-subscription)
+    name: "subscription-push-example-for-snapshot"
+    topic: $(google::topic topic-example-for-snapshot)
 
     ack-deadline-seconds: 10
     enable-message-ordering: false
@@ -16,7 +16,7 @@ google::subscription subscription-push-example
     retain-acked-messages: true
 
     dead-letter-policy
-        dead-letter-topic: $(google::topic topic-example-for-subscription)
+        dead-letter-topic: $(google::topic topic-example-for-snapshot)
         max-delivery-attempts: 5
     end
 
@@ -49,7 +49,7 @@ google::subscription subscription-push-example
     end
 
     labels: {
-        "example-label": "example-value"
+        name: "subscription-push-example-for-snapshot"
     }
 end
 
@@ -58,6 +58,6 @@ google::snapshot example-snapshot
     subscription: $(google::subscription subscription-push-example)
 
     labels: {
-        "example-label": "example-value"
+        name: "example-snapshot"
     }
 end
