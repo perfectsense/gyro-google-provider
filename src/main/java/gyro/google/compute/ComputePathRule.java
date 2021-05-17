@@ -33,6 +33,7 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     private BackendServiceResource backendService;
     private RegionBackendServiceResource regionBackendService;
     private List<String> paths;
+    private HttpRedirectAction urlRedirect;
 
     /**
      * The backend bucket resource to which traffic is directed if this rule is matched.
@@ -85,6 +86,19 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         this.paths = paths;
     }
 
+    /**
+     * The url redirect configuration.
+     *
+     * @subresource gyro.google.compute.HttpRedirectAction
+     */
+    public HttpRedirectAction getUrlRedirect() {
+        return urlRedirect;
+    }
+
+    public void setUrlRedirect(HttpRedirectAction urlRedirect) {
+        this.urlRedirect = urlRedirect;
+    }
+
     @Override
     public void copyFrom(PathRule model) {
         setPaths(model.getPaths());
@@ -103,6 +117,13 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         setRegionBackendService(null);
         if (RegionBackendServiceResource.isRegionBackendService(service)) {
             setRegionBackendService(findById(RegionBackendServiceResource.class, service));
+        }
+
+        setUrlRedirect(null);
+        if (model.getUrlRedirect() != null) {
+            HttpRedirectAction redirectAction = newSubresource(HttpRedirectAction.class);
+            redirectAction.copyFrom(model.getUrlRedirect());
+            setUrlRedirect(redirectAction);
         }
     }
 
@@ -140,7 +161,13 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
             throw new GyroException(
                 "Either 'backend-bucket', 'backend-service', or 'region-backend-service' is required!");
         }
+
         pathRule.setService(service);
+
+        if (getUrlRedirect() != null) {
+            pathRule.setUrlRedirect(getUrlRedirect().toHttpRedirectAction());
+        }
+
         return pathRule;
     }
 }
