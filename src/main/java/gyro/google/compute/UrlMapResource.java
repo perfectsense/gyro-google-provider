@@ -175,11 +175,11 @@ public class UrlMapResource extends AbstractUrlMapResource {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getDefaultBackendBucket() == null && getDefaultBackendService() == null
-            && getDefaultRegionBackendService() == null) {
+            && getDefaultRegionBackendService() == null && getDefaultHttpRedirectAction() == null) {
             errors.add(new ValidationError(
                 this,
                 null,
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!"));
+                "Either 'default-backend-bucket', 'default-backend-service', 'default-http-redirect-action' or 'default-region-backend-service' is required!"));
         }
         return errors;
     }
