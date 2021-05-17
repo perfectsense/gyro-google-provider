@@ -39,6 +39,7 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
     private String description;
     private List<ComputeHostRule> hostRule;
     private List<ComputePathMatcher> pathMatcher;
+    private HttpRedirectAction defaultHttpRedirectAction;
 
     // Read-only
     private String selfLink;
@@ -104,6 +105,20 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
     }
 
     /**
+     * The default http redirect action configuration.
+     *
+     * @subresource gyro.google.compute.HttpRedirectAction
+     */
+    @Updatable
+    public HttpRedirectAction getDefaultHttpRedirectAction() {
+        return defaultHttpRedirectAction;
+    }
+
+    public void setDefaultHttpRedirectAction(HttpRedirectAction defaultHttpRedirectAction) {
+        this.defaultHttpRedirectAction = defaultHttpRedirectAction;
+    }
+
+    /**
      * Server-defined URL for the resource.
      */
     @Id
@@ -164,6 +179,13 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
                 .collect(Collectors.toList());
         }
         setPathMatcher(computePathMatchers);
+
+        setDefaultHttpRedirectAction(null);
+        if (urlMap.getDefaultUrlRedirect() != null) {
+            HttpRedirectAction redirectAction = newSubresource(HttpRedirectAction.class);
+            redirectAction.copyFrom(urlMap.getDefaultUrlRedirect());
+            setDefaultHttpRedirectAction(redirectAction);
+        }
     }
 
     protected UrlMap toUrlMap(Set<String> changedFieldNames) {
@@ -189,6 +211,10 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
         List<ComputePathMatcher> pathMatchers = getPathMatcher();
         if (!pathMatchers.isEmpty()) {
             urlMap.setPathMatchers(pathMatchers.stream().map(ComputePathMatcher::copyTo).collect(Collectors.toList()));
+        }
+
+        if (getDefaultHttpRedirectAction() != null) {
+            urlMap.setDefaultUrlRedirect(getDefaultHttpRedirectAction().toHttpRedirectAction());
         }
 
         return urlMap;
