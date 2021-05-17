@@ -143,7 +143,10 @@ public class UrlMapResource extends AbstractUrlMapResource {
         } else if (getDefaultRegionBackendService() != null) {
             defaultService = getDefaultRegionBackendService().getSelfLink();
         }
-        urlMap.setDefaultService(defaultService);
+
+        if (urlMap.getDefaultUrlRedirect() == null) {
+            urlMap.setDefaultService(defaultService);
+        }
 
         Operation response = client.urlMaps().insert(getProjectId(), urlMap).execute();
         waitForCompletion(client, response);
@@ -175,11 +178,11 @@ public class UrlMapResource extends AbstractUrlMapResource {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getDefaultBackendBucket() == null && getDefaultBackendService() == null
-            && getDefaultRegionBackendService() == null) {
+            && getDefaultRegionBackendService() == null && getDefaultHttpRedirectAction() == null) {
             errors.add(new ValidationError(
                 this,
                 null,
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!"));
+                "Either 'default-backend-bucket', 'default-backend-service', 'default-http-redirect-action' or 'default-region-backend-service' is required!"));
         }
         return errors;
     }

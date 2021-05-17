@@ -114,7 +114,10 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
 
         UrlMap urlMap = toUrlMap(null);
         urlMap.setRegion(getRegion());
-        urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
+
+        if (urlMap.getDefaultUrlRedirect() == null) {
+            urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
+        }
 
         Operation response = client.regionUrlMaps().insert(getProjectId(), getRegion(), urlMap).execute();
         waitForCompletion(client, response);

@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 import com.google.api.services.compute.model.PathMatcher;
 import com.google.api.services.compute.model.PathRule;
-import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
@@ -38,6 +37,7 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     private BackendServiceResource defaultBackendService;
     private RegionBackendServiceResource defaultRegionBackendService;
     private List<ComputePathRule> pathRule;
+    private HttpRedirectAction defaultUrlRedirect;
 
     /**
      * The name to which this path matcher is referred by the host rule.
@@ -116,6 +116,19 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         this.pathRule = pathRule;
     }
 
+    /**
+     * The default url redirect configuration.
+     *
+     * @subresource gyro.google.compute.HttpRedirectAction
+     */
+    public HttpRedirectAction getDefaultUrlRedirect() {
+        return defaultUrlRedirect;
+    }
+
+    public void setDefaultUrlRedirect(HttpRedirectAction defaultUrlRedirect) {
+        this.defaultUrlRedirect = defaultUrlRedirect;
+    }
+
     @Override
     public void copyFrom(PathMatcher model) {
         setName(model.getName());
@@ -151,6 +164,13 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
                 .collect(Collectors.toList());
         }
         setPathRule(computePathRules);
+
+        setDefaultUrlRedirect(null);
+        if (model.getDefaultUrlRedirect() != null) {
+            HttpRedirectAction redirectAction = newSubresource(HttpRedirectAction.class);
+            redirectAction.copyFrom(model.getDefaultUrlRedirect());
+            setDefaultUrlRedirect(redirectAction);
+        }
     }
 
     @Override
@@ -163,11 +183,11 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         List<ValidationError> errors = new ArrayList<>();
 
         if (getDefaultBackendBucket() == null && getDefaultBackendService() == null
-            && getDefaultRegionBackendService() == null) {
+            && getDefaultRegionBackendService() == null && getDefaultUrlRedirect() != null) {
             errors.add(new ValidationError(
                 this,
                 null,
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!"));
+                "Either 'default-backend-bucket', 'default-backend-service', 'default-region-backend-service', or 'default-url-redirect' is required!"));
         }
         return errors;
     }
@@ -177,23 +197,26 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         pathMatcher.setName(getName());
         pathMatcher.setDescription(getDescription());
 
-        String defaultService;
+        String defaultService = "";
         if (getDefaultBackendBucket() != null) {
             defaultService = getDefaultBackendBucket().getSelfLink();
         } else if (getDefaultBackendService() != null) {
             defaultService = getDefaultBackendService().getSelfLink();
         } else if (getDefaultRegionBackendService() != null) {
             defaultService = getDefaultRegionBackendService().getSelfLink();
-        } else {
-            throw new GyroException(
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!");
         }
-        pathMatcher.setDefaultService(defaultService);
+
+        if (getDefaultUrlRedirect() != null) {
+            pathMatcher.setDefaultUrlRedirect(getDefaultUrlRedirect().toHttpRedirectAction());
+        } else {
+            pathMatcher.setDefaultService(defaultService);
+        }
 
         List<ComputePathRule> pathRule = getPathRule();
         if (!pathRule.isEmpty()) {
             pathMatcher.setPathRules(pathRule.stream().map(ComputePathRule::copyTo).collect(Collectors.toList()));
         }
+
         return pathMatcher;
     }
 }
