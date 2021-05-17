@@ -143,7 +143,10 @@ public class UrlMapResource extends AbstractUrlMapResource {
         } else if (getDefaultRegionBackendService() != null) {
             defaultService = getDefaultRegionBackendService().getSelfLink();
         }
-        urlMap.setDefaultService(defaultService);
+
+        if (urlMap.getDefaultUrlRedirect() == null) {
+            urlMap.setDefaultService(defaultService);
+        }
 
         Operation response = client.urlMaps().insert(getProjectId(), urlMap).execute();
         waitForCompletion(client, response);

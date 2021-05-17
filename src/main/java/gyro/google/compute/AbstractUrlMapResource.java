@@ -109,7 +109,6 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
      *
      * @subresource gyro.google.compute.HttpRedirectAction
      */
-    @Updatable
     public HttpRedirectAction getDefaultHttpRedirectAction() {
         return defaultHttpRedirectAction;
     }

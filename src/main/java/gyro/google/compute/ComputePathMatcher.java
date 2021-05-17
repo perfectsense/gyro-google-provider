@@ -184,11 +184,11 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         List<ValidationError> errors = new ArrayList<>();
 
         if (getDefaultBackendBucket() == null && getDefaultBackendService() == null
-            && getDefaultRegionBackendService() == null) {
+            && getDefaultRegionBackendService() == null && getDefaultUrlRedirect() != null) {
             errors.add(new ValidationError(
                 this,
                 null,
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!"));
+                "Either 'default-backend-bucket', 'default-backend-service', 'default-region-backend-service', or 'default-url-redirect' is required!"));
         }
         return errors;
     }
@@ -198,26 +198,24 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         pathMatcher.setName(getName());
         pathMatcher.setDescription(getDescription());
 
-        String defaultService;
+        String defaultService = "";
         if (getDefaultBackendBucket() != null) {
             defaultService = getDefaultBackendBucket().getSelfLink();
         } else if (getDefaultBackendService() != null) {
             defaultService = getDefaultBackendService().getSelfLink();
         } else if (getDefaultRegionBackendService() != null) {
             defaultService = getDefaultRegionBackendService().getSelfLink();
-        } else {
-            throw new GyroException(
-                "Either 'default-backend-bucket', 'default-backend-service', or 'default-region-backend-service' is required!");
-        }
-        pathMatcher.setDefaultService(defaultService);
-
-        List<ComputePathRule> pathRule = getPathRule();
-        if (!pathRule.isEmpty()) {
-            pathMatcher.setPathRules(pathRule.stream().map(ComputePathRule::copyTo).collect(Collectors.toList()));
         }
 
         if (getDefaultUrlRedirect() != null) {
             pathMatcher.setDefaultUrlRedirect(getDefaultUrlRedirect().toHttpRedirectAction());
+        } else {
+            pathMatcher.setDefaultService(defaultService);
+        }
+
+        List<ComputePathRule> pathRule = getPathRule();
+        if (!pathRule.isEmpty()) {
+            pathMatcher.setPathRules(pathRule.stream().map(ComputePathRule::copyTo).collect(Collectors.toList()));
         }
 
         return pathMatcher;

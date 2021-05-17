@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.api.services.compute.model.PathRule;
-import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
@@ -137,11 +136,11 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getBackendBucket() == null && getBackendService() == null
-            && getRegionBackendService() == null) {
+            && getRegionBackendService() == null && getUrlRedirect() == null) {
             errors.add(new ValidationError(
                 this,
                 null,
-                "Either 'backend-bucket', 'backend-service', or 'region-backend-service' is required!"));
+                "Either 'backend-bucket', 'backend-service', 'region-backend-service', or 'url-redirect' is required!"));
         }
         return errors;
     }
@@ -150,22 +149,19 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         PathRule pathRule = new PathRule();
         pathRule.setPaths(getPaths());
 
-        String service;
+        String service = "";
         if (getBackendBucket() != null) {
             service = getBackendBucket().getSelfLink();
         } else if (getBackendService() != null) {
             service = getBackendService().getSelfLink();
         } else if (getRegionBackendService() != null) {
             service = getRegionBackendService().getSelfLink();
-        } else {
-            throw new GyroException(
-                "Either 'backend-bucket', 'backend-service', or 'region-backend-service' is required!");
         }
-
-        pathRule.setService(service);
 
         if (getUrlRedirect() != null) {
             pathRule.setUrlRedirect(getUrlRedirect().toHttpRedirectAction());
+        } else {
+            pathRule.setService(service);
         }
 
         return pathRule;
