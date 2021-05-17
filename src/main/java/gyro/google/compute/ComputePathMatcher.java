@@ -38,6 +38,7 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     private BackendServiceResource defaultBackendService;
     private RegionBackendServiceResource defaultRegionBackendService;
     private List<ComputePathRule> pathRule;
+    private HttpRedirectAction defaultUrlRedirect;
 
     /**
      * The name to which this path matcher is referred by the host rule.
@@ -116,6 +117,19 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         this.pathRule = pathRule;
     }
 
+    /**
+     * The default url redirect configuration.
+     *
+     * @subresource gyro.google.compute.HttpRedirectAction
+     */
+    public HttpRedirectAction getDefaultUrlRedirect() {
+        return defaultUrlRedirect;
+    }
+
+    public void setDefaultUrlRedirect(HttpRedirectAction defaultUrlRedirect) {
+        this.defaultUrlRedirect = defaultUrlRedirect;
+    }
+
     @Override
     public void copyFrom(PathMatcher model) {
         setName(model.getName());
@@ -151,6 +165,13 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
                 .collect(Collectors.toList());
         }
         setPathRule(computePathRules);
+
+        setDefaultUrlRedirect(null);
+        if (model.getDefaultUrlRedirect() != null) {
+            HttpRedirectAction redirectAction = newSubresource(HttpRedirectAction.class);
+            redirectAction.copyFrom(model.getDefaultUrlRedirect());
+            setDefaultUrlRedirect(redirectAction);
+        }
     }
 
     @Override
@@ -194,6 +215,11 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
         if (!pathRule.isEmpty()) {
             pathMatcher.setPathRules(pathRule.stream().map(ComputePathRule::copyTo).collect(Collectors.toList()));
         }
+
+        if (getDefaultUrlRedirect() != null) {
+            pathMatcher.setDefaultUrlRedirect(getDefaultUrlRedirect().toHttpRedirectAction());
+        }
+
         return pathMatcher;
     }
 }
