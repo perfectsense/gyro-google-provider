@@ -155,4 +155,10 @@ public final class Utils {
         int index = list.indexOf("snapshots");
         return list.get(index + 1);
     }
+
+    public static String getRepositoryNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("repositories");
+        return list.get(index + 1);
+    }
 }

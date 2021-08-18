@@ -1,0 +1,9 @@
+google::repository example
+    name: "example-repo"
+    location: "us-east1"
+    description: "example-description"
+    format: DOCKER
+    labels:{
+        "example-key": "example-value"
+    }
+end
