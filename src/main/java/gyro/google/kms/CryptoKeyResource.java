@@ -290,7 +290,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
 
         String parent = KeyRingName.format(
             getProjectId(),
-            Utils.getKmsLocationFromId(getKeyRing().getId()),
+            Utils.getLocationFromId(getKeyRing().getId()),
             Utils.getKmsKeyRingNameFromId(getKeyRing().getId()));
 
         CryptoKey response = client.createCryptoKey(parent, getName(), builder.build());
@@ -298,7 +298,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         if (getPrimaryKeyVersionId() != null) {
             String cryptoKeyPathName = CryptoKeyPathName.format(
                 getProjectId(),
-                Utils.getKmsLocationFromId(getKeyRing().getId()),
+                Utils.getLocationFromId(getKeyRing().getId()),
                 Utils.getKmsKeyRingNameFromId(getKeyRing().getId()),
                 getName());
 
@@ -338,7 +338,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
 
         String parent = CryptoKeyPathName.format(
             getProjectId(),
-            Utils.getKmsLocationFromId(getKeyRing().getId()),
+            Utils.getLocationFromId(getKeyRing().getId()),
             Utils.getKmsKeyRingNameFromId(getKeyRing().getId()),
             getName());
 
