@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.HorizontalPodAutoscaling;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -26,6 +27,7 @@ public class GkeHorizontalPodAutoscaling extends Diffable implements Copyable<Ho
     private Boolean disabled;
 
     @Required
+    @Updatable
     public Boolean getDisabled() {
         return disabled;
     }

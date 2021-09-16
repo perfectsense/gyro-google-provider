@@ -64,7 +64,7 @@ configurations {
 dependencies {
     api 'gyro:gyro-core:1.0.0' + (releaseBuild ? '' : '-SNAPSHOT')
 
-    implementation enforcedPlatform('com.google.cloud:libraries-bom:21.0.0')
+    implementation enforcedPlatform('com.google.cloud:libraries-bom:16.2.0')
     // XXX: com.google.apis:google-api-services-iam:v1-rev316-1.25.0 uses older version of com.google.api-client:google-api-client
     implementation 'com.google.api-client:google-api-client:1.30.9'
     implementation 'com.google.apis:google-api-services-iam:v1-rev316-1.25.0'

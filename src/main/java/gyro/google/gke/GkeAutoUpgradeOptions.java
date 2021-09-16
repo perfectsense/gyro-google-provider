@@ -50,7 +50,7 @@ public class GkeAutoUpgradeOptions extends Diffable implements Copyable<AutoUpgr
     }
 
     @Override
-    public void copyFrom(AutoUpgradeOptions model) throws Exception {
+    public void copyFrom(AutoUpgradeOptions model) {
         setAutoUpgradeStartTime(model.getAutoUpgradeStartTime());
         setDescription(model.getDescription());
     }

@@ -16,8 +16,6 @@
 
 package gyro.google.gke;
 
-import java.text.ParseException;
-
 import com.google.container.v1.RecurringTimeWindow;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;

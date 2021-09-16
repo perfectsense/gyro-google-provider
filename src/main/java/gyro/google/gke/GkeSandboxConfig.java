@@ -16,24 +16,27 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.BinaryAuthorization;
+import com.google.container.v1.SandboxConfig;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-public class GkeBinaryAuthorization extends Diffable implements Copyable<BinaryAuthorization> {
+public class GkeSandboxConfig extends Diffable implements Copyable<SandboxConfig> {
 
-    private Boolean enabled;
+    private SandboxConfig.Type type;
 
+    /**
+     * The type of the sandbox to use for the node.
+     */
     @Required
-    @Updatable
-    public Boolean getEnabled() {
-        return enabled;
+    @ValidStrings("GVISOR")
+    public SandboxConfig.Type getType() {
+        return type;
     }
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public void setType(SandboxConfig.Type type) {
+        this.type = type;
     }
 
     @Override
@@ -42,11 +45,11 @@ public class GkeBinaryAuthorization extends Diffable implements Copyable<BinaryA
     }
 
     @Override
-    public void copyFrom(BinaryAuthorization model) throws Exception {
-        setEnabled(model.getEnabled());
+    public void copyFrom(SandboxConfig model) {
+        setType(model.getType());
     }
 
-    BinaryAuthorization toBinaryAuthorization() {
-        return BinaryAuthorization.newBuilder().setEnabled(getEnabled()).build();
+    SandboxConfig toSandboxConfig() {
+        return SandboxConfig.newBuilder().setType(getType()).build();
     }
 }

@@ -19,12 +19,11 @@ package gyro.google.gke;
 import com.google.container.v1.PrivateClusterConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class GkePrivateClusterConfig extends Diffable implements Copyable<PrivateClusterConfig> {
-
-    // TODO: Check defaults
 
     private Boolean enablePrivateNodes;
     private Boolean enablePrivateEndpoint;
@@ -39,6 +38,7 @@ public class GkePrivateClusterConfig extends Diffable implements Copyable<Privat
     /**
      * When set to ``true`` the nodes have internal IP addresses only and all nodes are given only RFC 1918 private addresses and communicate with the master via private networking.
      */
+    @Updatable
     public Boolean getEnablePrivateNodes() {
         return enablePrivateNodes;
     }
@@ -50,6 +50,7 @@ public class GkePrivateClusterConfig extends Diffable implements Copyable<Privat
     /**
      * When set to ``true`` the master's internal IP address is used as the cluster endpoint.
      */
+    @Updatable
     public Boolean getEnablePrivateEndpoint() {
         return enablePrivateEndpoint;
     }
@@ -62,6 +63,7 @@ public class GkePrivateClusterConfig extends Diffable implements Copyable<Privat
      * The IP range in CIDR notation to use for the hosted master network. This range will be used for assigning internal IP addresses to the master or set of masters, as well as the ILB VIP. This range must not overlap with any other ranges in use within the cluster's network.
      */
     @Required
+    @Updatable
     public String getMasterIpv4CidrBlock() {
         return masterIpv4CidrBlock;
     }
@@ -73,6 +75,7 @@ public class GkePrivateClusterConfig extends Diffable implements Copyable<Privat
     /**
      * The master global access settings.
      */
+    @Updatable
     public GkePrivateClusterMasterGlobalAccessConfig getMasterGlobalAccessConfig() {
         return masterGlobalAccessConfig;
     }

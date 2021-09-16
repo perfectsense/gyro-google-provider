@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.VerticalPodAutoscaling;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -29,6 +30,7 @@ public class GkeVerticalPodAutoscaling extends Diffable implements Copyable<Vert
      * When set to ``true`` vertical pod autoscaling is enabled.
      */
     @Required
+    @Updatable
     public Boolean getEnabled() {
         return enabled;
     }

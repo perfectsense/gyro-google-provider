@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.AddonsConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> {
@@ -29,6 +30,7 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
     private GkeDnsCacheConfig dnsCacheConfig;
     private GkeConfigConnectorConfig configConnectorConfig;
 
+    @Updatable
     public GkeHttpLoadBalancing getHttpLoadBalancing() {
         return httpLoadBalancing;
     }
@@ -37,6 +39,7 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.httpLoadBalancing = httpLoadBalancing;
     }
 
+    @Updatable
     public GkeHorizontalPodAutoscaling getHorizontalPodAutoscaling() {
         return horizontalPodAutoscaling;
     }
@@ -45,6 +48,7 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.horizontalPodAutoscaling = horizontalPodAutoscaling;
     }
 
+    @Updatable
     public GkeNetworkPolicyConfig getNetworkPolicyConfig() {
         return networkPolicyConfig;
     }
@@ -53,6 +57,7 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.networkPolicyConfig = networkPolicyConfig;
     }
 
+    @Updatable
     public GkeCloudRunConfig getCloudRunConfig() {
         return cloudRunConfig;
     }
@@ -61,6 +66,7 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.cloudRunConfig = cloudRunConfig;
     }
 
+    @Updatable
     public GkeDnsCacheConfig getDnsCacheConfig() {
         return dnsCacheConfig;
     }
@@ -69,6 +75,7 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.dnsCacheConfig = dnsCacheConfig;
     }
 
+    @Updatable
     public GkeConfigConnectorConfig getConfigConnectorConfig() {
         return configConnectorConfig;
     }

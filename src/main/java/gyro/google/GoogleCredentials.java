@@ -33,6 +33,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.cloud.container.v1.ClusterManagerClient;
+import com.google.cloud.container.v1.ClusterManagerSettings;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
 import com.google.cloud.kms.v1.KeyManagementServiceSettings;
 import com.google.cloud.pubsub.v1.SubscriptionAdminClient;
@@ -147,6 +149,16 @@ public class GoogleCredentials extends Credentials {
                     .setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials()))
                     .build();
                 return (T) SubscriptionAdminClient.create(subscriptionAdminSettings);
+            } catch (IOException ex) {
+                throw new GyroException(
+                    String.format("Unable to create %s client", clientClass.getSimpleName()));
+            }
+        } else if (clientClass.getSimpleName().equals("ClusterManagerClient")) {
+            try {
+                ClusterManagerSettings clusterManagerSettings = ClusterManagerSettings.newBuilder()
+                    .setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials()))
+                    .build();
+                return (T) ClusterManagerClient.create(clusterManagerSettings);
             } catch (IOException ex) {
                 throw new GyroException(
                     String.format("Unable to create %s client", clientClass.getSimpleName()));

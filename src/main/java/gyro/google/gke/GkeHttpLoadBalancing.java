@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.HttpLoadBalancing;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -26,6 +27,7 @@ public class GkeHttpLoadBalancing extends Diffable implements Copyable<HttpLoadB
     private Boolean disabled;
 
     @Required
+    @Updatable
     public Boolean getDisabled() {
         return disabled;
     }

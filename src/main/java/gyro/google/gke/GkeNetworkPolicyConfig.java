@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.NetworkPolicyConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -26,6 +27,7 @@ public class GkeNetworkPolicyConfig extends Diffable implements Copyable<Network
     private Boolean disabled;
 
     @Required
+    @Updatable
     public Boolean getDisabled() {
         return disabled;
     }

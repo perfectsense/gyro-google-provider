@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.ReleaseChannel;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -30,6 +31,7 @@ public class GkeReleaseChannel extends Diffable implements Copyable<ReleaseChann
      * The release channel the cluster is subscribed to.
      */
     @Required
+    @Updatable
     @ValidStrings({ "RAPID", "REGULAR", "STABLE" })
     public ReleaseChannel.Channel getChannel() {
         return channel;

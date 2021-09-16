@@ -40,7 +40,7 @@ public class GkeMaxPodsConstraint extends Diffable implements Copyable<MaxPodsCo
     }
 
     @Override
-    public void copyFrom(MaxPodsConstraint model) throws Exception {
+    public void copyFrom(MaxPodsConstraint model) {
         setMaxPodsPerNode(model.getMaxPodsPerNode());
     }
 

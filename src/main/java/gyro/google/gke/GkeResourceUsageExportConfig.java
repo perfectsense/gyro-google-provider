@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.ResourceUsageExportConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class GkeResourceUsageExportConfig extends Diffable implements Copyable<ResourceUsageExportConfig> {
@@ -26,6 +27,7 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
     private GkeBigQueryDestination bigqueryDestination;
     private GkeConsumptionMeteringConfig consumptionMeteringConfig;
 
+    @Updatable
     public Boolean getEnableNetworkEgressMetering() {
         return enableNetworkEgressMetering;
     }
@@ -34,6 +36,7 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
         this.enableNetworkEgressMetering = enableNetworkEgressMetering;
     }
 
+    @Updatable
     public GkeBigQueryDestination getBigqueryDestination() {
         return bigqueryDestination;
     }
@@ -42,6 +45,7 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
         this.bigqueryDestination = bigqueryDestination;
     }
 
+    @Updatable
     public GkeConsumptionMeteringConfig getConsumptionMeteringConfig() {
         return consumptionMeteringConfig;
     }

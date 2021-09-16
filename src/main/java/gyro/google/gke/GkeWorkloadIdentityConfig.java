@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.WorkloadIdentityConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -29,6 +30,7 @@ public class GkeWorkloadIdentityConfig extends Diffable implements Copyable<Work
      * The workload pool to attach all Kubernetes service accounts to.
      */
     @Required
+    @Updatable
     public String getWorkloadPool() {
         return workloadPool;
     }

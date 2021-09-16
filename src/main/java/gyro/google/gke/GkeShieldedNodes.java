@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.ShieldedNodes;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -29,6 +30,7 @@ public class GkeShieldedNodes extends Diffable implements Copyable<ShieldedNodes
      * When set to ``true`` the Shielded Nodes feature is enabled on all nodes in this cluster.
      */
     @Required
+    @Updatable
     public Boolean getEnabled() {
         return enabled;
     }

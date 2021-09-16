@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.NodePool;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class GkeUpgradeSettings extends Diffable implements Copyable<NodePool.UpgradeSettings> {
@@ -25,6 +26,7 @@ public class GkeUpgradeSettings extends Diffable implements Copyable<NodePool.Up
     private Integer maxSurge;
     private Integer maxUnavailable;
 
+    @Updatable
     public Integer getMaxSurge() {
         return maxSurge;
     }
@@ -33,6 +35,7 @@ public class GkeUpgradeSettings extends Diffable implements Copyable<NodePool.Up
         this.maxSurge = maxSurge;
     }
 
+    @Updatable
     public Integer getMaxUnavailable() {
         return maxUnavailable;
     }
@@ -47,7 +50,7 @@ public class GkeUpgradeSettings extends Diffable implements Copyable<NodePool.Up
     }
 
     @Override
-    public void copyFrom(NodePool.UpgradeSettings model) throws Exception {
+    public void copyFrom(NodePool.UpgradeSettings model) {
         setMaxSurge(model.getMaxSurge());
         setMaxUnavailable(model.getMaxUnavailable());
     }

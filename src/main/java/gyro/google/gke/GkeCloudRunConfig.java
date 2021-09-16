@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.CloudRunConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -28,6 +29,7 @@ public class GkeCloudRunConfig extends Diffable implements Copyable<CloudRunConf
     private CloudRunConfig.LoadBalancerType loadBalancerType;
 
     @Required
+    @Updatable
     public Boolean getDisabled() {
         return disabled;
     }
@@ -37,6 +39,7 @@ public class GkeCloudRunConfig extends Diffable implements Copyable<CloudRunConf
     }
 
     @ValidStrings({ "LOAD_BALANCER_TYPE_EXTERNAL", "LOAD_BALANCER_TYPE_INTERNAL" })
+    @Updatable
     public CloudRunConfig.LoadBalancerType getLoadBalancerType() {
         return loadBalancerType;
     }

@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import com.google.container.v1.ClusterAutoscaling;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -33,6 +34,7 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
     private List<String> autoprovisioningLocations;
 
     @Required
+    @Updatable
     public Boolean getEnableNodeAutoprovisioning() {
         return enableNodeAutoprovisioning;
     }
@@ -41,6 +43,7 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
         this.enableNodeAutoprovisioning = enableNodeAutoprovisioning;
     }
 
+    @Updatable
     public List<GkeResourceLimit> getResourceLimit() {
         if (resourceLimit == null) {
             resourceLimit = new ArrayList<>();
@@ -60,6 +63,7 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
         this.autoprovisioningNodePoolDefaults = autoprovisioningNodePoolDefaults;
     }
 
+    @Updatable
     public List<String> getAutoprovisioningLocations() {
         if (autoprovisioningLocations == null) {
             autoprovisioningLocations = new ArrayList<>();

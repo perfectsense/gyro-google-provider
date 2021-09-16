@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.DnsCacheConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -26,6 +27,7 @@ public class GkeDnsCacheConfig extends Diffable implements Copyable<DnsCacheConf
     private Boolean enabled;
 
     @Required
+    @Updatable
     public Boolean getEnabled() {
         return enabled;
     }

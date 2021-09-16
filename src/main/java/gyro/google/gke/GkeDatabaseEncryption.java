@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.DatabaseEncryption;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 import gyro.google.kms.CryptoKeyResource;
@@ -30,6 +31,7 @@ public class GkeDatabaseEncryption extends Diffable implements Copyable<Database
     /**
      * The state of etcd encryption.
      */
+    @Updatable
     @ValidStrings({ "ENCRYPTED", "DECRYPTED" })
     public DatabaseEncryption.State getState() {
         return state;
@@ -42,6 +44,7 @@ public class GkeDatabaseEncryption extends Diffable implements Copyable<Database
     /**
      * The CloudKMS key to use for the encryption of secrets in etcd.
      */
+    @Updatable
     public CryptoKeyResource getKey() {
         return key;
     }

@@ -16,24 +16,29 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.BinaryAuthorization;
+import com.google.container.v1.WorkloadMetadataConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-public class GkeBinaryAuthorization extends Diffable implements Copyable<BinaryAuthorization> {
+public class GkeWorkloadMetadataConfig extends Diffable implements Copyable<WorkloadMetadataConfig> {
 
-    private Boolean enabled;
+    private WorkloadMetadataConfig.Mode mode;
 
+    /**
+     * The mode is the configuration for how to expose metadata to workloads running on the node pool.
+     */
     @Required
     @Updatable
-    public Boolean getEnabled() {
-        return enabled;
+    @ValidStrings({ "GCE_METADATA", "GKE_METADATA" })
+    public WorkloadMetadataConfig.Mode getMode() {
+        return mode;
     }
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public void setMode(WorkloadMetadataConfig.Mode mode) {
+        this.mode = mode;
     }
 
     @Override
@@ -42,11 +47,11 @@ public class GkeBinaryAuthorization extends Diffable implements Copyable<BinaryA
     }
 
     @Override
-    public void copyFrom(BinaryAuthorization model) throws Exception {
-        setEnabled(model.getEnabled());
+    public void copyFrom(WorkloadMetadataConfig model) {
+        setMode(model.getMode());
     }
 
-    BinaryAuthorization toBinaryAuthorization() {
-        return BinaryAuthorization.newBuilder().setEnabled(getEnabled()).build();
+    WorkloadMetadataConfig toWorkloadMetadataConfig() {
+        return WorkloadMetadataConfig.newBuilder().setMode(getMode()).build();
     }
 }

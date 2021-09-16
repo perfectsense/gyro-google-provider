@@ -27,25 +27,26 @@ import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.Cluster;
 import com.google.container.v1.ClusterUpdate;
 import com.google.container.v1.CreateClusterRequest;
+import com.google.container.v1.IntraNodeVisibilityConfig;
 import com.google.container.v1.SetLabelsRequest;
+import com.google.container.v1.UpdateMasterRequest;
 import gyro.core.GyroUI;
+import gyro.core.Type;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 import gyro.google.compute.NetworkResource;
 import gyro.google.compute.SubnetworkResource;
 
+@Type("gke-cluster")
 public class ClusterResource extends GoogleResource implements Copyable<Cluster> {
 
-    // TODO: TEST DEFAULTS
-    // TODO: TEST VALIDATIONS
-
-    //    private List<GkeNodePool> nodePools; // Updatable with ImageType, IntraNodeVisibility, NodePoolAutoscaling, nodeVersion, NodePoolId in cluster
-    //    MasterVersion
     private String location;
     private String name;
     private String description;
@@ -79,17 +80,22 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     private List<GkeStatusCondition> condition;
     private Boolean enableTpu;
     private Map<String, String> labels;
+    private List<GkeNodePool> nodePools;
+    private String masterVersion;
 
     // Read-only
     private String tpuIpv4CidrBlock;
     private String servicesIpv4Cidr;
     private Integer nodeIpv4CidrSize;
     private Cluster.Status status;
-    private String currentMasterVersion;
     private String endpoint;
     private String selfLink;
     private String labelFingerPrint;
 
+    /**
+     * The location where this cluster should live.
+     */
+    @Required
     public String getLocation() {
         return location;
     }
@@ -98,7 +104,11 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.location = location;
     }
 
+    /**
+     * The name of this cluster.
+     */
     @Id
+    @Required
     public String getName() {
         return name;
     }
@@ -107,6 +117,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.name = name;
     }
 
+    /**
+     * The optional description of this cluster.
+     */
     public String getDescription() {
         return description;
     }
@@ -115,6 +128,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.description = description;
     }
 
+    /**
+     * The authentication information for accessing the master endpoint.
+     */
     public GkeMasterAuth getMasterAuthConfig() {
         return masterAuthConfig;
     }
@@ -123,7 +139,11 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.masterAuthConfig = masterAuthConfig;
     }
 
+    /**
+     * The logging service the cluster should use to write logs. Defaults to ``logging.googleapis.com/kubernetes`` for GKE 1.14+ or ``logging.googleapis.com`` for earlier versions.
+     */
     @Updatable
+    @ValidStrings({ "logging.googleapis.com/kubernetes", "logging.googleapis.com" })
     public String getLoggingService() {
         return loggingService;
     }
@@ -132,7 +152,11 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.loggingService = loggingService;
     }
 
+    /**
+     * The monitoring service the cluster should use to write metrics. Defaults to ``monitoring.googleapis.com/kubernetes`` for GKE 1.14+ or ``monitoring.googleapis.com`` for earlier versions.
+     */
     @Updatable
+    @ValidStrings({ "monitoring.googleapis.com/kubernetes", "monitoring.googleapis.com" })
     public String getMonitoringService() {
         return monitoringService;
     }
@@ -141,6 +165,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.monitoringService = monitoringService;
     }
 
+    /**
+     * The Google Compute Engine network to which the cluster is connected. If left unspecified, the default network will be used.
+     */
     public NetworkResource getNetwork() {
         return network;
     }
@@ -149,6 +176,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.network = network;
     }
 
+    /**
+     * The IP address range of the container pods in this cluster. Leave blank to have one automatically chosen or specify a ``/14`` block in ``10.0.0.0/8``.
+     */
     public String getClusterIpv4Cidr() {
         return clusterIpv4Cidr;
     }
@@ -157,6 +187,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.clusterIpv4Cidr = clusterIpv4Cidr;
     }
 
+    /**
+     * The configurations for the various addons available to run in the cluster.
+     */
     @Updatable
     public GkeAddonsConfig getAddonsConfig() {
         return addonsConfig;
@@ -166,6 +199,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.addonsConfig = addonsConfig;
     }
 
+    /**
+     * The Google Compute Engine subnetwork to which the cluster is connected.
+     */
     public SubnetworkResource getSubnetwork() {
         return subnetwork;
     }
@@ -174,6 +210,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.subnetwork = subnetwork;
     }
 
+    /**
+     * The list of Google Compute Engine zones in which the cluster's nodes should be located.
+     */
     @Updatable
     public List<String> getNodeLocations() {
         if (nodeLocations == null) {
@@ -187,6 +226,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.nodeLocations = nodeLocations;
     }
 
+    /**
+     * When set to ``true``, kubernetes alpha features are enabled on this cluster. This includes alpha API groups (e.g. ``v1alpha1``) and features that may not be production ready in the kubernetes version of the master and nodes. The cluster has no SLA for uptime and master/node upgrades are disabled. Alpha enabled clusters are automatically deleted thirty days after creation.
+     */
     public Boolean getEnableKubernetesAlpha() {
         return enableKubernetesAlpha;
     }
@@ -195,6 +237,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.enableKubernetesAlpha = enableKubernetesAlpha;
     }
 
+    /**
+     * The configuration for the legacy Attribute Based Access Control authorization mode.
+     */
     public GkeLegacyAbac getLegacyAbacConfig() {
         return legacyAbacConfig;
     }
@@ -203,6 +248,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.legacyAbacConfig = legacyAbacConfig;
     }
 
+    /**
+     * The configuration for the cluster networking.
+     */
     public GkeNetworkPolicy getNetworkPolicyConfig() {
         return networkPolicyConfig;
     }
@@ -211,6 +259,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.networkPolicyConfig = networkPolicyConfig;
     }
 
+    /**
+     * The configuration for controlling how IPs are allocated in the cluster.
+     */
     public GkeIpAllocationPolicy getIpAllocationPolicy() {
         return ipAllocationPolicy;
     }
@@ -219,6 +270,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.ipAllocationPolicy = ipAllocationPolicy;
     }
 
+    /**
+     * The configuration options for master authorized networks feature.
+     */
     @Updatable
     public GkeMasterAuthorizedNetworksConfig getMasterAuthorizedNetworksConfig() {
         return masterAuthorizedNetworksConfig;
@@ -228,6 +282,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.masterAuthorizedNetworksConfig = masterAuthorizedNetworksConfig;
     }
 
+    /**
+     * The configuration for the maintenance policy for this cluster.
+     */
     public GkeMaintenancePolicy getMaintenancePolicy() {
         return maintenancePolicy;
     }
@@ -236,6 +293,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.maintenancePolicy = maintenancePolicy;
     }
 
+    /**
+     * The configuration for Binary Authorization.
+     */
     @Updatable
     public GkeBinaryAuthorization getBinaryAuthorizationConfig() {
         return binaryAuthorizationConfig;
@@ -245,6 +305,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.binaryAuthorizationConfig = binaryAuthorizationConfig;
     }
 
+    /**
+     * The cluster-level autoscaling configuration.
+     */
     @Updatable
     public GkeClusterAutoscaling getClusterAutoscalingConfig() {
         return clusterAutoscalingConfig;
@@ -254,6 +317,10 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.clusterAutoscalingConfig = clusterAutoscalingConfig;
     }
 
+    /**
+     * The configuration for cluster networking.
+     */
+    @Updatable
     public GkeNetworkConfig getNetworkConfig() {
         return networkConfig;
     }
@@ -262,6 +329,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.networkConfig = networkConfig;
     }
 
+    /**
+     * The default constraint on the maximum number of pods that can be run simultaneously on a node in the node pool of this cluster.
+     */
     public GkeMaxPodsConstraint getDefaultMaxPodsConstraint() {
         return defaultMaxPodsConstraint;
     }
@@ -270,6 +340,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.defaultMaxPodsConstraint = defaultMaxPodsConstraint;
     }
 
+    /**
+     * The configuration for exporting resource usages.
+     */
     @Updatable
     public GkeResourceUsageExportConfig getResourceUsageExportConfig() {
         return resourceUsageExportConfig;
@@ -279,7 +352,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.resourceUsageExportConfig = resourceUsageExportConfig;
     }
 
-    @Updatable
+    /**
+     * The configuration for private cluster.
+     */
     public GkeAuthenticatorGroupsConfig getAuthenticatorGroupsConfig() {
         return authenticatorGroupsConfig;
     }
@@ -288,6 +363,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.authenticatorGroupsConfig = authenticatorGroupsConfig;
     }
 
+    /**
+     *
+     */
     @Updatable
     public GkePrivateClusterConfig getPrivateClusterConfig() {
         return privateClusterConfig;
@@ -297,6 +375,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.privateClusterConfig = privateClusterConfig;
     }
 
+    /**
+     * The configuration of etcd encryption.
+     */
     @Updatable
     public GkeDatabaseEncryption getDatabaseEncryption() {
         return databaseEncryption;
@@ -306,6 +387,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.databaseEncryption = databaseEncryption;
     }
 
+    /**
+     * The cluster-level Vertical Pod Autoscaling configuration.
+     */
     @Updatable
     public GkeVerticalPodAutoscaling getVerticalPodAutoscaling() {
         return verticalPodAutoscaling;
@@ -315,6 +399,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.verticalPodAutoscaling = verticalPodAutoscaling;
     }
 
+    /**
+     * The release channel configuration.
+     */
     @Updatable
     public GkeShieldedNodes getShieldedNodes() {
         return shieldedNodes;
@@ -324,6 +411,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.shieldedNodes = shieldedNodes;
     }
 
+    /**
+     *
+     */
     @Updatable
     public GkeReleaseChannel getReleaseChannel() {
         return releaseChannel;
@@ -333,6 +423,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.releaseChannel = releaseChannel;
     }
 
+    /**
+     * The configuration for the use of Kubernetes Service Accounts in GCP IAM policies.
+     */
     @Updatable
     public GkeWorkloadIdentityConfig getWorkloadIdentityConfig() {
         return workloadIdentityConfig;
@@ -342,6 +435,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.workloadIdentityConfig = workloadIdentityConfig;
     }
 
+    /**
+     * The initial Kubernetes version for this cluster.
+     */
     public String getInitialClusterVersion() {
         return initialClusterVersion;
     }
@@ -350,6 +446,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.initialClusterVersion = initialClusterVersion;
     }
 
+    /**
+     * The conditions which caused the current cluster state.
+     */
     public List<GkeStatusCondition> getCondition() {
         if (condition == null) {
             condition = new ArrayList<>();
@@ -361,6 +460,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.condition = condition;
     }
 
+    /**
+     * When set to ``true`` Cloud TPUs can be used in this cluster.
+     */
     public Boolean getEnableTpu() {
         return enableTpu;
     }
@@ -369,6 +471,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.enableTpu = enableTpu;
     }
 
+    /**
+     * The resource labels for the cluster to use to annotate any related Google Compute Engine resources.
+     */
     public Map<String, String> getLabels() {
         if (labels == null) {
             labels = new HashMap<>();
@@ -381,6 +486,36 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.labels = labels;
     }
 
+    /**
+     * The node pools associated with this cluster.
+     */
+    @Required
+    public List<GkeNodePool> getNodePools() {
+        if (nodePools == null) {
+            nodePools = new ArrayList<>();
+        }
+
+        return nodePools;
+    }
+
+    public void setNodePools(List<GkeNodePool> nodePools) {
+        this.nodePools = nodePools;
+    }
+
+    /**
+     * The current software version of the master endpoint.
+     */
+    public String getMasterVersion() {
+        return masterVersion;
+    }
+
+    public void setMasterVersion(String masterVersion) {
+        this.masterVersion = masterVersion;
+    }
+
+    /**
+     * The IP address range of the Cloud TPUs in this cluster.
+     */
     @Output
     public String getTpuIpv4CidrBlock() {
         return tpuIpv4CidrBlock;
@@ -390,6 +525,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.tpuIpv4CidrBlock = tpuIpv4CidrBlock;
     }
 
+    /**
+     * The IP address range of the Kubernetes services in this cluster.
+     */
     @Output
     public String getServicesIpv4Cidr() {
         return servicesIpv4Cidr;
@@ -399,6 +537,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.servicesIpv4Cidr = servicesIpv4Cidr;
     }
 
+    /**
+     * The size of the address space on each node for hosting containers.
+     */
     @Output
     public Integer getNodeIpv4CidrSize() {
         return nodeIpv4CidrSize;
@@ -408,6 +549,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.nodeIpv4CidrSize = nodeIpv4CidrSize;
     }
 
+    /**
+     * The current status of this cluster.
+     */
     @Output
     public Cluster.Status getStatus() {
         return status;
@@ -417,15 +561,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.status = status;
     }
 
-    @Output
-    public String getCurrentMasterVersion() {
-        return currentMasterVersion;
-    }
-
-    public void setCurrentMasterVersion(String currentMasterVersion) {
-        this.currentMasterVersion = currentMasterVersion;
-    }
-
+    /**
+     * The IP address of this cluster's master endpoint.
+     */
     @Output
     public String getEndpoint() {
         return endpoint;
@@ -435,6 +573,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.endpoint = endpoint;
     }
 
+    /**
+     * Server-defined URL for the resource.
+     */
     @Output
     public String getSelfLink() {
         return selfLink;
@@ -444,7 +585,10 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.selfLink = selfLink;
     }
 
-    @Updatable
+    /**
+     * The fingerprint of the set of labels for this cluster.
+     */
+    @Output
     public String getLabelFingerPrint() {
         return labelFingerPrint;
     }
@@ -597,6 +741,12 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }).collect(Collectors.toList()));
         }
 
+        setNodePools(model.getNodePoolsList().stream().map(n -> {
+            GkeNodePool gkeNodePool = newSubresource(GkeNodePool.class);
+            gkeNodePool.copyFrom(n);
+            return gkeNodePool;
+        }).collect(Collectors.toList()));
+
         setLocation(model.getLocation());
         setName(model.getName());
         setDescription(model.getDescription());
@@ -606,7 +756,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         setServicesIpv4Cidr(model.getServicesIpv4Cidr());
         setNodeIpv4CidrSize(model.getNodeIpv4CidrSize());
         setStatus(model.getStatus());
-        setCurrentMasterVersion(model.getCurrentMasterVersion());
+        setMasterVersion(model.getCurrentMasterVersion());
         setEndpoint(model.getEndpoint());
         setSelfLink(model.getSelfLink());
         setInitialClusterVersion(model.getInitialClusterVersion());
@@ -624,13 +774,15 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     protected boolean doRefresh() throws Exception {
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
-        Cluster cluster = client.getCluster(getClusterId());
+        Cluster cluster = getCluster(client);
 
         if (cluster == null) {
             return false;
         }
 
         copyFrom(cluster);
+
+        client.close();
 
         return true;
     }
@@ -639,7 +791,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     protected void doCreate(GyroUI ui, State state) throws Exception {
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
-        Cluster.Builder builder = Cluster.newBuilder().setName(getName());
+        Cluster.Builder builder = Cluster.newBuilder().setName(getName()).addAllNodePools(getNodePools().stream()
+            .map(GkeNodePool::buildNodePool).collect(Collectors.toList()));
 
         if (getMasterAuthConfig() != null) {
             builder.setMasterAuth(getMasterAuthConfig().toMasterAuth());
@@ -770,10 +923,23 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             builder.setClusterIpv4Cidr(getClusterIpv4Cidr());
         }
 
+        if (getDatabaseEncryption() != null) {
+            builder.setDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
+        }
+
         client.createCluster(CreateClusterRequest.newBuilder()
-            .setParent(String.format("projects/%s/locations/%s", getProjectId(), getLocation()))
+            .setParent(getParent())
             .setCluster(builder.build())
             .build());
+
+        if (getMasterVersion() != null) {
+            client.updateMaster(UpdateMasterRequest.newBuilder()
+                .setName(getClusterId())
+                .setMasterVersion(getMasterVersion())
+                .build());
+        }
+
+        client.close();
 
         refresh();
     }
@@ -784,116 +950,76 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
         ClusterUpdate.Builder builder = ClusterUpdate.newBuilder();
 
-        if (changedFieldNames.contains("addons_config")) {
-            if (getAddonsConfig() != null) {
-                builder.setDesiredAddonsConfig(getAddonsConfig().toAddonsConfig());
-            } else {
-                builder.clearDesiredAddonsConfig();
+        if (getAddonsConfig() != null) {
+            builder.setDesiredAddonsConfig(getAddonsConfig().toAddonsConfig());
+        }
+
+        if (getMasterAuthorizedNetworksConfig() != null) {
+            builder.setDesiredMasterAuthorizedNetworksConfig(getMasterAuthorizedNetworksConfig().toMasterAuthorizedNetworksConfig());
+        }
+
+        if (getBinaryAuthorizationConfig() != null) {
+            builder.setDesiredBinaryAuthorization(getBinaryAuthorizationConfig().toBinaryAuthorization());
+        }
+
+        if (getClusterAutoscalingConfig() != null) {
+            builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
+        }
+
+        if (getDatabaseEncryption() != null) {
+            builder.setDesiredDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
+        }
+
+        if (getNetworkConfig() != null) {
+            if (getNetworkConfig().getDefaultSnatStatus() != null) {
+                builder.setDesiredDefaultSnatStatus(getNetworkConfig().getDefaultSnatStatus().toDefaultSnatStatus());
+            }
+
+            if (getNetworkConfig().getEnableIntraNodeVisibility() != null) {
+                builder.setDesiredIntraNodeVisibilityConfig(IntraNodeVisibilityConfig.newBuilder()
+                    .setEnabled(getNetworkConfig().getEnableIntraNodeVisibility())
+                    .build());
             }
         }
 
-        if (changedFieldNames.contains("master_authorized_networks_config")) {
-            if (getMasterAuthorizedNetworksConfig() != null) {
-                builder.setDesiredMasterAuthorizedNetworksConfig(getMasterAuthorizedNetworksConfig().toMasterAuthorizedNetworksConfig());
-            } else {
-                builder.clearDesiredMasterAuthorizedNetworksConfig();
-            }
+        if (getMasterVersion() != null) {
+            builder.setDesiredMasterVersion(getMasterVersion());
         }
 
-        if (changedFieldNames.contains("binary_authorization_config")) {
-            if (getBinaryAuthorizationConfig() != null) {
-                builder.setDesiredBinaryAuthorization(getBinaryAuthorizationConfig().toBinaryAuthorization());
-            } else {
-                builder.clearDesiredBinaryAuthorization();
-            }
+        if (getResourceUsageExportConfig() != null) {
+            builder.setDesiredResourceUsageExportConfig(getResourceUsageExportConfig().toResourceUsageExportConfig());
         }
 
-        if (changedFieldNames.contains("cluster_autoscaling_config")) {
-            if (getClusterAutoscalingConfig() != null) {
-                builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
-            } else {
-                builder.clearDesiredClusterAutoscaling();
-            }
+        if (getPrivateClusterConfig() != null) {
+            builder.setDesiredPrivateClusterConfig(getPrivateClusterConfig().toPrivateClusterConfig());
         }
 
-        if (changedFieldNames.contains("resource_usage_export_config")) {
-            if (getResourceUsageExportConfig() != null) {
-                builder.setDesiredResourceUsageExportConfig(getResourceUsageExportConfig().toResourceUsageExportConfig());
-            } else {
-                builder.clearDesiredResourceUsageExportConfig();
-            }
+        if (getVerticalPodAutoscaling() != null) {
+            builder.setDesiredVerticalPodAutoscaling(getVerticalPodAutoscaling().toVerticalPodAutoscaling());
         }
 
-        if (changedFieldNames.contains("authenticator_groups_config")) {
-            if (getAuthenticatorGroupsConfig() != null) {
-                builder.setDesiredAuthenticatorGroupsConfig(getAuthenticatorGroupsConfig().toAuthenticatorGroupsConfig());
-            } else {
-                builder.clearDesiredAuthenticatorGroupsConfig();
-            }
+        if (getShieldedNodes() != null) {
+            builder.setDesiredShieldedNodes(getShieldedNodes().toShieldedNodes());
         }
 
-        if (changedFieldNames.contains("private_cluster_config")) {
-            if (getPrivateClusterConfig() != null) {
-                builder.setDesiredPrivateClusterConfig(getPrivateClusterConfig().toPrivateClusterConfig());
-            } else {
-                builder.clearDesiredPrivateClusterConfig();
-            }
+        if (getReleaseChannel() != null) {
+            builder.setDesiredReleaseChannel(getReleaseChannel().toReleaseChannel());
         }
 
-        if (changedFieldNames.contains("vertical_pod_autoscaling")) {
-            if (getVerticalPodAutoscaling() != null) {
-                builder.setDesiredVerticalPodAutoscaling(getVerticalPodAutoscaling().toVerticalPodAutoscaling());
-            } else {
-                builder.clearDesiredVerticalPodAutoscaling();
-            }
+        if (getWorkloadIdentityConfig() != null) {
+            builder.setDesiredWorkloadIdentityConfig(getWorkloadIdentityConfig().toWorkloadIdentityConfig());
         }
 
-        if (changedFieldNames.contains("shielded_nodes")) {
-            if (getShieldedNodes() != null) {
-                builder.setDesiredShieldedNodes(getShieldedNodes().toShieldedNodes());
-            } else {
-                builder.clearDesiredShieldedNodes();
-            }
+        if (getNodeLocations() != null) {
+            builder.addAllDesiredLocations(getNodeLocations());
         }
 
-        if (changedFieldNames.contains("release_channel")) {
-            if (getReleaseChannel() != null) {
-                builder.setDesiredReleaseChannel(getReleaseChannel().toReleaseChannel());
-            } else {
-                builder.clearDesiredReleaseChannel();
-            }
+        if (getLoggingService() != null) {
+            builder.setDesiredLoggingService(getLoggingService());
         }
 
-        if (changedFieldNames.contains("workload_identity_config")) {
-            if (getWorkloadIdentityConfig() != null) {
-                builder.setDesiredWorkloadIdentityConfig(getWorkloadIdentityConfig().toWorkloadIdentityConfig());
-            } else {
-                builder.clearDesiredWorkloadIdentityConfig();
-            }
-        }
-
-        if (changedFieldNames.contains("node_locations")) {
-            if (getNodeLocations() != null) {
-                builder.addAllDesiredLocations(getNodeLocations());
-            } else {
-                builder.clearDesiredLocations();
-            }
-        }
-
-        if (changedFieldNames.contains("logging_service")) {
-            if (getLoggingService() != null) {
-                builder.setDesiredLoggingService(getLoggingService());
-            } else {
-                builder.clearDesiredLoggingService();
-            }
-        }
-
-        if (changedFieldNames.contains("monitoring_service")) {
-            if (getMonitoringService() != null) {
-                builder.setDesiredMonitoringService(getMonitoringService());
-            } else {
-                builder.clearDesiredMonitoringService();
-            }
+        if (getMonitoringService() != null) {
+            builder.setDesiredMonitoringService(getMonitoringService());
         }
 
         client.updateCluster(getClusterId(), builder.build());
@@ -904,6 +1030,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         }
 
         refresh();
+
+        client.close();
     }
 
     @Override
@@ -911,10 +1039,27 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
         client.deleteCluster(getClusterId());
+
+        client.close();
     }
 
-    private String getClusterId() {
-        return String.format("projects/%s/locations/%s/clusters/%s",
-            getProjectId(), getLocation(), getName());
+    private Cluster getCluster(ClusterManagerClient client) {
+        Cluster cluster = null;
+
+        try {
+            cluster = client.getCluster(getClusterId());
+        } catch (Exception ex) {
+            // ignore
+        }
+
+        return cluster;
+    }
+
+    protected String getClusterId() {
+        return String.format("projects/%s/locations/%s/clusters/%s", getProjectId(), getLocation(), getName());
+    }
+
+    protected String getParent() {
+        return String.format("projects/%s/locations/%s", getProjectId(), getLocation());
     }
 }

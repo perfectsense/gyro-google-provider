@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import com.google.container.v1.MasterAuthorizedNetworksConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -31,6 +32,7 @@ public class GkeMasterAuthorizedNetworksConfig extends Diffable implements Copya
     private List<GkeCidrBlock> cidrBlock;
 
     @Required
+    @Updatable
     public Boolean getEnabled() {
         return enabled;
     }
@@ -39,6 +41,7 @@ public class GkeMasterAuthorizedNetworksConfig extends Diffable implements Copya
         this.enabled = enabled;
     }
 
+    @Updatable
     public List<GkeCidrBlock> getCidrBlock() {
         if (cidrBlock == null) {
             cidrBlock = new ArrayList<>();

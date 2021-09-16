@@ -19,6 +19,7 @@ package gyro.google.gke;
 import com.google.container.v1.NetworkConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
+import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 import gyro.google.compute.NetworkResource;
 import gyro.google.compute.SubnetworkResource;
@@ -48,6 +49,7 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
         this.subnetwork = subnetwork;
     }
 
+    @Updatable
     public Boolean getEnableIntraNodeVisibility() {
         return enableIntraNodeVisibility;
     }
@@ -56,6 +58,7 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
         this.enableIntraNodeVisibility = enableIntraNodeVisibility;
     }
 
+    @Updatable
     public GkeDefaultSnatStatus getDefaultSnatStatus() {
         return defaultSnatStatus;
     }

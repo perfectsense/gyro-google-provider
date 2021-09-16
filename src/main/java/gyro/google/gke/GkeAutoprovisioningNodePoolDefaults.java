@@ -26,8 +26,6 @@ import gyro.google.Copyable;
 public class GkeAutoprovisioningNodePoolDefaults extends Diffable
     implements Copyable<AutoprovisioningNodePoolDefaults> {
 
-    // TODO: figure out primary key
-
     private List<String> oauthScopes;
     private String serviceAccount;
     private GkeUpgradeSettings upgradeSettings;
@@ -119,7 +117,7 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
 
     @Override
     public String primaryKey() {
-        return null;
+        return "";
     }
 
     @Override

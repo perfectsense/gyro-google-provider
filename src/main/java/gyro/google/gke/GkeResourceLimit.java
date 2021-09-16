@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.ResourceLimit;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -36,6 +37,7 @@ public class GkeResourceLimit extends Diffable implements Copyable<ResourceLimit
         this.resourceType = resourceType;
     }
 
+    @Updatable
     public Long getMinimum() {
         return minimum;
     }
@@ -44,6 +46,7 @@ public class GkeResourceLimit extends Diffable implements Copyable<ResourceLimit
         this.minimum = minimum;
     }
 
+    @Updatable
     public Long getMaximum() {
         return maximum;
     }
@@ -54,7 +57,7 @@ public class GkeResourceLimit extends Diffable implements Copyable<ResourceLimit
 
     @Override
     public String primaryKey() {
-        return String.format("Resource type: %s, Min: %s, Max: %s", getResourceType(), getMinimum(), getMaximum());
+        return getResourceType();
     }
 
     @Override

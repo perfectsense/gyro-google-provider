@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.PrivateClusterMasterGlobalAccessConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -30,6 +31,7 @@ public class GkePrivateClusterMasterGlobalAccessConfig extends Diffable
      * When set to ``true`` master is accessible globally.
      */
     @Required
+    @Updatable
     public Boolean getEnabled() {
         return enabled;
     }

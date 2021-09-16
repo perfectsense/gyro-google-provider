@@ -58,7 +58,7 @@ public class GkeNodeManagement extends Diffable implements Copyable<NodeManageme
     }
 
     @Override
-    public void copyFrom(NodeManagement model) throws Exception {
+    public void copyFrom(NodeManagement model) {
         setAutoRepair(model.getAutoRepair());
         setAutoUpgrade(model.getAutoUpgrade());
 
