@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.RegionInstanceGroupManagerList;
+import com.google.cloud.compute.v1.InstanceGroupManager;
+import com.google.cloud.compute.v1.RegionInstanceGroupManagerList;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Type;

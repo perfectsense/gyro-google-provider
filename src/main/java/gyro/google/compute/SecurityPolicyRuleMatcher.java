@@ -23,7 +23,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class SecurityPolicyRuleMatcher extends Diffable
-    implements Copyable<com.google.api.services.compute.model.SecurityPolicyRuleMatcher> {
+    implements Copyable<com.google.cloud.compute.v1.SecurityPolicyRuleMatcher> {
 
     private SecurityPolicyRuleMatcherConfig config;
     private String versionedExpr;
@@ -63,15 +63,15 @@ public class SecurityPolicyRuleMatcher extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRuleMatcher matcher) {
+    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRuleMatcher matcher) {
         setVersionedExpr(matcher.getVersionedExpr());
         SecurityPolicyRuleMatcherConfig config = newSubresource(SecurityPolicyRuleMatcherConfig.class);
         config.copyFrom(matcher.getConfig());
         setConfig(config);
     }
 
-    public com.google.api.services.compute.model.SecurityPolicyRuleMatcher toSecurityPolicyRuleMatcher() {
-        com.google.api.services.compute.model.SecurityPolicyRuleMatcher matcher = new com.google.api.services.compute.model.SecurityPolicyRuleMatcher();
+    public com.google.cloud.compute.v1.SecurityPolicyRuleMatcher toSecurityPolicyRuleMatcher() {
+        com.google.cloud.compute.v1.SecurityPolicyRuleMatcher matcher = new com.google.cloud.compute.v1.SecurityPolicyRuleMatcher();
         matcher.setVersionedExpr(getVersionedExpr());
         matcher.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
 

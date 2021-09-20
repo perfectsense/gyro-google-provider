@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.BackendService;
-import com.google.api.services.compute.model.BackendServiceList;
+import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.BackendServiceList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

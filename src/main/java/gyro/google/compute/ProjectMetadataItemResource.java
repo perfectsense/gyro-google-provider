@@ -22,9 +22,9 @@ import java.util.Set;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Metadata;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.Project;
+import com.google.cloud.compute.v1.Metadata;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.Project;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;

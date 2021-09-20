@@ -19,9 +19,9 @@ package gyro.google.compute;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Network;
-import com.google.api.services.compute.model.NetworkRoutingConfig;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.Network;
+import com.google.cloud.compute.v1.NetworkRoutingConfig;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;

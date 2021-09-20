@@ -26,9 +26,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.BackendService;
-import com.google.api.services.compute.model.BackendServiceAggregatedList;
-import com.google.api.services.compute.model.BackendServicesScopedList;
+import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.BackendServiceAggregatedList;
+import com.google.cloud.compute.v1.BackendServicesScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

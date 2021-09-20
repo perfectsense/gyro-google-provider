@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.AccessConfig;
-import com.google.api.services.compute.model.AliasIpRange;
-import com.google.api.services.compute.model.NetworkInterface;
+import com.google.cloud.compute.v1.AccessConfig;
+import com.google.cloud.compute.v1.AliasIpRange;
+import com.google.cloud.compute.v1.NetworkInterface;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.Required;

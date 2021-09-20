@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.Scheduling;
-import com.google.api.services.compute.model.SchedulingNodeAffinity;
+import com.google.cloud.compute.v1.Scheduling;
+import com.google.cloud.compute.v1.SchedulingNodeAffinity;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

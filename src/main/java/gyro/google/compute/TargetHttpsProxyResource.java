@@ -22,12 +22,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.SslPolicyReference;
-import com.google.api.services.compute.model.TargetHttpsProxiesSetQuicOverrideRequest;
-import com.google.api.services.compute.model.TargetHttpsProxiesSetSslCertificatesRequest;
-import com.google.api.services.compute.model.TargetHttpsProxy;
-import com.google.api.services.compute.model.UrlMapReference;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SslPolicyReference;
+import com.google.cloud.compute.v1.TargetHttpsProxiesSetQuicOverrideRequest;
+import com.google.cloud.compute.v1.TargetHttpsProxiesSetSslCertificatesRequest;
+import com.google.cloud.compute.v1.TargetHttpsProxy;
+import com.google.cloud.compute.v1.UrlMapReference;
 import com.google.cloud.compute.v1.ProjectGlobalTargetHttpsProxyName;
 import gyro.core.GyroUI;
 import gyro.core.Type;

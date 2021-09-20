@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.SslPolicy;
+import com.google.cloud.compute.v1.SslPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.google.Copyable;

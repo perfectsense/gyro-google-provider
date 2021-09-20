@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.Route;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.Route;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.Type;

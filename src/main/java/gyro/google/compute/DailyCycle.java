@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ResourcePolicyDailyCycle;
+import com.google.cloud.compute.v1.ResourcePolicyDailyCycle;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;

@@ -19,12 +19,12 @@ package gyro.google.compute;
 import java.util.Set;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.model.HTTP2HealthCheck;
-import com.google.api.services.compute.model.HTTPHealthCheck;
-import com.google.api.services.compute.model.HTTPSHealthCheck;
-import com.google.api.services.compute.model.HealthCheck;
-import com.google.api.services.compute.model.SSLHealthCheck;
-import com.google.api.services.compute.model.TCPHealthCheck;
+import com.google.cloud.compute.v1.HTTP2HealthCheck;
+import com.google.cloud.compute.v1.HTTPHealthCheck;
+import com.google.cloud.compute.v1.HTTPSHealthCheck;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.SSLHealthCheck;
+import com.google.cloud.compute.v1.TCPHealthCheck;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -47,7 +47,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     private String name;
     private String selfLink;
     private Integer timeoutSec;
-    private String type;
+    private HealthCheck.Type type;
     private Integer unhealthyThreshold;
 
     /**
@@ -177,12 +177,12 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     /**
      * The type of health check.
      */
-    @ValidStrings({"TCP", "SSL", "HTTP", "HTTPS", "HTTP2"})
-    public String getType() {
+    @ValidStrings({ "TCP", "SSL", "HTTP", "HTTPS", "HTTP2" })
+    public HealthCheck.Type getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(HealthCheck.Type type) {
         this.type = type;
     }
 
@@ -273,7 +273,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     public HealthCheck getHealthCheck(Set<String> changedFieldNames) {
         boolean isUpdate = changedFieldNames != null && (changedFieldNames.size() > 0);
 
-        HealthCheck healthCheck = new HealthCheck();
+        HealthCheck.Builder healthCheck = HealthCheck.newBuilder();
 
         if (!isUpdate) {
             healthCheck.setName(getName());
@@ -329,6 +329,6 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
         }
 
-        return healthCheck;
+        return healthCheck.build();
     }
 }

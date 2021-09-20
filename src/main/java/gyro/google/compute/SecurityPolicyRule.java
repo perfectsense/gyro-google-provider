@@ -20,7 +20,7 @@ import java.util.Set;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.Compute.SecurityPolicies.RemoveRule;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -30,7 +30,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class SecurityPolicyRule extends ComputeResource
-    implements Copyable<com.google.api.services.compute.model.SecurityPolicyRule> {
+    implements Copyable<com.google.cloud.compute.v1.SecurityPolicyRule> {
 
     private String description;
     private Integer priority;
@@ -108,8 +108,8 @@ public class SecurityPolicyRule extends ComputeResource
         return "with priority " + getPriority();
     }
 
-    com.google.api.services.compute.model.SecurityPolicyRule toSecurityPolicyRule() {
-        com.google.api.services.compute.model.SecurityPolicyRule policyRule = new com.google.api.services.compute.model.SecurityPolicyRule();
+    com.google.cloud.compute.v1.SecurityPolicyRule toSecurityPolicyRule() {
+        com.google.cloud.compute.v1.SecurityPolicyRule policyRule = new com.google.cloud.compute.v1.SecurityPolicyRule();
         policyRule.setAction(getAction());
         policyRule.setDescription(getDescription());
         policyRule.setPriority(getPriority());
@@ -120,7 +120,7 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRule securityPolicyRule) {
+    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRule securityPolicyRule) {
         setPriority(securityPolicyRule.getPriority());
         setDescription(securityPolicyRule.getDescription());
         setAction(securityPolicyRule.getAction());
@@ -152,7 +152,7 @@ public class SecurityPolicyRule extends ComputeResource
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Compute client = createComputeClient();
 
-        com.google.api.services.compute.model.SecurityPolicyRule rule = new com.google.api.services.compute.model.SecurityPolicyRule();
+        com.google.cloud.compute.v1.SecurityPolicyRule rule = new com.google.cloud.compute.v1.SecurityPolicyRule();
 
         if (changedFieldNames.contains("description")) {
             rule.setDescription(getDescription());

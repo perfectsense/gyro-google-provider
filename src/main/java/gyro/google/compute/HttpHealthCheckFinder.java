@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HttpHealthCheck;
-import com.google.api.services.compute.model.HttpHealthCheckList;
+import com.google.cloud.compute.v1.HttpHealthCheck;
+import com.google.cloud.compute.v1.HttpHealthCheckList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

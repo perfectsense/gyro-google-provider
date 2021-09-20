@@ -26,9 +26,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.ForwardingRule;
-import com.google.api.services.compute.model.ForwardingRuleAggregatedList;
-import com.google.api.services.compute.model.ForwardingRulesScopedList;
+import com.google.cloud.compute.v1.ForwardingRule;
+import com.google.cloud.compute.v1.ForwardingRuleAggregatedList;
+import com.google.cloud.compute.v1.ForwardingRulesScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

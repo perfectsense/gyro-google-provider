@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HttpHealthCheck;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.HttpHealthCheck;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;

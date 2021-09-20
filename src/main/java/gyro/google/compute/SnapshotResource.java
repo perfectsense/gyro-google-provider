@@ -24,10 +24,10 @@ import java.util.Set;
 
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.CustomerEncryptionKey;
-import com.google.api.services.compute.model.GlobalSetLabelsRequest;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.Snapshot;
+import com.google.cloud.compute.v1.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.GlobalSetLabelsRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.Snapshot;
 import com.google.cloud.compute.v1.ProjectGlobalSnapshotName;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
 import com.google.cloud.compute.v1.ProjectZoneDiskName;

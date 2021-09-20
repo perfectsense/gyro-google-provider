@@ -16,7 +16,8 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.HTTP2HealthCheck;
+import com.google.cloud.compute.v1.HTTP2HealthCheck;
+import com.google.cloud.compute.v1.HealthCheck;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
@@ -42,8 +43,8 @@ public class HealthCheckHttp2HealthCheck extends AbstractHealthCheck implements 
     }
 
     @Override
-    protected String getType() {
-        return "HTTP2";
+    protected HealthCheck.Type getType() {
+        return HealthCheck.Type.HTTP2;
     }
 
     @Override

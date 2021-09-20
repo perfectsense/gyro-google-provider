@@ -25,11 +25,11 @@ import java.util.concurrent.TimeUnit;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.ComputeRequest;
-import com.google.api.services.compute.model.CustomerEncryptionKey;
-import com.google.api.services.compute.model.Disk;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.Compute;
+import com.google.cloud.compute.v1.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.Disk;
+import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
 import com.google.cloud.compute.v1.ProjectZoneDiskName;
 import gyro.core.GyroException;
@@ -42,6 +42,7 @@ import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidNumbers;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public abstract class AbstractDiskResource extends ComputeResource implements Copyable<Disk> {
@@ -57,7 +58,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     private List<ResourcePolicyResource> resourcePolicy;
 
     // Read-only
-    private String status;
+    private Disk.Status status;
     private String sourceSnapshotId;
     private String selfLink;
     private List<String> users;
@@ -185,14 +186,15 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     /**
-     * The status of disk creation. Values can be: ``CREATING``, ``RESTORING``, ``FAILED``, ``READY``, or ``DELETING``.
+     * The status of disk creation.
      */
     @Output
-    public String getStatus() {
+    @ValidStrings({ "CREATING", "RESTORING", "FAILED", "READY", "DELETING" })
+    public Disk.Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Disk.Status status) {
         this.status = status;
     }
 
@@ -259,18 +261,17 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         setStatus(disk.getStatus());
         setSourceSnapshotId(disk.getSourceSnapshotId());
         setSelfLink(disk.getSelfLink());
-        setUsers(disk.getUsers());
+        setUsers(disk.getUsersList());
         setLabelFingerprint(disk.getLabelFingerprint());
     }
 
     protected Disk toDisk() {
-        Disk disk = new Disk();
+        Disk.Builder disk = Disk.newBuilder();
         disk.setName(getName());
         disk.setDescription(getDescription());
         disk.setSizeGb(getSizeGb());
         disk.setPhysicalBlockSizeBytes(getPhysicalBlockSizeBytes());
-        disk.setLabels(getLabels());
-        disk.setSourceSnapshot(getSourceSnapshot() != null ? getSourceSnapshot().getSelfLink() : null);
+        disk.putAllLabels(getLabels());
         disk.setDiskEncryptionKey(getDiskEncryptionKey() != null
             ? getDiskEncryptionKey().toCustomerEncryptionKey()
             : Data.nullOf(CustomerEncryptionKey.class));
@@ -278,12 +279,16 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
             ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
             : Data.nullOf(CustomerEncryptionKey.class));
 
-        return disk;
+        if (getSourceSnapshot() != null) {
+            disk.setSourceSnapshot(getSourceSnapshot().getSelfLink());
+        }
+
+        return disk.build();
     }
 
     static String toDiskUrl(String projectId, String disk) {
         String parseDisk = formatResource(projectId, disk);
-        if (ProjectZoneDiskName.isParsableFrom(parseDisk)) {
+        if (Disk.isParsableFrom(parseDisk)) {
             return ProjectZoneDiskName.parse(parseDisk).toString();
         }
         if (ProjectRegionDiskName.isParsableFrom(parseDisk)) {

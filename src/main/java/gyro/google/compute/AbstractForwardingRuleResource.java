@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.api.services.compute.model.ForwardingRule;
+import com.google.cloud.compute.v1.ForwardingRule;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;
@@ -30,13 +30,13 @@ import gyro.google.Copyable;
 public abstract class AbstractForwardingRuleResource extends ComputeResource implements Copyable<ForwardingRule> {
 
     private String ipAddress;
-    private String ipProtocol;
+    private ForwardingRule.IPProtocol ipProtocol;
     private Boolean allPorts;
     private String description;
-    private String ipVersion;
-    private String loadBalancingScheme;
+    private ForwardingRule.IpVersion ipVersion;
+    private ForwardingRule.LoadBalancingScheme loadBalancingScheme;
     private String name;
-    private String networkTier;
+    private ForwardingRule.NetworkTier networkTier;
     private String portRange;
     private List<String> ports;
     private String serviceLabel;
@@ -61,11 +61,11 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
      */
     @Required
     @ValidStrings({ "TCP", "UDP", "ESP", "AH", "SCTP", "ICMP" })
-    public String getIpProtocol() {
+    public ForwardingRule.IPProtocol getIpProtocol() {
         return ipProtocol;
     }
 
-    public void setIpProtocol(String ipProtocol) {
+    public void setIpProtocol(ForwardingRule.IPProtocol ipProtocol) {
         this.ipProtocol = ipProtocol;
     }
 
@@ -95,11 +95,11 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
      * The IP Version that will be used by this forwarding rule.
      */
     @ValidStrings({ "IPV4", "IPV6" })
-    public String getIpVersion() {
+    public ForwardingRule.IpVersion getIpVersion() {
         return ipVersion;
     }
 
-    public void setIpVersion(String ipVersion) {
+    public void setIpVersion(ForwardingRule.IpVersion ipVersion) {
         this.ipVersion = ipVersion;
     }
 
@@ -107,11 +107,11 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
      * This signifies what the forwarding rule will be used for.
      */
     @ValidStrings({ "INTERNAL", "INTERNAL_SELF_MANAGED", "EXTERNAL" })
-    public String getLoadBalancingScheme() {
+    public ForwardingRule.LoadBalancingScheme getLoadBalancingScheme() {
         return loadBalancingScheme;
     }
 
-    public void setLoadBalancingScheme(String loadBalancingScheme) {
+    public void setLoadBalancingScheme(ForwardingRule.LoadBalancingScheme loadBalancingScheme) {
         this.loadBalancingScheme = loadBalancingScheme;
     }
 
@@ -132,11 +132,11 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
      * The networking tier used for configuring the load balancer with this forwarding rule.
      */
     @ValidStrings({ "PREMIUM", "STANDARD" })
-    public String getNetworkTier() {
+    public ForwardingRule.NetworkTier getNetworkTier() {
         return networkTier;
     }
 
-    public void setNetworkTier(String networkTier) {
+    public void setNetworkTier(ForwardingRule.NetworkTier networkTier) {
         this.networkTier = networkTier;
     }
 
@@ -213,14 +213,14 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
         setName(forwardingRule.getName());
         setNetworkTier(forwardingRule.getNetworkTier());
         setPortRange(forwardingRule.getPortRange());
-        setPorts(forwardingRule.getPorts());
+        setPorts(forwardingRule.getPortsList());
         setServiceLabel(forwardingRule.getServiceLabel());
         setSelfLink(forwardingRule.getSelfLink());
         setServiceName(forwardingRule.getServiceName());
     }
 
     ForwardingRule toForwardingRule() {
-        ForwardingRule forwardingRule = new ForwardingRule();
+        ForwardingRule.Builder forwardingRule = ForwardingRule.newBuilder();
         forwardingRule.setIPAddress(getIpAddress());
         forwardingRule.setIPProtocol(getIpProtocol());
         forwardingRule.setAllPorts(getAllPorts());
@@ -235,9 +235,9 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
 
         List<String> ports = getPorts();
         if (!ports.isEmpty()) {
-            forwardingRule.setPorts(ports);
+            forwardingRule.addAllPorts(ports);
         }
 
-        return forwardingRule;
+        return forwardingRule.build();
     }
 }

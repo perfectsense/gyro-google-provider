@@ -29,7 +29,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
-public class RouterBgp extends Diffable implements Copyable<com.google.api.services.compute.model.RouterBgp> {
+public class RouterBgp extends Diffable implements Copyable<com.google.cloud.compute.v1.RouterBgp> {
 
     private Long asn;
     private String advertiseMode;
@@ -107,7 +107,7 @@ public class RouterBgp extends Diffable implements Copyable<com.google.api.servi
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.RouterBgp model) {
+    public void copyFrom(com.google.cloud.compute.v1.RouterBgp model) {
         setAsn(model.getAsn());
         setAdvertiseMode(model.getAdvertiseMode());
         setAdvertisedGroups(model.getAdvertisedGroups());
@@ -121,8 +121,8 @@ public class RouterBgp extends Diffable implements Copyable<com.google.api.servi
         }
     }
 
-    com.google.api.services.compute.model.RouterBgp toRouterBgp() {
-        com.google.api.services.compute.model.RouterBgp routerBgp = new com.google.api.services.compute.model.RouterBgp();
+    com.google.cloud.compute.v1.RouterBgp toRouterBgp() {
+        com.google.cloud.compute.v1.RouterBgp routerBgp = new com.google.cloud.compute.v1.RouterBgp();
         routerBgp.setAsn(getAsn());
         routerBgp.setAdvertiseMode(getAdvertiseMode());
         routerBgp.setAdvertisedGroups(getAdvertisedGroups());

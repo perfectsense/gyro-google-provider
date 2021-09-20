@@ -1,6 +1,6 @@
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.CustomerEncryptionKey;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.Required;

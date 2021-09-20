@@ -24,8 +24,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Snapshot;
-import com.google.api.services.compute.model.SnapshotList;
+import com.google.cloud.compute.v1.Snapshot;
+import com.google.cloud.compute.v1.SnapshotList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroException;
 import gyro.core.Waiter;
 import gyro.google.GoogleResource;

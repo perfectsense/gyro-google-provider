@@ -19,8 +19,8 @@ package gyro.google.compute;
 import java.util.Optional;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;

@@ -22,12 +22,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Disk;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.RegionDisksAddResourcePoliciesRequest;
-import com.google.api.services.compute.model.RegionDisksRemoveResourcePoliciesRequest;
-import com.google.api.services.compute.model.RegionDisksResizeRequest;
-import com.google.api.services.compute.model.RegionSetLabelsRequest;
+import com.google.cloud.compute.v1.Disk;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RegionDisksAddResourcePoliciesRequest;
+import com.google.cloud.compute.v1.RegionDisksRemoveResourcePoliciesRequest;
+import com.google.cloud.compute.v1.RegionDisksResizeRequest;
+import com.google.cloud.compute.v1.RegionSetLabelsRequest;
 import com.google.cloud.compute.v1.ProjectRegionDiskName;
 import com.google.cloud.compute.v1.ProjectRegionDiskTypeName;
 import com.google.cloud.compute.v1.ProjectZoneName;

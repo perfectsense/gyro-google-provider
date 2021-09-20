@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Address;
+import com.google.cloud.compute.v1.Address;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;

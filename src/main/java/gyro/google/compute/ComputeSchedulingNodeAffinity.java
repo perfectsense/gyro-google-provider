@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.api.services.compute.model.SchedulingNodeAffinity;
+import com.google.cloud.compute.v1.SchedulingNodeAffinity;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;

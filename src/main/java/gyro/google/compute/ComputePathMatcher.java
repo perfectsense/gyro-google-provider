@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.PathMatcher;
-import com.google.api.services.compute.model.PathRule;
+import com.google.cloud.compute.v1.PathMatcher;
+import com.google.cloud.compute.v1.PathRule;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;

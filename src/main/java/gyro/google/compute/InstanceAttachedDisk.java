@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.AttachedDisk;
-import com.google.api.services.compute.model.AttachedDiskInitializeParams;
+import com.google.cloud.compute.v1.AttachedDisk;
+import com.google.cloud.compute.v1.AttachedDiskInitializeParams;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidStrings;

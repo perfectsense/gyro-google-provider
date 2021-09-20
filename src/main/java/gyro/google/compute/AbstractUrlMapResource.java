@@ -23,9 +23,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.model.HostRule;
-import com.google.api.services.compute.model.PathMatcher;
-import com.google.api.services.compute.model.UrlMap;
+import com.google.cloud.compute.v1.HostRule;
+import com.google.cloud.compute.v1.PathMatcher;
+import com.google.cloud.compute.v1.UrlMap;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;

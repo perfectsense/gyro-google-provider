@@ -25,9 +25,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.NetworkEndpointGroup;
-import com.google.api.services.compute.model.NetworkEndpointGroupAggregatedList;
-import com.google.api.services.compute.model.NetworkEndpointGroupsScopedList;
+import com.google.cloud.compute.v1.NetworkEndpointGroup;
+import com.google.cloud.compute.v1.NetworkEndpointGroupAggregatedList;
+import com.google.cloud.compute.v1.NetworkEndpointGroupsScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

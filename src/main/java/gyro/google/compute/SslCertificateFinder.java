@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.SslCertificate;
-import com.google.api.services.compute.model.SslCertificateList;
+import com.google.cloud.compute.v1.SslCertificate;
+import com.google.cloud.compute.v1.SslCertificateList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

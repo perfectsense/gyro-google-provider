@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
+import com.google.cloud.compute.v1.DistributionPolicyZoneConfiguration;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Immutable;
 import gyro.core.validation.Required;

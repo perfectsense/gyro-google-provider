@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.InstanceTemplate;
-import com.google.api.services.compute.model.InstanceTemplateList;
+import com.google.cloud.compute.v1.InstanceTemplate;
+import com.google.cloud.compute.v1.InstanceTemplateList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

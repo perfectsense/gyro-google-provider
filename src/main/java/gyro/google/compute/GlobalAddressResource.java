@@ -17,7 +17,7 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Address;
+import com.google.cloud.compute.v1.Address;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;

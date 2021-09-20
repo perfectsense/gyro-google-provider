@@ -25,10 +25,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.BackendService;
-import com.google.api.services.compute.model.HealthStatus;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.ResourceGroupReference;
+import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.HealthStatus;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.ResourceGroupReference;
 import com.google.cloud.compute.v1.ProjectRegionBackendServiceName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;

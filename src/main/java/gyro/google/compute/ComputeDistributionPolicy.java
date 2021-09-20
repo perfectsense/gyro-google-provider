@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.DistributionPolicy;
-import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
+import com.google.cloud.compute.v1.DistributionPolicy;
+import com.google.cloud.compute.v1.DistributionPolicyZoneConfiguration;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;

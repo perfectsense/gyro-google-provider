@@ -19,7 +19,7 @@ package gyro.google.compute;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 
-public class HttpRedirectAction extends Diffable implements Copyable<com.google.api.services.compute.model.HttpRedirectAction> {
+public class HttpRedirectAction extends Diffable implements Copyable<com.google.cloud.compute.v1.HttpRedirectAction> {
 
     private String hostRedirect;
     private String pathRedirect;
@@ -95,7 +95,7 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.HttpRedirectAction model) {
+    public void copyFrom(com.google.cloud.compute.v1.HttpRedirectAction model) {
         setHostRedirect(model.getHostRedirect());
         setPathRedirect(model.getPathRedirect());
         setPrefixRedirect(model.getPrefixRedirect());
@@ -110,8 +110,8 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
         return "";
     }
 
-    protected com.google.api.services.compute.model.HttpRedirectAction toHttpRedirectAction() {
-        com.google.api.services.compute.model.HttpRedirectAction httpRedirectAction = new com.google.api.services.compute.model.HttpRedirectAction();
+    protected com.google.cloud.compute.v1.HttpRedirectAction toHttpRedirectAction() {
+        com.google.cloud.compute.v1.HttpRedirectAction httpRedirectAction = new com.google.cloud.compute.v1.HttpRedirectAction();
 
         httpRedirectAction.setHostRedirect(getHostRedirect());
         httpRedirectAction.setPathRedirect(getPathRedirect());

@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ResourcePolicySnapshotSchedulePolicy;
+import com.google.cloud.compute.v1.ResourcePolicySnapshotSchedulePolicy;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

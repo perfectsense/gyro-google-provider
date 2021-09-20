@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.api.services.compute.model.TargetHttpProxy;
+import com.google.cloud.compute.v1.TargetHttpProxy;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;

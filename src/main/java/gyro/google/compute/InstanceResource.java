@@ -27,11 +27,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.InstancesSetLabelsRequest;
-import com.google.api.services.compute.model.InstancesSetMachineTypeRequest;
-import com.google.api.services.compute.model.Metadata;
-import com.google.api.services.compute.model.Tags;
+import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstancesSetLabelsRequest;
+import com.google.cloud.compute.v1.InstancesSetMachineTypeRequest;
+import com.google.cloud.compute.v1.Metadata;
+import com.google.cloud.compute.v1.Tags;
 import gyro.core.GyroInstance;
 import gyro.core.GyroUI;
 import gyro.core.Type;

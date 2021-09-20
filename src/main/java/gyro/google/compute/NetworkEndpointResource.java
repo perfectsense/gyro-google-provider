@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.HealthStatusForNetworkEndpoint;
-import com.google.api.services.compute.model.NetworkEndpoint;
-import com.google.api.services.compute.model.NetworkEndpointWithHealthStatus;
+import com.google.cloud.compute.v1.HealthStatusForNetworkEndpoint;
+import com.google.cloud.compute.v1.NetworkEndpoint;
+import com.google.cloud.compute.v1.NetworkEndpointWithHealthStatus;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.Required;

@@ -25,10 +25,10 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.CustomerEncryptionKey;
-import com.google.api.services.compute.model.GlobalSetLabelsRequest;
-import com.google.api.services.compute.model.Image;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.GlobalSetLabelsRequest;
+import com.google.cloud.compute.v1.Image;
+import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.ProjectGlobalImageFamilyName;
 import com.google.cloud.compute.v1.ProjectGlobalImageName;
 import gyro.core.GyroUI;

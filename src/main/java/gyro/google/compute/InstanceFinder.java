@@ -23,9 +23,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.InstanceList;
-import com.google.api.services.compute.model.Zone;
+import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstanceList;
+import com.google.cloud.compute.v1.Zone;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

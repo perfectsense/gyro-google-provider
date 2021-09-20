@@ -18,7 +18,7 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.cloud.compute.v1.InstanceGroupManagerAutoHealingPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Range;
 import gyro.core.validation.Required;

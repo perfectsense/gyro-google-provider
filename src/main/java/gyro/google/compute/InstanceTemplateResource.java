@@ -22,8 +22,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.InstanceProperties;
-import com.google.api.services.compute.model.InstanceTemplate;
+import com.google.cloud.compute.v1.InstanceProperties;
+import com.google.cloud.compute.v1.InstanceTemplate;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;

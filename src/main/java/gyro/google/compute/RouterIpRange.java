@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.RouterAdvertisedIpRange;
+import com.google.cloud.compute.v1.RouterAdvertisedIpRange;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;

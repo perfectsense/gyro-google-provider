@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.BackendBucket;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.BackendBucket;
+import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.ProjectGlobalBackendBucketName;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -236,7 +236,7 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
         backendBucket.setName(getName());
         backendBucket.setCdnPolicy(getCdnPolicy() != null
             ? getCdnPolicy().toBackendBucketCdnPolicy()
-            : Data.nullOf(com.google.api.services.compute.model.BackendBucketCdnPolicy.class));
+            : Data.nullOf(com.google.cloud.compute.v1.BackendBucketCdnPolicy.class));
 
         Operation response = client.backendBuckets().insert(getProjectId(), backendBucket).execute();
         waitForCompletion(client, response);

@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.AliasIpRange;
+import com.google.cloud.compute.v1.AliasIpRange;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

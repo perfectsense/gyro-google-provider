@@ -17,7 +17,7 @@
 package gyro.google.compute;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Backend;
+import com.google.cloud.compute.v1.Backend;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;

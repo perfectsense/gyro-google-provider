@@ -22,8 +22,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.Router;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.Router;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -265,7 +265,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
         if (model.getNats() != null) {
             getRouterNat().clear();
-            for (com.google.api.services.compute.model.RouterNat n : model.getNats()) {
+            for (com.google.cloud.compute.v1.RouterNat n : model.getNats()) {
                 RouterNat nat = newSubresource(RouterNat.class);
                 nat.copyFrom(n);
                 getRouterNat().add(nat);
@@ -274,7 +274,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
         if (model.getInterfaces() != null) {
             getRouterInterface().clear();
-            for (com.google.api.services.compute.model.RouterInterface i : model.getInterfaces()) {
+            for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfaces()) {
                 RouterInterface routerInterface = newSubresource(RouterInterface.class);
                 routerInterface.copyFrom(i);
                 getRouterInterface().add(routerInterface);
@@ -283,7 +283,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
         if (model.getBgpPeers() != null) {
             getRouterBgpPeer().clear();
-            for (com.google.api.services.compute.model.RouterBgpPeer p : model.getBgpPeers()) {
+            for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeers()) {
                 RouterBgpPeer bgpPeer = newSubresource(RouterBgpPeer.class);
                 bgpPeer.copyFrom(p);
                 getRouterBgpPeer().add(bgpPeer);
@@ -358,7 +358,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
         if (changedFieldNames.contains("router-bgp")) {
             router.setBgp(getRouterBgp() == null
-                ? new com.google.api.services.compute.model.RouterBgp()
+                ? new com.google.cloud.compute.v1.RouterBgp()
                 : getRouterBgp().toRouterBgp());
         }
 

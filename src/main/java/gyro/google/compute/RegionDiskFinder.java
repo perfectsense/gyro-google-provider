@@ -26,9 +26,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Disk;
-import com.google.api.services.compute.model.DiskAggregatedList;
-import com.google.api.services.compute.model.DisksScopedList;
+import com.google.cloud.compute.v1.Disk;
+import com.google.cloud.compute.v1.DiskAggregatedList;
+import com.google.cloud.compute.v1.DisksScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.SecurityPolicy;
-import com.google.api.services.compute.model.SecurityPolicyList;
+import com.google.cloud.compute.v1.SecurityPolicy;
+import com.google.cloud.compute.v1.SecurityPolicyList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

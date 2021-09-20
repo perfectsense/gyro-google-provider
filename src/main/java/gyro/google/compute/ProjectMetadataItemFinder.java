@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Metadata;
-import com.google.api.services.compute.model.Project;
+import com.google.cloud.compute.v1.Metadata;
+import com.google.cloud.compute.v1.Project;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

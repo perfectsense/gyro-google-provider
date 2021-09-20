@@ -25,9 +25,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Subnetwork;
-import com.google.api.services.compute.model.SubnetworkAggregatedList;
-import com.google.api.services.compute.model.SubnetworksScopedList;
+import com.google.cloud.compute.v1.Subnetwork;
+import com.google.cloud.compute.v1.SubnetworkAggregatedList;
+import com.google.cloud.compute.v1.SubnetworksScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

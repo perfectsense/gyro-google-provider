@@ -19,9 +19,9 @@ package gyro.google.compute;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.ForwardingRule;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.TargetReference;
+import com.google.cloud.compute.v1.ForwardingRule;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.TargetReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;

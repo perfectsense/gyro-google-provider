@@ -24,10 +24,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HealthCheck;
-import com.google.api.services.compute.model.HealthCheckList;
-import com.google.api.services.compute.model.HealthChecksAggregatedList;
-import com.google.api.services.compute.model.HealthChecksScopedList;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.HealthCheckList;
+import com.google.cloud.compute.v1.HealthChecksAggregatedList;
+import com.google.cloud.compute.v1.HealthChecksScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

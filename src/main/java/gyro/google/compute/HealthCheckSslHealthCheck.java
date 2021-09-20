@@ -16,7 +16,8 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.SSLHealthCheck;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.SSLHealthCheck;
 import gyro.google.Copyable;
 
 public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Copyable<SSLHealthCheck> {
@@ -27,8 +28,8 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Co
     }
 
     @Override
-    protected String getType() {
-        return "SSL";
+    protected HealthCheck.Type getType() {
+        return HealthCheck.Type.SSL;
     }
 
     @Override

@@ -24,9 +24,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Firewall;
-import com.google.api.services.compute.model.FirewallLogConfig;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.Firewall;
+import com.google.cloud.compute.v1.FirewallLogConfig;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;

@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.api.services.compute.model.CacheKeyPolicy;
+import com.google.cloud.compute.v1.CacheKeyPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;

@@ -29,7 +29,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
-public class RouterNat extends Diffable implements Copyable<com.google.api.services.compute.model.RouterNat> {
+public class RouterNat extends Diffable implements Copyable<com.google.cloud.compute.v1.RouterNat> {
 
     private Integer icmpIdleTimeoutSec;
     private RouterNatLogConfig logConfig;
@@ -199,7 +199,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.RouterNat model) throws Exception {
+    public void copyFrom(com.google.cloud.compute.v1.RouterNat model) throws Exception {
         setIcmpIdleTimeoutSec(model.getIcmpIdleTimeoutSec());
         setMinPortsPerVm(model.getMinPortsPerVm());
         setName(model.getName());
@@ -234,8 +234,8 @@ public class RouterNat extends Diffable implements Copyable<com.google.api.servi
         }
     }
 
-    com.google.api.services.compute.model.RouterNat toRouterNat() {
-        com.google.api.services.compute.model.RouterNat routerNat = new com.google.api.services.compute.model.RouterNat();
+    com.google.cloud.compute.v1.RouterNat toRouterNat() {
+        com.google.cloud.compute.v1.RouterNat routerNat = new com.google.cloud.compute.v1.RouterNat();
         routerNat.setIcmpIdleTimeoutSec(getIcmpIdleTimeoutSec());
         routerNat.setMinPortsPerVm(getMinPortsPerVm());
         routerNat.setName(getName());

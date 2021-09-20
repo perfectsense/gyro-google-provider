@@ -16,6 +16,7 @@
 
 package gyro.google.compute;
 
+import com.google.cloud.compute.v1.HealthCheck;
 import com.psddev.dari.util.StringUtils;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
@@ -108,5 +109,5 @@ public abstract class AbstractHealthCheck extends Diffable {
         this.requestPath = requestPath;
     }
 
-    protected abstract String getType();
+    protected abstract HealthCheck.Type getType();
 }

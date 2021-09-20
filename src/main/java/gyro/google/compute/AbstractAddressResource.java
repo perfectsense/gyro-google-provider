@@ -18,7 +18,7 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.model.Address;
+import com.google.cloud.compute.v1.Address;
 import gyro.core.GyroUI;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -35,11 +35,11 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     private String description;
     private String address;
     private Integer prefixLength;
-    private String addressType;
-    private String purpose;
+    private Address.AddressType addressType;
+    private Address.Purpose purpose;
     private SubnetworkResource subnetwork;
     private NetworkResource network;
-    private String status;
+    private Address.Status status;
     private String selfLink;
 
     /**
@@ -92,11 +92,11 @@ public abstract class AbstractAddressResource extends ComputeResource implements
      * Type of address to reserve. Defaults to ``EXTERNAL``.
      */
     @ValidStrings({ "EXTERNAL", "INTERNAL" })
-    public String getAddressType() {
+    public Address.AddressType getAddressType() {
         return addressType;
     }
 
-    public void setAddressType(String addressType) {
+    public void setAddressType(Address.AddressType addressType) {
         this.addressType = addressType;
     }
 
@@ -104,11 +104,11 @@ public abstract class AbstractAddressResource extends ComputeResource implements
      * Purpose for this resource. This field can only be used with ``INTERNAL`` type.
      */
     @ValidStrings({ "GCE_ENDPOINT", "DNS_RESOLVER", "VPC_PEERING", "NAT_AUTO" })
-    public String getPurpose() {
+    public Address.Purpose getPurpose() {
         return purpose;
     }
 
-    public void setPurpose(String purpose) {
+    public void setPurpose(Address.Purpose purpose) {
         this.purpose = purpose;
     }
 
@@ -135,14 +135,15 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     /**
-     * The status of the address. Values are ``RESERVING``, ``RESERVED`` or ``IN_USE``.
+     * The status of the address.
      */
+    @ValidStrings({ "RESERVING", "RESERVED", "IN_USE" })
     @Output
-    public String getStatus() {
+    public Address.Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Address.Status status) {
         this.status = status;
     }
 
@@ -188,7 +189,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     public Address copyTo() {
-        return new Address()
+        return Address.newBuilder()
             .setName(getName())
             .setDescription(getDescription())
             .setAddress(getAddress())
@@ -196,7 +197,8 @@ public abstract class AbstractAddressResource extends ComputeResource implements
             .setAddressType(getAddressType())
             .setPurpose(getPurpose())
             .setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null)
-            .setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null);
+            .setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null)
+            .build();
     }
 }
 

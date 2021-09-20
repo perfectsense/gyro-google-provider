@@ -25,10 +25,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.InstanceGroupManagerAggregatedList;
-import com.google.api.services.compute.model.InstanceGroupManagerList;
-import com.google.api.services.compute.model.InstanceGroupManagersScopedList;
+import com.google.cloud.compute.v1.InstanceGroupManager;
+import com.google.cloud.compute.v1.InstanceGroupManagerAggregatedList;
+import com.google.cloud.compute.v1.InstanceGroupManagerList;
+import com.google.cloud.compute.v1.InstanceGroupManagersScopedList;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;

@@ -25,12 +25,15 @@ import java.util.stream.Collectors;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
-import com.google.api.services.compute.model.InstanceGroupManagerVersion;
-import com.google.api.services.compute.model.NamedPort;
+import com.google.cloud.compute.v1.Compute;
+import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstanceGroupManager;
+import com.google.cloud.compute.v1.InstanceGroupManagerAutoHealingPolicy;
+import com.google.cloud.compute.v1.InstanceGroupManagerVersion;
+import com.google.cloud.compute.v1.InstanceGroupManagersClient;
+import com.google.cloud.compute.v1.InstanceGroupsClient;
+import com.google.cloud.compute.v1.InstancesClient;
+import com.google.cloud.compute.v1.NamedPort;
 import gyro.core.GyroUI;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -334,7 +337,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         setTargetSize(model.getTargetSize());
 
         List<ComputeInstanceGroupManagerAutoHealingPolicy> diffableAutoHealingPolicies = null;
-        List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicies = model.getAutoHealingPolicies();
+        List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicies = model.getAutoHealingPoliciesList();
 
         if (autoHealingPolicies != null && !autoHealingPolicies.isEmpty()) {
             diffableAutoHealingPolicies = autoHealingPolicies
@@ -355,7 +358,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
             .orElse(null));
 
         List<ComputeNamedPort> diffableNamedPorts = null;
-        List<NamedPort> namedPorts = model.getNamedPorts();
+        List<NamedPort> namedPorts = model.getNamedPortsList();
 
         if (namedPorts != null && !namedPorts.isEmpty()) {
             diffableNamedPorts = namedPorts
@@ -370,7 +373,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         setNamedPort(diffableNamedPorts);
 
         List<TargetPoolResource> diffableTargetPools = null;
-        List<String> targetPools = model.getTargetPools();
+        List<String> targetPools = model.getTargetPoolsList();
 
         if (targetPools != null && !targetPools.isEmpty()) {
             diffableTargetPools = targetPools
@@ -390,7 +393,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
             .orElse(null));
 
         List<ComputeInstanceGroupManagerVersion> diffableInstanceGroupManagerVersion = null;
-        List<InstanceGroupManagerVersion> versions = model.getVersions();
+        List<InstanceGroupManagerVersion> versions = model.getVersionsList();
 
         if (versions != null && !versions.isEmpty()) {
             diffableInstanceGroupManagerVersion = versions
@@ -426,11 +429,11 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+        InstanceGroupManager.Builder instanceGroupManager = InstanceGroupManager.newBuilder();
         instanceGroupManager.setBaseInstanceName(getBaseInstanceName());
         instanceGroupManager.setName(getName());
         instanceGroupManager.setTargetSize(getTargetSize());
-        instanceGroupManager.setAutoHealingPolicies(getAutoHealingPolicy()
+        instanceGroupManager.addAllAutoHealingPolicies(getAutoHealingPolicy()
             .stream()
             .map(ComputeInstanceGroupManagerAutoHealingPolicy::copyTo)
             .collect(Collectors.toList()));
@@ -439,22 +442,22 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         Optional.ofNullable(getInstanceTemplate())
             .map(InstanceTemplateResource::getSelfLink)
             .ifPresent(instanceGroupManager::setInstanceTemplate);
-        instanceGroupManager.setNamedPorts(getNamedPort().stream()
+        instanceGroupManager.addAllNamedPorts(getNamedPort().stream()
             .map(ComputeNamedPort::copyTo)
             .collect(Collectors.toList()));
-        instanceGroupManager.setTargetPools(getTargetPools()
+        instanceGroupManager.addAllTargetPools(getTargetPools()
             .stream()
             .map(TargetPoolResource::getSelfLink)
             .collect(Collectors.toList()));
         Optional.ofNullable(getUpdatePolicy())
             .map(ComputeInstanceGroupManagerUpdatePolicy::copyTo)
             .ifPresent(instanceGroupManager::setUpdatePolicy);
-        instanceGroupManager.setVersions(getVersion()
+        instanceGroupManager.addAllVersions(getVersion()
             .stream()
             .map(ComputeInstanceGroupManagerVersion::copyTo)
             .collect(Collectors.toList()));
 
-        insert(instanceGroupManager);
+        insert(instanceGroupManager.build());
         refresh();
     }
 
@@ -464,7 +467,7 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         // TODO: investigate as GCP UI allows updating of named ports.
 
         boolean shouldPatch = false;
-        InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+        InstanceGroupManager.Builder instanceGroupManager = InstanceGroupManager.newBuilder();
 
         for (String changedFieldName : changedFieldNames) {
             // template changes
@@ -487,22 +490,22 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
                         .map(ComputeInstanceGroupManagerAutoHealingPolicy::copyTo)
                         .collect(Collectors.toList());
                 }
-                instanceGroupManager.setAutoHealingPolicies(autoHealingPolicies);
+                instanceGroupManager.addAllAutoHealingPolicies(autoHealingPolicies);
                 shouldPatch = true;
             }
         }
 
         if (shouldPatch) {
-            patch(instanceGroupManager);
+            patch(instanceGroupManager.build());
         }
         refresh();
     }
 
-    Instance getInstance(Compute client, String name, String zone) throws IOException {
+    Instance getInstance(InstanceGroupsClient client, String name, String zone) throws IOException {
         Instance instance = null;
 
         try {
-            instance = client.instances().get(getProjectId(), zone, name).execute();
+            instance = client.instance(getProjectId(), zone, name);
         } catch (GoogleJsonResponseException ex) {
             if (ex.getDetails().getCode() != 404) {
                 throw ex;

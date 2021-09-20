@@ -23,10 +23,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Address;
-import com.google.api.services.compute.model.AddressAggregatedList;
-import com.google.api.services.compute.model.AddressList;
-import com.google.api.services.compute.model.AddressesScopedList;
+import com.google.cloud.compute.v1.Address;
+import com.google.cloud.compute.v1.AddressAggregatedList;
+import com.google.cloud.compute.v1.AddressList;
+import com.google.cloud.compute.v1.AddressesScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

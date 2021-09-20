@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Router;
+import com.google.cloud.compute.v1.Router;
 import com.google.common.base.CaseFormat;
 import gyro.core.Type;
 import gyro.core.finder.Filter;

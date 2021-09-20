@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization;
+import com.google.cloud.compute.v1.AutoscalingPolicyLoadBalancingUtilization;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;

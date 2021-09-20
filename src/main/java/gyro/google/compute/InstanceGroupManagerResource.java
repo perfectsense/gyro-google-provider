@@ -23,13 +23,14 @@ import java.util.stream.Collectors;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.InstanceGroupManagersListManagedInstancesResponse;
-import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest;
-import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest;
-import com.google.api.services.compute.model.ManagedInstance;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstanceGroupManager;
+import com.google.cloud.compute.v1.InstanceGroupManagersClient;
+import com.google.cloud.compute.v1.InstanceGroupManagersListManagedInstancesResponse;
+import com.google.cloud.compute.v1.InstanceGroupManagersSetInstanceTemplateRequest;
+import com.google.cloud.compute.v1.InstanceGroupManagersSetTargetPoolsRequest;
+import com.google.cloud.compute.v1.ManagedInstance;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroException;
 import gyro.core.GyroInstance;
 import gyro.core.GyroInstances;
@@ -98,10 +99,8 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
 
     @Override
     void insert(InstanceGroupManager instanceGroupManager) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroupManagers()
-            .insert(getProjectId(), getZone(), instanceGroupManager)
-            .execute();
+        InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class);
+        Operation operation = client.insert(getProjectId(), getZone(), instanceGroupManager);
         waitForCompletion(client, operation);
     }
 

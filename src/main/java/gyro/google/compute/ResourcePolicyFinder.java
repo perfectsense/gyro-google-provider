@@ -23,10 +23,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.ResourcePoliciesScopedList;
-import com.google.api.services.compute.model.ResourcePolicy;
-import com.google.api.services.compute.model.ResourcePolicyAggregatedList;
-import com.google.api.services.compute.model.ResourcePolicyList;
+import com.google.cloud.compute.v1.ResourcePoliciesScopedList;
+import com.google.cloud.compute.v1.ResourcePolicy;
+import com.google.cloud.compute.v1.ResourcePolicyAggregatedList;
+import com.google.cloud.compute.v1.ResourcePolicyList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

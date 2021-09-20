@@ -22,8 +22,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.AutoscalingPolicy;
-import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization;
+import com.google.cloud.compute.v1.AutoscalingPolicy;
+import com.google.cloud.compute.v1.AutoscalingPolicyCustomMetricUtilization;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Min;

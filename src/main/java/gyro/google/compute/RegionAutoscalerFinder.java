@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.RegionAutoscalerList;
+import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.RegionAutoscalerList;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Type;

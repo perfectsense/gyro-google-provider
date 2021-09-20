@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.UrlMap;
-import com.google.api.services.compute.model.UrlMapList;
+import com.google.cloud.compute.v1.UrlMap;
+import com.google.cloud.compute.v1.UrlMapList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

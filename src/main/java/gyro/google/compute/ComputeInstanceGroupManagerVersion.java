@@ -18,7 +18,7 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.services.compute.model.InstanceGroupManagerVersion;
+import com.google.cloud.compute.v1.InstanceGroupManagerVersion;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;

@@ -25,10 +25,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.AutoscalerAggregatedList;
-import com.google.api.services.compute.model.AutoscalerList;
-import com.google.api.services.compute.model.AutoscalersScopedList;
+import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.AutoscalerAggregatedList;
+import com.google.cloud.compute.v1.AutoscalerList;
+import com.google.cloud.compute.v1.AutoscalersScopedList;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;

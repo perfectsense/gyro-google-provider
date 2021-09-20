@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.model.ResourcePolicySnapshotSchedulePolicySnapshotProperties;
+import com.google.cloud.compute.v1.ResourcePolicySnapshotSchedulePolicySnapshotProperties;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

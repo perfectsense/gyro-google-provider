@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ShieldedInstanceConfig;
+import com.google.cloud.compute.v1.ShieldedInstanceConfig;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

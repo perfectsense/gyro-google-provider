@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.ResourcePolicy;
+import com.google.cloud.compute.v1.ResourcePolicy;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;

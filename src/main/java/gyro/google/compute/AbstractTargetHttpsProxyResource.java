@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.TargetHttpsProxy;
+import com.google.cloud.compute.v1.TargetHttpsProxy;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;

@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.TargetHttpProxy;
-import com.google.api.services.compute.model.TargetHttpProxyList;
+import com.google.cloud.compute.v1.TargetHttpProxy;
+import com.google.cloud.compute.v1.TargetHttpProxyList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

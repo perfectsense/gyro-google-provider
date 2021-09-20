@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.model.CacheKeyPolicy;
+import com.google.cloud.compute.v1.CacheKeyPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -28,7 +28,7 @@ import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class BackendServiceCdnPolicy extends Diffable
-    implements Copyable<com.google.api.services.compute.model.BackendServiceCdnPolicy> {
+    implements Copyable<com.google.cloud.compute.v1.BackendServiceCdnPolicy> {
 
     private Long signedUrlMaxAge;
     private BackendServiceCdnCacheKeyPolicy cacheKeyPolicy;
@@ -83,7 +83,7 @@ public class BackendServiceCdnPolicy extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.BackendServiceCdnPolicy backendServiceCdnPolicy) {
+    public void copyFrom(com.google.cloud.compute.v1.BackendServiceCdnPolicy backendServiceCdnPolicy) {
         setSignedUrlKeyNames(backendServiceCdnPolicy.getSignedUrlKeyNames());
         setSignedUrlMaxAge(backendServiceCdnPolicy.getSignedUrlCacheMaxAgeSec());
         setCacheKeyPolicy(null);
@@ -94,8 +94,8 @@ public class BackendServiceCdnPolicy extends Diffable
         }
     }
 
-    com.google.api.services.compute.model.BackendServiceCdnPolicy toBackendServiceCdnPolicy() {
-        return new com.google.api.services.compute.model.BackendServiceCdnPolicy()
+    com.google.cloud.compute.v1.BackendServiceCdnPolicy toBackendServiceCdnPolicy() {
+        return new com.google.cloud.compute.v1.BackendServiceCdnPolicy()
             .setSignedUrlCacheMaxAgeSec(getSignedUrlMaxAge())
             .setCacheKeyPolicy(getCacheKeyPolicy() != null ? getCacheKeyPolicy().toCacheKeyPolicy() : Data.nullOf(
                 CacheKeyPolicy.class));

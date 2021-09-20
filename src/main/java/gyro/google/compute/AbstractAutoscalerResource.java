@@ -24,9 +24,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.AutoscalerStatusDetails;
-import com.google.api.services.compute.model.AutoscalingPolicy;
+import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.AutoscalerStatusDetails;
+import com.google.cloud.compute.v1.AutoscalingPolicy;
 import gyro.core.GyroUI;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -35,6 +35,7 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public abstract class AbstractAutoscalerResource extends ComputeResource implements Copyable<Autoscaler> {
@@ -49,7 +50,7 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
 
     private String selfLink;
 
-    private String status;
+    private Autoscaler.Status status;
 
     private List<ComputeAutoscalerStatusDetails> statusDetail;
 
@@ -139,13 +140,16 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
      * - ``DELETING``: Configuration is being deleted.
      * - ``ACTIVE``: Configuration is acknowledged to be effective. Some warnings might be present in the ``status-detail`` field.
      * - ``ERROR``: Configuration has errors. Actionable for users. Details are present in the ``status-detail`` field.
+     *
+     * @no-docs ValidStrings
      */
     @Output
-    public String getStatus() {
+    @ValidStrings({ "PENDING", "DELETING", "ACTIVE", "ERROR" })
+    public Autoscaler.Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Autoscaler.Status status) {
         this.status = status;
     }
 
@@ -178,16 +182,12 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
             })
             .orElse(null));
         setDescription(model.getDescription());
-        // `recommendedSize` is not available from Google SDK yet.
-        setRecommendedSize(Optional.ofNullable(model.get("recommendedSize"))
-            .filter(Integer.class::isInstance)
-            .map(Integer.class::cast)
-            .orElse(null));
+        setRecommendedSize(model.getRecommendedSize());
         setSelfLink(model.getSelfLink());
         setStatus(model.getStatus());
 
         List<ComputeAutoscalerStatusDetails> diffableAutoscalerStatusDetails = null;
-        List<AutoscalerStatusDetails> statusDetails = model.getStatusDetails();
+        List<AutoscalerStatusDetails> statusDetails = model.getStatusDetailsList();
 
         if (statusDetails != null && !statusDetails.isEmpty()) {
             diffableAutoscalerStatusDetails = statusDetails
@@ -205,14 +205,12 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Autoscaler autoscaler = new Autoscaler();
-        autoscaler.setName(getName());
+        Autoscaler.Builder builder = Autoscaler.newBuilder().setName(getName()).setDescription(getDescription());
         Optional.ofNullable(getAutoscalingPolicy())
             .map(ComputeAutoscalingPolicy::copyTo)
-            .ifPresent(autoscaler::setAutoscalingPolicy);
-        autoscaler.setDescription(getDescription());
+            .ifPresent(builder::setAutoscalingPolicy);
 
-        insert(autoscaler);
+        insert(builder.build());
         refresh();
     }
 
@@ -228,31 +226,24 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
     }
 
     private Autoscaler constructPatchRequest(Set<String> changedFieldNames) {
-        Autoscaler autoscaler = new Autoscaler();
+        Autoscaler.Builder builder = Autoscaler.newBuilder();
         Set<String> changedFields = new HashSet<>(changedFieldNames);
         int count = changedFields.size();
         boolean shouldPatch = false;
 
         if (changedFields.remove("description")) {
-            autoscaler.setDescription(getDescription());
-
-            if (--count == 0) {
-                return autoscaler;
-            }
+            builder.setDescription(getDescription());
             shouldPatch = true;
         }
 
         if (changedFields.remove("autoscaling-policy")) {
             ComputeAutoscalingPolicy diffableAutoscalingPolicy = getAutoscalingPolicy();
-            autoscaler.setAutoscalingPolicy(diffableAutoscalingPolicy == null
+            builder.setAutoscalingPolicy(diffableAutoscalingPolicy == null
                 ? Data.nullOf(AutoscalingPolicy.class)
                 : diffableAutoscalingPolicy.copyTo());
-
-            if (--count == 0) {
-                return autoscaler;
-            }
             shouldPatch = true;
         }
-        return shouldPatch ? autoscaler : null;
+
+        return shouldPatch ? builder.build() : null;
     }
 }

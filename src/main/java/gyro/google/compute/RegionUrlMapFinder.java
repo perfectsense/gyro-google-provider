@@ -25,10 +25,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.UrlMap;
-import com.google.api.services.compute.model.UrlMapList;
-import com.google.api.services.compute.model.UrlMapsAggregatedList;
-import com.google.api.services.compute.model.UrlMapsScopedList;
+import com.google.cloud.compute.v1.UrlMap;
+import com.google.cloud.compute.v1.UrlMapList;
+import com.google.cloud.compute.v1.UrlMapsAggregatedList;
+import com.google.cloud.compute.v1.UrlMapsScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

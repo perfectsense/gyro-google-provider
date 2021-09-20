@@ -16,7 +16,8 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.TCPHealthCheck;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.TCPHealthCheck;
 import gyro.google.Copyable;
 
 public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Copyable<TCPHealthCheck> {
@@ -27,8 +28,8 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
     }
 
     @Override
-    protected String getType() {
-        return "TCP";
+    protected HealthCheck.Type getType() {
+        return HealthCheck.Type.TCP;
     }
 
     @Override

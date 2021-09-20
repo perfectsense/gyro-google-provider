@@ -23,12 +23,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.NetworkEndpointGroup;
-import com.google.api.services.compute.model.NetworkEndpointGroupsAttachEndpointsRequest;
-import com.google.api.services.compute.model.NetworkEndpointGroupsDetachEndpointsRequest;
-import com.google.api.services.compute.model.NetworkEndpointGroupsListEndpointsRequest;
-import com.google.api.services.compute.model.NetworkEndpointWithHealthStatus;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.NetworkEndpointGroup;
+import com.google.cloud.compute.v1.NetworkEndpointGroupsAttachEndpointsRequest;
+import com.google.cloud.compute.v1.NetworkEndpointGroupsDetachEndpointsRequest;
+import com.google.cloud.compute.v1.NetworkEndpointGroupsListEndpointsRequest;
+import com.google.cloud.compute.v1.NetworkEndpointWithHealthStatus;
+import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroUI;
 import gyro.core.Type;

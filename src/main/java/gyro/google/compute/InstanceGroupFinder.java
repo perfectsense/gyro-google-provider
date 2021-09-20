@@ -25,9 +25,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.InstanceGroup;
-import com.google.api.services.compute.model.InstanceGroupAggregatedList;
-import com.google.api.services.compute.model.InstanceGroupsScopedList;
+import com.google.cloud.compute.v1.InstanceGroup;
+import com.google.cloud.compute.v1.InstanceGroupAggregatedList;
+import com.google.cloud.compute.v1.InstanceGroupsScopedList;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 

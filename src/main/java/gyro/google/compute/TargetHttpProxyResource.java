@@ -19,8 +19,8 @@ package gyro.google.compute;
 import java.util.Set;
 
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.UrlMapReference;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.UrlMapReference;
 import com.google.cloud.compute.v1.ProjectGlobalTargetHttpProxyName;
 import gyro.core.GyroUI;
 import gyro.core.Type;

@@ -30,7 +30,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
-public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.services.compute.model.RouterBgpPeer> {
+public class RouterBgpPeer extends Diffable implements Copyable<com.google.cloud.compute.v1.RouterBgpPeer> {
 
     private String name;
     private String interfaceName;
@@ -173,7 +173,7 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.RouterBgpPeer model) throws Exception {
+    public void copyFrom(com.google.cloud.compute.v1.RouterBgpPeer model) throws Exception {
         setName(model.getName());
         setAdvertisedRoutePriority(model.getAdvertisedRoutePriority());
         setAdvertiseMode(model.getAdvertiseMode());
@@ -192,8 +192,8 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.api.s
         }
     }
 
-    com.google.api.services.compute.model.RouterBgpPeer toRouterBgpPeer() {
-        com.google.api.services.compute.model.RouterBgpPeer routerBgpPeer = new com.google.api.services.compute.model.RouterBgpPeer();
+    com.google.cloud.compute.v1.RouterBgpPeer toRouterBgpPeer() {
+        com.google.cloud.compute.v1.RouterBgpPeer routerBgpPeer = new com.google.cloud.compute.v1.RouterBgpPeer();
         routerBgpPeer.setName(getName());
         routerBgpPeer.setAdvertisedRoutePriority(getAdvertisedRoutePriority());
         routerBgpPeer.setAdvertiseMode(getAdvertiseMode());
