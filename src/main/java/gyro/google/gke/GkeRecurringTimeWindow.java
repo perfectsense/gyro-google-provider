@@ -25,6 +25,9 @@ public class GkeRecurringTimeWindow extends Diffable implements Copyable<Recurri
     private GkeTimeWindow window;
     private String recurrence;
 
+    /**
+     * The window of the first recurrence.
+     */
     public GkeTimeWindow getWindow() {
         return window;
     }
@@ -33,6 +36,9 @@ public class GkeRecurringTimeWindow extends Diffable implements Copyable<Recurri
         this.window = window;
     }
 
+    /**
+     * The `RRULE <https://tools.ietf.org/html/rfc5545#section-3.8.5.3>`_ for how this window reccurs. They go on for the span of time between the start and end time.
+     */
     public String getRecurrence() {
         return recurrence;
     }

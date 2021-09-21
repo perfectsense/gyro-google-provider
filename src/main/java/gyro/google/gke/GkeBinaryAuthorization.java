@@ -26,6 +26,9 @@ public class GkeBinaryAuthorization extends Diffable implements Copyable<BinaryA
 
     private Boolean enabled;
 
+    /**
+     * When set to ``true``, all container images will be validated by Binary Authorization.
+     */
     @Required
     @Updatable
     public Boolean getEnabled() {

@@ -26,6 +26,9 @@ public class GkeAutoUpgradeOptions extends Diffable implements Copyable<AutoUpgr
     private String autoUpgradeStartTime;
     private String description;
 
+    /**
+     * The approximate start time for the upgrades.
+     */
     @Output
     public String getAutoUpgradeStartTime() {
         return autoUpgradeStartTime;
@@ -35,6 +38,9 @@ public class GkeAutoUpgradeOptions extends Diffable implements Copyable<AutoUpgr
         this.autoUpgradeStartTime = autoUpgradeStartTime;
     }
 
+    /**
+     * The description of the upgrade.
+     */
     @Output
     public String getDescription() {
         return description;

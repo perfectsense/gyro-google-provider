@@ -1029,6 +1029,13 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
                 .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
         }
 
+        if (changedFieldNames.contains("master-version")) {
+            client.updateMaster(UpdateMasterRequest.newBuilder()
+                .setName(getClusterId())
+                .setMasterVersion(getMasterVersion())
+                .build());
+        }
+
         refresh();
 
         client.close();

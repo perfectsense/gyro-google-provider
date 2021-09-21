@@ -26,6 +26,9 @@ public class GkeNetworkPolicy extends Diffable implements Copyable<NetworkPolicy
     private Boolean enabled;
     private NetworkPolicy.Provider provider;
 
+    /**
+     * When set to ``true``, the network policy is enabled on the cluster.
+     */
     @Required
     public Boolean getEnabled() {
         return enabled;
@@ -35,6 +38,9 @@ public class GkeNetworkPolicy extends Diffable implements Copyable<NetworkPolicy
         this.enabled = enabled;
     }
 
+    /**
+     * The selected network policy provider.
+     */
     public NetworkPolicy.Provider getProvider() {
         return provider;
     }

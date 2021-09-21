@@ -36,6 +36,9 @@ public class GkeTimeWindow extends Diffable implements Copyable<TimeWindow> {
     private String endTime;
     private String name;
 
+    /**
+     * The start time of the time window.
+     */
     @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "a string matching the @|bold mm/dd/yyyy|@ format")
     public String getStartTime() {
         return startTime;
@@ -45,6 +48,9 @@ public class GkeTimeWindow extends Diffable implements Copyable<TimeWindow> {
         this.startTime = startTime;
     }
 
+    /**
+     * The end time of the time window.
+     */
     @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "a string matching the @|bold mm/dd/yyyy|@ format")
     public String getEndTime() {
         return endTime;
@@ -54,6 +60,9 @@ public class GkeTimeWindow extends Diffable implements Copyable<TimeWindow> {
         this.endTime = endTime;
     }
 
+    /**
+     * The name of the time window.
+     */
     public String getName() {
         return name;
     }

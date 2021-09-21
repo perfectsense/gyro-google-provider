@@ -26,29 +26,16 @@ import gyro.google.compute.SubnetworkResource;
 
 public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig> {
 
-    private NetworkResource network;
-    private SubnetworkResource subnetwork;
     private Boolean enableIntraNodeVisibility;
     private GkeDefaultSnatStatus defaultSnatStatus;
 
-    @Output
-    public NetworkResource getNetwork() {
-        return network;
-    }
+    // Read-only
+    private NetworkResource network;
+    private SubnetworkResource subnetwork;
 
-    public void setNetwork(NetworkResource network) {
-        this.network = network;
-    }
-
-    @Output
-    public SubnetworkResource getSubnetwork() {
-        return subnetwork;
-    }
-
-    public void setSubnetwork(SubnetworkResource subnetwork) {
-        this.subnetwork = subnetwork;
-    }
-
+    /**
+     * When set to ``true``, the Intra-node visibility is enabled for this cluster.
+     */
     @Updatable
     public Boolean getEnableIntraNodeVisibility() {
         return enableIntraNodeVisibility;
@@ -58,6 +45,9 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
         this.enableIntraNodeVisibility = enableIntraNodeVisibility;
     }
 
+    /**
+     * The configuration for the default in-node SNAT rules.
+     */
     @Updatable
     public GkeDefaultSnatStatus getDefaultSnatStatus() {
         return defaultSnatStatus;
@@ -65,6 +55,30 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
 
     public void setDefaultSnatStatus(GkeDefaultSnatStatus defaultSnatStatus) {
         this.defaultSnatStatus = defaultSnatStatus;
+    }
+
+    /**
+     * The Google Compute Engine network to which the cluster is connected.
+     */
+    @Output
+    public NetworkResource getNetwork() {
+        return network;
+    }
+
+    public void setNetwork(NetworkResource network) {
+        this.network = network;
+    }
+
+    /**
+     * The Google Compute Engine subnetwork to which the cluster is connected.
+     */
+    @Output
+    public SubnetworkResource getSubnetwork() {
+        return subnetwork;
+    }
+
+    public void setSubnetwork(SubnetworkResource subnetwork) {
+        this.subnetwork = subnetwork;
     }
 
     @Override

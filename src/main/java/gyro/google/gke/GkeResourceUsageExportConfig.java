@@ -27,6 +27,9 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
     private GkeBigQueryDestination bigqueryDestination;
     private GkeConsumptionMeteringConfig consumptionMeteringConfig;
 
+    /**
+     * When set to ``true``, a daemonset will be created in the cluster to meter network egress traffic.
+     */
     @Updatable
     public Boolean getEnableNetworkEgressMetering() {
         return enableNetworkEgressMetering;
@@ -36,6 +39,9 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
         this.enableNetworkEgressMetering = enableNetworkEgressMetering;
     }
 
+    /**
+     * The configuration to use BigQuery as usage export destination.
+     */
     @Updatable
     public GkeBigQueryDestination getBigqueryDestination() {
         return bigqueryDestination;
@@ -45,6 +51,9 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
         this.bigqueryDestination = bigqueryDestination;
     }
 
+    /**
+     * The configuration to enable resource consumption metering.
+     */
     @Updatable
     public GkeConsumptionMeteringConfig getConsumptionMeteringConfig() {
         return consumptionMeteringConfig;

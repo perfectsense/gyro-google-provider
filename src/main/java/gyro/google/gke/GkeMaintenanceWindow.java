@@ -27,22 +27,28 @@ import gyro.google.Copyable;
 
 public class GkeMaintenanceWindow extends Diffable implements Copyable<MaintenanceWindow> {
 
-    private List<GkeTimeWindow> maintainenceExclusion;
+    private List<GkeTimeWindow> maintenanceExclusion;
     private GkeDailyMaintenanceWindow dailyMaintenanceWindow;
     private GkeRecurringTimeWindow recurringTimeWindow;
 
-    public List<GkeTimeWindow> getMaintainenceExclusion() {
-        if (maintainenceExclusion == null) {
-            maintainenceExclusion = new ArrayList<>();
+    /**
+     * The exceptions to the maintenance window. Non-emergency maintenance should not occur in these windows.
+     */
+    public List<GkeTimeWindow> getMaintenanceExclusion() {
+        if (maintenanceExclusion == null) {
+            maintenanceExclusion = new ArrayList<>();
         }
 
-        return maintainenceExclusion;
+        return maintenanceExclusion;
     }
 
-    public void setMaintainenceExclusion(List<GkeTimeWindow> maintainenceExclusion) {
-        this.maintainenceExclusion = maintainenceExclusion;
+    public void setMaintenanceExclusion(List<GkeTimeWindow> maintenanceExclusion) {
+        this.maintenanceExclusion = maintenanceExclusion;
     }
 
+    /**
+     * The daily maintenance operation window.
+     */
     public GkeDailyMaintenanceWindow getDailyMaintenanceWindow() {
         return dailyMaintenanceWindow;
     }
@@ -51,6 +57,9 @@ public class GkeMaintenanceWindow extends Diffable implements Copyable<Maintenan
         this.dailyMaintenanceWindow = dailyMaintenanceWindow;
     }
 
+    /**
+     * The recurring time periods for maintenance to occur. The time windows may be overlapping. If no maintenance windows are set, maintenance can occur at any time.
+     */
     public GkeRecurringTimeWindow getRecurringTimeWindow() {
         return recurringTimeWindow;
     }
@@ -66,9 +75,9 @@ public class GkeMaintenanceWindow extends Diffable implements Copyable<Maintenan
 
     @Override
     public void copyFrom(MaintenanceWindow model) throws Exception {
-        setMaintainenceExclusion(null);
+        setMaintenanceExclusion(null);
         if (model.getMaintenanceExclusionsCount() > 0) {
-            setMaintainenceExclusion(model.getMaintenanceExclusionsMap().entrySet().stream().map(e -> {
+            setMaintenanceExclusion(model.getMaintenanceExclusionsMap().entrySet().stream().map(e -> {
                 GkeTimeWindow window = newSubresource(GkeTimeWindow.class);
                 window.copyFrom(e);
                 return window;
@@ -93,8 +102,8 @@ public class GkeMaintenanceWindow extends Diffable implements Copyable<Maintenan
     MaintenanceWindow toMaintenanceWindow() {
         MaintenanceWindow.Builder builder = MaintenanceWindow.newBuilder();
 
-        if (!getMaintainenceExclusion().isEmpty()) {
-            builder.putAllMaintenanceExclusions(getMaintainenceExclusion().stream()
+        if (!getMaintenanceExclusion().isEmpty()) {
+            builder.putAllMaintenanceExclusions(getMaintenanceExclusion().stream()
                 .map(GkeTimeWindow::toTimeWindowEntry)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         }

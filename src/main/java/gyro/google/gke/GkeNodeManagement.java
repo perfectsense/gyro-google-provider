@@ -19,6 +19,7 @@ package gyro.google.gke;
 import com.google.container.v1.NodeManagement;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
+import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class GkeNodeManagement extends Diffable implements Copyable<NodeManagement> {
@@ -27,6 +28,10 @@ public class GkeNodeManagement extends Diffable implements Copyable<NodeManageme
     private Boolean autoRepair;
     private GkeAutoUpgradeOptions upgradeOptions;
 
+    /**
+     * When set to ``true``, the node auto-upgrade is enabled for the node pool.
+     */
+    @Updatable
     public Boolean getAutoUpgrade() {
         return autoUpgrade;
     }
@@ -35,6 +40,10 @@ public class GkeNodeManagement extends Diffable implements Copyable<NodeManageme
         this.autoUpgrade = autoUpgrade;
     }
 
+    /**
+     * When set to ``true``, the node auto-repair is enabled for the node pool.
+     */
+    @Updatable
     public Boolean getAutoRepair() {
         return autoRepair;
     }
@@ -43,6 +52,9 @@ public class GkeNodeManagement extends Diffable implements Copyable<NodeManageme
         this.autoRepair = autoRepair;
     }
 
+    /**
+     * The Auto Upgrade knobs for the node pool.
+     */
     @Output
     public GkeAutoUpgradeOptions getUpgradeOptions() {
         return upgradeOptions;

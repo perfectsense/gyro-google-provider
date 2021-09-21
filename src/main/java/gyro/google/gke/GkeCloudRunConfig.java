@@ -28,6 +28,9 @@ public class GkeCloudRunConfig extends Diffable implements Copyable<CloudRunConf
     private Boolean disabled;
     private CloudRunConfig.LoadBalancerType loadBalancerType;
 
+    /**
+     * When set to ``true``, the Cloud Run addon is disabled for this cluster.
+     */
     @Required
     @Updatable
     public Boolean getDisabled() {
@@ -38,6 +41,9 @@ public class GkeCloudRunConfig extends Diffable implements Copyable<CloudRunConf
         this.disabled = disabled;
     }
 
+    /**
+     * The load balancer type which is installed for Cloud Run.
+     */
     @ValidStrings({ "LOAD_BALANCER_TYPE_EXTERNAL", "LOAD_BALANCER_TYPE_INTERNAL" })
     @Updatable
     public CloudRunConfig.LoadBalancerType getLoadBalancerType() {

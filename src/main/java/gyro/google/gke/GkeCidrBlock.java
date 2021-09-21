@@ -26,6 +26,9 @@ public class GkeCidrBlock extends Diffable implements Copyable<MasterAuthorizedN
     private String cidrBlock;
     private String name;
 
+    /**
+     * The CIDR block.
+     */
     @Required
     public String getCidrBlock() {
         return cidrBlock;
@@ -35,6 +38,9 @@ public class GkeCidrBlock extends Diffable implements Copyable<MasterAuthorizedN
         this.cidrBlock = cidrBlock;
     }
 
+    /**
+     * The name of the CIDR block.
+     */
     public String getName() {
         return name;
     }

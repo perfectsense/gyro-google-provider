@@ -21,21 +21,28 @@ import java.util.List;
 
 import com.google.container.v1.AutoprovisioningNodePoolDefaults;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
+import gyro.google.iam.ServiceAccountResource;
+import gyro.google.kms.CryptoKeyResource;
 
 public class GkeAutoprovisioningNodePoolDefaults extends Diffable
     implements Copyable<AutoprovisioningNodePoolDefaults> {
 
     private List<String> oauthScopes;
-    private String serviceAccount;
+    private ServiceAccountResource serviceAccount;
     private GkeUpgradeSettings upgradeSettings;
     private GkeNodeManagement management;
     private String minCpuPlatform;
     private Integer diskSizeGb;
     private String diskType;
     private GkeShieldedInstanceConfig shieldedInstanceConfig;
-    private String bootDiskKmsKey;
+    private CryptoKeyResource bootDiskKmsKey;
 
+    /**
+     * The scopes that are used by NAP when creating node pools.
+     */
     public List<String> getOauthScopes() {
         if (oauthScopes == null) {
             oauthScopes = new ArrayList<>();
@@ -51,14 +58,22 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         this.oauthScopes = oauthScopes;
     }
 
-    public String getServiceAccount() {
+    /**
+     * The Google Cloud Platform Service Account to be used by the node VMs.
+     */
+    @Updatable
+    public ServiceAccountResource getServiceAccount() {
         return serviceAccount;
     }
 
-    public void setServiceAccount(String serviceAccount) {
+    public void setServiceAccount(ServiceAccountResource serviceAccount) {
         this.serviceAccount = serviceAccount;
     }
 
+    /**
+     * The upgrade settings for NAP created node pools
+     */
+    @Updatable
     public GkeUpgradeSettings getUpgradeSettings() {
         return upgradeSettings;
     }
@@ -67,6 +82,10 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         this.upgradeSettings = upgradeSettings;
     }
 
+    /**
+     * The node management options for NAP created node-pools.
+     */
+    @Updatable
     public GkeNodeManagement getManagement() {
         return management;
     }
@@ -75,6 +94,9 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         this.management = management;
     }
 
+    /**
+     * The minimum CPU platform to be used for NAP created node pools.
+     */
     public String getMinCpuPlatform() {
         return minCpuPlatform;
     }
@@ -83,6 +105,9 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         this.minCpuPlatform = minCpuPlatform;
     }
 
+    /**
+     * The size of the disk attached to each node, specified in GB.
+     */
     public Integer getDiskSizeGb() {
         return diskSizeGb;
     }
@@ -91,6 +116,10 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         this.diskSizeGb = diskSizeGb;
     }
 
+    /**
+     * The type of the disk attached to each node.
+     */
+    @ValidStrings({ "pd-standard", "pd-ssd", "pd-balanced" })
     public String getDiskType() {
         return diskType;
     }
@@ -99,6 +128,9 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         this.diskType = diskType;
     }
 
+    /**
+     * The shielded instance options.
+     */
     public GkeShieldedInstanceConfig getShieldedInstanceConfig() {
         return shieldedInstanceConfig;
     }
@@ -107,11 +139,15 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         this.shieldedInstanceConfig = shieldedInstanceConfig;
     }
 
-    public String getBootDiskKmsKey() {
+    /**
+     * The Customer Managed Encryption Key used to encrypt the boot disk attached to each node in the node pool.
+     */
+    @Updatable
+    public CryptoKeyResource getBootDiskKmsKey() {
         return bootDiskKmsKey;
     }
 
-    public void setBootDiskKmsKey(String bootDiskKmsKey) {
+    public void setBootDiskKmsKey(CryptoKeyResource bootDiskKmsKey) {
         this.bootDiskKmsKey = bootDiskKmsKey;
     }
 
@@ -144,11 +180,11 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         }
 
         setOauthScopes(model.getOauthScopesList());
-        setServiceAccount(model.getServiceAccount());
+        setServiceAccount(findById(ServiceAccountResource.class, model.getServiceAccount()));
         setMinCpuPlatform(model.getMinCpuPlatform());
         setDiskSizeGb(model.getDiskSizeGb());
         setDiskType(model.getDiskType());
-        setBootDiskKmsKey(model.getBootDiskKmsKey());
+        setBootDiskKmsKey(findById(CryptoKeyResource.class, model.getBootDiskKmsKey()));
     }
 
     AutoprovisioningNodePoolDefaults toAutoprovisioningNodePoolDefaults() {
@@ -159,7 +195,7 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         }
 
         if (getServiceAccount() != null) {
-            builder.setServiceAccount(getServiceAccount());
+            builder.setServiceAccount(getServiceAccount().getId());
         }
 
         if (getUpgradeSettings() != null) {
@@ -187,7 +223,7 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         }
 
         if (getBootDiskKmsKey() != null) {
-            builder.setBootDiskKmsKey(getBootDiskKmsKey());
+            builder.setBootDiskKmsKey(getBootDiskKmsKey().getId());
         }
 
         return builder.build();

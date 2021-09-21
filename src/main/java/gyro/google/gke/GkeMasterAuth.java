@@ -19,6 +19,7 @@ package gyro.google.gke;
 import com.google.container.v1.MasterAuth;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -31,6 +32,9 @@ public class GkeMasterAuth extends Diffable implements Copyable<MasterAuth> {
     private String clientCertificate;
     private String clientKey;
 
+    /**
+     * The configuration for client certificate authentication on the cluster.
+     */
     @Required
     public GkeClientCertificateConfig getClientCertificateConfig() {
         return clientCertificateConfig;
@@ -40,6 +44,9 @@ public class GkeMasterAuth extends Diffable implements Copyable<MasterAuth> {
         this.clientCertificateConfig = clientCertificateConfig;
     }
 
+    /**
+     * The bse64-encoded public certificate that is the root of trust for the cluster.
+     */
     @Output
     public String getClusterCaCertificate() {
         return clusterCaCertificate;
@@ -49,6 +56,9 @@ public class GkeMasterAuth extends Diffable implements Copyable<MasterAuth> {
         this.clusterCaCertificate = clusterCaCertificate;
     }
 
+    /**
+     * The base64-encoded public certificate used by clients to authenticate to the cluster endpoint.
+     */
     @Output
     public String getClientCertificate() {
         return clientCertificate;
@@ -58,6 +68,9 @@ public class GkeMasterAuth extends Diffable implements Copyable<MasterAuth> {
         this.clientCertificate = clientCertificate;
     }
 
+    /**
+     * The base64-encoded private key used by clients to authenticate to the cluster endpoint.
+     */
     @Output
     public String getClientKey() {
         return clientKey;

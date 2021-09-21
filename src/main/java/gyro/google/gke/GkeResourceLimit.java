@@ -28,6 +28,9 @@ public class GkeResourceLimit extends Diffable implements Copyable<ResourceLimit
     private Long minimum;
     private Long maximum;
 
+    /**
+     * The resource name.
+     */
     @Required
     public String getResourceType() {
         return resourceType;
@@ -37,6 +40,9 @@ public class GkeResourceLimit extends Diffable implements Copyable<ResourceLimit
         this.resourceType = resourceType;
     }
 
+    /**
+     * The minimum amount of the resource in the cluster.
+     */
     @Updatable
     public Long getMinimum() {
         return minimum;
@@ -46,6 +52,9 @@ public class GkeResourceLimit extends Diffable implements Copyable<ResourceLimit
         this.minimum = minimum;
     }
 
+    /**
+     * The maximum amount of the resource in the cluster.
+     */
     @Updatable
     public Long getMaximum() {
         return maximum;

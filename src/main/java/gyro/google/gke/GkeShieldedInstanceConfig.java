@@ -25,6 +25,9 @@ public class GkeShieldedInstanceConfig extends Diffable implements Copyable<Shie
     private Boolean enableSecureBoot;
     private Boolean enableIntegrityMonitoring;
 
+    /**
+     * When set to ``true``, instance has Secure Boot enabled.
+     */
     public Boolean getEnableSecureBoot() {
         return enableSecureBoot;
     }
@@ -33,6 +36,9 @@ public class GkeShieldedInstanceConfig extends Diffable implements Copyable<Shie
         this.enableSecureBoot = enableSecureBoot;
     }
 
+    /**
+     * When set to ``true``, the instance has integrity monitoring enabled.
+     */
     public Boolean getEnableIntegrityMonitoring() {
         return enableIntegrityMonitoring;
     }

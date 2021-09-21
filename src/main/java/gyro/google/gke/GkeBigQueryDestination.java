@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.ResourceUsageExportConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -26,7 +27,11 @@ public class GkeBigQueryDestination extends Diffable
 
     private String dataSetId;
 
+    /**
+     * The ID of a BigQuery Dataset.
+     */
     @Required
+    @Updatable
     public String getDataSetId() {
         return dataSetId;
     }

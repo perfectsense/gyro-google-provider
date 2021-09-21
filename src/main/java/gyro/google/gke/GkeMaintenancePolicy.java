@@ -25,6 +25,9 @@ public class GkeMaintenancePolicy extends Diffable implements Copyable<Maintenan
     private String version;
     private GkeMaintenanceWindow maintenanceWindow;
 
+    /**
+     * The hash identifying the version of this policy, so that updates to fields of the policy won't accidentally undo intermediate changes (and so that users of the API unaware of some fields won't accidentally remove other fields).
+     */
     public String getVersion() {
         return version;
     }
@@ -33,6 +36,9 @@ public class GkeMaintenancePolicy extends Diffable implements Copyable<Maintenan
         this.version = version;
     }
 
+    /**
+     * The maintenance window in which maintenance may be performed.
+     */
     public GkeMaintenanceWindow getMaintenanceWindow() {
         return maintenanceWindow;
     }

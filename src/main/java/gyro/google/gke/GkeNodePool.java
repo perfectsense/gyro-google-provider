@@ -303,7 +303,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
-        UpdateNodePoolRequest.Builder builder = UpdateNodePoolRequest.newBuilder();
+        UpdateNodePoolRequest.Builder builder = UpdateNodePoolRequest.newBuilder().setName(getNodePoolId());
 
         if (getConfig() != null) {
             if (getConfig().getWorkloadMetadataConfig() != null) {
@@ -329,11 +329,11 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
         if (changedFieldNames.contains("autoscaling")) {
             if (getAutoscaling() != null) {
-                client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder()
-                    .setAutoscaling(getAutoscaling().toNodePoolAutoscaling())
-                    .build());
+                client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder().setName(getNodePoolId())
+                    .setAutoscaling(getAutoscaling().toNodePoolAutoscaling()).build());
             } else {
-                client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder().clearAutoscaling().build());
+                client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder()
+                    .setName(getNodePoolId()).clearAutoscaling().build());
             }
         }
 

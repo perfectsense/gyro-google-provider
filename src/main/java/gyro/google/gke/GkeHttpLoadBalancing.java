@@ -26,6 +26,9 @@ public class GkeHttpLoadBalancing extends Diffable implements Copyable<HttpLoadB
 
     private Boolean disabled;
 
+    /**
+     * When set to ``true``, the HTTP Load Balancing controller is disabled in the cluster.
+     */
     @Required
     @Updatable
     public Boolean getDisabled() {

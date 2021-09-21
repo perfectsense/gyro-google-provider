@@ -27,6 +27,9 @@ public class GkeConsumptionMeteringConfig extends Diffable
 
     private Boolean enabled;
 
+    /**
+     * When set to ``true``, consumption metering in enabled for this cluster.
+     */
     @Required
     @Updatable
     public Boolean getEnabled() {

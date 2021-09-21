@@ -28,6 +28,9 @@ public class GkeDailyMaintenanceWindow extends Diffable implements Copyable<Dail
     private String startTime;
     private String duration;
 
+    /**
+     * The start time of the maintenance window
+     */
     @Required
     @Regex(value = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$", message = "Time format should be in RFC3339 format ``HH:MM``, where ``HH : [00-23]`` and ``MM : [00-59]`` GMT.")
     public String getStartTime() {
@@ -38,6 +41,9 @@ public class GkeDailyMaintenanceWindow extends Diffable implements Copyable<Dail
         this.startTime = startTime;
     }
 
+    /**
+     * The duration of the maintenance window, which is automatically chosen to be the smallest possible in the given scenario.
+     */
     @Output
     public String getDuration() {
         return duration;

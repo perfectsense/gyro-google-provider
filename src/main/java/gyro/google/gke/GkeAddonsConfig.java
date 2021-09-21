@@ -30,6 +30,9 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
     private GkeDnsCacheConfig dnsCacheConfig;
     private GkeConfigConnectorConfig configConnectorConfig;
 
+    /**
+     * The configuration for the HTTP (L7) load balancing controller addon, which makes it easy to set up HTTP load balancers for services in a cluster.
+     */
     @Updatable
     public GkeHttpLoadBalancing getHttpLoadBalancing() {
         return httpLoadBalancing;
@@ -39,6 +42,9 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.httpLoadBalancing = httpLoadBalancing;
     }
 
+    /**
+     * The configuration for the horizontal pod autoscaling feature, which increases or decreases the number of replica pods a replication controller has based on the resource usage of the existing pods.
+     */
     @Updatable
     public GkeHorizontalPodAutoscaling getHorizontalPodAutoscaling() {
         return horizontalPodAutoscaling;
@@ -48,6 +54,9 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.horizontalPodAutoscaling = horizontalPodAutoscaling;
     }
 
+    /**
+     * The configuration for NetworkPolicy.
+     */
     @Updatable
     public GkeNetworkPolicyConfig getNetworkPolicyConfig() {
         return networkPolicyConfig;
@@ -57,6 +66,9 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.networkPolicyConfig = networkPolicyConfig;
     }
 
+    /**
+     * The configuration for the Cloud Run addon, which allows the user to use a managed Knative service.
+     */
     @Updatable
     public GkeCloudRunConfig getCloudRunConfig() {
         return cloudRunConfig;
@@ -66,6 +78,9 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.cloudRunConfig = cloudRunConfig;
     }
 
+    /**
+     * The configuration for NodeLocalDNS, a dns cache running on cluster nodes.
+     */
     @Updatable
     public GkeDnsCacheConfig getDnsCacheConfig() {
         return dnsCacheConfig;
@@ -75,6 +90,9 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
         this.dnsCacheConfig = dnsCacheConfig;
     }
 
+    /**
+     * The configuration for the ConfigConnector add-on, a Kubernetes extension to manage hosted GCP services through the Kubernetes API.
+     */
     @Updatable
     public GkeConfigConnectorConfig getConfigConnectorConfig() {
         return configConnectorConfig;

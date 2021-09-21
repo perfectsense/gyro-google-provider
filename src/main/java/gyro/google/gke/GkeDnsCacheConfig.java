@@ -26,6 +26,9 @@ public class GkeDnsCacheConfig extends Diffable implements Copyable<DnsCacheConf
 
     private Boolean enabled;
 
+    /**
+     * When set to ``true`` the NodeLocal DNSCache is enabled for this cluster.
+     */
     @Required
     @Updatable
     public Boolean getEnabled() {

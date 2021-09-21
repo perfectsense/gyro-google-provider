@@ -26,6 +26,9 @@ public class GkeConfigConnectorConfig extends Diffable implements Copyable<Confi
 
     private Boolean enabled;
 
+    /**
+     * When set to ``true``, the Cloud Connector is enabled for this cluster.
+     */
     @Required
     @Updatable
     public Boolean getEnabled() {

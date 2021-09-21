@@ -33,6 +33,9 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
     private GkeAutoprovisioningNodePoolDefaults autoprovisioningNodePoolDefaults;
     private List<String> autoprovisioningLocations;
 
+    /**
+     * When set to ``true``, node pools are created and deleted automatically.
+     */
     @Required
     @Updatable
     public Boolean getEnableNodeAutoprovisioning() {
@@ -43,6 +46,9 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
         this.enableNodeAutoprovisioning = enableNodeAutoprovisioning;
     }
 
+    /**
+     * The list of global constraints regarding minimum and maximum amount of resources in the cluster.
+     */
     @Updatable
     public List<GkeResourceLimit> getResourceLimit() {
         if (resourceLimit == null) {
@@ -55,6 +61,10 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
         this.resourceLimit = resourceLimit;
     }
 
+    /**
+     *  The defaults for a node pool created by NAP.
+     */
+    @Updatable
     public GkeAutoprovisioningNodePoolDefaults getAutoprovisioningNodePoolDefaults() {
         return autoprovisioningNodePoolDefaults;
     }
@@ -63,6 +73,9 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
         this.autoprovisioningNodePoolDefaults = autoprovisioningNodePoolDefaults;
     }
 
+    /**
+     * The list of Google Compute Engine in which the NodePool's nodes can be created by NAP.
+     */
     @Updatable
     public List<String> getAutoprovisioningLocations() {
         if (autoprovisioningLocations == null) {

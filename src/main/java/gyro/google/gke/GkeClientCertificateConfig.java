@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.ClientCertificateConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -25,6 +26,9 @@ public class GkeClientCertificateConfig extends Diffable implements Copyable<Cli
 
     public Boolean issueClientCertificate;
 
+    /**
+     * When set to ``true``, a client certificate is issued.
+     */
     @Required
     public Boolean getIssueClientCertificate() {
         return issueClientCertificate;

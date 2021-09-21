@@ -25,6 +25,9 @@ public class GkeMaxPodsConstraint extends Diffable implements Copyable<MaxPodsCo
 
     private Long maxPodsPerNode;
 
+    /**
+     * The max num of pods per node.
+     */
     @Required
     public Long getMaxPodsPerNode() {
         return maxPodsPerNode;

@@ -25,6 +25,9 @@ public class GkeLegacyAbac extends Diffable implements Copyable<LegacyAbac> {
 
     private Boolean enabled;
 
+    /**
+     * When se tot ``true``, the ABAC authorizer is enabled for this cluster. Identities in the system, including service accounts, nodes, and controllers, will have statically granted permissions beyond those provided by the RBAC configuration or IAM.
+     */
     @Required
     public Boolean getEnabled() {
         return enabled;

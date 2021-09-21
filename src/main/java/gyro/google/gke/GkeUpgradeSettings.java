@@ -26,6 +26,9 @@ public class GkeUpgradeSettings extends Diffable implements Copyable<NodePool.Up
     private Integer maxSurge;
     private Integer maxUnavailable;
 
+    /**
+     * The maximum number of nodes that can be created beyond the current size of the node pool during the upgrade process.
+     */
     @Updatable
     public Integer getMaxSurge() {
         return maxSurge;
@@ -35,6 +38,9 @@ public class GkeUpgradeSettings extends Diffable implements Copyable<NodePool.Up
         this.maxSurge = maxSurge;
     }
 
+    /**
+     * The maximum number of nodes that can be simultaneously unavailable during the upgrade process.
+     */
     @Updatable
     public Integer getMaxUnavailable() {
         return maxUnavailable;

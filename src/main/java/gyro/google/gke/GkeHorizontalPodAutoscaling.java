@@ -26,6 +26,9 @@ public class GkeHorizontalPodAutoscaling extends Diffable implements Copyable<Ho
 
     private Boolean disabled;
 
+    /**
+     * When set to ``true``, the Horizontal Pod Autoscaling feature is disabled in the cluster.
+     */
     @Required
     @Updatable
     public Boolean getDisabled() {

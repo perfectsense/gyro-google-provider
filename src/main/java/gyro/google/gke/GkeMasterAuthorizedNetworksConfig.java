@@ -31,6 +31,9 @@ public class GkeMasterAuthorizedNetworksConfig extends Diffable implements Copya
     private Boolean enabled;
     private List<GkeCidrBlock> cidrBlock;
 
+    /**
+     * When set to ``true``, master authorized networks is enabled.
+     */
     @Required
     @Updatable
     public Boolean getEnabled() {
@@ -41,6 +44,9 @@ public class GkeMasterAuthorizedNetworksConfig extends Diffable implements Copya
         this.enabled = enabled;
     }
 
+    /**
+     * The list of cidr blocks for the master authorized networks.
+     */
     @Updatable
     public List<GkeCidrBlock> getCidrBlock() {
         if (cidrBlock == null) {

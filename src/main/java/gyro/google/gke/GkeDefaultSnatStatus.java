@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.DefaultSnatStatus;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
@@ -25,7 +26,11 @@ public class GkeDefaultSnatStatus extends Diffable implements Copyable<DefaultSn
 
     private Boolean disabled;
 
+    /**
+     * When set to ``true``, the cluster default SNAT rules are disabled.
+     */
     @Required
+    @Updatable
     public Boolean getDisabled() {
         return disabled;
     }

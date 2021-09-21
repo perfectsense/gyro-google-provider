@@ -26,6 +26,9 @@ public class GkeNetworkPolicyConfig extends Diffable implements Copyable<Network
 
     private Boolean disabled;
 
+    /**
+     * When set to ``true``, NetworkPolicy is disabled for this cluster.
+     */
     @Required
     @Updatable
     public Boolean getDisabled() {
