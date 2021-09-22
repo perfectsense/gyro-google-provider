@@ -21,17 +21,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.Cluster;
 import com.google.container.v1.ClusterUpdate;
 import com.google.container.v1.CreateClusterRequest;
-import com.google.container.v1.IntraNodeVisibilityConfig;
-import com.google.container.v1.SetLabelsRequest;
 import com.google.container.v1.UpdateMasterRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.Wait;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
@@ -80,7 +80,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     private List<GkeStatusCondition> condition;
     private Boolean enableTpu;
     private Map<String, String> labels;
-    private List<GkeNodePool> nodePools;
+    private List<GkeNodePool> nodePool;
     private String masterVersion;
 
     // Read-only
@@ -490,21 +490,22 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
      * The node pools associated with this cluster.
      */
     @Required
-    public List<GkeNodePool> getNodePools() {
-        if (nodePools == null) {
-            nodePools = new ArrayList<>();
+    public List<GkeNodePool> getNodePool() {
+        if (nodePool == null) {
+            nodePool = new ArrayList<>();
         }
 
-        return nodePools;
+        return nodePool;
     }
 
-    public void setNodePools(List<GkeNodePool> nodePools) {
-        this.nodePools = nodePools;
+    public void setNodePool(List<GkeNodePool> nodePool) {
+        this.nodePool = nodePool;
     }
 
     /**
      * The current software version of the master endpoint.
      */
+    @Updatable
     public String getMasterVersion() {
         return masterVersion;
     }
@@ -741,7 +742,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }).collect(Collectors.toList()));
         }
 
-        setNodePools(model.getNodePoolsList().stream().map(n -> {
+        setNodePool(model.getNodePoolsList().stream().map(n -> {
             GkeNodePool gkeNodePool = newSubresource(GkeNodePool.class);
             gkeNodePool.copyFrom(n);
             return gkeNodePool;
@@ -791,7 +792,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     protected void doCreate(GyroUI ui, State state) throws Exception {
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
-        Cluster.Builder builder = Cluster.newBuilder().setName(getName()).addAllNodePools(getNodePools().stream()
+        Cluster.Builder builder = Cluster.newBuilder().setName(getName()).addAllNodePools(getNodePool().stream()
             .map(GkeNodePool::buildNodePool).collect(Collectors.toList()));
 
         if (getMasterAuthConfig() != null) {
@@ -932,6 +933,12 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             .setCluster(builder.build())
             .build());
 
+        state.save();
+
+        Wait.atMost(20, TimeUnit.MINUTES)
+            .checkEvery(1, TimeUnit.MINUTES)
+            .until(() -> getCluster(client).getStatus().equals(Cluster.Status.RUNNING));
+
         if (getMasterVersion() != null) {
             client.updateMaster(UpdateMasterRequest.newBuilder()
                 .setName(getClusterId())
@@ -950,91 +957,88 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
         ClusterUpdate.Builder builder = ClusterUpdate.newBuilder();
 
-        if (getAddonsConfig() != null) {
-            builder.setDesiredAddonsConfig(getAddonsConfig().toAddonsConfig());
-        }
-
-        if (getMasterAuthorizedNetworksConfig() != null) {
-            builder.setDesiredMasterAuthorizedNetworksConfig(getMasterAuthorizedNetworksConfig().toMasterAuthorizedNetworksConfig());
-        }
-
-        if (getBinaryAuthorizationConfig() != null) {
-            builder.setDesiredBinaryAuthorization(getBinaryAuthorizationConfig().toBinaryAuthorization());
-        }
-
-        if (getClusterAutoscalingConfig() != null) {
-            builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
-        }
-
-        if (getDatabaseEncryption() != null) {
-            builder.setDesiredDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
-        }
-
-        if (getNetworkConfig() != null) {
-            if (getNetworkConfig().getDefaultSnatStatus() != null) {
-                builder.setDesiredDefaultSnatStatus(getNetworkConfig().getDefaultSnatStatus().toDefaultSnatStatus());
-            }
-
-            if (getNetworkConfig().getEnableIntraNodeVisibility() != null) {
-                builder.setDesiredIntraNodeVisibilityConfig(IntraNodeVisibilityConfig.newBuilder()
-                    .setEnabled(getNetworkConfig().getEnableIntraNodeVisibility())
-                    .build());
-            }
-        }
+        //        if (getAddonsConfig() != null) {
+        //            builder.setDesiredAddonsConfig(getAddonsConfig().toAddonsConfig());
+        //        }
+        //
+        //        if (getMasterAuthorizedNetworksConfig() != null) {
+        //            builder.setDesiredMasterAuthorizedNetworksConfig(getMasterAuthorizedNetworksConfig().toMasterAuthorizedNetworksConfig());
+        //        }
+        //
+        //        if (getBinaryAuthorizationConfig() != null) {
+        //            builder.setDesiredBinaryAuthorization(getBinaryAuthorizationConfig().toBinaryAuthorization());
+        //        }
+        //
+        //        if (getClusterAutoscalingConfig() != null) {
+        //            builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
+        //        }
+        //
+        //        if (getDatabaseEncryption() != null) {
+        //            builder.setDesiredDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
+        //        }
+        //
+        //        if (getNetworkConfig() != null) {
+        //            if (getNetworkConfig().getDefaultSnatStatus() != null) {
+        //                builder.setDesiredDefaultSnatStatus(getNetworkConfig().getDefaultSnatStatus().toDefaultSnatStatus());
+        //            }
+        //
+        //            if (getNetworkConfig().getEnableIntraNodeVisibility() != null) {
+        //                builder.setDesiredIntraNodeVisibilityConfig(IntraNodeVisibilityConfig.newBuilder()
+        //                    .setEnabled(getNetworkConfig().getEnableIntraNodeVisibility())
+        //                    .build());
+        //            }
+        //        }
 
         if (getMasterVersion() != null) {
             builder.setDesiredMasterVersion(getMasterVersion());
         }
 
-        if (getResourceUsageExportConfig() != null) {
-            builder.setDesiredResourceUsageExportConfig(getResourceUsageExportConfig().toResourceUsageExportConfig());
-        }
-
-        if (getPrivateClusterConfig() != null) {
-            builder.setDesiredPrivateClusterConfig(getPrivateClusterConfig().toPrivateClusterConfig());
-        }
-
-        if (getVerticalPodAutoscaling() != null) {
-            builder.setDesiredVerticalPodAutoscaling(getVerticalPodAutoscaling().toVerticalPodAutoscaling());
-        }
-
+        //        if (getResourceUsageExportConfig() != null) {
+        //            builder.setDesiredResourceUsageExportConfig(getResourceUsageExportConfig().toResourceUsageExportConfig());
+        //        }
+        //
+        //        if (getPrivateClusterConfig() != null) {
+        //            builder.setDesiredPrivateClusterConfig(getPrivateClusterConfig().toPrivateClusterConfig());
+        //        }
+        //
+        //        if (getVerticalPodAutoscaling() != null) {
+        //            builder.setDesiredVerticalPodAutoscaling(getVerticalPodAutoscaling().toVerticalPodAutoscaling());
+        //        }
+        //
         if (getShieldedNodes() != null) {
             builder.setDesiredShieldedNodes(getShieldedNodes().toShieldedNodes());
         }
-
-        if (getReleaseChannel() != null) {
-            builder.setDesiredReleaseChannel(getReleaseChannel().toReleaseChannel());
-        }
-
-        if (getWorkloadIdentityConfig() != null) {
-            builder.setDesiredWorkloadIdentityConfig(getWorkloadIdentityConfig().toWorkloadIdentityConfig());
-        }
-
-        if (getNodeLocations() != null) {
-            builder.addAllDesiredLocations(getNodeLocations());
-        }
-
-        if (getLoggingService() != null) {
-            builder.setDesiredLoggingService(getLoggingService());
-        }
-
-        if (getMonitoringService() != null) {
-            builder.setDesiredMonitoringService(getMonitoringService());
-        }
+        //
+        //        if (getReleaseChannel() != null) {
+        //            builder.setDesiredReleaseChannel(getReleaseChannel().toReleaseChannel());
+        //        }
+        //
+        //        if (getWorkloadIdentityConfig() != null) {
+        //            builder.setDesiredWorkloadIdentityConfig(getWorkloadIdentityConfig().toWorkloadIdentityConfig());
+        //        }
+        //
+        //        if (getNodeLocations() != null) {
+        //            builder.addAllDesiredLocations(getNodeLocations());
+        //        }
+        //
+        //        if (getLoggingService() != null) {
+        //            builder.setDesiredLoggingService(getLoggingService());
+        //        }
+        //
+        //        if (getMonitoringService() != null) {
+        //            builder.setDesiredMonitoringService(getMonitoringService());
+        //        }
 
         client.updateCluster(getClusterId(), builder.build());
 
-        if (changedFieldNames.contains("labels")) {
-            client.setLabels(SetLabelsRequest.newBuilder().setLabelFingerprint(getLabelFingerPrint())
-                .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
-        }
+        Wait.atMost(20, TimeUnit.MINUTES)
+            .checkEvery(1, TimeUnit.MINUTES)
+            .until(() -> getCluster(client).getStatus().equals(Cluster.Status.RUNNING));
 
-        if (changedFieldNames.contains("master-version")) {
-            client.updateMaster(UpdateMasterRequest.newBuilder()
-                .setName(getClusterId())
-                .setMasterVersion(getMasterVersion())
-                .build());
-        }
+        //        if (changedFieldNames.contains("labels")) {
+        //            client.setLabels(SetLabelsRequest.newBuilder().setLabelFingerprint(getLabelFingerPrint())
+        //                .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
+        //        }
 
         refresh();
 
@@ -1047,6 +1051,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
         client.deleteCluster(getClusterId());
 
+        Wait.atMost(5, TimeUnit.MINUTES).checkEvery(1, TimeUnit.MINUTES).until(() -> getCluster(client) == null);
         client.close();
     }
 

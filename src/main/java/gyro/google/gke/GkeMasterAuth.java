@@ -19,7 +19,6 @@ package gyro.google.gke;
 import com.google.container.v1.MasterAuth;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 

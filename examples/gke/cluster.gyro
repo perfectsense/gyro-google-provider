@@ -1,0 +1,13 @@
+google::gke-cluster cluster-example-har
+    name: "cluster-example-har"
+    location: "us-central1-c"
+    master-version: "1.20.9-gke.301"
+    shielded-nodes
+        enabled: true
+    end
+    node-pool
+        initial-node-count: 3
+        name: "example-har"
+    end
+end
+
