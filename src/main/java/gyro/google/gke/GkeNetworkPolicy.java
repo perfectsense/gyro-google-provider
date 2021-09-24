@@ -19,6 +19,7 @@ package gyro.google.gke;
 import com.google.container.v1.NetworkPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class GkeNetworkPolicy extends Diffable implements Copyable<NetworkPolicy> {
@@ -41,6 +42,7 @@ public class GkeNetworkPolicy extends Diffable implements Copyable<NetworkPolicy
     /**
      * The selected network policy provider.
      */
+    @ValidStrings("CALICO")
     public NetworkPolicy.Provider getProvider() {
         return provider;
     }

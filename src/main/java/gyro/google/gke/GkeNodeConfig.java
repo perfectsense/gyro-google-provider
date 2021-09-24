@@ -18,8 +18,10 @@ package gyro.google.gke;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.container.v1.NodeConfig;
@@ -33,7 +35,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
 
     private String machineType;
     private Integer diskSizeGb;
-    private List<String> oauthScopes;
+    private Set<String> oauthScopes;
     private String serviceAccount;
     private Map<String, String> metadata;
     private String imageType;
@@ -45,7 +47,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
     private String diskType;
     private String minCpuPlatform;
     private GkeWorkloadMetadataConfig workloadMetadataConfig;
-    private List<GkeNodeTaint> taints;
+    private Set<GkeNodeTaint> taint;
     private GkeSandboxConfig sandboxConfig;
     private String nodeGroup;
     private GkeReservationAffinity reservationAffinity;
@@ -81,15 +83,15 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
      * `https://www.googleapis.com/auth/devstorage.read_only`_ is required for communicating with gcr.io (the Google Container Registry).
      * If unspecified, no scopes are added, unless Cloud Logging or Cloud Monitoring are enabled, in which case their required scopes will be added.
      */
-    public List<String> getOauthScopes() {
+    public Set<String> getOauthScopes() {
         if (oauthScopes == null) {
-            oauthScopes = new ArrayList<>();
+            oauthScopes = new HashSet<>();
         }
 
         return oauthScopes;
     }
 
-    public void setOauthScopes(List<String> oauthScopes) {
+    public void setOauthScopes(Set<String> oauthScopes) {
         this.oauthScopes = oauthScopes;
     }
 
@@ -235,16 +237,16 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
     /**
      * The list of kubernetes taints to be applied to each node. See also `Taint and toleration <https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/>`_.
      */
-    public List<GkeNodeTaint> getTaints() {
-        if (taints == null) {
-            taints = new ArrayList<>();
+    public Set<GkeNodeTaint> getTaint() {
+        if (taint == null) {
+            taint = new HashSet<>();
         }
 
-        return taints;
+        return taint;
     }
 
-    public void setTaints(List<GkeNodeTaint> taints) {
-        this.taints = taints;
+    public void setTaint(Set<GkeNodeTaint> taint) {
+        this.taint = taint;
     }
 
     /**
@@ -259,7 +261,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
     }
 
     /**
-     * Assign instances of this pool to run on the specified node group. This is useful for running workloads on sole tenant nodes.
+     * The node group on which to run the instances of this pool. This is useful for running workloads on sole tenant nodes.
      */
     public String getNodeGroup() {
         return nodeGroup;
@@ -300,11 +302,13 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
     public void copyFrom(NodeConfig model) {
         setMachineType(model.getMachineType());
         setDiskSizeGb(model.getDiskSizeGb());
-        setOauthScopes(model.getOauthScopesList());
+        setOauthScopes(new HashSet<>(model.getOauthScopesList()));
         setServiceAccount(model.getServiceAccount());
         setMetadata(model.getMetadataMap());
         setImageType(model.getImageType());
-        setLabels(model.getLabelsMap());
+        setLabels(model.getLabelsMap().entrySet().stream()
+            .filter(a -> !a.getKey().equals(GkeSandboxConfig.SANDBOX_KEY))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         setLocalSsdCount(model.getLocalSsdCount());
         setTags(model.getTagsList());
         setPreemptible(model.getPreemptible());
@@ -322,13 +326,17 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
             }).collect(Collectors.toList()));
         }
 
-        setTaints(null);
+        setTaint(null);
         if (model.getTaintsCount() > 0) {
-            setTaints(model.getTaintsList().stream().map(a -> {
-                GkeNodeTaint config = newSubresource(GkeNodeTaint.class);
-                config.copyFrom(a);
-                return config;
-            }).collect(Collectors.toList()));
+            setTaint(model.getTaintsList()
+                .stream()
+                .filter(a -> !a.getKey().equals(GkeSandboxConfig.SANDBOX_KEY))
+                .map(a -> {
+                    GkeNodeTaint config = newSubresource(GkeNodeTaint.class);
+                    config.copyFrom(a);
+                    return config;
+                })
+                .collect(Collectors.toSet()));
         }
 
         setWorkloadMetadataConfig(null);
@@ -355,6 +363,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
 
     NodeConfig toNodeConfig() {
         NodeConfig.Builder builder = NodeConfig.newBuilder();
+
         if (getMachineType() != null) {
             builder.setMachineType(getMachineType());
         }
@@ -398,8 +407,8 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
         if (getWorkloadMetadataConfig() != null) {
             builder.setWorkloadMetadataConfig(getWorkloadMetadataConfig().toWorkloadMetadataConfig());
         }
-        if (!getTaints().isEmpty()) {
-            builder.addAllTaints(getTaints().stream().map(GkeNodeTaint::toNodeTaint).collect(Collectors.toList()));
+        if (!getTaint().isEmpty()) {
+            builder.addAllTaints(getTaint().stream().map(GkeNodeTaint::toNodeTaint).collect(Collectors.toList()));
         }
         if (getSandboxConfig() != null) {
             builder.setSandboxConfig(getSandboxConfig().toSandboxConfig());

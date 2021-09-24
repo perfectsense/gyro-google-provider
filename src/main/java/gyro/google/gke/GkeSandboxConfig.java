@@ -24,6 +24,7 @@ import gyro.google.Copyable;
 
 public class GkeSandboxConfig extends Diffable implements Copyable<SandboxConfig> {
 
+    public static final String SANDBOX_KEY = "sandbox.gke.io/runtime";
     private SandboxConfig.Type type;
 
     /**

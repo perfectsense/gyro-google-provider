@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import com.google.container.v1.StatusCondition;
 import gyro.core.resource.Diffable;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class GkeStatusCondition extends Diffable implements Copyable<StatusCondition> {
@@ -37,8 +38,10 @@ public class GkeStatusCondition extends Diffable implements Copyable<StatusCondi
     }
 
     /**
-     * Canonical code of the condition.
+     * The canonical code of the condition.
      */
+    @ValidStrings({
+        "GCE_STOCKOUT", "GKE_SERVICE_ACCOUNT_DELETED", "GCE_QUOTA_EXCEEDED", "SET_BY_OPERATOR", "CLOUD_KMS_KEY_ERROR" })
     public StatusCondition.Code getCanonicalCode() {
         return canonicalCode;
     }

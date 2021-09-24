@@ -18,6 +18,7 @@ package gyro.google.gke;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.cloud.container.v1.ClusterManagerClient;
@@ -26,6 +27,7 @@ import com.google.container.v1.NodePool;
 import com.google.container.v1.SetNodePoolAutoscalingRequest;
 import com.google.container.v1.UpdateNodePoolRequest;
 import gyro.core.GyroUI;
+import gyro.core.Wait;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -37,7 +39,7 @@ import gyro.google.GoogleResource;
 public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     private GkeNodePoolAutoscaling autoscaling;
-    private List<GkeStatusCondition> conditions;
+    private List<GkeStatusCondition> condition;
     private GkeNodeConfig config;
     private Integer initialNodeCount;
     private List<String> locations;
@@ -68,12 +70,12 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
     /**
      * The conditions which caused the current node pool state.
      */
-    public List<GkeStatusCondition> getConditions() {
-        return conditions;
+    public List<GkeStatusCondition> getCondition() {
+        return condition;
     }
 
-    public void setConditions(List<GkeStatusCondition> conditions) {
-        this.conditions = conditions;
+    public void setCondition(List<GkeStatusCondition> condition) {
+        this.condition = condition;
     }
 
     /**
@@ -269,9 +271,9 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
             setConfig(gkeNodeConfig);
         }
 
-        setConditions(null);
+        setCondition(null);
         if (model.getConditionsCount() > 0) {
-            setConditions(model.getConditionsList().stream().map(m -> {
+            setCondition(model.getConditionsList().stream().map(m -> {
                 GkeStatusCondition config = newSubresource(GkeStatusCondition.class);
                 config.copyFrom(m);
                 return config;
@@ -289,11 +291,11 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
         if (getNodePool(client) == null) {
-
             client.createNodePool(CreateNodePoolRequest.newBuilder()
-                .setParent(((ClusterResource) parentResource()).getParent())
+                .setParent(((ClusterResource) parentResource()).getClusterId())
                 .setNodePool(buildNodePool())
                 .build());
+            waitForActiveStatus(client);
         }
 
         client.close();
@@ -303,29 +305,37 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
-        UpdateNodePoolRequest.Builder builder = UpdateNodePoolRequest.newBuilder().setName(getNodePoolId());
+        UpdateNodePoolRequest.Builder builder = UpdateNodePoolRequest.newBuilder();
 
-        if (getConfig() != null) {
+        if (changedFieldNames.contains("config")) {
             if (getConfig().getWorkloadMetadataConfig() != null) {
                 builder.setWorkloadMetadataConfig(getConfig().getWorkloadMetadataConfig().toWorkloadMetadataConfig());
+                updateCluster(client, builder);
+                builder.clear();
             }
 
             builder.setImageType(getConfig().getImageType());
+            updateCluster(client, builder);
+            builder.clear();
         }
 
-        if (getLocations() != null) {
+        if (changedFieldNames.contains("locations")) {
             builder.addAllLocations(getLocations());
+            updateCluster(client, builder);
+            builder.clear();
         }
 
-        if (getUpgradeSettings() != null) {
+        if (changedFieldNames.contains("upgradeSettings")) {
             builder.setUpgradeSettings(getUpgradeSettings().toUpgradeSettings());
+            updateCluster(client, builder);
+            builder.clear();
         }
 
-        if (getVersion() != null) {
+        if (changedFieldNames.contains("version")) {
             builder.setNodeVersion(getVersion());
+            updateCluster(client, builder);
+            builder.clear();
         }
-
-        client.updateNodePool(builder.build());
 
         if (changedFieldNames.contains("autoscaling")) {
             if (getAutoscaling() != null) {
@@ -335,6 +345,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
                 client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder()
                     .setName(getNodePoolId()).clearAutoscaling().build());
             }
+            waitForActiveStatus(client);
         }
 
         client.close();
@@ -344,7 +355,22 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
     protected void doDelete(GyroUI ui, State state) throws Exception {
         ClusterManagerClient client = createClient(ClusterManagerClient.class);
 
-        client.deleteCluster(getNodePoolId());
+        client.deleteNodePool(getNodePoolId());
+
+        Wait.atMost(15, TimeUnit.MINUTES).checkEvery(1, TimeUnit.MINUTES).until(() -> getNodePool(client) == null);
+
+        client.close();
+    }
+
+    private void updateCluster(ClusterManagerClient client, UpdateNodePoolRequest.Builder builder) {
+        client.updateNodePool(builder.setName(getNodePoolId()).build());
+        waitForActiveStatus(client);
+    }
+
+    private void waitForActiveStatus(ClusterManagerClient client) {
+        Wait.atMost(30, TimeUnit.MINUTES)
+            .checkEvery(1, TimeUnit.MINUTES)
+            .until(() -> getNodePool(client).getStatus().equals(NodePool.Status.RUNNING));
     }
 
     protected NodePool buildNodePool() {
@@ -356,8 +382,8 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
             builder.setAutoscaling(getAutoscaling().toNodePoolAutoscaling());
         }
 
-        if (getConditions() != null) {
-            builder.addAllConditions(getConditions().stream().map(GkeStatusCondition::toStatusCondition)
+        if (getCondition() != null) {
+            builder.addAllConditions(getCondition().stream().map(GkeStatusCondition::toStatusCondition)
                 .collect(Collectors.toList()));
         }
 

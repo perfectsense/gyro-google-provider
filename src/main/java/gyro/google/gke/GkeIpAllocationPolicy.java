@@ -170,13 +170,38 @@ public class GkeIpAllocationPolicy extends Diffable implements Copyable<IPAlloca
     }
 
     IPAllocationPolicy toIPAllocationPolicy() {
-        return IPAllocationPolicy.newBuilder().setUseIpAliases(getUseIpAliases())
-            .setCreateSubnetwork(getCreateSubnetwork()).setSubnetworkName(getSubnetworkName())
-            .setClusterSecondaryRangeName(getClusterSecondaryRangeName())
-            .setServicesSecondaryRangeName(getServicesSecondaryRangeName())
-            .setClusterIpv4CidrBlock(getClusterIpv4CidrBlock()).setNodeIpv4CidrBlock(getNodeIpv4CidrBlock())
-            .setServicesIpv4CidrBlock(getServicesIpv4CidrBlock()).setTpuIpv4CidrBlock(getTpuIpv4CidrBlock())
-            .setUseRoutes(getUseRoutes()).build();
+        IPAllocationPolicy.Builder builder = IPAllocationPolicy.newBuilder();
+        if (getUseIpAliases() != null) {
+            builder.setUseIpAliases(getUseIpAliases());
+        }
+        if (getCreateSubnetwork() != null) {
+            builder.setCreateSubnetwork(getCreateSubnetwork());
+        }
+        if (getSubnetworkName() != null) {
+            builder.setSubnetworkName(getSubnetworkName());
+        }
+        if (getClusterSecondaryRangeName() != null) {
+            builder.setClusterSecondaryRangeName(getClusterSecondaryRangeName());
+        }
+        if (getServicesSecondaryRangeName() != null) {
+            builder.setServicesSecondaryRangeName(getServicesSecondaryRangeName());
+        }
+        if (getClusterIpv4CidrBlock() != null) {
+            builder.setClusterIpv4CidrBlock(getClusterIpv4CidrBlock());
+        }
+        if (getNodeIpv4CidrBlock() != null) {
+            builder.setNodeIpv4CidrBlock(getNodeIpv4CidrBlock());
+        }
+        if (getServicesIpv4CidrBlock() != null) {
+            builder.setServicesIpv4CidrBlock(getServicesIpv4CidrBlock());
+        }
+        if (getTpuIpv4CidrBlock() != null) {
+            builder.setTpuIpv4CidrBlock(getTpuIpv4CidrBlock());
+        }
+        if (getUseRoutes() != null) {
+            builder.setUseRoutes(getUseRoutes());
+        }
+        return builder.build();
     }
 
     @Override

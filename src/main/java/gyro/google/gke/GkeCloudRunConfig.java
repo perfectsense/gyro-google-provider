@@ -66,9 +66,15 @@ public class GkeCloudRunConfig extends Diffable implements Copyable<CloudRunConf
     }
 
     CloudRunConfig toCloudRunConfig() {
-        return CloudRunConfig.newBuilder()
-            .setDisabled(getDisabled())
-            .setLoadBalancerType(getLoadBalancerType())
-            .build();
+        CloudRunConfig.Builder builder = CloudRunConfig.newBuilder();
+
+        if (getDisabled() != null) {
+            builder.setDisabled(getDisabled());
+        }
+        if (getLoadBalancerType() != null) {
+            builder.setLoadBalancerType(getLoadBalancerType());
+        }
+
+        return builder.build();
     }
 }

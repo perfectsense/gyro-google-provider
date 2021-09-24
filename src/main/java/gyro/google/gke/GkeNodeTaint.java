@@ -73,7 +73,7 @@ public class GkeNodeTaint extends Diffable implements Copyable<NodeTaint> {
     @Override
     public void copyFrom(NodeTaint model) {
         setKey(model.getKey());
-        setValue(getValue());
+        setValue(model.getValue());
         setEffect(model.getEffect());
     }
 
