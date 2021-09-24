@@ -36,6 +36,14 @@ import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
+/**
+ * .. code-block:: gyro
+ *
+ *     node-pool
+ *         initial-node-count: 3
+ *         name: "example-gke"
+ *     end
+ */
 public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     private GkeNodePoolAutoscaling autoscaling;

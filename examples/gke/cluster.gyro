@@ -1,5 +1,5 @@
-google::gke-cluster cluster-example-har
-    name: "cluster-example-har"
+google::gke-cluster cluster-example-gke
+    name: "cluster-example-gke"
     description: "The example cluster"
     location: "us-central1-c"
     master-version: "1.20.9-gke.1001"
@@ -108,11 +108,11 @@ google::gke-cluster cluster-example-har
     }
     node-pool
         initial-node-count: 3
-        name: "example-har"
+        name: "example-gke"
     end
     node-pool
         initial-node-count: 3
-        name: "example-har-2"
+        name: "example-gke-2"
         config
             machine-type: "e2-standard-2"
             disk-size-gb: 20
@@ -122,7 +122,6 @@ google::gke-cluster cluster-example-har
                 "https://www.googleapis.com/auth/monitoring",
                 "https://www.googleapis.com/auth/logging.write"
             ]
-            service-account: "harjain99-sandbox@aerobic-lock-236714.iam.gserviceaccount.com"
             metadata: {
                 "disable-legacy-endpoints": "true"
             }
