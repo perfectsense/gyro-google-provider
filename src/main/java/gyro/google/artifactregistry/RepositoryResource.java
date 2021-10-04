@@ -57,7 +57,7 @@ import gyro.google.util.Utils;
  *        format: DOCKER
  *
  *        labels:{
- *            "example-key": "example-value"
+ *            name: "example-repo"
  *        }
  *    end
  */

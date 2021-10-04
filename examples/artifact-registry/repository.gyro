@@ -4,6 +4,6 @@ google::repository example
     description: "example-description"
     format: DOCKER
     labels:{
-        "example-key": "example-value"
+        name: "example-repo"
     }
 end
