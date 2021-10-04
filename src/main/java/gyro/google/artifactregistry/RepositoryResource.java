@@ -185,6 +185,8 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
 
         copyFrom(repository);
 
+        client.close();
+
         return true;
     }
 
@@ -220,6 +222,8 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
                 setId(repository.getName());
             }
         }
+
+        client.close();
     }
 
     @Override
@@ -234,6 +238,8 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
             .setRepository(builder.build())
             .setUpdateMask(FieldMask.newBuilder().addPaths("labels").build())
             .build());
+
+        client.close();
     }
 
     @Override
@@ -241,6 +247,7 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
         ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class);
 
         String operationName = client.deleteRepositoryAsync(getId()).getName();
+        client.close();
     }
 
     private Repository getRepository(ArtifactRegistryClient client) {
