@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.devtools.artifactregistry.v1beta2.ArtifactRegistryClient;
 import com.google.devtools.artifactregistry.v1beta2.CreateRepositoryRequest;
 import com.google.devtools.artifactregistry.v1beta2.Repository;
@@ -212,14 +214,18 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
             setId(repository.getName());
 
         } catch (ExecutionException ex) {
-            client.awaitTermination(10, TimeUnit.SECONDS);
-            Repository repository = client.listRepositories(getParent()).getPage()
-                .getResponse().getRepositoriesList().stream()
-                .filter(r -> Utils.getRepositoryNameFromId(r.getName()).equals(getName())).findFirst().orElse(null);
-            if (repository == null) {
-                throw ex;
+            if (ex.getMessage().contains("does not match the service location")) {
+                client.awaitTermination(10, TimeUnit.SECONDS);
+                Repository repository = client.listRepositories(getParent()).getPage()
+                    .getResponse().getRepositoriesList().stream()
+                    .filter(r -> Utils.getRepositoryNameFromId(r.getName()).equals(getName())).findFirst().orElse(null);
+                if (repository == null) {
+                    throw ex;
+                } else {
+                    setId(repository.getName());
+                }
             } else {
-                setId(repository.getName());
+                throw ex;
             }
         }
 
@@ -255,7 +261,7 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
 
         try {
             repository = client.getRepository(getId());
-        } catch (Exception ex) {
+        } catch (NotFoundException | InvalidArgumentException ex) {
             // not found
         }
 
