@@ -252,7 +252,8 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
     protected void doDelete(GyroUI ui, State state) throws Exception {
         ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class);
 
-        String operationName = client.deleteRepositoryAsync(getId()).getName();
+        client.deleteRepositoryAsync(getId()).getName();
+
         client.close();
     }
 
