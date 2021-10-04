@@ -123,7 +123,7 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
     }
 
     /**
-     * The KMS key that’s used to encrypt the contents of the Repository.
+     * The KMS key that’s used to encrypt the contents of the repository.
      */
     public CryptoKeyResource getKey() {
         return key;
