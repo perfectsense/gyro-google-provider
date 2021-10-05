@@ -227,9 +227,9 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
             } else {
                 throw ex;
             }
+        } finally {
+            client.close();
         }
-
-        client.close();
     }
 
     @Override

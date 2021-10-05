@@ -82,6 +82,8 @@ public class RepositoryFinder extends GoogleFinder<ArtifactRegistryClient, Repos
             repositories.removeIf(r -> !Utils.getRepositoryNameFromId(r.getName()).equals(filters.get("name")));
         }
 
+        client.close();
+
         return repositories;
     }
 }
