@@ -177,19 +177,17 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
 
     @Override
     protected boolean doRefresh() throws Exception {
-        ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class);
+        try (ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class)) {
+            Repository repository = getRepository(client);
 
-        Repository repository = getRepository(client);
+            if (repository == null) {
+                return false;
+            }
 
-        if (repository == null) {
-            return false;
+            copyFrom(repository);
+
+            return true;
         }
-
-        copyFrom(repository);
-
-        client.close();
-
-        return true;
     }
 
     @Override
@@ -234,27 +232,24 @@ public class RepositoryResource extends GoogleResource implements Copyable<Repos
 
     @Override
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class);
 
-        Repository.Builder builder = getRepository(client).toBuilder();
-        builder.clearLabels();
-        builder.putAllLabels(getLabels());
+        try (ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class)) {
+            Repository.Builder builder = getRepository(client).toBuilder();
+            builder.clearLabels();
+            builder.putAllLabels(getLabels());
 
-        client.updateRepository(UpdateRepositoryRequest.newBuilder()
-            .setRepository(builder.build())
-            .setUpdateMask(FieldMask.newBuilder().addPaths("labels").build())
-            .build());
-
-        client.close();
+            client.updateRepository(UpdateRepositoryRequest.newBuilder()
+                .setRepository(builder.build())
+                .setUpdateMask(FieldMask.newBuilder().addPaths("labels").build())
+                .build());
+        }
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class);
-
-        client.deleteRepositoryAsync(getId()).getName();
-
-        client.close();
+        try (ArtifactRegistryClient client = createClient(ArtifactRegistryClient.class)) {
+            client.deleteRepositoryAsync(getId()).getName();
+        }
     }
 
     private Repository getRepository(ArtifactRegistryClient client) {

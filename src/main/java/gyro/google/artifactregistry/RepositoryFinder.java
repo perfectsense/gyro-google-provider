@@ -71,19 +71,22 @@ public class RepositoryFinder extends GoogleFinder<ArtifactRegistryClient, Repos
 
     @Override
     protected List<Repository> findGoogle(ArtifactRegistryClient client, Map<String, String> filters) throws Exception {
-        List<Repository> repositories = new ArrayList<>();
+        try {
+            List<Repository> repositories = new ArrayList<>();
 
-        if (filters.containsKey("location")) {
-            repositories.addAll(client.listRepositories(String.format("projects/%s/locations/%s", getProjectId(),
-                filters.get("location"))).getPage().getResponse().getRepositoriesList());
+            if (filters.containsKey("location")) {
+                repositories.addAll(client.listRepositories(String.format("projects/%s/locations/%s", getProjectId(),
+                    filters.get("location"))).getPage().getResponse().getRepositoriesList());
+            }
+
+            if (filters.containsKey("name")) {
+                repositories.removeIf(r -> !Utils.getRepositoryNameFromId(r.getName()).equals(filters.get("name")));
+            }
+
+            return repositories;
+
+        } finally {
+            client.close();
         }
-
-        if (filters.containsKey("name")) {
-            repositories.removeIf(r -> !Utils.getRepositoryNameFromId(r.getName()).equals(filters.get("name")));
-        }
-
-        client.close();
-
-        return repositories;
     }
 }
