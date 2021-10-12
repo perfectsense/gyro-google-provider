@@ -39,6 +39,8 @@ import com.google.cloud.pubsub.v1.SubscriptionAdminClient;
 import com.google.cloud.pubsub.v1.SubscriptionAdminSettings;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
 import com.google.cloud.pubsub.v1.TopicAdminSettings;
+import com.google.devtools.artifactregistry.v1beta2.ArtifactRegistryClient;
+import com.google.devtools.artifactregistry.v1beta2.ArtifactRegistrySettings;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.auth.Credentials;
@@ -147,6 +149,16 @@ public class GoogleCredentials extends Credentials {
                     .setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials()))
                     .build();
                 return (T) SubscriptionAdminClient.create(subscriptionAdminSettings);
+            } catch (IOException ex) {
+                throw new GyroException(
+                    String.format("Unable to create %s client", clientClass.getSimpleName()));
+            }
+        } else if (clientClass.getSimpleName().equals("ArtifactRegistryClient")) {
+            try {
+                ArtifactRegistrySettings artifactRegistrySettings = ArtifactRegistrySettings.newBuilder()
+                    .setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials()))
+                    .build();
+                return (T) ArtifactRegistryClient.create(artifactRegistrySettings);
             } catch (IOException ex) {
                 throw new GyroException(
                     String.format("Unable to create %s client", clientClass.getSimpleName()));

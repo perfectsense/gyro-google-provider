@@ -100,7 +100,7 @@ public final class Utils {
 
     }
 
-    public static String getKmsLocationFromId(String id) {
+    public static String getLocationFromId(String id) {
         List<String> list = Arrays.asList(id.split("/"));
         int index = list.indexOf("locations");
         return list.get(index + 1);
@@ -153,6 +153,12 @@ public final class Utils {
     public static String getSnapshotNameFromId(String id) {
         List<String> list = Arrays.asList(id.split("/"));
         int index = list.indexOf("snapshots");
+        return list.get(index + 1);
+    }
+
+    public static String getRepositoryNameFromId(String id) {
+        List<String> list = Arrays.asList(id.split("/"));
+        int index = list.indexOf("repositories");
         return list.get(index + 1);
     }
 }

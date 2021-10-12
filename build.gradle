@@ -74,6 +74,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-resourcemanager'
     implementation 'com.google.cloud:google-cloud-storage'
     implementation 'com.google.cloud:google-cloud-pubsub'
+    implementation 'com.google.cloud:google-cloud-artifact-registry:0.2.1'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 
     gyroDoclet "gyro:gyro-doclet:1.0.0"
