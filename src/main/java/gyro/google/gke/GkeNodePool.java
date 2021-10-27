@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.CreateNodePoolRequest;
 import com.google.container.v1.NodePool;
@@ -437,7 +439,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
         try {
             nodePool = client.getNodePool(getNodePoolId());
-        } catch (Exception ex) {
+        } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore
         }
 

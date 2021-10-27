@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.Cluster;
 import com.google.container.v1.ClusterUpdate;
@@ -1335,7 +1337,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
         try {
             cluster = client.getCluster(getClusterId());
-        } catch (Exception ex) {
+        } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore
         }
 
