@@ -128,7 +128,7 @@ public class CryptoKeyVersionResource extends GoogleResource implements Copyable
 
         String parent = CryptoKeyName.format(
             getProjectId(),
-            Utils.getKmsLocationFromId(getCryptoKey().getId()),
+            Utils.getLocationFromId(getCryptoKey().getId()),
             Utils.getKmsKeyRingNameFromId(getCryptoKey().getId()),
             Utils.getKmsKeyNameFromId(getCryptoKey().getId()));
 
