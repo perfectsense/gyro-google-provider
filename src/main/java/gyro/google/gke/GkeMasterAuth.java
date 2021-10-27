@@ -33,6 +33,8 @@ public class GkeMasterAuth extends Diffable implements Copyable<MasterAuth> {
 
     /**
      * The configuration for client certificate authentication on the cluster.
+     *
+     * @subresource gyro.google.gke.GkeClientCertificateConfig
      */
     @Required
     public GkeClientCertificateConfig getClientCertificateConfig() {

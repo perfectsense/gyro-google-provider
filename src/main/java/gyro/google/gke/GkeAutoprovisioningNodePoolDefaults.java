@@ -72,7 +72,9 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
     }
 
     /**
-     * The upgrade settings for NAP created node pools
+     * The upgrade settings for NAP created node pools.
+     *
+     * @subresource gyro.google.gke.GkeUpgradeSettings
      */
     @Updatable
     public GkeUpgradeSettings getUpgradeSettings() {
@@ -85,6 +87,8 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
 
     /**
      * The node management options for NAP created node-pools.
+     *
+     * @subresource gyro.google.gke.GkeNodeManagement
      */
     @Updatable
     public GkeNodeManagement getManagement() {
@@ -131,6 +135,8 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
 
     /**
      * The shielded instance options.
+     *
+     * @subresource gyro.google.gke.GkeShieldedInstanceConfig
      */
     public GkeShieldedInstanceConfig getShieldedInstanceConfig() {
         return shieldedInstanceConfig;

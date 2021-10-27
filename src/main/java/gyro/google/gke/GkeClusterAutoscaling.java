@@ -48,6 +48,8 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
 
     /**
      * The list of global constraints regarding minimum and maximum amount of resources in the cluster.
+     *
+     * @subresource gyro.google.gke.GkeResourceLimit
      */
     @Updatable
     public List<GkeResourceLimit> getResourceLimit() {
@@ -64,6 +66,8 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
 
     /**
      *  The defaults for a node pool created by NAP.
+     *
+     * @subresource gyro.google.gke.GkeAutoprovisioningNodePoolDefaults
      */
     @Updatable
     public GkeAutoprovisioningNodePoolDefaults getAutoprovisioningNodePoolDefaults() {

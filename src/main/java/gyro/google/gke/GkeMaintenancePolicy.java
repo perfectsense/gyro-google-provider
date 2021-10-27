@@ -38,6 +38,8 @@ public class GkeMaintenancePolicy extends Diffable implements Copyable<Maintenan
 
     /**
      * The maintenance window in which maintenance may be performed.
+     *
+     * @subresource gyro.google.gke.GkeMaintenanceWindow
      */
     public GkeMaintenanceWindow getMaintenanceWindow() {
         return maintenanceWindow;

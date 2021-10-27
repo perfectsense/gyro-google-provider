@@ -32,6 +32,8 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
 
     /**
      * The configuration for the HTTP (L7) load balancing controller addon, which makes it easy to set up HTTP load balancers for services in a cluster.
+     *
+     * @subresource gyro.google.gke.GkeHttpLoadBalancing
      */
     @Updatable
     public GkeHttpLoadBalancing getHttpLoadBalancing() {
@@ -44,6 +46,8 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
 
     /**
      * The configuration for the horizontal pod autoscaling feature, which increases or decreases the number of replica pods a replication controller has based on the resource usage of the existing pods.
+     *
+     * @subresource gyro.google.gke.GkeHorizontalPodAutoscaling
      */
     @Updatable
     public GkeHorizontalPodAutoscaling getHorizontalPodAutoscaling() {
@@ -56,6 +60,8 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
 
     /**
      * The configuration for NetworkPolicy.
+     *
+     * @subresource gyro.google.gke.GkeNetworkPolicyConfig
      */
     @Updatable
     public GkeNetworkPolicyConfig getNetworkPolicyConfig() {
@@ -68,6 +74,8 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
 
     /**
      * The configuration for the Cloud Run addon, which allows the user to use a managed Knative service.
+     *
+     * @subresource gyro.google.gke.GkeCloudRunConfig
      */
     @Updatable
     public GkeCloudRunConfig getCloudRunConfig() {
@@ -80,6 +88,8 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
 
     /**
      * The configuration for NodeLocalDNS, a dns cache running on cluster nodes.
+     *
+     * @subresource gyro.google.gke.GkeDnsCacheConfig
      */
     @Updatable
     public GkeDnsCacheConfig getDnsCacheConfig() {
@@ -92,6 +102,8 @@ public class GkeAddonsConfig extends Diffable implements Copyable<AddonsConfig> 
 
     /**
      * The configuration for the ConfigConnector add-on, a Kubernetes extension to manage hosted GCP services through the Kubernetes API.
+     *
+     * @subresource gyro.google.gke.GkeConfigConnectorConfig
      */
     @Updatable
     public GkeConfigConnectorConfig getConfigConnectorConfig() {

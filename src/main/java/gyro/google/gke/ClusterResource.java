@@ -323,6 +323,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The authentication information for accessing the master endpoint.
+     *
+     * @subresource gyro.google.gke.GkeMasterAuth
      */
     public GkeMasterAuth getMasterAuthConfig() {
         return masterAuthConfig;
@@ -382,6 +384,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configurations for the various addons available to run in the cluster.
+     *
+     * @subresource gyro.google.gke.GkeAddonsConfig
      */
     @Updatable
     public GkeAddonsConfig getAddonsConfig() {
@@ -432,6 +436,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for the legacy Attribute Based Access Control authorization mode.
+     *
+     * @subresource gyro.google.gke.GkeLegacyAbac
      */
     public GkeLegacyAbac getLegacyAbacConfig() {
         return legacyAbacConfig;
@@ -443,6 +449,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for the cluster networking.
+     *
+     * @subresource gyro.google.gke.GkeNetworkPolicy
      */
     public GkeNetworkPolicy getNetworkPolicyConfig() {
         return networkPolicyConfig;
@@ -454,6 +462,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for controlling how IPs are allocated in the cluster.
+     *
+     * @subresource gyro.google.gke.GkeIpAllocationPolicy
      */
     public GkeIpAllocationPolicy getIpAllocationPolicy() {
         return ipAllocationPolicy;
@@ -465,6 +475,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration options for master authorized networks feature.
+     *
+     * @subresource gyro.google.gke.GkeMasterAuthorizedNetworksConfig
      */
     @Updatable
     public GkeMasterAuthorizedNetworksConfig getMasterAuthorizedNetworksConfig() {
@@ -477,6 +489,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for the maintenance policy for this cluster.
+     *
+     * @subresource gyro.google.gke.GkeMaintenancePolicy
      */
     public GkeMaintenancePolicy getMaintenancePolicy() {
         return maintenancePolicy;
@@ -488,6 +502,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for Binary Authorization.
+     *
+     * @subresource gyro.google.gke.GkeBinaryAuthorization
      */
     @Updatable
     public GkeBinaryAuthorization getBinaryAuthorizationConfig() {
@@ -500,6 +516,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The cluster-level autoscaling configuration.
+     *
+     * @subresource gyro.google.gke.GkeClusterAutoscaling
      */
     @Updatable
     public GkeClusterAutoscaling getClusterAutoscalingConfig() {
@@ -512,6 +530,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for cluster networking.
+     *
+     * @subresource gyro.google.gke.GkeNetworkConfig
      */
     @Updatable
     public GkeNetworkConfig getNetworkConfig() {
@@ -524,6 +544,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The default constraint on the maximum number of pods that can be run simultaneously on a node in the node pool of this cluster.
+     *
+     * @subresource gyro.google.gke.GkeMaxPodsConstraint
      */
     public GkeMaxPodsConstraint getDefaultMaxPodsConstraint() {
         return defaultMaxPodsConstraint;
@@ -535,6 +557,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for exporting resource usages.
+     *
+     * @subresource gyro.google.gke.GkeResourceUsageExportConfig
      */
     @Updatable
     public GkeResourceUsageExportConfig getResourceUsageExportConfig() {
@@ -547,6 +571,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for the authenticator groups.
+     *
+     * @subresource gyro.google.gke.GkeAuthenticatorGroupsConfig
      */
     public GkeAuthenticatorGroupsConfig getAuthenticatorGroupsConfig() {
         return authenticatorGroupsConfig;
@@ -559,6 +585,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     /**
      * The configuration for private cluster.
      *
+     * @subresource gyro.google.gke.GkePrivateClusterConfig
      */
     @Updatable
     public GkePrivateClusterConfig getPrivateClusterConfig() {
@@ -571,6 +598,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration of etcd encryption.
+     *
+     * @subresource gyro.google.gke.GkeDatabaseEncryption
      */
     @Updatable
     public GkeDatabaseEncryption getDatabaseEncryption() {
@@ -583,6 +612,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The cluster-level Vertical Pod Autoscaling configuration.
+     *
+     * @subresource gyro.google.gke.GkeVerticalPodAutoscaling
      */
     @Updatable
     public GkeVerticalPodAutoscaling getVerticalPodAutoscaling() {
@@ -595,6 +626,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration to enable shielded nodes in the cluster.
+     *
+     * @subresource gyro.google.gke.GkeShieldedNodes
      */
     @Updatable
     public GkeShieldedNodes getShieldedNodes() {
@@ -608,6 +641,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     /**
      * The configuration for the release channel that the cluster is subscribed to.
      *
+     * @subresource gyro.google.gke.GkeReleaseChannel
      */
     @Updatable
     public GkeReleaseChannel getReleaseChannel() {
@@ -620,6 +654,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The configuration for the use of Kubernetes Service Accounts in GCP IAM policies.
+     *
+     * @subresource gyro.google.gke.GkeWorkloadIdentityConfig
      */
     @Updatable
     public GkeWorkloadIdentityConfig getWorkloadIdentityConfig() {
@@ -643,6 +679,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The conditions which caused the current cluster state.
+     *
+     * @subresource gyro.google.gke.GkeStatusCondition
      */
     public List<GkeStatusCondition> getCondition() {
         if (condition == null) {
@@ -684,6 +722,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     /**
      * The node pools associated with this cluster.
+     *
+     * @subresource gyro.google.gke.GkeNodePool
      */
     @Required
     public List<GkeNodePool> getNodePool() {

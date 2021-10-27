@@ -74,6 +74,8 @@ public class GkePrivateClusterConfig extends Diffable implements Copyable<Privat
 
     /**
      * The master global access settings.
+     *
+     * @subresource gyro.google.gke.GkePrivateClusterMasterGlobalAccessConfig
      */
     @Updatable
     public GkePrivateClusterMasterGlobalAccessConfig getMasterGlobalAccessConfig() {

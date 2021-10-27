@@ -33,6 +33,8 @@ public class GkeMaintenanceWindow extends Diffable implements Copyable<Maintenan
 
     /**
      * The exceptions to the maintenance window. Non-emergency maintenance should not occur in these windows.
+     *
+     * @subresource gyro.google.gke.GkeTimeWindow
      */
     public List<GkeTimeWindow> getMaintenanceExclusion() {
         if (maintenanceExclusion == null) {
@@ -48,6 +50,8 @@ public class GkeMaintenanceWindow extends Diffable implements Copyable<Maintenan
 
     /**
      * The daily maintenance operation window.
+     *
+     * @subresource gyro.google.gke.GkeDailyMaintenanceWindow
      */
     public GkeDailyMaintenanceWindow getDailyMaintenanceWindow() {
         return dailyMaintenanceWindow;
@@ -59,6 +63,8 @@ public class GkeMaintenanceWindow extends Diffable implements Copyable<Maintenan
 
     /**
      * The recurring time periods for maintenance to occur. The time windows may be overlapping. If no maintenance windows are set, maintenance can occur at any time.
+     *
+     * @subresource gyro.google.gke.GkeRecurringTimeWindow
      */
     public GkeRecurringTimeWindow getRecurringTimeWindow() {
         return recurringTimeWindow;

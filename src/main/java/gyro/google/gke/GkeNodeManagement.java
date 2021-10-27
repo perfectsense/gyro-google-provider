@@ -54,6 +54,8 @@ public class GkeNodeManagement extends Diffable implements Copyable<NodeManageme
 
     /**
      * The Auto Upgrade knobs for the node pool.
+     *
+     * @subresource gyro.google.gke.GkeAutoUpgradeOptions
      */
     @Output
     public GkeAutoUpgradeOptions getUpgradeOptions() {

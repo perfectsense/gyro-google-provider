@@ -65,6 +65,8 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     /**
      * The autoscaler configuration for this NodePool.
+     *
+     * @subresource gyro.google.gke.GkeNodePoolAutoscaling
      */
     @Updatable
     public GkeNodePoolAutoscaling getAutoscaling() {
@@ -77,6 +79,8 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     /**
      * The conditions which caused the current node pool state.
+     *
+     * @subresource gyro.google.gke.GkeStatusCondition
      */
     public List<GkeStatusCondition> getCondition() {
         return condition;
@@ -88,6 +92,8 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     /**
      * The node configuration of the pool.
+     *
+     * @subresource gyro.google.gke.GkeNodeConfig
      */
     @Updatable
     public GkeNodeConfig getConfig() {
@@ -124,6 +130,8 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     /**
      * The node management configuration for this NodePool.
+     *
+     * @subresource gyro.google.gke.GkeNodeManagement
      */
     public GkeNodeManagement getManagement() {
         return management;
@@ -135,6 +143,8 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     /**
      * The constraint on the maximum number of pods that can be run simultaneously on a node in the node pool.
+     *
+     * @subresource gyro.google.gke.GkeMaxPodsConstraint
      */
     public GkeMaxPodsConstraint getMaxPodsConstraint() {
         return maxPodsConstraint;
@@ -158,6 +168,8 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     /**
      * The upgrade settings which control disruption and speed of the upgrade.
+     *
+     * @subresource gyro.google.gke.GkeUpgradeSettings
      */
     @Updatable
     public GkeUpgradeSettings getUpgradeSettings() {

@@ -46,6 +46,8 @@ public class GkeMasterAuthorizedNetworksConfig extends Diffable implements Copya
 
     /**
      * The list of cidr blocks for the master authorized networks.
+     *
+     * @subresource gyro.google.gke.GkeCidrBlock
      */
     @Updatable
     public List<GkeCidrBlock> getCidrBlock() {

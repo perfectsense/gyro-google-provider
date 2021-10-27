@@ -47,6 +47,8 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
 
     /**
      * The configuration for the default in-node SNAT rules.
+     *
+     * @subresource gyro.google.gke.GkeDefaultSnatStatus
      */
     @Updatable
     public GkeDefaultSnatStatus getDefaultSnatStatus() {

@@ -41,6 +41,8 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
 
     /**
      * The configuration to use BigQuery as usage export destination.
+     *
+     * @subresource gyro.google.gke.GkeBigQueryDestination
      */
     @Updatable
     public GkeBigQueryDestination getBigqueryDestination() {
@@ -53,6 +55,8 @@ public class GkeResourceUsageExportConfig extends Diffable implements Copyable<R
 
     /**
      * The configuration to enable resource consumption metering.
+     *
+     * @subresource gyro.google.gke.GkeConsumptionMeteringConfig
      */
     @Updatable
     public GkeConsumptionMeteringConfig getConsumptionMeteringConfig() {

@@ -187,6 +187,8 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
 
     /**
      * The list of hardware accelerators to be attached to each node. See also `GPUs <https://cloud.google.com/compute/docs/gpus>`_.
+     *
+     * @subresource gyro.google.gke.GkeAcceleratorConfig
      */
     public List<GkeAcceleratorConfig> getAccelerators() {
         if (accelerators == null) {
@@ -224,6 +226,8 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
 
     /**
      * The workload metadata configuration for this node.
+     *
+     * @subresource gyro.google.gke.GkeWorkloadMetadataConfig
      */
     @Updatable
     public GkeWorkloadMetadataConfig getWorkloadMetadataConfig() {
@@ -236,6 +240,8 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
 
     /**
      * The list of kubernetes taints to be applied to each node. See also `Taint and toleration <https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/>`_.
+     *
+     * @subresource gyro.google.gke.GkeNodeTaint
      */
     public Set<GkeNodeTaint> getTaint() {
         if (taint == null) {
@@ -251,6 +257,8 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
 
     /**
      * The sandbox configuration for this node.
+     *
+     * @subresource gyro.google.gke.GkeSandboxConfig
      */
     public GkeSandboxConfig getSandboxConfig() {
         return sandboxConfig;
@@ -273,6 +281,8 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
 
     /**
      * The optional reservation affinity. Setting this field will apply the specified Zonal Compute Reservation to this node pool.
+     *
+     * @subresource gyro.google.gke.GkeReservationAffinity
      */
     public GkeReservationAffinity getReservationAffinity() {
         return reservationAffinity;

@@ -27,6 +27,8 @@ public class GkeRecurringTimeWindow extends Diffable implements Copyable<Recurri
 
     /**
      * The window of the first recurrence.
+     *
+     * @subresource gyro.google.gke.GkeTimeWindow
      */
     public GkeTimeWindow getWindow() {
         return window;
