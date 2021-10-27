@@ -546,7 +546,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     /**
-     * The configuration for private cluster.
+     * The configuration for the authenticator groups.
      */
     public GkeAuthenticatorGroupsConfig getAuthenticatorGroupsConfig() {
         return authenticatorGroupsConfig;
@@ -557,6 +557,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     /**
+     * The configuration for private cluster.
      *
      */
     @Updatable
@@ -593,7 +594,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     /**
-     * The release channel configuration.
+     * The configuration to enable shielded nodes in the cluster.
      */
     @Updatable
     public GkeShieldedNodes getShieldedNodes() {
@@ -605,6 +606,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     /**
+     * The configuration for the release channel that the cluster is subscribed to.
      *
      */
     @Updatable
