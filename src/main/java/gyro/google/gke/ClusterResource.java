@@ -1180,6 +1180,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             waitForActiveStatus(client);
         }
 
+        state.save();
+
         doRefresh();
     }
 
