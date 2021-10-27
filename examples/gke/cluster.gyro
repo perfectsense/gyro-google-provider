@@ -5,148 +5,180 @@ google::gke-cluster cluster-example-gke
     master-version: "1.20.9-gke.1001"
     logging-service: "logging.googleapis.com/kubernetes"
     monitoring-service: "monitoring.googleapis.com/kubernetes"
+    enable-kubernetes-alpha: false
+    enable-tpu: false
+    node-locations: ["us-central1-c"]
+
     addons-config
         http-load-balancing
             disabled: true
         end
+
         horizontal-pod-autoscaling
             disabled: true
         end
+
         network-policy-config
             disabled: false
         end
+
         cloud-run-config
             disabled: true
         end
+
         dns-cache-config
             enabled: false
         end
+
         config-connector-config
             enabled: false
         end
     end
+
     master-auth-config
         client-certificate-config
             issue-client-certificate: false
         end
     end
-    node-locations: [
-        "us-central1-c"
-    ]
-    enable-kubernetes-alpha: false
+
     legacy-abac-config
         enabled: true
     end
+
     network-policy-config
         enabled: true
         provider: "CALICO"
     end
+
     ip-allocation-policy
         use-ip-aliases: false
     end
+
     binary-authorization-config
         enabled: true
     end
+
     cluster-autoscaling-config
         enable-node-autoprovisioning: true
+        autoprovisioning-locations: ["us-central1-c"]
+
         resource-limit
             resource-type: cpu
             minimum: 1
             maximum: 1
         end
+
         resource-limit
             resource-type: memory
             minimum: 1
             maximum: 1
         end
+
         autoprovisioning-node-pool-defaults
+            disk-type: "pd-standard"
+            disk-size-gb: 20
+
             oauth-scopes: [
                 "https://www.googleapis.com/auth/compute",
                 "https://www.googleapis.com/auth/devstorage.read_only",
                 "https://www.googleapis.com/auth/monitoring",
                 "https://www.googleapis.com/auth/logging.write"
             ]
+
             upgrade-settings
                 max-surge: 1
                 max-unavailable: 1
             end
+
             management
                 auto-upgrade: true
                 auto-repair: true
             end
-            disk-size-gb: 20
-            disk-type: "pd-standard"
         end
-        autoprovisioning-locations: [
-            "us-central1-c"
-        ]
     end
+
     network-config
         enable-intra-node-visibility: true
+
         default-snat-status
             disabled: false
         end
     end
+
     ip-allocation-policy
         use-ip-aliases: true
         create-subnetwork: true
         subnetwork-name: "example-ip-aliasing-subnet"
         cluster-ipv4-cidr-block: "192.168.0.0/16"
     end
+
     vertical-pod-autoscaling
         enabled: true
     end
+
     shielded-nodes
         enabled: false
     end
+
     binary-authorization-config
         enabled: true
     end
-    enable-tpu: false
+
     labels: {
         "example-label": "example-value"
     }
+
     node-pool
         initial-node-count: 3
         name: "example-gke"
     end
+
     node-pool
         initial-node-count: 3
         name: "example-gke-2"
+
         config
             machine-type: "e2-standard-2"
             disk-size-gb: 20
+            image-type: "COS_CONTAINERD"
+            preemptible: false
+            disk-type: "pd-standard"
+
             oauth-scopes: [
                 "https://www.googleapis.com/auth/compute",
                 "https://www.googleapis.com/auth/devstorage.read_only",
                 "https://www.googleapis.com/auth/monitoring",
                 "https://www.googleapis.com/auth/logging.write"
             ]
+
             metadata: {
                 "disable-legacy-endpoints": "true"
             }
-            image-type: "COS_CONTAINERD"
+
             labels: {
                 "example-label": "example-value"
             }
+
             tags: [
                  "example-tag"
             ]
-            preemptible: false
-            disk-type: "pd-standard"
+
             taint
                 key: "example-key"
                 value: "example-value"
                 effect: NO_EXECUTE
             end
+
             sandbox-config
                 type: GVISOR
             end
         end
+
         management
             auto-upgrade: true
             auto-repair: true
         end
+
         upgrade-settings
             max-surge: 1
             max-unavailable: 1
