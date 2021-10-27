@@ -1009,25 +1009,21 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
     @Override
     protected boolean doRefresh() throws Exception {
-        ClusterManagerClient client = createClient(ClusterManagerClient.class);
+        try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
+            Cluster cluster = getCluster(client);
 
-        Cluster cluster = getCluster(client);
+            if (cluster == null) {
+                return false;
+            }
 
-        if (cluster == null) {
-            return false;
+            copyFrom(cluster);
+
+            return true;
         }
-
-        copyFrom(cluster);
-
-        client.close();
-
-        return true;
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        ClusterManagerClient client = createClient(ClusterManagerClient.class);
-
         Cluster.Builder builder = Cluster.newBuilder().setName(getName()).addAllNodePools(getNodePool().stream()
             .map(GkeNodePool::buildNodePool).collect(Collectors.toList()));
 
@@ -1164,159 +1160,160 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             builder.setDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
         }
 
-        client.createCluster(CreateClusterRequest.newBuilder()
-            .setParent(getParent())
-            .setCluster(builder.build())
-            .build());
-
-        state.save();
-
-        waitForActiveStatus(client);
-
-        if (getMasterVersion() != null) {
-            client.updateMaster(UpdateMasterRequest.newBuilder()
-                .setName(getClusterId())
-                .setMasterVersion(getMasterVersion())
+        try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
+            client.createCluster(CreateClusterRequest.newBuilder()
+                .setParent(getParent())
+                .setCluster(builder.build())
                 .build());
+
+            state.save();
+
+            waitForActiveStatus(client);
+
+            if (getMasterVersion() != null) {
+                client.updateMaster(UpdateMasterRequest.newBuilder()
+                    .setName(getClusterId())
+                    .setMasterVersion(getMasterVersion())
+                    .build());
+            }
+
+            waitForActiveStatus(client);
         }
 
-        waitForActiveStatus(client);
-
-        client.close();
-
-        refresh();
+        doRefresh();
     }
 
     @Override
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        ClusterManagerClient client = createClient(ClusterManagerClient.class);
+        try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
 
-        ClusterUpdate.Builder builder = ClusterUpdate.newBuilder();
+            ClusterUpdate.Builder builder = ClusterUpdate.newBuilder();
 
-        if (changedFieldNames.contains("addons-config")) {
-            builder.setDesiredAddonsConfig(getAddonsConfig().toAddonsConfig());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("master-authorized-networks-config")) {
-            builder.setDesiredMasterAuthorizedNetworksConfig(getMasterAuthorizedNetworksConfig().toMasterAuthorizedNetworksConfig());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("binary-authorization-config")) {
-            builder.setDesiredBinaryAuthorization(getBinaryAuthorizationConfig().toBinaryAuthorization());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("cluster-autoscaling-config")) {
-            builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("database-encryption")) {
-            builder.setDesiredDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (getNetworkConfig() != null) {
-            if (getNetworkConfig().getDefaultSnatStatus() != null) {
-                builder.setDesiredDefaultSnatStatus(getNetworkConfig().getDefaultSnatStatus().toDefaultSnatStatus());
+            if (changedFieldNames.contains("addons-config")) {
+                builder.setDesiredAddonsConfig(getAddonsConfig().toAddonsConfig());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (getNetworkConfig().getEnableIntraNodeVisibility() != null) {
-                builder.setDesiredIntraNodeVisibilityConfig(IntraNodeVisibilityConfig.newBuilder()
-                    .setEnabled(getNetworkConfig().getEnableIntraNodeVisibility())
-                    .build());
+            if (changedFieldNames.contains("master-authorized-networks-config")) {
+                builder.setDesiredMasterAuthorizedNetworksConfig(getMasterAuthorizedNetworksConfig().toMasterAuthorizedNetworksConfig());
                 updateCluster(client, builder);
                 builder.clear();
             }
+
+            if (changedFieldNames.contains("binary-authorization-config")) {
+                builder.setDesiredBinaryAuthorization(getBinaryAuthorizationConfig().toBinaryAuthorization());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("cluster-autoscaling-config")) {
+                builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("database-encryption")) {
+                builder.setDesiredDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (getNetworkConfig() != null) {
+                if (getNetworkConfig().getDefaultSnatStatus() != null) {
+                    builder.setDesiredDefaultSnatStatus(getNetworkConfig().getDefaultSnatStatus()
+                        .toDefaultSnatStatus());
+                    updateCluster(client, builder);
+                    builder.clear();
+                }
+
+                if (getNetworkConfig().getEnableIntraNodeVisibility() != null) {
+                    builder.setDesiredIntraNodeVisibilityConfig(IntraNodeVisibilityConfig.newBuilder()
+                        .setEnabled(getNetworkConfig().getEnableIntraNodeVisibility())
+                        .build());
+                    updateCluster(client, builder);
+                    builder.clear();
+                }
+            }
+
+            if (changedFieldNames.contains("master-version")) {
+                builder.setDesiredMasterVersion(getMasterVersion());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("resource-usage-export-config")) {
+                builder.setDesiredResourceUsageExportConfig(getResourceUsageExportConfig().toResourceUsageExportConfig());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("private-cluster-config")) {
+                builder.setDesiredPrivateClusterConfig(getPrivateClusterConfig().toPrivateClusterConfig());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("vertical-pod-autoscaling")) {
+                builder.setDesiredVerticalPodAutoscaling(getVerticalPodAutoscaling().toVerticalPodAutoscaling());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("shielded-nodes")) {
+                builder.setDesiredShieldedNodes(getShieldedNodes().toShieldedNodes());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("release-channel")) {
+                builder.setDesiredReleaseChannel(getReleaseChannel().toReleaseChannel());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("workload-identity-config")) {
+                builder.setDesiredWorkloadIdentityConfig(getWorkloadIdentityConfig().toWorkloadIdentityConfig());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("node-locations")) {
+                builder.addAllDesiredLocations(getNodeLocations());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("logging-service")) {
+                builder.setDesiredLoggingService(getLoggingService());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("monitoring-service")) {
+                builder.setDesiredMonitoringService(getMonitoringService());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("labels")) {
+                client.setLabels(SetLabelsRequest.newBuilder().setLabelFingerprint(getLabelFingerPrint())
+                    .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
+            }
         }
 
-        if (changedFieldNames.contains("master-version")) {
-            builder.setDesiredMasterVersion(getMasterVersion());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("resource-usage-export-config")) {
-            builder.setDesiredResourceUsageExportConfig(getResourceUsageExportConfig().toResourceUsageExportConfig());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("private-cluster-config")) {
-            builder.setDesiredPrivateClusterConfig(getPrivateClusterConfig().toPrivateClusterConfig());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("vertical-pod-autoscaling")) {
-            builder.setDesiredVerticalPodAutoscaling(getVerticalPodAutoscaling().toVerticalPodAutoscaling());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("shielded-nodes")) {
-            builder.setDesiredShieldedNodes(getShieldedNodes().toShieldedNodes());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("release-channel")) {
-            builder.setDesiredReleaseChannel(getReleaseChannel().toReleaseChannel());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("workload-identity-config")) {
-            builder.setDesiredWorkloadIdentityConfig(getWorkloadIdentityConfig().toWorkloadIdentityConfig());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("node-locations")) {
-            builder.addAllDesiredLocations(getNodeLocations());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("logging-service")) {
-            builder.setDesiredLoggingService(getLoggingService());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("monitoring-service")) {
-            builder.setDesiredMonitoringService(getMonitoringService());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("labels")) {
-            client.setLabels(SetLabelsRequest.newBuilder().setLabelFingerprint(getLabelFingerPrint())
-                .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
-        }
-
-        refresh();
-
-        client.close();
+        doRefresh();
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        ClusterManagerClient client = createClient(ClusterManagerClient.class);
+        try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
+            client.deleteCluster(getClusterId());
 
-        client.deleteCluster(getClusterId());
-
-        Wait.atMost(5, TimeUnit.MINUTES).checkEvery(1, TimeUnit.MINUTES).until(() -> getCluster(client) == null);
-        client.close();
+            Wait.atMost(5, TimeUnit.MINUTES)
+                .checkEvery(1, TimeUnit.MINUTES)
+                .until(() -> getCluster(client) == null);
+        }
     }
 
     private void updateCluster(ClusterManagerClient client, ClusterUpdate.Builder builder) {

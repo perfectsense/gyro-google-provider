@@ -65,6 +65,7 @@ public class ClusterFinder extends GoogleFinder<ClusterManagerClient, Cluster, C
 
     @Override
     protected List<Cluster> findAllGoogle(ClusterManagerClient client) throws Exception {
+        client.close();
         throw new UnsupportedOperationException("Finding all `gke-clusters` without any filter is not supported!!");
     }
 
@@ -73,13 +74,17 @@ public class ClusterFinder extends GoogleFinder<ClusterManagerClient, Cluster, C
         ArrayList<Cluster> clusters = new ArrayList<>();
 
         if (filters.containsKey("location")) {
-            if (filters.containsKey("name")) {
-                clusters.add(client.getCluster(String.format("projects/%s/locations/%s/clusters/%s",
-                    getProjectId(), filters.get("location"), filters.get("name"))));
+            try {
+                if (filters.containsKey("name")) {
+                    clusters.add(client.getCluster(String.format("projects/%s/locations/%s/clusters/%s",
+                        getProjectId(), filters.get("location"), filters.get("name"))));
 
-            } else {
-                clusters.addAll(client.listClusters(String.format("projects/%s/locations/%s",
-                    getProjectId(), filters.get("location"))).getClustersList());
+                } else {
+                    clusters.addAll(client.listClusters(String.format("projects/%s/locations/%s",
+                        getProjectId(), filters.get("location"))).getClustersList());
+                }
+            } finally {
+                client.close();
             }
         }
 

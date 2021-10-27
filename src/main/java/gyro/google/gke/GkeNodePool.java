@@ -308,78 +308,76 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        ClusterManagerClient client = createClient(ClusterManagerClient.class);
-
-        if (getNodePool(client) == null) {
-            client.createNodePool(CreateNodePoolRequest.newBuilder()
-                .setParent(((ClusterResource) parentResource()).getClusterId())
-                .setNodePool(buildNodePool())
-                .build());
-            waitForActiveStatus(client);
+        try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
+            if (getNodePool(client) == null) {
+                client.createNodePool(CreateNodePoolRequest.newBuilder()
+                    .setParent(((ClusterResource) parentResource()).getClusterId())
+                    .setNodePool(buildNodePool())
+                    .build());
+                waitForActiveStatus(client);
+            }
         }
-
-        client.close();
     }
 
     @Override
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        ClusterManagerClient client = createClient(ClusterManagerClient.class);
+        try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
 
-        UpdateNodePoolRequest.Builder builder = UpdateNodePoolRequest.newBuilder();
+            UpdateNodePoolRequest.Builder builder = UpdateNodePoolRequest.newBuilder();
 
-        if (changedFieldNames.contains("config")) {
-            if (getConfig().getWorkloadMetadataConfig() != null) {
-                builder.setWorkloadMetadataConfig(getConfig().getWorkloadMetadataConfig().toWorkloadMetadataConfig());
+            if (changedFieldNames.contains("config")) {
+                if (getConfig().getWorkloadMetadataConfig() != null) {
+                    builder.setWorkloadMetadataConfig(getConfig().getWorkloadMetadataConfig()
+                        .toWorkloadMetadataConfig());
+                    updateCluster(client, builder);
+                    builder.clear();
+                }
+
+                builder.setImageType(getConfig().getImageType());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            builder.setImageType(getConfig().getImageType());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("locations")) {
-            builder.addAllLocations(getLocations());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("upgradeSettings")) {
-            builder.setUpgradeSettings(getUpgradeSettings().toUpgradeSettings());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("version")) {
-            builder.setNodeVersion(getVersion());
-            updateCluster(client, builder);
-            builder.clear();
-        }
-
-        if (changedFieldNames.contains("autoscaling")) {
-            if (getAutoscaling() != null) {
-                client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder().setName(getNodePoolId())
-                    .setAutoscaling(getAutoscaling().toNodePoolAutoscaling()).build());
-            } else {
-                client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder()
-                    .setName(getNodePoolId()).clearAutoscaling().build());
+            if (changedFieldNames.contains("locations")) {
+                builder.addAllLocations(getLocations());
+                updateCluster(client, builder);
+                builder.clear();
             }
-            waitForActiveStatus(client);
-        }
 
-        client.close();
+            if (changedFieldNames.contains("upgradeSettings")) {
+                builder.setUpgradeSettings(getUpgradeSettings().toUpgradeSettings());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("version")) {
+                builder.setNodeVersion(getVersion());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("autoscaling")) {
+                if (getAutoscaling() != null) {
+                    client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder().setName(getNodePoolId())
+                        .setAutoscaling(getAutoscaling().toNodePoolAutoscaling()).build());
+                } else {
+                    client.setNodePoolAutoscaling(SetNodePoolAutoscalingRequest.newBuilder()
+                        .setName(getNodePoolId()).clearAutoscaling().build());
+                }
+                waitForActiveStatus(client);
+            }
+        }
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        ClusterManagerClient client = createClient(ClusterManagerClient.class);
+        try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
+            client.deleteNodePool(getNodePoolId());
 
-        client.deleteNodePool(getNodePoolId());
-
-        Wait.atMost(15, TimeUnit.MINUTES).checkEvery(1, TimeUnit.MINUTES).until(() -> getNodePool(client) == null);
-
-        client.close();
+            Wait.atMost(15, TimeUnit.MINUTES)
+                .checkEvery(1, TimeUnit.MINUTES)
+                .until(() -> getNodePool(client) == null);
+        }
     }
 
     private void updateCluster(ClusterManagerClient client, UpdateNodePoolRequest.Builder builder) {
