@@ -126,6 +126,7 @@ public class GkeTimeWindow extends Diffable implements Copyable<TimeWindow> {
         } catch (ParseException e) {
             throw new GyroException(e.getMessage());
         }
+
         return builder.build();
     }
 

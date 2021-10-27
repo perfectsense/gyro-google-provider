@@ -646,6 +646,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         if (condition == null) {
             condition = new ArrayList<>();
         }
+
         return condition;
     }
 

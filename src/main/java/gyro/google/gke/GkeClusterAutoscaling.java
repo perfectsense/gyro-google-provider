@@ -54,6 +54,7 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
         if (resourceLimit == null) {
             resourceLimit = new ArrayList<>();
         }
+
         return resourceLimit;
     }
 
@@ -81,6 +82,7 @@ public class GkeClusterAutoscaling extends Diffable implements Copyable<ClusterA
         if (autoprovisioningLocations == null) {
             autoprovisioningLocations = new ArrayList<>();
         }
+
         return autoprovisioningLocations;
     }
 

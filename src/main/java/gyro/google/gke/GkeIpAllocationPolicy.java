@@ -201,6 +201,7 @@ public class GkeIpAllocationPolicy extends Diffable implements Copyable<IPAlloca
         if (getUseRoutes() != null) {
             builder.setUseRoutes(getUseRoutes());
         }
+
         return builder.build();
     }
 

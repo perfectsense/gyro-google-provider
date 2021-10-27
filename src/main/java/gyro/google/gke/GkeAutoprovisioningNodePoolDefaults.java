@@ -47,6 +47,7 @@ public class GkeAutoprovisioningNodePoolDefaults extends Diffable
         if (oauthScopes == null) {
             oauthScopes = new ArrayList<>();
         }
+
         return oauthScopes;
     }
 
