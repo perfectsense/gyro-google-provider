@@ -18,9 +18,12 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetSubnetworkRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.Subnetwork;
+import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksSetPrivateIpGoogleAccessRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -181,7 +184,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void copyFrom(Subnetwork subnetwork) {
-        setId(subnetwork.getId().toString());
+        setId(String.valueOf(subnetwork.getId()));
         setSelfLink(subnetwork.getSelfLink());
         setDescription(subnetwork.getDescription());
         setIpCidrRange(subnetwork.getIpCidrRange());
@@ -197,58 +200,82 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
+            Subnetwork subnetwork = getSubnetwork(client);
 
-        Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
-        copyFrom(subnetwork);
+            if (subnetwork == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(subnetwork);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        Subnetwork subnetwork = Subnetwork.newBuilder().setName(getName()).setNetwork(getNetwork().getSelfLink())
+            .setDescription(getDescription()).setIpCidrRange(getIpCidrRange()).setEnableFlowLogs(getEnableFlowLogs())
+            .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess()).build();
 
-        Subnetwork subnetwork = new Subnetwork();
-        subnetwork.setName(getName());
-        subnetwork.setNetwork(getNetwork().getSelfLink());
-        subnetwork.setDescription(getDescription());
-        subnetwork.setIpCidrRange(getIpCidrRange());
-        subnetwork.setEnableFlowLogs(getEnableFlowLogs());
-        subnetwork.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
+        try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
+            Operation operation = client.insert(getProjectId(), getRegion(), subnetwork);
 
-        Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
-        Operation operation = insert.execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-
         Operation operation;
+
         if (changedFieldNames.contains("enable-flow-logs")) {
-            Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
-            subnetwork.setEnableFlowLogs(getEnableFlowLogs());
-            operation = client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
-            waitForCompletion(client, operation);
+            try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
+                Subnetwork.Builder builder = Subnetwork.newBuilder(getSubnetwork(client));
+                builder.setEnableFlowLogs(getEnableFlowLogs());
+                operation = client.patch(getProjectId(), getRegion(), getName(), builder.build());
+
+                waitForCompletion(operation);
+            }
         }
 
         if (changedFieldNames.contains("private-ip-google-access")) {
-            SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
-            flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
-            operation = client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
-            waitForCompletion(client, operation);
+            try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
+                SubnetworksSetPrivateIpGoogleAccessRequest flag = SubnetworksSetPrivateIpGoogleAccessRequest.newBuilder()
+                    .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess()).build();
+                operation = client.setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag);
+
+                waitForCompletion(operation);
+            }
         }
     }
 
     @Override
-    public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+    public void doDelete(GyroUI ui, State state) {
+        try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
+            Operation operation = client.delete(getProjectId(), getRegion(), getName());
 
-        Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
+    }
+
+    private Subnetwork getSubnetwork(SubnetworksClient client) {
+        Subnetwork subnetwork = null;
+
+        try {
+            subnetwork = client.get(GetSubnetworkRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSubnetwork(getName())
+                .setRegion(getRegion())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return subnetwork;
     }
 }
