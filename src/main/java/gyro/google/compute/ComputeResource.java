@@ -19,8 +19,16 @@ package gyro.google.compute;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.Error;
+import com.google.cloud.compute.v1.Errors;
+import com.google.cloud.compute.v1.GetGlobalOperationRequest;
+import com.google.cloud.compute.v1.GetRegionOperationRequest;
+import com.google.cloud.compute.v1.GetZoneOperationRequest;
+import com.google.cloud.compute.v1.GlobalOperationsClient;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RegionOperationsClient;
+import com.google.cloud.compute.v1.ZoneOperationsClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.Waiter;
 import gyro.google.GoogleResource;
@@ -31,11 +39,17 @@ public abstract class ComputeResource extends GoogleResource {
 
     private static final TimeUnit DEFAULT_WAIT_TIME_UNIT = TimeUnit.MINUTES;
 
-    public void waitForCompletion(Compute compute, Operation operation) {
-        waitForCompletion(compute, operation, 0, null);
+    protected static String formatOperationErrorMessage(Error error) {
+        return error.getErrorsList().stream()
+            .map(Errors::getMessage)
+            .collect(Collectors.joining("\n"));
     }
 
-    public void waitForCompletion(Compute compute, Operation operation, long duration, TimeUnit unit) {
+    public void waitForCompletion(Operation operation) {
+        waitForCompletion(operation, 0, null);
+    }
+
+    public void waitForCompletion(Operation operation, long duration, TimeUnit unit) {
         Waiter waiter = new Waiter().prompt(false);
 
         if (duration > 0 && unit != null) {
@@ -44,45 +58,38 @@ public abstract class ComputeResource extends GoogleResource {
             waiter.atMost(DEFAULT_WAIT_DURATION, DEFAULT_WAIT_TIME_UNIT);
         }
         waiter.until(() -> {
-                Operation response = null;
-                String zone = operation.getZone();
+            Operation response = null;
+            String zone = operation.getZone();
 
-                if (zone != null) {
+            if (!StringUtils.isEmpty(zone)) {
+                try (ZoneOperationsClient zoneOperationsClient = createClient(ZoneOperationsClient.class)) {
                     String[] bits = zone.split("/");
                     zone = bits[bits.length - 1];
-                    Compute.ZoneOperations.Get get = compute.zoneOperations()
-                        .get(getProjectId(), zone, operation.getName());
-                    response = get.execute();
-                } else {
-                    String region = operation.getRegion();
+                    response = zoneOperationsClient.get(GetZoneOperationRequest.newBuilder()
+                        .setOperation(operation.getName()).setProject(getProjectId()).setZone(zone).build());
+                }
+            } else {
+                String region = operation.getRegion();
 
-                    if (region != null) {
+                if (!StringUtils.isEmpty(region)) {
+                    try (RegionOperationsClient regionOperationsClient = createClient(RegionOperationsClient.class)) {
                         region = region.substring(region.lastIndexOf("/") + 1);
-                        Compute.RegionOperations.Get get = compute.regionOperations()
-                            .get(getProjectId(), region, operation.getName());
-                        response = get.execute();
-                    } else {
-                        Compute.GlobalOperations.Get get = compute.globalOperations()
-                            .get(getProjectId(), operation.getName());
-                        response = get.execute();
+                        response = regionOperationsClient.get(GetRegionOperationRequest.newBuilder()
+                            .setOperation(operation.getName()).setProject(getProjectId()).setRegion(region).build());
+                    }
+                } else {
+                    try (GlobalOperationsClient globalOperationsClient = createClient(GlobalOperationsClient.class)) {
+                        response = globalOperationsClient.get(GetGlobalOperationRequest.newBuilder()
+                            .setOperation(operation.getName()).setProject(getProjectId()).build());
                     }
                 }
-
-                if (response != null && response.getError() != null) {
-                    throw new GyroException(formatOperationErrorMessage(response.getError()));
-                }
-                return response != null && response.getStatus().equals("DONE");
             }
-        );
-    }
 
-    protected static String formatOperationErrorMessage(Operation.Error error) {
-        return error.getErrors().stream()
-            .map(Operation.Error.Errors::getMessage)
-            .collect(Collectors.joining("\n"));
-    }
+            if (response != null && response.getError() != null && response.getError().getErrorsCount() > 0) {
+                throw new GyroException(formatOperationErrorMessage(response.getError()));
+            }
 
-    protected Compute createComputeClient() {
-        return createClient(Compute.class);
+            return response != null && response.getStatus().equals(Operation.Status.DONE);
+        });
     }
 }
