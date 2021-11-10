@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
 import com.google.cloud.compute.v1.Address;
 import com.google.cloud.compute.v1.AddressList;
+import com.google.cloud.compute.v1.GlobalAddressesClient;
+import com.google.cloud.compute.v1.ListGlobalAddressesRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +40,7 @@ import gyro.google.GoogleFinder;
  *
  */
 @Type("global-address")
-public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAddressResource> {
+public class GlobalAddressFinder extends GoogleFinder<GlobalAddressesClient, Address, GlobalAddressResource> {
 
     private String filter;
 
@@ -54,42 +56,43 @@ public class GlobalAddressFinder extends GoogleFinder<Compute, Address, GlobalAd
     }
 
     @Override
-    protected List<Address> findAllGoogle(Compute client) throws Exception {
-        List<Address> addresses = new ArrayList<>();
-        String pageToken = null;
-
-        do {
-            AddressList addressList = client.globalAddresses().list(getProjectId())
-                .setPageToken(pageToken)
-                .execute();
-            pageToken = addressList.getNextPageToken();
-
-            if (addressList.getItems() != null) {
-                addresses.addAll(addressList.getItems());
-            }
-        } while (pageToken != null);
-
-        return addresses;
+    protected List<Address> findAllGoogle(GlobalAddressesClient client) throws Exception {
+        return getAddresses(client, null);
     }
 
     @Override
-    protected List<Address> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+    protected List<Address> findGoogle(GlobalAddressesClient client, Map<String, String> filters) throws Exception {
+        return getAddresses(client, filters.get("filter"));
+    }
+
+    private List<Address> getAddresses(GlobalAddressesClient client, String filter) {
         List<Address> addresses = new ArrayList<>();
+        String pageToken = null;
 
-        if (filters.containsKey("filter")) {
-            String pageToken = null;
-
+        try {
             do {
-                AddressList addressList = client.globalAddresses().list(getProjectId())
-                    .setFilter(filters.get("filter"))
-                    .setPageToken(pageToken)
-                    .execute();
+                ListGlobalAddressesRequest.Builder builder = ListGlobalAddressesRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                if (filter != null) {
+                    builder.setFilter(filter);
+                }
+
+                AddressList addressList = client.list(builder.build()).getPage().getResponse();
                 pageToken = addressList.getNextPageToken();
 
-                if (addressList.getItems() != null) {
-                    addresses.addAll(addressList.getItems());
+                if (addressList.getItemsList() != null) {
+                    addresses.addAll(addressList.getItemsList());
                 }
-            } while (pageToken != null);
+
+            } while (!StringUtils.isEmpty(pageToken));
+
+        } finally {
+            client.close();
         }
 
         return addresses;

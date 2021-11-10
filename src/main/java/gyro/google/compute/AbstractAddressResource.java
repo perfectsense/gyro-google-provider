@@ -189,16 +189,37 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     }
 
     public Address copyTo() {
-        return Address.newBuilder()
-            .setName(getName())
-            .setDescription(getDescription())
-            .setAddress(getAddress())
-            .setPrefixLength(getPrefixLength())
-            .setAddressType(getAddressType())
-            .setPurpose(getPurpose())
-            .setSubnetwork(getSubnetwork() != null ? getSubnetwork().getSelfLink() : null)
-            .setNetwork(getNetwork() != null ? getNetwork().getSelfLink() : null)
-            .build();
+        Address.Builder builder = Address.newBuilder().setName(getName());
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getPrefixLength() != null) {
+            builder.setPrefixLength(getPrefixLength());
+        }
+
+        if (getPurpose() != null) {
+            builder.setPurpose(getPurpose());
+        }
+
+        if (getSubnetwork() != null) {
+            builder.setSubnetwork(getSubnetwork().getSelfLink());
+        }
+
+        if (getNetwork() != null) {
+            builder.setNetwork(getNetwork().getSelfLink());
+        }
+
+        if (getAddress() != null) {
+            builder.setAddress(getAddress());
+        }
+
+        if (getAddressType() != null) {
+            builder.setAddressType(getAddressType());
+        }
+
+        return builder.build();
     }
 }
 
