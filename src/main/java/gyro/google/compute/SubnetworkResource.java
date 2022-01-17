@@ -159,8 +159,14 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     /**
      * Secondary IP ranges that may be allocated for this subnet.
+     *
+     * @subresource gyro.google.compute.SubnetworkSecondaryRange
      */
     public List<SubnetworkSecondaryRange> getSecondaryIpRange() {
+        if (secondaryIpRange == null) {
+            secondaryIpRange = new ArrayList<>();
+        }
+
         return secondaryIpRange;
     }
 
@@ -207,6 +213,16 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
             subnetwork.getNetwork()));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
         setSelfLink(subnetwork.getSelfLink());
+
+        getSecondaryIpRange().clear();
+        List<com.google.api.services.compute.model.SubnetworkSecondaryRange> secondaryIpRanges = subnetwork.getSecondaryIpRanges();
+        if (secondaryIpRanges != null) {
+            secondaryIpRanges.forEach(ipRange -> {
+                SubnetworkSecondaryRange secondaryRange = newSubresource(SubnetworkSecondaryRange.class);
+                secondaryRange.copyFrom(ipRange);
+                getSecondaryIpRange().add(secondaryRange);
+            });
+        }
     }
 
     @Override
