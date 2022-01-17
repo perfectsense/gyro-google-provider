@@ -163,6 +163,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
      *
      * @subresource gyro.google.compute.SubnetworkSecondaryRange
      */
+    @Updatable
     public List<SubnetworkSecondaryRange> getSecondaryIpRange() {
         if (secondaryIpRange == null) {
             secondaryIpRange = new ArrayList<>();
@@ -277,6 +278,15 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
             SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
             flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
             operation = client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
+            waitForCompletion(client, operation);
+        }
+
+        if (changedFieldNames.contains("secondary-ip-range")) {
+            Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
+            subnetwork.setSecondaryIpRanges(getSecondaryIpRange().stream()
+                .map(SubnetworkSecondaryRange::toSecondaryIpRange)
+                .collect(Collectors.toList()));
+            operation = client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
             waitForCompletion(client, operation);
         }
     }
