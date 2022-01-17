@@ -19,6 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
@@ -246,7 +247,12 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         subnetwork.setIpCidrRange(getIpCidrRange());
         subnetwork.setEnableFlowLogs(getEnableFlowLogs());
         subnetwork.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
-        subnetwork.setSecondaryIpRanges(toSecondaryIpRanges());
+
+        if (!getSecondaryIpRange().isEmpty()) {
+            subnetwork.setSecondaryIpRanges(getSecondaryIpRange().stream()
+                .map(SubnetworkSecondaryRange::toSecondaryIpRange)
+                .collect(Collectors.toList()));
+        }
 
         Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
         Operation operation = insert.execute();
@@ -281,21 +287,5 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
         Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
         waitForCompletion(client, operation);
-    }
-
-    private List<com.google.api.services.compute.model.SubnetworkSecondaryRange> toSecondaryIpRanges() {
-        List<com.google.api.services.compute.model.SubnetworkSecondaryRange> ranges = new ArrayList<>();
-
-        for (SubnetworkSecondaryRange range : getSecondaryIpRange()) {
-            com.google.api.services.compute.model.SubnetworkSecondaryRange gcpRange =
-                new com.google.api.services.compute.model.SubnetworkSecondaryRange();
-
-            gcpRange.setIpCidrRange(range.getIpCidrRange());
-            gcpRange.setRangeName(range.getName());
-
-            ranges.add(gcpRange);
-        }
-
-        return ranges;
     }
 }

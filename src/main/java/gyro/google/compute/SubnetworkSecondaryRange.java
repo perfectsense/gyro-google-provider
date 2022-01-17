@@ -17,6 +17,8 @@
 package gyro.google.compute;
 
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class SubnetworkSecondaryRange extends Diffable implements Copyable<com.google.api.services.compute.model.SubnetworkSecondaryRange> {
@@ -24,6 +26,10 @@ public class SubnetworkSecondaryRange extends Diffable implements Copyable<com.g
     private String ipCidrRange;
     private String name;
 
+    /**
+     * The cidr for the ip range.
+     */
+    @Required
     public String getIpCidrRange() {
         return ipCidrRange;
     }
@@ -32,6 +38,10 @@ public class SubnetworkSecondaryRange extends Diffable implements Copyable<com.g
         this.ipCidrRange = ipCidrRange;
     }
 
+    /**
+     * The name for the ip range.
+     */
+    @Required
     public String getName() {
         return name;
     }
@@ -49,5 +59,15 @@ public class SubnetworkSecondaryRange extends Diffable implements Copyable<com.g
     public void copyFrom(com.google.api.services.compute.model.SubnetworkSecondaryRange model) {
         setName(model.getRangeName());
         setIpCidrRange(model.getIpCidrRange());
+    }
+
+    protected com.google.api.services.compute.model.SubnetworkSecondaryRange toSecondaryIpRange() {
+        com.google.api.services.compute.model.SubnetworkSecondaryRange gcpRange =
+            new com.google.api.services.compute.model.SubnetworkSecondaryRange();
+
+        gcpRange.setIpCidrRange(getIpCidrRange());
+        gcpRange.setRangeName(getName());
+
+        return gcpRange;
     }
 }
