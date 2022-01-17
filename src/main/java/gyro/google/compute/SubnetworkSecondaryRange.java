@@ -17,7 +17,6 @@
 package gyro.google.compute;
 
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
