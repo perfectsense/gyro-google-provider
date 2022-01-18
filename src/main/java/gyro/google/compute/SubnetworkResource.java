@@ -16,7 +16,10 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Operation;
@@ -58,6 +61,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     private String region;
     private Boolean enableFlowLogs;
     private Boolean privateIpGoogleAccess;
+    private List<SubnetworkSecondaryRange> secondaryIpRange;
 
     // Read-only
     private String id;
@@ -155,6 +159,24 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
+     * The secondary IP ranges that may be allocated for this subnet.
+     *
+     * @subresource gyro.google.compute.SubnetworkSecondaryRange
+     */
+    @Updatable
+    public List<SubnetworkSecondaryRange> getSecondaryIpRange() {
+        if (secondaryIpRange == null) {
+            secondaryIpRange = new ArrayList<>();
+        }
+
+        return secondaryIpRange;
+    }
+
+    public void setSecondaryIpRange(List<SubnetworkSecondaryRange> secondaryIpRanges) {
+        this.secondaryIpRange = secondaryIpRanges;
+    }
+
+    /**
      * The Id of the subnet.
      */
     @Output
@@ -193,6 +215,16 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
             subnetwork.getNetwork()));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
         setSelfLink(subnetwork.getSelfLink());
+
+        getSecondaryIpRange().clear();
+        List<com.google.api.services.compute.model.SubnetworkSecondaryRange> secondaryIpRanges = subnetwork.getSecondaryIpRanges();
+        if (secondaryIpRanges != null) {
+            secondaryIpRanges.forEach(ipRange -> {
+                SubnetworkSecondaryRange secondaryRange = newSubresource(SubnetworkSecondaryRange.class);
+                secondaryRange.copyFrom(ipRange);
+                getSecondaryIpRange().add(secondaryRange);
+            });
+        }
     }
 
     @Override
@@ -217,6 +249,12 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         subnetwork.setEnableFlowLogs(getEnableFlowLogs());
         subnetwork.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
 
+        if (!getSecondaryIpRange().isEmpty()) {
+            subnetwork.setSecondaryIpRanges(getSecondaryIpRange().stream()
+                .map(SubnetworkSecondaryRange::toSecondaryIpRange)
+                .collect(Collectors.toList()));
+        }
+
         Compute.Subnetworks.Insert insert = client.subnetworks().insert(getProjectId(), getRegion(), subnetwork);
         Operation operation = insert.execute();
         waitForCompletion(client, operation);
@@ -240,6 +278,15 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
             SubnetworksSetPrivateIpGoogleAccessRequest flag = new SubnetworksSetPrivateIpGoogleAccessRequest();
             flag.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
             operation = client.subnetworks().setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag).execute();
+            waitForCompletion(client, operation);
+        }
+
+        if (changedFieldNames.contains("secondary-ip-range")) {
+            Subnetwork subnetwork = client.subnetworks().get(getProjectId(), getRegion(), getName()).execute();
+            subnetwork.setSecondaryIpRanges(getSecondaryIpRange().stream()
+                .map(SubnetworkSecondaryRange::toSecondaryIpRange)
+                .collect(Collectors.toList()));
+            operation = client.subnetworks().patch(getProjectId(), getRegion(), getName(), subnetwork).execute();
             waitForCompletion(client, operation);
         }
     }
