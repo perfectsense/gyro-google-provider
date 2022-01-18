@@ -32,7 +32,6 @@ import com.google.container.v1.ClusterUpdate;
 import com.google.container.v1.CreateClusterRequest;
 import com.google.container.v1.IntraNodeVisibilityConfig;
 import com.google.container.v1.SetLabelsRequest;
-import com.google.container.v1.UpdateMasterRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
