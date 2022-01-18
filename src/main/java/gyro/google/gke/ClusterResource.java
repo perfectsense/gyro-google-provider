@@ -1171,15 +1171,6 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             state.save();
 
             waitForActiveStatus(client);
-
-            if (getMasterVersion() != null) {
-                client.updateMaster(UpdateMasterRequest.newBuilder()
-                    .setName(getClusterId())
-                    .setMasterVersion(getMasterVersion())
-                    .build());
-            }
-
-            waitForActiveStatus(client);
         }
 
         state.save();
