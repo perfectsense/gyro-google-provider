@@ -32,7 +32,6 @@ import com.google.container.v1.ClusterUpdate;
 import com.google.container.v1.CreateClusterRequest;
 import com.google.container.v1.IntraNodeVisibilityConfig;
 import com.google.container.v1.SetLabelsRequest;
-import com.google.container.v1.UpdateMasterRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
@@ -1131,7 +1130,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         }
 
         if (getSubnetwork() != null) {
-            builder.setSubnetwork(getSubnetwork().getId());
+            builder.setSubnetwork(getSubnetwork().getSelfLink());
         }
 
         if (getNodeLocations() != null) {
@@ -1151,7 +1150,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         }
 
         if (getNetwork() != null) {
-            builder.setNetwork(getNetwork().getId());
+            builder.setNetwork(getNetwork().getSelfLink());
         }
 
         if (getClusterIpv4Cidr() != null) {
