@@ -92,7 +92,17 @@ public class GkeNodePoolAutoscaling extends Diffable implements Copyable<NodePoo
     }
 
     NodePoolAutoscaling toNodePoolAutoscaling() {
-        return NodePoolAutoscaling.newBuilder().setAutoprovisioned(getAutoprovisioned()).setEnabled(getEnabled())
-            .setMaxNodeCount(getMaxNodeCount()).setMinNodeCount(getMinNodeCount()).build();
+        if (getEnabled() == null || !getEnabled()) {
+            return NodePoolAutoscaling.newBuilder()
+                .setEnabled(false)
+                .build();
+        }
+
+        return NodePoolAutoscaling.newBuilder()
+            .setAutoprovisioned(getAutoprovisioned() != null ? getAutoprovisioned() : false)
+            .setEnabled(getEnabled())
+            .setMaxNodeCount(getMaxNodeCount() != null ? getMaxNodeCount() : 1)
+            .setMinNodeCount(getMinNodeCount() != null ? getMinNodeCount() : 1)
+            .build();
     }
 }
