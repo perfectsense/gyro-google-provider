@@ -159,7 +159,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
-     * Secondary IP ranges that may be allocated for this subnet.
+     * The secondary IP ranges that may be allocated for this subnet.
      *
      * @subresource gyro.google.compute.SubnetworkSecondaryRange
      */
