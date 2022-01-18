@@ -16,10 +16,16 @@
 
 package gyro.google.gke;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import com.google.container.v1.NodePoolAutoscaling;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.Min;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class GkeNodePoolAutoscaling extends Diffable implements Copyable<NodePoolAutoscaling> {
@@ -58,6 +64,7 @@ public class GkeNodePoolAutoscaling extends Diffable implements Copyable<NodePoo
      * The maximum number of nodes in the NodePool.
      */
     @Updatable
+    @Min(1)
     public Integer getMaxNodeCount() {
         return maxNodeCount;
     }
@@ -70,6 +77,7 @@ public class GkeNodePoolAutoscaling extends Diffable implements Copyable<NodePoo
      * The minimum number of nodes in the NodePool.
      */
     @Updatable
+    @Min(1)
     public Integer getMinNodeCount() {
         return minNodeCount;
     }
@@ -92,17 +100,37 @@ public class GkeNodePoolAutoscaling extends Diffable implements Copyable<NodePoo
     }
 
     NodePoolAutoscaling toNodePoolAutoscaling() {
-        if (getEnabled() == null || !getEnabled()) {
-            return NodePoolAutoscaling.newBuilder()
-                .setEnabled(false)
-                .build();
+        NodePoolAutoscaling.Builder builder = NodePoolAutoscaling.newBuilder().setEnabled(getEnabled());
+
+        if (getAutoprovisioned() != null) {
+            builder.setAutoprovisioned(getAutoprovisioned());
         }
 
-        return NodePoolAutoscaling.newBuilder()
-            .setAutoprovisioned(getAutoprovisioned() != null ? getAutoprovisioned() : false)
-            .setEnabled(getEnabled())
-            .setMaxNodeCount(getMaxNodeCount() != null ? getMaxNodeCount() : 1)
-            .setMinNodeCount(getMinNodeCount() != null ? getMinNodeCount() : 1)
-            .build();
+        if (getMaxNodeCount() != null) {
+            builder.setMaxNodeCount(getMaxNodeCount());
+        }
+
+        if (getMinNodeCount() != null) {
+            builder.setMinNodeCount(getMinNodeCount());
+        }
+
+        return builder.build();
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        ArrayList<ValidationError> errors = new ArrayList<>();
+
+        if (configuredFields.contains("autoprovisioned") && getAutoprovisioned() && configuredFields.contains(
+            "min-node-count")) {
+            errors.add(new ValidationError(
+                this, null, "'min-node-count' cannot be set if 'autoprovisioned' is 'true'"));
+        }
+
+        if (getEnabled() && !configuredFields.contains("max-node-count")) {
+            errors.add(new ValidationError(this, null, "'max-node-count' should be set if 'enabled' is 'true'"));
+        }
+
+        return errors;
     }
 }
