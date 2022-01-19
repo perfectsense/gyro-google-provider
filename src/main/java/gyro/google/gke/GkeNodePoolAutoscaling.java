@@ -131,6 +131,11 @@ public class GkeNodePoolAutoscaling extends Diffable implements Copyable<NodePoo
             errors.add(new ValidationError(this, null, "'max-node-count' should be set if 'enabled' is 'true'"));
         }
 
+        if (!getEnabled() && (configuredFields.contains("min-node-count")
+            || configuredFields.contains("max-node-count"))) {
+            errors.add(new ValidationError(this, null,
+                "'min-node-count' and 'max-node-count' cannot be set if 'enabled' is 'false'"));
+        }
         return errors;
     }
 }
