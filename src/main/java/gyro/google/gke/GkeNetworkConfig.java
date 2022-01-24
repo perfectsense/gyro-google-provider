@@ -16,6 +16,8 @@
 
 package gyro.google.gke;
 
+import java.util.Optional;
+
 import com.google.container.v1.NetworkConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
@@ -23,6 +25,7 @@ import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 import gyro.google.compute.NetworkResource;
 import gyro.google.compute.SubnetworkResource;
+import gyro.google.util.Utils;
 
 public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig> {
 
@@ -91,8 +94,12 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
     @Override
     public void copyFrom(NetworkConfig model) throws Exception {
         setEnableIntraNodeVisibility(model.getEnableIntraNodeVisibility());
-        setNetwork(findById(NetworkResource.class, model.getNetwork()));
-        setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
+        setSubnetwork(Optional.ofNullable(Utils.findResourceByField(SubnetworkResource.class,
+            findByClass(SubnetworkResource.class), model.getSubnetwork()))
+            .orElse(findById(SubnetworkResource.class, model.getSubnetwork())));
+        setNetwork(Optional.ofNullable(Utils.findResourceByField(NetworkResource.class,
+            findByClass(NetworkResource.class), model.getNetwork()))
+            .orElse(findById(NetworkResource.class, model.getNetwork())));
 
         setDefaultSnatStatus(null);
         if (model.hasDefaultSnatStatus()) {

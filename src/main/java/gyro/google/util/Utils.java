@@ -26,6 +26,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.StringUtils;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
+import gyro.google.GoogleResource;
 
 public final class Utils {
 
@@ -160,5 +163,22 @@ public final class Utils {
         List<String> list = Arrays.asList(id.split("/"));
         int index = list.indexOf("repositories");
         return list.get(index + 1);
+    }
+
+    public static <T extends GoogleResource> T findResourceByField(
+        Class<T> resourceClass, Stream<T> resources, String fieldValue) {
+
+        String[] split = fieldValue.split("/");
+        String id = split[split.length - 1];
+        DiffableType<T> type = DiffableType.getInstance(resourceClass);
+        List<DiffableField> fields = type.getFields();
+
+        return resources.filter(r -> {
+            boolean returnValue = false;
+            for (DiffableField field : fields) {
+                returnValue = returnValue || field.getValue(r).equals(id);
+            }
+            return returnValue;
+        }).findFirst().orElse(null);
     }
 }
