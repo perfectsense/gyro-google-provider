@@ -1130,7 +1130,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         }
 
         if (getSubnetwork() != null) {
-            builder.setSubnetwork(getSubnetwork().getId());
+            builder.setSubnetwork(getSubnetwork().getSelfLink());
         }
 
         if (getNodeLocations() != null) {
@@ -1150,7 +1150,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         }
 
         if (getNetwork() != null) {
-            builder.setNetwork(getNetwork().getId());
+            builder.setNetwork(getNetwork().getSelfLink());
         }
 
         if (getClusterIpv4Cidr() != null) {
