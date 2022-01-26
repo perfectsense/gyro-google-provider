@@ -48,7 +48,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
     /**
      * IP version that will be used by this address. Defaults to ``IPV4``.
      */
-    @ValidStrings({"IPV4", "IPV6"})
+    @ValidStrings({ "IPV4", "IPV6" })
     public String getIpVersion() {
         return ipVersion;
     }
@@ -97,7 +97,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
     @Override
     public void copyFrom(Address model) {
         super.copyFrom(model);
-        setIpVersion(model.getIpVersion() == null ? null : model.getIpVersion().toString());
+        setIpVersion(model.getIpVersion() == null ? null : model.getIpVersion().toString().toUpperCase());
     }
 
     private Address getAddress(GlobalAddressesClient client) {
