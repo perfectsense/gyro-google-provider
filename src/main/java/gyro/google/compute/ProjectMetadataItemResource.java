@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Metadata;
 import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.Project;
-import gyro.core.GyroException;
+import com.google.cloud.compute.v1.ProjectsClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -48,7 +48,7 @@ import gyro.google.Copyable;
  *     end
  */
 @Type("compute-project-metadata-item")
-public class ProjectMetadataItemResource extends ComputeResource implements Copyable<Metadata.Items> {
+public class ProjectMetadataItemResource extends ComputeResource implements Copyable<Items> {
 
     private String key;
     private String value;
@@ -78,100 +78,90 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     }
 
     @Override
-    public void copyFrom(Metadata.Items metadataItem) {
+    public void copyFrom(Items metadataItem) {
         setKey(metadataItem.getKey());
         setValue(metadataItem.getValue());
     }
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (ProjectsClient client = createClient(ProjectsClient.class)) {
+            Items item = getItems(client);
 
-        Metadata metadata = getMetadata(client);
-        Metadata.Items item = metadata.getItems()
-            .stream()
-            .filter(r -> getKey().equals(r.getKey()))
-            .findFirst()
-            .orElse(null);
+            if (item == null) {
+                return false;
+            }
 
-        if (item != null) {
             copyFrom(item);
 
             return true;
         }
-
-        return false;
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (ProjectsClient client = createClient(ProjectsClient.class)) {
+            Items.Builder builder = Items.newBuilder();
+            builder.setKey(getKey());
+            builder.setValue(getValue());
 
-        Metadata.Items item = new Metadata.Items();
-        item.setKey(getKey());
-        item.setValue(getValue());
+            Metadata.Builder metadata = getMetadata(client).toBuilder();
+            List<Items> items = metadata.getItemsList();
 
-        Metadata metadata = getMetadata(client);
-        List<Metadata.Items> items = metadata.getItems();
+            if (items == null) {
+                items = new ArrayList<>();
+            }
 
-        if (items == null) {
-            items = new ArrayList<>();
+            items.add(builder.build());
+            metadata.addAllItems(items);
+
+            setMetadata(client, metadata.build());
         }
-
-        items.add(item);
-        metadata.setItems(items);
-
-        setMetadata(client, metadata);
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-
-        Metadata metadata = getMetadata(client);
-        Metadata.Items item = metadata.getItems()
-            .stream()
-            .filter(r -> getKey().equals(r.getKey()))
-            .findFirst()
-            .orElse(null);
-
-        if (item != null) {
-            item.setValue(getValue());
-            setMetadata(client, metadata);
+        try (ProjectsClient client = createClient(ProjectsClient.class)) {
+            Metadata.Builder metadataBuilder = getMetadata(client).toBuilder();
+            List<Items> itemsList = new ArrayList<>(metadataBuilder.getItemsList());
+            itemsList.removeIf(i -> i.getKey().equals(getKey()));
+            itemsList.add(Items.newBuilder().setKey(getKey()).setValue(getValue()).build());
+            setMetadata(client, metadataBuilder.clearItems().addAllItems(itemsList).build());
         }
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (ProjectsClient client = createClient(ProjectsClient.class)) {
 
-        Metadata metadata = getMetadata(client);
-        metadata.getItems().removeIf(r -> getKey().equals(r.getKey()));
+            Metadata metadata = getMetadata(client);
+            metadata.getItemsList().removeIf(r -> getKey().equals(r.getKey()));
 
-        setMetadata(client, metadata);
-    }
-
-    private Metadata getMetadata(Compute client) throws Exception {
-        Compute.Projects.Get projectRequest = client.projects().get(getProjectId());
-        Project project = projectRequest.execute();
-
-        return project.getCommonInstanceMetadata();
-    }
-
-    private void setMetadata(Compute client, Metadata metadata) throws Exception {
-        try {
-            Compute.Projects.SetCommonInstanceMetadata metadataRequest =
-                client.projects().setCommonInstanceMetadata(getProjectId(), metadata);
-            Operation operation = metadataRequest.execute();
-
-            waitForCompletion(client, operation);
-        } catch (GoogleJsonResponseException je) {
-            String message = je.getDetails().getMessage();
-            if (message.contains("Metadata has duplicate keys")) {
-                throw new GyroException(String.format("Duplicate keys: %s", getKey()));
-            }
-
-            throw je;
+            setMetadata(client, metadata);
         }
+    }
+
+    private Metadata getMetadata(ProjectsClient client) {
+        return client.get(getProjectId()).getCommonInstanceMetadata();
+    }
+
+    private void setMetadata(ProjectsClient client, Metadata metadata) {
+        Operation operation = client.setCommonInstanceMetadata(getProjectId(), metadata);
+        waitForCompletion(operation);
+    }
+
+    private Items getItems(ProjectsClient client) {
+        Items items = null;
+
+        try {
+            Metadata metadata = getMetadata(client);
+            items = metadata.getItemsList().stream().filter(r -> getKey().equals(r.getKey()))
+                .findFirst().orElse(null);
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return items;
     }
 }
