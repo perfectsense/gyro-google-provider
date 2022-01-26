@@ -150,7 +150,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
         setNetworkIp(model.getNetworkIP());
 
         List<InstanceAccessConfig> diffableAccessConfigs = null;
-        List<AccessConfig> accessConfigs = model.getAccessConfigs();
+        List<AccessConfig> accessConfigs = model.getAccessConfigsList();
 
         if (accessConfigs != null && !accessConfigs.isEmpty()) {
             diffableAccessConfigs = accessConfigs
@@ -165,7 +165,7 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
         setAccessConfig(diffableAccessConfigs);
 
         List<InstanceAliasIpRange> diffableAliasIpRanges = null;
-        List<AliasIpRange> aliasIpRanges = model.getAliasIpRanges();
+        List<AliasIpRange> aliasIpRanges = model.getAliasIpRangesList();
 
         if (aliasIpRanges != null && !aliasIpRanges.isEmpty()) {
             diffableAliasIpRanges = aliasIpRanges
@@ -184,31 +184,40 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
     }
 
     public NetworkInterface copyTo() {
-        NetworkInterface networkInterface = new NetworkInterface();
-        networkInterface.setNetworkIP(getNetworkIp());
-        networkInterface.setFingerprint(getFingerprint());
-        networkInterface.setName(getName());
+        NetworkInterface.Builder builder = NetworkInterface.newBuilder();
+
+        if (getFingerprint() != null) {
+            builder.setFingerprint(getFingerprint());
+        }
+
+        if (getName() != null) {
+            builder.setName(getName());
+        }
+
+        if (getNetworkIp() != null) {
+            builder.setNetworkIP(getNetworkIp());
+        }
 
         if (getNetwork() != null) {
-            networkInterface.setNetwork(getNetwork().getSelfLink());
+            builder.setNetwork(getNetwork().getSelfLink());
         }
 
         if (getSubnetwork() != null) {
-            networkInterface.setSubnetwork(getSubnetwork().getSelfLink());
+            builder.setSubnetwork(getSubnetwork().getSelfLink());
         }
 
         if (!getAccessConfig().isEmpty()) {
-            networkInterface.setAccessConfigs(getAccessConfig().stream()
+            builder.addAllAccessConfigs(getAccessConfig().stream()
                 .map(InstanceAccessConfig::copyTo)
                 .collect(Collectors.toList()));
         }
 
         if (!getAliasIpRange().isEmpty()) {
-            networkInterface.setAliasIpRanges(getAliasIpRange().stream()
+            builder.addAllAliasIpRanges(getAliasIpRange().stream()
                 .map(InstanceAliasIpRange::copyTo)
                 .collect(Collectors.toList()));
         }
 
-        return networkInterface;
+        return builder.build();
     }
 }

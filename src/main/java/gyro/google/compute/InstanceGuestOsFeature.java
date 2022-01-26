@@ -56,10 +56,10 @@ public class InstanceGuestOsFeature extends Diffable implements Copyable<GuestOs
 
     @Override
     public void copyFrom(GuestOsFeature model) {
-        setType(model.getType());
+        setType(model.getType().toString());
     }
 
     public GuestOsFeature copyTo() {
-        return new GuestOsFeature().setType(getType());
+        return GuestOsFeature.newBuilder().setType(GuestOsFeature.Type.valueOf(getType())).build();
     }
 }

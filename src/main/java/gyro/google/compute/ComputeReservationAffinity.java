@@ -81,17 +81,22 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
 
     @Override
     public void copyFrom(ReservationAffinity model) {
-        setConsumeReservationType(model.getConsumeReservationType());
+        setConsumeReservationType(model.getConsumeReservationType().toString().toUpperCase());
         setKey(model.getKey());
-        setValues(model.getValues());
+        setValues(model.getValuesList());
     }
 
     public ReservationAffinity toReservationAffinity() {
-        ReservationAffinity reservationAffinity = new ReservationAffinity();
-        reservationAffinity.setConsumeReservationType(getConsumeReservationType());
-        reservationAffinity.setKey(getKey());
-        reservationAffinity.setValues(getValues());
-        return reservationAffinity;
+        ReservationAffinity.Builder builder = ReservationAffinity.newBuilder();
+        builder.setKey(getKey());
+        builder.addAllValues(getValues());
+
+        if (getConsumeReservationType() != null) {
+            builder.setConsumeReservationType(ReservationAffinity.ConsumeReservationType.valueOf(
+                getConsumeReservationType()));
+        }
+
+        return builder.build();
     }
 
     @Override

@@ -21,9 +21,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetInstanceTemplateRequest;
 import com.google.cloud.compute.v1.InstanceProperties;
 import com.google.cloud.compute.v1.InstanceTemplate;
+import com.google.cloud.compute.v1.InstanceTemplatesClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -192,37 +195,50 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.instanceTemplates().get(getProjectId(), getName()).execute(), false);
-        return true;
+        try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
+            InstanceTemplate instanceTemplate = getInstanceTemplate(client);
+
+            if (instanceTemplate == null) {
+                return false;
+            }
+
+            copyFrom(instanceTemplate, false);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        InstanceTemplate instanceTemplate = new InstanceTemplate();
-        instanceTemplate.setDescription(getDescription());
-        instanceTemplate.setName(getName());
+        InstanceTemplate.Builder builder = InstanceTemplate.newBuilder();
+        builder.setName(getName());
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
 
         ComputeInstanceProperties property = getProperties();
 
         if (property != null) {
-            instanceTemplate.setProperties(property.toInstanceProperties());
+            builder.setProperties(property.toInstanceProperties());
         }
 
         InstanceResource sourceInstance = getSourceInstance();
 
         if (sourceInstance != null) {
-            instanceTemplate.setSourceInstance(sourceInstance.getSelfLink());
+            builder.setSourceInstance(sourceInstance.getSelfLink());
         }
 
         ComputeSourceInstanceParams sourceInstanceParam = getSourceInstanceParams();
 
         if (sourceInstanceParam != null) {
-            instanceTemplate.setSourceInstanceParams(sourceInstanceParam.toSourceInstanceParams());
+            builder.setSourceInstanceParams(sourceInstanceParam.toSourceInstanceParams());
         }
 
-        Compute client = createComputeClient();
-        waitForCompletion(client, client.instanceTemplates().insert(getProjectId(), instanceTemplate).execute());
+        try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
+            waitForCompletion(client.insert(getProjectId(), builder.build()));
+        }
+
         refresh();
     }
 
@@ -233,8 +249,9 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        waitForCompletion(client, client.instanceTemplates().delete(getProjectId(), getName()).execute());
+        try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
+            waitForCompletion(client.delete(getProjectId(), getName()));
+        }
     }
 
     @Override
@@ -284,5 +301,21 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
                 "Either 'properties' or 'source-instance' is required!"));
         }
         return errors;
+    }
+
+    private InstanceTemplate getInstanceTemplate(InstanceTemplatesClient client) {
+        InstanceTemplate instanceTemplate = null;
+
+        try {
+            instanceTemplate = client.get(GetInstanceTemplateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setInstanceTemplate(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return instanceTemplate;
     }
 }

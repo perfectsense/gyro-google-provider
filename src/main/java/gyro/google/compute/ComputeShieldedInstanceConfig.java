@@ -69,11 +69,13 @@ public class ComputeShieldedInstanceConfig extends Diffable implements Copyable<
     }
 
     public ShieldedInstanceConfig toShieldedInstanceConfig() {
-        ShieldedInstanceConfig shieldedInstanceConfig = new ShieldedInstanceConfig();
-        shieldedInstanceConfig.setEnableIntegrityMonitoring(getEnableIntegrityMonitoring());
-        shieldedInstanceConfig.setEnableSecureBoot(getEnableSecureBoot());
-        shieldedInstanceConfig.setEnableVtpm(getEnableVtpm());
-        return shieldedInstanceConfig;
+        ShieldedInstanceConfig.Builder builder = ShieldedInstanceConfig.newBuilder();
+
+        builder.setEnableIntegrityMonitoring(getEnableIntegrityMonitoring());
+        builder.setEnableSecureBoot(getEnableSecureBoot());
+        builder.setEnableVtpm(getEnableVtpm());
+
+        return builder.build();
     }
 
     @Override

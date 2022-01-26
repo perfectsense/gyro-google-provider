@@ -26,10 +26,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetInstanceRequest;
 import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.InstancesSetLabelsRequest;
 import com.google.cloud.compute.v1.InstancesSetMachineTypeRequest;
+import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Metadata;
 import com.google.cloud.compute.v1.Tags;
 import gyro.core.GyroInstance;
@@ -393,120 +397,93 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            Instance instance = getInstance(client);
 
-        copyFrom(instance);
+            if (instance == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(instance);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Instance content = new Instance();
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            Instance.Builder builder = Instance.newBuilder();
+            builder.setName(getName());
+            builder.addAllNetworkInterfaces(getNetworkInterface().stream()
+                .map(InstanceNetworkInterface::copyTo)
+                .collect(Collectors.toList()));
+            builder.putAllLabels(getLabels());
+            builder.addAllDisks(getInitializeDisk().stream()
+                .map(InstanceAttachedDisk::copyTo)
+                .collect(Collectors.toList()));
+            builder.setCanIpForward(getCanIpForward());
+            builder.addAllServiceAccounts(getServiceAccount().stream()
+                .map(ComputeServiceAccount::toServiceAccount)
+                .collect(Collectors.toList()));
+            builder.setTags(buildTags(null));
+            builder.setMetadata(buildMetadata(null));
 
-        content.setName(getName());
-        content.setDescription(getDescription());
-        content.setMachineType(getMachineType());
-        content.setNetworkInterfaces(getNetworkInterface().stream()
-            .map(InstanceNetworkInterface::copyTo)
-            .collect(Collectors.toList()));
-        content.setLabels(getLabels());
-        content.setDisks(getInitializeDisk().stream()
-            .map(InstanceAttachedDisk::copyTo)
-            .collect(Collectors.toList()));
-        content.setCanIpForward(getCanIpForward());
-        content.setServiceAccounts(getServiceAccount().stream()
-            .map(ComputeServiceAccount::toServiceAccount)
-            .collect(Collectors.toList()));
-        content.setTags(buildTags(null));
-        content.setMetadata(buildMetadata(null));
+            builder.setDescription(getDescription());
+            builder.setMachineType(getMachineType());
 
-        waitForCompletion(
-            client,
-            client.instances().insert(getProjectId(), getZone(), content).execute());
+            waitForCompletion(client.insert(getProjectId(), getZone(), builder.build()));
 
-        Wait.atMost(2, TimeUnit.MINUTES)
-            .checkEvery(20, TimeUnit.SECONDS)
-            .prompt(false)
-            .until(() -> {
-                String status = client.instances().get(getProjectId(), getZone(), getName()).execute().getStatus();
-                return "RUNNING".equals(status) || "TERMINATED".equals(status);
-            });
+            Wait.atMost(2, TimeUnit.MINUTES)
+                .checkEvery(20, TimeUnit.SECONDS)
+                .prompt(false)
+                .until(() -> {
+                    Instance instance = getInstance(client);
+                    return Instance.Status.RUNNING.equals(instance.getStatus()) || Instance.Status.TERMINATED.equals(
+                        instance.getStatus());
+                });
+        }
 
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-        InstanceResource currentResource = (InstanceResource) current;
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            InstanceResource currentResource = (InstanceResource) current;
 
-        if (changedFieldNames.contains("labels")) {
-            // Always use the currentResoure#labelFingerprint in case updated via console. API will neither error or
-            // update if an older fingerprint is used.
-            waitForCompletion(
-                client,
-                client.instances()
-                    .setLabels(
-                        getProjectId(),
-                        getZone(),
-                        getName(),
-                        new InstancesSetLabelsRequest()
-                            .setLabelFingerprint(currentResource.getLabelFingerprint())
-                            .setLabels(getLabels()))
-                    .execute());
-        }
-
-        if (changedFieldNames.contains("status")) {
-            if ("RUNNING".equals(getStatus())) {
-                waitForCompletion(client, client.instances().start(getProjectId(), getZone(), getName()).execute());
-            } else if ("TERMINATED".equals(getStatus())) {
-                // These take a considerable amount of time so don't wait.
-                client.instances().stop(getProjectId(), getZone(), getName()).execute();
+            if (changedFieldNames.contains("labels")) {
+                // Always use the currentResoure#labelFingerprint in case updated via console. API will neither error or
+                // update if an older fingerprint is used.
+                waitForCompletion(
+                    client.setLabels(getProjectId(), getZone(), getName(), InstancesSetLabelsRequest.newBuilder()
+                        .setLabelFingerprint(currentResource.getLabelFingerprint())
+                        .putAllLabels(getLabels()).build()));
             }
-        }
 
-        if (changedFieldNames.contains("metadata")) {
-            waitForCompletion(
-                client,
-                client.instances()
-                    .setMetadata(
-                        getProjectId(),
-                        getZone(),
-                        getName(),
-                        buildMetadata(getMetadataFingerprint())
-                    )
-                    .execute()
-            );
-        }
+            if (changedFieldNames.contains("status")) {
+                if ("RUNNING".equals(getStatus())) {
+                    waitForCompletion(client.start(getProjectId(), getZone(), getName()));
+                } else if ("TERMINATED".equals(getStatus())) {
+                    // These take a considerable amount of time so don't wait.
+                    client.stop(getProjectId(), getZone(), getName());
+                }
+            }
 
-        if (changedFieldNames.contains("tags")) {
-            waitForCompletion(
-                client,
-                client.instances()
-                    .setTags(
-                        getProjectId(),
-                        getZone(),
-                        getName(),
-                        buildTags(getTagsFingerprint())
-                    )
-                    .execute());
-        }
+            if (changedFieldNames.contains("metadata")) {
+                waitForCompletion(client.setMetadata(getProjectId(), getZone(), getName(),
+                    buildMetadata(getMetadataFingerprint())));
+            }
 
-        if (changedFieldNames.contains("machine-type")) {
-            waitForCompletion(
-                client,
-                client.instances()
-                    .setMachineType(
-                        getProjectId(),
-                        getZone(),
-                        getName(),
-                        new InstancesSetMachineTypeRequest().setMachineType(getMachineType())
-                    )
-                    .execute()
-            );
+            if (changedFieldNames.contains("tags")) {
+                waitForCompletion(client.setTags(getProjectId(), getZone(), getName(),
+                    buildTags(getTagsFingerprint())));
+            }
+
+            if (changedFieldNames.contains("machine-type")) {
+                waitForCompletion(client.setMachineType(getProjectId(), getZone(), getName(),
+                    InstancesSetMachineTypeRequest.newBuilder().setMachineType(getMachineType()).build()));
+            }
         }
 
         refresh();
@@ -514,8 +491,9 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        waitForCompletion(client, client.instances().delete(getProjectId(), getZone(), getName()).execute());
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            waitForCompletion(client.delete(getProjectId(), getZone(), getName()));
+        }
     }
 
     @Override
@@ -526,29 +504,28 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setMachineType(model.getMachineType());
         setSelfLink(model.getSelfLink());
         setLabelFingerprint(model.getLabelFingerprint());
-        setLabels(model.getLabels());
+        setLabels(model.getLabelsMap());
         setCanIpForward(model.getCanIpForward());
 
         getMetadata().clear();
-        if (model.getMetadata() != null && model.getMetadata().getItems() != null) {
-            setMetadata(model.getMetadata().getItems().stream()
-                .collect(Collectors.toMap(Metadata.Items::getKey, Metadata.Items::getValue))
-            );
+        if (model.getMetadata() != null && model.getMetadata().getItemsList() != null) {
+            setMetadata(model.getMetadata().getItemsList().stream()
+                .collect(Collectors.toMap(Items::getKey, Items::getValue)));
         }
 
         getTags().clear();
-        if (model.getTags() != null && model.getTags().getItems() != null) {
-            setTags(model.getTags().getItems());
+        if (model.getTags() != null && model.getTags().getItemsList() != null) {
+            setTags(model.getTags().getItemsList());
         }
 
         // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
-        if ("RUNNING".equals(model.getStatus()) || "TERMINATED".equals(model.getStatus())) {
-            setStatus(model.getStatus());
+        if (Instance.Status.RUNNING.equals(model.getStatus()) || Instance.Status.TERMINATED.equals(model.getStatus())) {
+            setStatus(model.hasStatus() ? model.getStatus().toString().toUpperCase() : null);
         }
 
         getNetworkInterface().clear();
-        if (model.getNetworkInterfaces() != null) {
-            setNetworkInterface(model.getNetworkInterfaces().stream()
+        if (model.getNetworkInterfacesList() != null) {
+            setNetworkInterface(model.getNetworkInterfacesList().stream()
                 .map(networkInterface -> {
                     InstanceNetworkInterface newNetworkInterface = newSubresource(InstanceNetworkInterface.class);
                     newNetworkInterface.copyFrom(networkInterface);
@@ -558,8 +535,8 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         getDisk().clear();
-        if (model.getDisks() != null) {
-            setDisk(model.getDisks().stream()
+        if (model.getDisksList() != null) {
+            setDisk(model.getDisksList().stream()
                 .map(disk -> {
                     InstanceAttachedDisk instanceAttachedDisk = newSubresource(InstanceAttachedDisk.class);
                     instanceAttachedDisk.copyFrom(disk);
@@ -569,8 +546,8 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         getServiceAccount().clear();
-        if (model.getServiceAccounts() != null) {
-            setServiceAccount(model.getServiceAccounts().stream()
+        if (model.getServiceAccountsList() != null) {
+            setServiceAccount(model.getServiceAccountsList().stream()
                 .map(sa -> {
                     ComputeServiceAccount serviceAccount = newSubresource(ComputeServiceAccount.class);
                     serviceAccount.copyFrom(sa);
@@ -582,7 +559,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setCreationDate(model.getCreationTimestamp());
         setHostName(model.getHostname());
         setPrivateIp(getNetworkInterface().get(0).getNetworkIp());
-        setId(model.getId().toString());
+        setId(String.valueOf(model.getId()));
         setPublicIp(null);
         getNetworkInterface().stream()
             .filter(o -> !o.getAccessConfig().isEmpty())
@@ -592,52 +569,60 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     private String getMetadataFingerprint() throws IOException {
-        Compute client = createComputeClient();
-        String fingerprint = null;
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            String fingerprint = null;
 
-        Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
-        if (instance.getMetadata() != null) {
-            fingerprint = instance.getMetadata().getFingerprint();
+            Instance instance = client.get(getProjectId(), getZone(), getName());
+            if (instance.getMetadata() != null) {
+                fingerprint = instance.getMetadata().getFingerprint();
+            }
+
+            return fingerprint;
         }
-
-        return fingerprint;
     }
 
     private Metadata buildMetadata(String fingerprint) {
-        Metadata metadata = new Metadata();
-        metadata.setItems(
+        Metadata.Builder builder = Metadata.newBuilder();
+        builder.addAllItems(
             getMetadata().entrySet().stream()
                 .map(e -> {
-                    Metadata.Items item = new Metadata.Items();
-                    item.setKey(e.getKey());
-                    item.setValue(e.getValue());
-                    return item;
+                    Items.Builder builder1 = Items.newBuilder();
+                    builder1.setKey(e.getKey());
+                    builder1.setValue(e.getValue());
+                    return builder1.build();
                 })
                 .collect(Collectors.toList())
         );
-        metadata.setFingerprint(fingerprint);
 
-        return metadata;
+        if (fingerprint != null) {
+            builder.setFingerprint(fingerprint);
+        }
+
+        return builder.build();
     }
 
     private String getTagsFingerprint() throws IOException {
-        Compute client = createComputeClient();
-        String fingerprint = null;
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            String fingerprint = null;
 
-        Instance instance = client.instances().get(getProjectId(), getZone(), getName()).execute();
-        if (instance.getTags() != null) {
-            fingerprint = instance.getTags().getFingerprint();
+            Instance instance = client.get(getProjectId(), getZone(), getName());
+            if (instance.getTags() != null) {
+                fingerprint = instance.getTags().getFingerprint();
+            }
+
+            return fingerprint;
         }
-
-        return fingerprint;
     }
 
     private Tags buildTags(String fingerprint) {
-        Tags tags = new Tags();
-        tags.setItems(getTags());
-        tags.setFingerprint(fingerprint);
+        Tags.Builder builder = Tags.newBuilder();
+        builder.addAllItems(getTags());
 
-        return tags;
+        if (fingerprint != null) {
+            builder.setFingerprint(fingerprint);
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -669,6 +654,23 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         }
 
         return errors;
+    }
+
+    private Instance getInstance(InstancesClient client) {
+        Instance instance = null;
+
+        try {
+            instance = client.get(GetInstanceRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstance(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return instance;
     }
 
     @Override

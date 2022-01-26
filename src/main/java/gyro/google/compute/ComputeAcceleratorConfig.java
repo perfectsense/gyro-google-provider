@@ -60,10 +60,8 @@ public class ComputeAcceleratorConfig extends Diffable implements Copyable<Accel
     }
 
     public AcceleratorConfig toAcceleratorConfig() {
-        AcceleratorConfig acceleratorConfig = new AcceleratorConfig();
-        acceleratorConfig.setAcceleratorCount(getAcceleratorCount());
-        acceleratorConfig.setAcceleratorType(getAcceleratorType());
-        return acceleratorConfig;
+        return AcceleratorConfig.newBuilder().setAcceleratorCount(getAcceleratorCount())
+            .setAcceleratorType(getAcceleratorType()).build();
     }
 
     @Override
