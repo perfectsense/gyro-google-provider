@@ -22,14 +22,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetNetworkEndpointGroupRequest;
+import com.google.cloud.compute.v1.NetworkEndpoint;
 import com.google.cloud.compute.v1.NetworkEndpointGroup;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsAttachEndpointsRequest;
+import com.google.cloud.compute.v1.NetworkEndpointGroupsClient;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsDetachEndpointsRequest;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsListEndpointsRequest;
 import com.google.cloud.compute.v1.NetworkEndpointWithHealthStatus;
 import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.ProjectGlobalNetworkName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -222,11 +225,11 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     public void copyFrom(NetworkEndpointGroup networkEndpointGroup) throws Exception {
         setDefaultPort(networkEndpointGroup.getDefaultPort());
         setDescription(networkEndpointGroup.getDescription());
-        setId(networkEndpointGroup.getId().toString());
+        setId(String.valueOf(networkEndpointGroup.getId()));
         setName(networkEndpointGroup.getName());
         setNetwork(findById(NetworkResource.class, networkEndpointGroup.getNetwork()));
         setSubnet(findById(SubnetworkResource.class, networkEndpointGroup.getSubnetwork()));
-        setType(networkEndpointGroup.getNetworkEndpointType());
+        setType(networkEndpointGroup.getNetworkEndpointType().toString().toUpperCase());
         setSelfLink(networkEndpointGroup.getSelfLink());
         setSize(networkEndpointGroup.getSize());
         setZone(networkEndpointGroup.getZone().substring(networkEndpointGroup.getZone().lastIndexOf("/") + 1));
@@ -235,112 +238,140 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (NetworkEndpointGroupsClient client = createClient(NetworkEndpointGroupsClient.class)) {
+            NetworkEndpointGroup networkEndpointGroup = getNetworkEndpointGroup(client);
 
-        NetworkEndpointGroup networkEndpointGroup = client.networkEndpointGroups()
-            .get(getProjectId(), getZone(), getName())
-            .execute();
-        copyFrom(networkEndpointGroup);
+            if (networkEndpointGroup == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(networkEndpointGroup);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (NetworkEndpointGroupsClient client = createClient(NetworkEndpointGroupsClient.class)) {
+            NetworkEndpointGroup.Builder builder = NetworkEndpointGroup.newBuilder();
+            builder.setName(getName());
+            builder.setDefaultPort(getDefaultPort());
 
-        NetworkEndpointGroup networkEndpointGroup = new NetworkEndpointGroup();
-        networkEndpointGroup.setName(getName());
-        networkEndpointGroup.setNetwork(ProjectGlobalNetworkName.format(getNetwork().getName(), getProjectId()));
-        networkEndpointGroup.setSubnetwork(getSubnet().getSelfLink());
-        networkEndpointGroup.setNetworkEndpointType(getType());
-        networkEndpointGroup.setDefaultPort(getDefaultPort());
-        networkEndpointGroup.setDescription(getDescription());
+            if (getNetwork() != null) {
+                builder.setNetwork(getNetwork().getSelfLink());
+            }
 
-        Operation operation = client.networkEndpointGroups()
-            .insert(getProjectId(), getZone(), networkEndpointGroup)
-            .execute();
-        waitForCompletion(client, operation);
+            if (getSubnet() != null) {
+                builder.setSubnetwork(getSubnet().getSelfLink());
+            }
 
-        // Saves the state before trying to save the endpoints
-        // Calling refresh resets values to what is present in the cloud
-        // So temporarily save the current endpoints so that, post refresh it can be set and saved
-        // Refresh is needed to save endpoint and size which change based on how many endpoints are added or removed
-        if (!getEndpoint().isEmpty()) {
-            List<NetworkEndpointResource> endpoint = new ArrayList<>(getEndpoint());
-            refresh();
-            state.save();
-            setEndpoint(endpoint);
-            saveNetworkEndpoint(client, Collections.emptyList());
+            if (getType() != null) {
+                builder.setNetworkEndpointType(NetworkEndpointGroup.NetworkEndpointType.valueOf(getType()));
+            }
+
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
+
+            Operation operation = client.insert(getProjectId(), getZone(), builder.build());
+            waitForCompletion(operation);
+
+            // Saves the state before trying to save the endpoints
+            // Calling refresh resets values to what is present in the cloud
+            // So temporarily save the current endpoints so that, post refresh it can be set and saved
+            // Refresh is needed to save endpoint and size which change based on how many endpoints are added or removed
+            if (!getEndpoint().isEmpty()) {
+                List<NetworkEndpointResource> endpoint = new ArrayList<>(getEndpoint());
+                refresh();
+                state.save();
+                setEndpoint(endpoint);
+                saveNetworkEndpoint(client, Collections.emptyList());
+            }
         }
+
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-
-        NetworkEndpointGroupResource oldResource = (NetworkEndpointGroupResource) current;
-        saveNetworkEndpoint(client, oldResource.getEndpoint());
+        try (NetworkEndpointGroupsClient client = createClient(NetworkEndpointGroupsClient.class)) {
+            NetworkEndpointGroupResource oldResource = (NetworkEndpointGroupResource) current;
+            saveNetworkEndpoint(client, oldResource.getEndpoint());
+        }
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.networkEndpointGroups().delete(getProjectId(), getZone(), getName()).execute();
-        waitForCompletion(client, operation);
+        try (NetworkEndpointGroupsClient client = createClient(NetworkEndpointGroupsClient.class)) {
+            Operation operation = client.delete(getProjectId(), getZone(), getName());
+            waitForCompletion(operation);
+        }
     }
 
-    private List<NetworkEndpointResource> getNetworkEndpoint() throws Exception {
-        Compute client = createComputeClient();
-        NetworkEndpointGroupsListEndpointsRequest request = new NetworkEndpointGroupsListEndpointsRequest();
-        request.setHealthStatus("SHOW");
-        List<NetworkEndpointWithHealthStatus> endpoints = client.networkEndpointGroups()
-            .listNetworkEndpoints(getProjectId(), getZone(), getName(), request)
-            .execute()
-            .getItems();
+    private List<NetworkEndpointResource> getNetworkEndpoint() {
+        try (NetworkEndpointGroupsClient client = createClient(NetworkEndpointGroupsClient.class)) {
+            NetworkEndpointGroupsListEndpointsRequest.Builder builder = NetworkEndpointGroupsListEndpointsRequest.newBuilder();
+            builder.setHealthStatus(NetworkEndpointGroupsListEndpointsRequest.HealthStatus.SHOW);
+            List<NetworkEndpointWithHealthStatus> endpoints = client.listNetworkEndpoints(getProjectId(), getZone(),
+                getName(), builder.build()).getPage().getResponse().getItemsList();
 
-        getEndpoint().clear();
+            getEndpoint().clear();
 
-        return endpoints != null ? endpoints.stream()
-            .map(endpoint -> {
-                NetworkEndpointResource endpointResource = newSubresource(NetworkEndpointResource.class);
-                // API returns only the name not the instance self-link so reconstruct the self-link.
-                endpoint.getNetworkEndpoint()
-                    .setInstance(getSelfLink().replaceFirst(
+            return endpoints != null ? endpoints.stream()
+                .map(endpoint -> {
+                    NetworkEndpointResource endpointResource = newSubresource(NetworkEndpointResource.class);
+                    // API returns only the name not the instance self-link so reconstruct the self-link.
+                    NetworkEndpoint.Builder endpointBuilder = endpoint.getNetworkEndpoint().toBuilder();
+                    endpointBuilder.setInstance(getSelfLink().replaceFirst(
                         "/networkEndpointGroups/.*",
                         "/instances/" + endpoint.getNetworkEndpoint().getInstance()));
-                endpointResource.copyFrom(endpoint);
-                return endpointResource;
-            }).collect(Collectors.toList()) : Collections.emptyList();
+
+                    endpointResource.copyFrom(endpoint.toBuilder().setNetworkEndpoint(endpointBuilder.build()).build());
+                    return endpointResource;
+                }).collect(Collectors.toList()) : Collections.emptyList();
+        }
     }
 
-    private void saveNetworkEndpoint(Compute client, List<NetworkEndpointResource> oldEndpoints) throws Exception {
+    private void saveNetworkEndpoint(NetworkEndpointGroupsClient client, List<NetworkEndpointResource> oldEndpoints) {
         Operation operation;
 
         if (!oldEndpoints.isEmpty()) {
-            NetworkEndpointGroupsDetachEndpointsRequest detachRequest = new NetworkEndpointGroupsDetachEndpointsRequest();
-            detachRequest.setNetworkEndpoints(oldEndpoints.stream()
+            NetworkEndpointGroupsDetachEndpointsRequest.Builder builder = NetworkEndpointGroupsDetachEndpointsRequest
+                .newBuilder();
+            builder.addAllNetworkEndpoints(oldEndpoints.stream()
                 .map(NetworkEndpointResource::toNetworkEndpoint)
                 .collect(Collectors.toList()));
 
-            operation = client.networkEndpointGroups()
-                .detachNetworkEndpoints(getProjectId(), getZone(), getName(), detachRequest)
-                .execute();
-            waitForCompletion(client, operation);
+            operation = client.detachNetworkEndpoints(getProjectId(), getZone(), getName(), builder.build());
+            waitForCompletion(operation);
         }
 
         if (!getEndpoint().isEmpty()) {
-            NetworkEndpointGroupsAttachEndpointsRequest attachRequest = new NetworkEndpointGroupsAttachEndpointsRequest();
-            attachRequest.setNetworkEndpoints(getEndpoint().stream()
+            NetworkEndpointGroupsAttachEndpointsRequest.Builder builder = NetworkEndpointGroupsAttachEndpointsRequest.newBuilder();
+            builder.addAllNetworkEndpoints(getEndpoint().stream()
                 .map(NetworkEndpointResource::toNetworkEndpoint)
                 .collect(Collectors.toList()));
 
-            operation = client.networkEndpointGroups()
-                .attachNetworkEndpoints(getProjectId(), getZone(), getName(), attachRequest)
-                .execute();
-            waitForCompletion(client, operation);
+            operation = client.attachNetworkEndpoints(getProjectId(), getZone(), getName(), builder.build());
+            waitForCompletion(operation);
         }
+    }
+
+    private NetworkEndpointGroup getNetworkEndpointGroup(NetworkEndpointGroupsClient client) {
+        NetworkEndpointGroup instanceTemplate = null;
+
+        try {
+            instanceTemplate = client.get(GetNetworkEndpointGroupRequest.newBuilder()
+                .setProject(getProjectId())
+                .setNetworkEndpointGroup(getName())
+                .setZone(getZone())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return instanceTemplate;
     }
 }
