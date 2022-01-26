@@ -21,9 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.ListSslCertificatesRequest;
 import com.google.cloud.compute.v1.SslCertificate;
 import com.google.cloud.compute.v1.SslCertificateList;
+import com.google.cloud.compute.v1.SslCertificatesClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    compute-ssl-certificate: $(external-query google::compute-ssl-certificate { name: 'ssl-certificate-example' })
  */
 @Type("compute-ssl-certificate")
-public class SslCertificateFinder extends GoogleFinder<Compute, SslCertificate, SslCertificateResource> {
+public class SslCertificateFinder extends GoogleFinder<SslCertificatesClient, SslCertificate, SslCertificateResource> {
 
     private String name;
 
@@ -54,24 +56,39 @@ public class SslCertificateFinder extends GoogleFinder<Compute, SslCertificate, 
     }
 
     @Override
-    protected List<SslCertificate> findAllGoogle(Compute client) throws Exception {
+    protected List<SslCertificate> findAllGoogle(SslCertificatesClient client) throws Exception {
         List<SslCertificate> sslCertificates = new ArrayList<>();
-        String nextPageToken = null;
         SslCertificateList sslCertificateList;
+        String nextPageToken = null;
 
-        do {
-            sslCertificateList = client.sslCertificates().list(getProjectId()).setPageToken(nextPageToken).execute();
-            if (sslCertificateList.getItems() != null) {
-                sslCertificates.addAll(sslCertificateList.getItems());
-            }
-            nextPageToken = sslCertificateList.getNextPageToken();
-        } while (nextPageToken != null);
+        try {
+            do {
+                ListSslCertificatesRequest.Builder builder = ListSslCertificatesRequest.newBuilder()
+                    .setProject(getProjectId());
 
-        return sslCertificates;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                sslCertificateList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = sslCertificateList.getNextPageToken();
+
+                if (sslCertificateList.getItemsList() != null) {
+                    sslCertificates.addAll(sslCertificateList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return sslCertificates;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<SslCertificate> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.sslCertificates().get(getProjectId(), filters.get("name")).execute());
+    protected List<SslCertificate> findGoogle(SslCertificatesClient client, Map<String, String> filters)
+        throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }

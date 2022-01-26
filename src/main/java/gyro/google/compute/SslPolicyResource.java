@@ -21,9 +21,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetSslPolicyRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SslPoliciesClient;
 import com.google.cloud.compute.v1.SslPolicy;
+import com.google.cloud.compute.v1.Warnings;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -205,16 +209,16 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
 
     @Override
     public void copyFrom(SslPolicy model) {
-        setCustomFeatures(model.getCustomFeatures());
+        setCustomFeatures(model.getCustomFeaturesList());
         setDescription(model.getDescription());
         setFingerprint(model.getFingerprint());
-        setMinTlsVersion(model.getMinTlsVersion());
+        setMinTlsVersion(model.getMinTlsVersion().toString());
         setName(model.getName());
-        setProfile(model.getProfile());
-        setEnabledFeatures(model.getEnabledFeatures());
+        setProfile(model.getProfile().toString());
+        setEnabledFeatures(model.getEnabledFeaturesList());
         setSelfLink(model.getSelfLink());
 
-        List<SslPolicy.Warnings> warnings = model.getWarnings();
+        List<Warnings> warnings = model.getWarningsList();
         getWarning().clear();
         if (warnings != null && !warnings.isEmpty()) {
             setWarning(warnings
@@ -230,40 +234,45 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (SslPoliciesClient client = createClient(SslPoliciesClient.class)) {
+            SslPolicy sslPolicy = getSslPolicy(client);
 
-        SslPolicy policy = client.sslPolicies().get(getProjectId(), getName()).execute();
-        copyFrom(policy);
+            if (sslPolicy == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(sslPolicy);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.sslPolicies().insert(getProjectId(), toSslPolicy()).execute();
-        waitForCompletion(client, operation);
+        try (SslPoliciesClient client = createClient(SslPoliciesClient.class)) {
+            Operation operation = client.insert(getProjectId(), toSslPolicy());
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
-    protected void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.sslPolicies().patch(getProjectId(), getName(), toSslPolicy()).execute();
-        waitForCompletion(client, operation);
+    protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (SslPoliciesClient client = createClient(SslPoliciesClient.class)) {
+            Operation operation = client.patch(getProjectId(), getName(), toSslPolicy());
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.sslPolicies().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, response);
+        try (SslPoliciesClient client = createClient(SslPoliciesClient.class)) {
+            Operation response = client.delete(getProjectId(), getName());
+            waitForCompletion(response);
+        }
     }
 
     @Override
@@ -280,16 +289,35 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     }
 
     private SslPolicy toSslPolicy() {
-        SslPolicy policy = new SslPolicy();
+        SslPolicy.Builder builder = SslPolicy.newBuilder().addAllEnabledFeatures(getEnabledFeatures())
+            .setMinTlsVersion(SslPolicy.MinTlsVersion.valueOf(getMinTlsVersion()))
+            .setName(getName()).addAllCustomFeatures(getCustomFeatures())
+            .setProfile(SslPolicy.Profile.valueOf(getProfile()));
 
-        policy.setCustomFeatures(getCustomFeatures());
-        policy.setDescription(getDescription());
-        policy.setFingerprint(getFingerprint());
-        policy.setMinTlsVersion(getMinTlsVersion());
-        policy.setName(getName());
-        policy.setProfile(getProfile());
-        policy.setEnabledFeatures(getEnabledFeatures());
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
 
-        return policy;
+        if (getFingerprint() != null) {
+            builder.setFingerprint(getFingerprint());
+        }
+
+        return builder.build();
+    }
+
+    private SslPolicy getSslPolicy(SslPoliciesClient client) {
+        SslPolicy sslPolicy = null;
+
+        try {
+            sslPolicy = client.get(GetSslPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslPolicy(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return sslPolicy;
     }
 }

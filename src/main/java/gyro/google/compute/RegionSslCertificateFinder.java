@@ -17,20 +17,25 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetRegionSslCertificateRequest;
+import com.google.cloud.compute.v1.ListRegionSslCertificatesRequest;
+import com.google.cloud.compute.v1.ListRegionsRequest;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionSslCertificatesClient;
+import com.google.cloud.compute.v1.RegionsClient;
 import com.google.cloud.compute.v1.SslCertificate;
-import com.google.cloud.compute.v1.SslCertificateAggregatedList;
-import com.google.cloud.compute.v1.SslCertificateList;
-import com.google.cloud.compute.v1.SslCertificatesScopedList;
+import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.Type;
+import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query for a regional SSL certificate.
@@ -43,7 +48,8 @@ import gyro.google.GoogleFinder;
  *    compute-region-ssl-certificate: $(external-query google::compute-region-ssl-certificate { name: 'region-ssl-certificate-example', region: 'us-east1' })
  */
 @Type("compute-region-ssl-certificate")
-public class RegionSslCertificateFinder extends GoogleFinder<Compute, SslCertificate, SslCertificateResource> {
+public class RegionSslCertificateFinder
+    extends GoogleFinder<RegionSslCertificatesClient, SslCertificate, SslCertificateResource> {
 
     private String name;
     private String region;
@@ -71,57 +77,127 @@ public class RegionSslCertificateFinder extends GoogleFinder<Compute, SslCertifi
     }
 
     @Override
-    protected List<SslCertificate> findAllGoogle(Compute client) throws Exception {
-        List<SslCertificate> sslCertificates = new ArrayList<>();
-        String nextPageToken = null;
-        SslCertificateAggregatedList sslCertificateList;
-
-        do {
-            sslCertificateList = client.sslCertificates()
-                .aggregatedList(getProjectId())
-                .setPageToken(nextPageToken)
-                .execute();
-            if (sslCertificateList.getItems() != null) {
-                sslCertificates.addAll(sslCertificateList.getItems().values().stream()
-                    .map(SslCertificatesScopedList::getSslCertificates)
-                    .filter(Objects::nonNull)
-                    .flatMap(Collection::stream)
-                    .filter(urlMap -> urlMap.getRegion() != null)
-                    .collect(Collectors.toList()));
-            }
-            nextPageToken = sslCertificateList.getNextPageToken();
-        } while (nextPageToken != null);
-
-        return sslCertificates;
+    protected List<SslCertificate> findAllGoogle(RegionSslCertificatesClient client) throws Exception {
+        return getRegionSslCertificates(client, null);
     }
 
     @Override
-    protected List<SslCertificate> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<SslCertificate> sslCertificates;
+    protected List<SslCertificate> findGoogle(RegionSslCertificatesClient client, Map<String, String> filters)
+        throws Exception {
+        List<SslCertificate> certificates = new ArrayList<>();
+        String region = filters.remove("region");
+        String name = filters.remove("name");
+        String filter = Utils.convertToFilters(filters);
 
-        if (filters.containsKey("name")) {
-            sslCertificates = Collections.singletonList(client.regionSslCertificates()
-                .get(getProjectId(), filters.get("region"), filters.get("name"))
-                .execute());
-        } else {
-            sslCertificates = new ArrayList<>();
-            SslCertificateList sslCertificateList;
-            String nextPageToken = null;
+        try {
+            if (filters.containsKey("zone")) {
+                throw new GyroException("For zonal autoscaler, use 'compute-autoscaler' instead.");
+            }
 
-            do {
-                sslCertificateList =
-                    client.regionSslCertificates()
-                        .list(getProjectId(), filters.get("region"))
-                        .setPageToken(nextPageToken)
-                        .execute();
-                nextPageToken = sslCertificateList.getNextPageToken();
+            if (region != null && name != null) {
+                certificates.add(client.get(GetRegionSslCertificateRequest.newBuilder().setSslCertificate(name)
+                    .setProject(getProjectId()).setRegion(region).build()));
 
-                if (sslCertificateList.getItems() != null) {
-                    sslCertificates.addAll(sslCertificateList.getItems());
+            } else {
+                if (region != null) {
+                    certificates.addAll(getSslCertificates(client, filter, region));
+
+                } else if (name != null) {
+                    List<String> regions = getRegions();
+
+                    for (String r : regions) {
+                        try {
+                            certificates.add(client.get(GetRegionSslCertificateRequest.newBuilder()
+                                .setSslCertificate(name)
+                                .setProject(getProjectId())
+                                .setRegion(r)
+                                .build()));
+
+                        } catch (NotFoundException | InvalidArgumentException ex) {
+                            // ignore
+                        }
+                    }
+                } else {
+                    getRegionSslCertificates(client, filter);
                 }
-            } while (nextPageToken != null);
+            }
+        } finally {
+            client.close();
         }
 
-        return sslCertificates;
+        return certificates;
+    }
+
+    private List<SslCertificate> getRegionSslCertificates(RegionSslCertificatesClient client, String filter) {
+        List<String> regionList = getRegions();
+
+        List<SslCertificate> certificates = new ArrayList<>();
+
+        try {
+            for (String region : regionList) {
+                certificates.addAll(getSslCertificates(client, filter, region));
+            }
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+
+        } finally {
+            client.close();
+        }
+
+        return certificates;
+    }
+
+    private List<SslCertificate> getSslCertificates(RegionSslCertificatesClient client, String filter, String region) {
+        String pageToken = null;
+
+        List<SslCertificate> certificates = new ArrayList<>();
+
+        do {
+            ListRegionSslCertificatesRequest.Builder builder = ListRegionSslCertificatesRequest.newBuilder()
+                .setProject(getProjectId()).setRegion(region);
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            RegionSslCertificatesClient.ListPagedResponse response = client.list(builder.build());
+            pageToken = response.getNextPageToken();
+
+            if (response.getPage() != null && response.getPage().getResponse() != null) {
+                certificates.addAll(response.getPage().getResponse().getItemsList());
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
+
+        return certificates;
+    }
+
+    private List<String> getRegions() {
+        String pageToken = null;
+        List<String> regionList = new ArrayList<>();
+
+        try (RegionsClient regionsClient = credentials(GoogleCredentials.class).createClient(RegionsClient.class)) {
+            do {
+                ListRegionsRequest.Builder builder = ListRegionsRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                RegionsClient.ListPagedResponse list = regionsClient.list(builder.build());
+                pageToken = list.getNextPageToken();
+                regionList.addAll(list.getPage().getResponse().getItemsList()
+                    .stream().map(Region::getName).collect(Collectors.toList()));
+
+            } while (!StringUtils.isEmpty(pageToken));
+        }
+
+        return regionList;
     }
 }

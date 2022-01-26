@@ -20,12 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.cloud.compute.v1.SslPolicy;
+import com.google.cloud.compute.v1.Data;
+import com.google.cloud.compute.v1.Warnings;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.google.Copyable;
 
-public class SslPolicyWarning extends Diffable implements Copyable<SslPolicy.Warnings> {
+public class SslPolicyWarning extends Diffable implements Copyable<Warnings> {
 
     private String code;
     private List<SslPolicyWarningData> data;
@@ -79,11 +80,11 @@ public class SslPolicyWarning extends Diffable implements Copyable<SslPolicy.War
     }
 
     @Override
-    public void copyFrom(SslPolicy.Warnings model) {
-        setCode(model.getCode());
+    public void copyFrom(Warnings model) {
+        setCode(model.getCode().toString());
         setMessage(model.getMessage());
 
-        List<SslPolicy.Warnings.Data> data = model.getData();
+        List<Data> data = model.getDataList();
         getData().clear();
         if (data != null && !data.isEmpty()) {
             setData(data

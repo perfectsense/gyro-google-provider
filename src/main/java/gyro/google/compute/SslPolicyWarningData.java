@@ -16,12 +16,12 @@
 
 package gyro.google.compute;
 
-import com.google.cloud.compute.v1.SslPolicy;
+import com.google.cloud.compute.v1.Data;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.google.Copyable;
 
-public class SslPolicyWarningData extends Diffable implements Copyable<SslPolicy.Warnings.Data> {
+public class SslPolicyWarningData extends Diffable implements Copyable<Data> {
 
     private String key;
     private String value;
@@ -56,7 +56,7 @@ public class SslPolicyWarningData extends Diffable implements Copyable<SslPolicy
     }
 
     @Override
-    public void copyFrom(SslPolicy.Warnings.Data model) {
+    public void copyFrom(Data model) {
         setKey(model.getKey());
         setValue(model.getValue());
     }
