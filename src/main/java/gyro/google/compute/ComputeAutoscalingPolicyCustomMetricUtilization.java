@@ -84,18 +84,26 @@ public class ComputeAutoscalingPolicyCustomMetricUtilization extends Diffable
     }
 
     public AutoscalingPolicyCustomMetricUtilization copyTo() {
-        AutoscalingPolicyCustomMetricUtilization autoscalingPolicyCustomMetricUtilization = new AutoscalingPolicyCustomMetricUtilization();
-        autoscalingPolicyCustomMetricUtilization.setMetric(getMetric());
-        autoscalingPolicyCustomMetricUtilization.setUtilizationTarget(getUtilizationTarget());
-        autoscalingPolicyCustomMetricUtilization.setUtilizationTargetType(getUtilizationTargetType());
-        return autoscalingPolicyCustomMetricUtilization;
+        AutoscalingPolicyCustomMetricUtilization.Builder builder = AutoscalingPolicyCustomMetricUtilization.newBuilder();
+        builder.setMetric(getMetric());
+        builder.setUtilizationTarget(getUtilizationTarget());
+
+        if (getUtilizationTargetType() != null) {
+            builder.setUtilizationTargetType(AutoscalingPolicyCustomMetricUtilization.UtilizationTargetType.valueOf(
+                getUtilizationTargetType()));
+        }
+
+        return builder.build();
     }
 
     @Override
     public void copyFrom(AutoscalingPolicyCustomMetricUtilization model) {
         setMetric(model.getMetric());
         setUtilizationTarget(model.getUtilizationTarget());
-        setUtilizationTargetType(model.getUtilizationTargetType());
+        setUtilizationTargetType(
+            model.getUtilizationTargetType() == null
+                ? null
+                : model.getUtilizationTargetType().toString().toUpperCase());
     }
 
     @Override

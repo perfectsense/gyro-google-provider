@@ -72,7 +72,7 @@ public class ComputeAutoscalerStatusDetails extends Diffable implements Copyable
     @Override
     public void copyFrom(AutoscalerStatusDetails model) {
         setMessage(model.getMessage());
-        setType(model.getType());
+        setType(model.getType() == null ? null : model.getType().toString().toUpperCase());
     }
 
     @Override

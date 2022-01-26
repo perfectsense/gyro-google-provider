@@ -153,23 +153,26 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
     }
 
     public AutoscalingPolicy copyTo() {
-        AutoscalingPolicy autoscalingPolicy = new AutoscalingPolicy();
-        autoscalingPolicy.setCoolDownPeriodSec(getCoolDownPeriodSec());
+        AutoscalingPolicy.Builder builder = AutoscalingPolicy.newBuilder();
+        builder.setCoolDownPeriodSec(getCoolDownPeriodSec());
         Optional.ofNullable(getCpuUtilization())
             .map(ComputeAutoscalingPolicyCpuUtilization::copyTo)
-            .ifPresent(autoscalingPolicy::setCpuUtilization);
-        autoscalingPolicy.setCustomMetricUtilizations(getCustomMetricUtilization()
+            .ifPresent(builder::setCpuUtilization);
+        builder.addAllCustomMetricUtilizations(getCustomMetricUtilization()
             .stream()
             .map(ComputeAutoscalingPolicyCustomMetricUtilization::copyTo)
             .collect(Collectors.toList()));
         Optional.ofNullable(getLoadBalancingUtilization())
             .map(ComputeAutoscalingPolicyLoadBalancingUtilization::copyTo)
-            .ifPresent(autoscalingPolicy::setLoadBalancingUtilization);
-        autoscalingPolicy.setMaxNumReplicas(getMaxNumReplicas());
-        autoscalingPolicy.setMinNumReplicas(getMinNumReplicas());
-        // `mode` is not available from Google SDK yet.
-        autoscalingPolicy.set("mode", getMode());
-        return autoscalingPolicy;
+            .ifPresent(builder::setLoadBalancingUtilization);
+        builder.setMaxNumReplicas(getMaxNumReplicas());
+        builder.setMinNumReplicas(getMinNumReplicas());
+
+        if (getMode() != null) {
+            builder.setMode(AutoscalingPolicy.Mode.valueOf(getMode()));
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -185,7 +188,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
             .orElse(null));
 
         List<ComputeAutoscalingPolicyCustomMetricUtilization> diffableCustomMetricUtilization = null;
-        List<AutoscalingPolicyCustomMetricUtilization> customMetricUtilizations = model.getCustomMetricUtilizations();
+        List<AutoscalingPolicyCustomMetricUtilization> customMetricUtilizations = model.getCustomMetricUtilizationsList();
 
         if (customMetricUtilizations != null && !customMetricUtilizations.isEmpty()) {
             diffableCustomMetricUtilization = customMetricUtilizations
@@ -194,9 +197,9 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
                     ComputeAutoscalingPolicyCustomMetricUtilization customMetricUtilization = newSubresource(
                         ComputeAutoscalingPolicyCustomMetricUtilization.class);
                     customMetricUtilization.copyFrom(e);
+
                     return customMetricUtilization;
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toList());
         }
         setCustomMetricUtilization(diffableCustomMetricUtilization);
 
@@ -210,11 +213,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
             .orElse(null));
         setMaxNumReplicas(model.getMaxNumReplicas());
         setMinNumReplicas(model.getMinNumReplicas());
-        // `mode` is not available from Google SDK yet.
-        setMode(Optional.ofNullable(model.get("mode"))
-            .filter(String.class::isInstance)
-            .map(String.class::cast)
-            .orElse(null));
+        setMode(model.getMode() == null ? null : model.getMode().toString().toUpperCase());
     }
 
     @Override
@@ -228,9 +227,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
         Integer minNumReplicas = getMinNumReplicas();
 
         if (minNumReplicas != null && getMaxNumReplicas() < minNumReplicas) {
-            errors.add(new ValidationError(
-                this,
-                "max-num-replicas",
+            errors.add(new ValidationError(this, "max-num-replicas",
                 "'max-num-replicas' cannot be smaller than 'min-num-replicas'"));
         }
         return errors;
