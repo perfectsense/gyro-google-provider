@@ -22,14 +22,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetInstanceGroupRequest;
 import com.google.cloud.compute.v1.InstanceGroup;
 import com.google.cloud.compute.v1.InstanceGroupsAddInstancesRequest;
+import com.google.cloud.compute.v1.InstanceGroupsClient;
 import com.google.cloud.compute.v1.InstanceGroupsListInstances;
 import com.google.cloud.compute.v1.InstanceGroupsListInstancesRequest;
 import com.google.cloud.compute.v1.InstanceGroupsRemoveInstancesRequest;
 import com.google.cloud.compute.v1.InstanceGroupsSetNamedPortsRequest;
 import com.google.cloud.compute.v1.InstanceReference;
+import com.google.cloud.compute.v1.ListInstancesInstanceGroupsRequest;
 import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -41,6 +45,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Creates an instance group.
@@ -204,71 +209,77 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        InstanceGroup instanceGroup = client.instanceGroups().get(getProjectId(), getZone(), getName()).execute();
-        copyFrom(instanceGroup);
+        try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
+            InstanceGroup instanceGroup = getInstanceGroup(client);
 
-        return true;
+            if (instanceGroup == null) {
+                return false;
+            }
+
+            copyFrom(instanceGroup);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroups().insert(getProjectId(), getZone(), toInstanceGroup()).execute();
-        waitForCompletion(client, operation);
+        try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
+            Operation operation = client.insert(getProjectId(), getZone(), toInstanceGroup());
+            waitForCompletion(operation);
 
-        state.save();
+            state.save();
 
-        if (!getInstances().isEmpty()) {
-            addInstances(
-                client,
-                getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
+            if (!getInstances().isEmpty()) {
+                addInstances(
+                    client, getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
+            }
+
+            state.save();
+
+            saveNamedPort(client);
         }
-
-        state.save();
-
-        saveNamedPort(client);
-
         refresh();
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-        InstanceGroupResource currentInstanceGroupResource = (InstanceGroupResource) current;
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
+            InstanceGroupResource currentInstanceGroupResource = (InstanceGroupResource) current;
 
-        if (changedFieldNames.contains("named-port")) {
-            saveNamedPort(client);
-        }
-
-        if (changedFieldNames.contains("instances")) {
-            List<String> removed = currentInstanceGroupResource.getInstances().stream()
-                .filter(instance -> !getInstances().contains(instance))
-                .map(InstanceResource::getSelfLink)
-                .collect(Collectors.toList());
-            List<String> added = getInstances().stream()
-                .filter(instance -> !currentInstanceGroupResource.getInstances().contains(instance))
-                .map(InstanceResource::getSelfLink)
-                .collect(Collectors.toList());
-
-            if (!removed.isEmpty()) {
-                removeInstances(client, removed);
+            if (changedFieldNames.contains("named-port")) {
+                saveNamedPort(client);
             }
 
-            if (!added.isEmpty()) {
-                addInstances(client, added);
-            }
-        }
+            if (changedFieldNames.contains("instances")) {
+                List<String> removed = currentInstanceGroupResource.getInstances().stream()
+                    .filter(instance -> !getInstances().contains(instance))
+                    .map(InstanceResource::getSelfLink)
+                    .collect(Collectors.toList());
+                List<String> added = getInstances().stream()
+                    .filter(instance -> !currentInstanceGroupResource.getInstances().contains(instance))
+                    .map(InstanceResource::getSelfLink)
+                    .collect(Collectors.toList());
 
+                if (!removed.isEmpty()) {
+                    removeInstances(client, removed);
+                }
+
+                if (!added.isEmpty()) {
+                    addInstances(client, added);
+                }
+            }
+
+        }
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroups().delete(getProjectId(), getZone(), getName()).execute();
-        waitForCompletion(client, operation);
+        try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
+            Operation operation = client.delete(getProjectId(), getZone(), getName());
+            waitForCompletion(operation);
+        }
     }
 
     @Override
@@ -287,8 +298,8 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                 instanceGroup.getNetwork()));
         }
 
-        if (instanceGroup.getNamedPorts() != null) {
-            setNamedPort(instanceGroup.getNamedPorts().stream().map(rule -> {
+        if (instanceGroup.getNamedPortsList() != null) {
+            setNamedPort(instanceGroup.getNamedPortsList().stream().map(rule -> {
                 InstanceGroupNamedPort namedPort = newSubresource(InstanceGroupNamedPort.class);
                 namedPort.copyFrom(rule);
                 return namedPort;
@@ -296,83 +307,92 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         }
     }
 
-    private void addInstances(Compute client, List<String> instances) throws Exception {
-        waitForCompletion(
-            client,
-            client.instanceGroups()
-                .addInstances(getProjectId(), getZone(), getName(), new InstanceGroupsAddInstancesRequest()
-                    .setInstances(instances.stream()
-                        .map(instance -> new InstanceReference().setInstance(instance))
-                        .collect(Collectors.toList())
-                    )
-                ).execute()
-        );
+    private void addInstances(InstanceGroupsClient client, List<String> instances) throws Exception {
+        waitForCompletion(client.addInstances(getProjectId(), getZone(), getName(),
+            InstanceGroupsAddInstancesRequest.newBuilder()
+                .addAllInstances(instances.stream()
+                    .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
+                    .collect(Collectors.toList())).build()));
     }
 
-    private void removeInstances(Compute client, List<String> instances) throws Exception {
+    private void removeInstances(InstanceGroupsClient client, List<String> instances) throws Exception {
         waitForCompletion(
-            client,
-            client.instanceGroups()
-                .removeInstances(getProjectId(), getZone(), getName(), new InstanceGroupsRemoveInstancesRequest()
-                    .setInstances(instances.stream()
-                        .map(instance -> new InstanceReference().setInstance(instance))
-                        .collect(Collectors.toList())
-                    )
-                ).execute()
-        );
+            client.removeInstances(getProjectId(), getZone(), getName(),
+                InstanceGroupsRemoveInstancesRequest.newBuilder()
+                    .addAllInstances(instances.stream()
+                        .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
+                        .collect(Collectors.toList())).build()));
     }
 
     private List<InstanceResource> listInstances() throws IOException {
-        Compute client = createComputeClient();
-        List<InstanceResource> current = new ArrayList<>();
-        String pageToken;
+        try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
+            List<InstanceResource> current = new ArrayList<>();
+            String pageToken;
 
-        do {
-            InstanceGroupsListInstances results = client.instanceGroups()
-                .listInstances(getProjectId(), getZone(), getName(), new InstanceGroupsListInstancesRequest())
-                .execute();
-            pageToken = results.getNextPageToken();
+            do {
+                InstanceGroupsListInstances results = client
+                    .listInstances(ListInstancesInstanceGroupsRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setZone(getZone())
+                        .setInstanceGroup(getName())
+                        .setInstanceGroupsListInstancesRequestResource(InstanceGroupsListInstancesRequest.newBuilder()
+                            .build())
+                        .build()).getPage().getResponse();
+                pageToken = results.getNextPageToken();
 
-            if (results.getItems() != null) {
-                current.addAll(results.getItems()
-                    .stream()
-                    .map(item -> findById(InstanceResource.class, item.getInstance()))
-                    .collect(Collectors.toList()));
-            }
+                if (results.getItemsList() != null) {
+                    current.addAll(results.getItemsList()
+                        .stream()
+                        .map(item -> findById(InstanceResource.class, item.getInstance()))
+                        .collect(Collectors.toList()));
+                }
+            } while (!StringUtils.isBlank(pageToken));
 
-        } while (pageToken != null);
-
-        return current;
+            return current;
+        }
     }
 
     private InstanceGroup toInstanceGroup() {
-        InstanceGroup instanceGroup = new InstanceGroup();
-        instanceGroup.setName(getName());
-        instanceGroup.setDescription(getDescription());
-        instanceGroup.setZone(getZone());
-        instanceGroup.setRegion(getRegion());
-        instanceGroup.setSelfLink(getSelfLink());
-        instanceGroup.setSubnetwork(getSubnetwork());
+        InstanceGroup.Builder builder = InstanceGroup.newBuilder();
+        builder.setName(getName());
+        builder.setZone(getZone());
 
-        if (getNetwork() != null) {
-            instanceGroup.setNetwork(getNetwork().getSelfLink());
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
         }
 
-        instanceGroup.setNamedPorts(getNamedPort().stream()
-            .map(InstanceGroupNamedPort::toNamedPort)
+        if (getNetwork() != null) {
+            builder.setNetwork(getNetwork().getSelfLink());
+        }
+
+        builder.addAllNamedPorts(getNamedPort().stream().map(InstanceGroupNamedPort::toNamedPort)
             .collect(Collectors.toList()));
 
-        return instanceGroup;
+        return builder.build();
     }
 
-    private void saveNamedPort(Compute client) throws Exception {
-        InstanceGroupsSetNamedPortsRequest namedPortsRequest = new InstanceGroupsSetNamedPortsRequest();
-        namedPortsRequest.setNamedPorts(getNamedPort().stream()
-            .map(InstanceGroupNamedPort::toNamedPort)
+    private void saveNamedPort(InstanceGroupsClient client) throws Exception {
+        InstanceGroupsSetNamedPortsRequest.Builder builder = InstanceGroupsSetNamedPortsRequest.newBuilder();
+        builder.addAllNamedPorts(getNamedPort().stream().map(InstanceGroupNamedPort::toNamedPort)
             .collect(Collectors.toList()));
-        Operation operation = client.instanceGroups()
-            .setNamedPorts(getProjectId(), getZone(), getName(), namedPortsRequest)
-            .execute();
-        waitForCompletion(client, operation);
+        Operation operation = client.setNamedPorts(getProjectId(), getZone(), getName(), builder.build());
+        waitForCompletion(operation);
+    }
+
+    private InstanceGroup getInstanceGroup(InstanceGroupsClient client) {
+        InstanceGroup instanceGroup = null;
+
+        try {
+            instanceGroup = client.get(GetInstanceGroupRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroup(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return instanceGroup;
     }
 }

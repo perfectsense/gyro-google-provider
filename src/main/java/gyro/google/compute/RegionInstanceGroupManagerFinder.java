@@ -19,13 +19,21 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetRegionInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.InstanceGroupManager;
-import com.google.cloud.compute.v1.RegionInstanceGroupManagerList;
-import com.psddev.dari.util.ObjectUtils;
+import com.google.cloud.compute.v1.ListRegionInstanceGroupManagersRequest;
+import com.google.cloud.compute.v1.ListRegionsRequest;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionInstanceGroupManagersClient;
+import com.google.cloud.compute.v1.RegionsClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.Type;
+import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
 
@@ -45,50 +53,130 @@ import gyro.google.util.Utils;
  */
 @Type("compute-region-instance-group-manager")
 public class RegionInstanceGroupManagerFinder
-    extends GoogleFinder<Compute, InstanceGroupManager, RegionInstanceGroupManagerResource> {
+    extends GoogleFinder<RegionInstanceGroupManagersClient, InstanceGroupManager, RegionInstanceGroupManagerResource> {
 
     @Override
-    protected List<InstanceGroupManager> findAllGoogle(Compute client) throws Exception {
-        return InstanceGroupManagerFinder.findAllInstanceGroupManagers(
-            client,
-            getProjectId(),
-            ResourceScope.REGION,
-            null);
+    protected List<InstanceGroupManager> findAllGoogle(RegionInstanceGroupManagersClient client) throws Exception {
+        return getRegionInstanceGroupManagers(client, null);
     }
 
     @Override
-    protected List<InstanceGroupManager> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        if (filters.containsKey("zone")) {
-            throw new GyroException("For zonal instance group manager, use 'compute-instance-group-manager' instead.");
-        }
-
+    protected List<InstanceGroupManager> findGoogle(
+        RegionInstanceGroupManagersClient client, Map<String, String> filters) throws Exception {
+        List<InstanceGroupManager> instanceGroupManagers = new ArrayList<>();
         String region = filters.remove("region");
+        String name = filters.remove("name");
+        String filter = Utils.convertToFilters(filters);
 
-        if (region == null && !ObjectUtils.isBlank(filters)) {
-            return InstanceGroupManagerFinder.findAllInstanceGroupManagers(
-                client,
-                getProjectId(),
-                ResourceScope.REGION,
-                filters);
+        try {
+            if (filters.containsKey("zone")) {
+                throw new GyroException("For zonal instanceGroupManager, use 'compute-instanceGroupManager' instead.");
+            }
+
+            if (region != null && name != null) {
+                instanceGroupManagers.add(client.get(GetRegionInstanceGroupManagerRequest.newBuilder()
+                    .setInstanceGroupManager(name).setProject(getProjectId()).setRegion(region).build()));
+
+            } else {
+                if (region != null) {
+                    instanceGroupManagers.addAll(getInstanceGroupManagers(client, filter, region));
+
+                } else if (name != null) {
+                    List<String> regions = getRegions();
+
+                    for (String r : regions) {
+                        try {
+                            instanceGroupManagers.add(client.get(GetRegionInstanceGroupManagerRequest.newBuilder()
+                                .setInstanceGroupManager(name).setProject(getProjectId()).setRegion(r).build()));
+
+                        } catch (NotFoundException | InvalidArgumentException ex) {
+                            // ignore
+                        }
+                    }
+                } else {
+                    getRegionInstanceGroupManagers(client, filter);
+                }
+            }
+        } finally {
+            client.close();
         }
-        Compute.RegionInstanceGroupManagers regionInstanceGroupManagers = client.regionInstanceGroupManagers();
-        List<InstanceGroupManager> allInstanceGroupManagers = new ArrayList<>();
 
-        Compute.RegionInstanceGroupManagers.List request = regionInstanceGroupManagers.list(getProjectId(), region);
-        request.setFilter(Utils.convertToFilters(filters));
-        String nextPageToken = null;
+        return instanceGroupManagers;
+    }
+
+    private List<InstanceGroupManager> getRegionInstanceGroupManagers(
+        RegionInstanceGroupManagersClient client,
+        String filter) {
+        List<String> regionList = getRegions();
+
+        List<InstanceGroupManager> instanceGroupManagers = new ArrayList<>();
+
+        try {
+            for (String region : regionList) {
+                instanceGroupManagers.addAll(getInstanceGroupManagers(client, filter, region));
+            }
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+
+        } finally {
+            client.close();
+        }
+
+        return instanceGroupManagers;
+    }
+
+    private List<InstanceGroupManager> getInstanceGroupManagers(
+        RegionInstanceGroupManagersClient client, String filter, String region) {
+        String pageToken = null;
+
+        List<InstanceGroupManager> instanceGroupManagers = new ArrayList<>();
 
         do {
-            RegionInstanceGroupManagerList response = request.execute();
-            List<InstanceGroupManager> items = response.getItems();
+            ListRegionInstanceGroupManagersRequest.Builder builder = ListRegionInstanceGroupManagersRequest.newBuilder()
+                .setProject(getProjectId()).setRegion(region);
 
-            if (items == null) {
-                break;
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
             }
-            allInstanceGroupManagers.addAll(items);
-            nextPageToken = response.getNextPageToken();
-            request.setPageToken(nextPageToken);
-        } while (nextPageToken != null);
-        return allInstanceGroupManagers;
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            RegionInstanceGroupManagersClient.ListPagedResponse response = client.list(builder.build());
+            pageToken = response.getNextPageToken();
+
+            if (response.getPage() != null && response.getPage().getResponse() != null) {
+                instanceGroupManagers.addAll(response.getPage().getResponse().getItemsList());
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
+
+        return instanceGroupManagers;
+    }
+
+    private List<String> getRegions() {
+        String pageToken = null;
+        List<String> regionList = new ArrayList<>();
+
+        try (RegionsClient regionsClient = credentials(GoogleCredentials.class).createClient(RegionsClient.class)) {
+            do {
+                ListRegionsRequest.Builder builder = ListRegionsRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                RegionsClient.ListPagedResponse list = regionsClient.list(builder.build());
+                pageToken = list.getNextPageToken();
+                regionList.addAll(list.getPage().getResponse().getItemsList()
+                    .stream().map(Region::getName).collect(Collectors.toList()));
+
+            } while (!StringUtils.isEmpty(pageToken));
+        }
+
+        return regionList;
     }
 }

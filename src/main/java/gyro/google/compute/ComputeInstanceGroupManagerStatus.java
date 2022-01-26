@@ -60,12 +60,12 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
     public void copyFrom(InstanceGroupManagerStatus model) {
         setIsStable(model.getIsStable());
         setVersionTarget(
-            // versionTarget is not available from Google SDK yet.
-            Optional.ofNullable(model.get("versionTarget"))
+            Optional.ofNullable(model.getVersionTarget())
                 .map(e -> {
                     ComputeInstanceGroupManagerStatusVersionTarget versionTarget = newSubresource(
                         ComputeInstanceGroupManagerStatusVersionTarget.class);
                     versionTarget.copyFrom(e);
+
                     return versionTarget;
                 })
                 .orElse(null));

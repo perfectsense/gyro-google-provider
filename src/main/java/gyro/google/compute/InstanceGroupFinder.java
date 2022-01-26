@@ -18,16 +18,23 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListInstanceGroupsRequest;
 import com.google.cloud.compute.v1.InstanceGroup;
 import com.google.cloud.compute.v1.InstanceGroupAggregatedList;
+import com.google.cloud.compute.v1.InstanceGroupList;
+import com.google.cloud.compute.v1.InstanceGroupsClient;
 import com.google.cloud.compute.v1.InstanceGroupsScopedList;
+import com.google.cloud.compute.v1.ListInstanceGroupsRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -42,7 +49,7 @@ import gyro.google.GoogleFinder;
  *      compute-instance-group: $(external-query google::compute-instance-group { name: "instance-group-example", zone: "us-central1-a" })
  */
 @Type("compute-instance-group")
-public class InstanceGroupFinder extends GoogleFinder<Compute, InstanceGroup, InstanceGroupResource> {
+public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, InstanceGroup, InstanceGroupResource> {
 
     private String name;
     private String zone;
@@ -70,41 +77,91 @@ public class InstanceGroupFinder extends GoogleFinder<Compute, InstanceGroup, In
     }
 
     @Override
-    protected List<InstanceGroup> findAllGoogle(Compute client) throws Exception {
-        List<InstanceGroup> instanceGroups = new ArrayList<>();
-        InstanceGroupAggregatedList instanceGroupAggregatedList;
-        String nextPageToken = null;
-        do {
-            instanceGroupAggregatedList = client.instanceGroups()
-                .aggregatedList(getProjectId())
-                .setPageToken(nextPageToken)
-                .execute();
-            nextPageToken = instanceGroupAggregatedList.getNextPageToken();
-            instanceGroups.addAll(instanceGroupAggregatedList
-                .getItems().values().stream()
-                .map(InstanceGroupsScopedList::getInstanceGroups)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList()));
-        } while (nextPageToken != null);
-
-        return instanceGroups;
+    protected List<InstanceGroup> findAllGoogle(InstanceGroupsClient client) throws Exception {
+        try {
+            return getInstanceGroups(client);
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<InstanceGroup> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<InstanceGroup> instanceGroups = new ArrayList<>();
-        if (filters.containsKey("name") && filters.containsKey("zone")) {
-            instanceGroups.add(client.instanceGroups()
-                .get(getProjectId(), filters.get("zone"), filters.get("name"))
-                .execute());
-        } else if (filters.containsKey("zone")) {
-            instanceGroups = Optional.ofNullable(client.instanceGroups()
-                .list(getProjectId(), filters.get("zone"))
-                .execute()
-                .getItems())
-                .orElse(new ArrayList<>());
+    protected List<InstanceGroup> findGoogle(InstanceGroupsClient client, Map<String, String> filters)
+        throws Exception {
+        List<InstanceGroup> forwardingRules = new ArrayList<>();
+
+        try {
+            if (filters.containsKey("name") && filters.containsKey("zone")) {
+                forwardingRules = Collections.singletonList(client.get(getProjectId(), filters.get("zone"),
+                    filters.get("name")));
+
+            } else if (filters.containsKey("zone")) {
+                InstanceGroupList forwardingRuleList;
+                String nextPageToken = null;
+
+                do {
+                    UnaryCallable<ListInstanceGroupsRequest, InstanceGroupsClient.ListPagedResponse> callable = client
+                        .listPagedCallable();
+
+                    ListInstanceGroupsRequest.Builder builder = ListInstanceGroupsRequest.newBuilder()
+                        .setZone(filters.get("zone"));
+
+                    if (nextPageToken != null) {
+                        builder.setPageToken(nextPageToken);
+                    }
+
+                    InstanceGroupsClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                        getProjectId())
+                        .build());
+                    forwardingRuleList = pagedResponse.getPage().getResponse();
+                    nextPageToken = pagedResponse.getNextPageToken();
+
+                    if (forwardingRuleList.getItemsList() != null) {
+                        forwardingRules.addAll(forwardingRuleList.getItemsList().stream().filter(Objects::nonNull)
+                            .filter(forwardingRule -> forwardingRule.getZone() != null).collect(Collectors.toList()));
+                    }
+
+                } while (!StringUtils.isEmpty(nextPageToken));
+
+                return forwardingRules;
+
+            } else {
+                getInstanceGroups(client).removeIf(d -> !d.getName().equals(filters.get("name")));
+            }
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
         }
+
+        return forwardingRules;
+    }
+
+    private List<InstanceGroup> getInstanceGroups(InstanceGroupsClient client) {
+        List<InstanceGroup> instanceGroups = new ArrayList<>();
+        String pageToken = null;
+
+        do {
+            UnaryCallable<AggregatedListInstanceGroupsRequest, InstanceGroupAggregatedList> callable = client
+                .aggregatedListCallable();
+            AggregatedListInstanceGroupsRequest.Builder builder = AggregatedListInstanceGroupsRequest.newBuilder();
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
+
+            InstanceGroupAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            pageToken = aggregatedList.getNextPageToken();
+
+            if (aggregatedList.getItemsMap() != null) {
+                instanceGroups.addAll(aggregatedList.getItemsMap().values().stream()
+                    .map(InstanceGroupsScopedList::getInstanceGroupsList)
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
 
         return instanceGroups;
     }

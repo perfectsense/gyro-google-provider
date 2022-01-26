@@ -23,15 +23,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
-import com.google.cloud.compute.v1.Compute;
+import com.google.api.gax.rpc.ApiException;
+import com.google.api.gax.rpc.StatusCode;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceGroupManager;
 import com.google.cloud.compute.v1.InstanceGroupManagerAutoHealingPolicy;
 import com.google.cloud.compute.v1.InstanceGroupManagerVersion;
-import com.google.cloud.compute.v1.InstanceGroupManagersClient;
-import com.google.cloud.compute.v1.InstanceGroupsClient;
 import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.NamedPort;
 import gyro.core.GyroUI;
@@ -501,13 +499,13 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         refresh();
     }
 
-    Instance getInstance(InstanceGroupsClient client, String name, String zone) throws IOException {
+    Instance getInstance(InstancesClient client, String name, String zone) throws IOException {
         Instance instance = null;
 
         try {
-            instance = client.instance(getProjectId(), zone, name);
-        } catch (GoogleJsonResponseException ex) {
-            if (ex.getDetails().getCode() != 404) {
+            instance = client.get(getProjectId(), zone, name);
+        } catch (ApiException ex) {
+            if (ex.getStatusCode().getCode().equals(StatusCode.Code.NOT_FOUND)) {
                 throw ex;
             }
         }

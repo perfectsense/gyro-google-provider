@@ -59,12 +59,16 @@ public class ComputeInstanceGroupManagerAutoHealingPolicy extends Diffable
     }
 
     public InstanceGroupManagerAutoHealingPolicy copyTo() {
-        InstanceGroupManagerAutoHealingPolicy instanceGroupManagerAutoHealingPolicy = new InstanceGroupManagerAutoHealingPolicy();
+        InstanceGroupManagerAutoHealingPolicy.Builder builder = InstanceGroupManagerAutoHealingPolicy.newBuilder();
         Optional.ofNullable(getHealthCheck())
             .map(HealthCheckResource::getSelfLink)
-            .ifPresent(instanceGroupManagerAutoHealingPolicy::setHealthCheck);
-        instanceGroupManagerAutoHealingPolicy.setInitialDelaySec(getInitialDelaySec());
-        return instanceGroupManagerAutoHealingPolicy;
+            .ifPresent(builder::setHealthCheck);
+
+        if (getInitialDelaySec() != null) {
+            builder.setInitialDelaySec(getInitialDelaySec());
+        }
+
+        return builder.build();
     }
 
     @Override

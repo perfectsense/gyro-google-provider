@@ -123,45 +123,49 @@ public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
     }
 
     public InstanceGroupManagerUpdatePolicy copyTo() {
-        InstanceGroupManagerUpdatePolicy instanceGroupManagerUpdatePolicy = new InstanceGroupManagerUpdatePolicy();
-        // instanceRedistributionType is not available from Google SDK yet.
-        instanceGroupManagerUpdatePolicy.set("instanceRedistributionType", getInstanceRedistributionType());
+        InstanceGroupManagerUpdatePolicy.Builder builder = InstanceGroupManagerUpdatePolicy.newBuilder();
+
+        Optional.ofNullable(getInstanceRedistributionType())
+            .ifPresent(builder::setInstanceRedistributionType);
         Optional.ofNullable(getMaxSurge())
             .map(ComputeFixedOrPercent::copyTo)
-            .ifPresent(instanceGroupManagerUpdatePolicy::setMaxSurge);
+            .ifPresent(builder::setMaxSurge);
         Optional.ofNullable(getMaxUnavailable())
             .map(ComputeFixedOrPercent::copyTo)
-            .ifPresent(instanceGroupManagerUpdatePolicy::setMaxUnavailable);
-        instanceGroupManagerUpdatePolicy.setMinimalAction(getMinimalAction());
-        instanceGroupManagerUpdatePolicy.setType(getType());
-        return instanceGroupManagerUpdatePolicy;
+            .ifPresent(builder::setMaxUnavailable);
+        Optional.ofNullable(getMinimalAction())
+            .ifPresent(builder::setMinimalAction);
+        Optional.ofNullable(getType())
+            .ifPresent(builder::setType);
+
+        return builder.build();
     }
 
     @Override
     public void copyFrom(InstanceGroupManagerUpdatePolicy model) {
-        // instanceRedistributionType is not available from Google SDK yet.
-        setInstanceRedistributionType(Optional.ofNullable(model.get("instanceRedistributionType"))
-            .filter(String.class::isInstance)
-            .map(String.class::cast)
-            .orElse(null));
+        setInstanceRedistributionType(model.getInstanceRedistributionType());
+        setMinimalAction(model.getMinimalAction());
+        setType(model.getType());
+
         setMaxSurge(
             Optional.ofNullable(model.getMaxSurge())
                 .map(e -> {
                     ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
                     computeFixedOrPercent.copyFrom(e);
+
                     return computeFixedOrPercent;
                 })
                 .orElse(null));
+
         setMaxUnavailable(
             Optional.ofNullable(model.getMaxUnavailable())
                 .map(e -> {
                     ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
                     computeFixedOrPercent.copyFrom(e);
+
                     return computeFixedOrPercent;
                 })
                 .orElse(null));
-        setMinimalAction(model.getMinimalAction());
-        setType(model.getType());
     }
 
     @Override

@@ -79,27 +79,29 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
     }
 
     public InstanceGroupManagerVersion copyTo() {
-        InstanceGroupManagerVersion instanceGroupManagerVersion = new InstanceGroupManagerVersion();
+        InstanceGroupManagerVersion.Builder builder = InstanceGroupManagerVersion.newBuilder().setName(getName());
+
         Optional.ofNullable(getInstanceTemplate())
             .map(InstanceTemplateResource::getSelfLink)
-            .ifPresent(instanceGroupManagerVersion::setInstanceTemplate);
-        instanceGroupManagerVersion.setName(getName());
+            .ifPresent(builder::setInstanceTemplate);
+
         Optional.ofNullable(getTargetSize())
             .map(ComputeFixedOrPercent::copyTo)
-            .ifPresent(instanceGroupManagerVersion::setTargetSize);
-        return instanceGroupManagerVersion;
+            .ifPresent(builder::setTargetSize);
+
+        return builder.build();
     }
 
     @Override
     public void copyFrom(InstanceGroupManagerVersion model) {
-        setInstanceTemplate(Optional.ofNullable(model.getInstanceTemplate())
-            .map(e -> findById(InstanceTemplateResource.class, e))
-            .orElse(null));
+        setInstanceTemplate(findById(InstanceTemplateResource.class, model.getInstanceTemplate()));
         setName(model.getName());
+
         setTargetSize(Optional.ofNullable(model.getTargetSize())
             .map(e -> {
                 ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
                 computeFixedOrPercent.copyFrom(e);
+
                 return computeFixedOrPercent;
             }).orElse(null));
     }
