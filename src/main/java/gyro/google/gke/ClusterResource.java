@@ -28,6 +28,7 @@ import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.container.v1.Cluster;
+import com.google.container.v1.ClusterAutoscaling;
 import com.google.container.v1.ClusterUpdate;
 import com.google.container.v1.CreateClusterRequest;
 import com.google.container.v1.IntraNodeVisibilityConfig;
@@ -1206,7 +1207,11 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }
 
             if (changedFieldNames.contains("cluster-autoscaling-config")) {
-                builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
+                ClusterAutoscaling autoscaling = getClusterAutoscalingConfig() != null
+                    ? getClusterAutoscalingConfig().toClusterAutoscaling()
+                    : ClusterAutoscaling.newBuilder().setEnableNodeAutoprovisioning(false).build();
+
+                builder.setDesiredClusterAutoscaling(autoscaling);
                 updateCluster(client, builder);
                 builder.clear();
             }
