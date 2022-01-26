@@ -17,12 +17,10 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Data;
 import com.google.cloud.compute.v1.HostRule;
 import com.google.cloud.compute.v1.PathMatcher;
 import com.google.cloud.compute.v1.UrlMap;
@@ -150,7 +148,7 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
         setFingerprint(urlMap.getFingerprint());
 
         List<ComputeHostRule> computeHostRules = null;
-        List<HostRule> hostRules = urlMap.getHostRules();
+        List<HostRule> hostRules = urlMap.getHostRulesList();
 
         if (hostRules != null && !hostRules.isEmpty()) {
             computeHostRules = hostRules
@@ -165,7 +163,7 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
         setHostRule(computeHostRules);
 
         List<ComputePathMatcher> computePathMatchers = null;
-        List<PathMatcher> pathMatchers = urlMap.getPathMatchers();
+        List<PathMatcher> pathMatchers = urlMap.getPathMatchersList();
 
         if (pathMatchers != null && !pathMatchers.isEmpty()) {
             computePathMatchers = pathMatchers
@@ -190,32 +188,33 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
     protected UrlMap toUrlMap(Set<String> changedFieldNames) {
         boolean isUpdate = changedFieldNames != null && (changedFieldNames.size() > 0);
 
-        UrlMap urlMap = new UrlMap();
+        UrlMap.Builder builder = UrlMap.newBuilder();
 
         if (!isUpdate) {
-            urlMap.setName(getName());
+            builder.setName(getName());
         }
 
         if (!isUpdate || changedFieldNames.contains("description")) {
-            urlMap.setDescription(getDescription());
+            builder.setDescription(getDescription());
         }
 
-        urlMap.setHostRules(Collections.singletonList(Data.nullOf(HostRule.class)));
+        builder.clearHostRules();
         List<ComputeHostRule> hostRules = getHostRule();
         if (!hostRules.isEmpty()) {
-            urlMap.setHostRules(hostRules.stream().map(ComputeHostRule::copyTo).collect(Collectors.toList()));
+            builder.addAllHostRules(hostRules.stream().map(ComputeHostRule::copyTo).collect(Collectors.toList()));
         }
 
-        urlMap.setPathMatchers(Collections.singletonList(Data.nullOf(PathMatcher.class)));
+        builder.clearPathMatchers();
         List<ComputePathMatcher> pathMatchers = getPathMatcher();
         if (!pathMatchers.isEmpty()) {
-            urlMap.setPathMatchers(pathMatchers.stream().map(ComputePathMatcher::copyTo).collect(Collectors.toList()));
+            builder.addAllPathMatchers(pathMatchers.stream().map(ComputePathMatcher::copyTo)
+                .collect(Collectors.toList()));
         }
 
         if (getDefaultHttpRedirectAction() != null) {
-            urlMap.setDefaultUrlRedirect(getDefaultHttpRedirectAction().toHttpRedirectAction());
+            builder.setDefaultUrlRedirect(getDefaultHttpRedirectAction().toHttpRedirectAction());
         }
 
-        return urlMap;
+        return builder.build();
     }
 }

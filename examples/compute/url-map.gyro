@@ -53,7 +53,9 @@ google::compute-backend-service backend-service-example-url-map
     health-check: [ $(google::compute-health-check health-check-example-url-map) ]
 
     backend
-        group: $(google::compute-instance-group instance-group-example-url-map)
+        group
+            instance-group: $(google::compute-instance-group instance-group-example-url-map)
+        end
         balancing-mode: "UTILIZATION"
     end
 end

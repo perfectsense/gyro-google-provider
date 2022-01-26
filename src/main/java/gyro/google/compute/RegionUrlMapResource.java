@@ -18,10 +18,12 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetRegionUrlMapRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RegionUrlMapsClient;
 import com.google.cloud.compute.v1.UrlMap;
-import com.google.cloud.compute.v1.ProjectRegionUrlMapName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -103,48 +105,69 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.regionUrlMaps().get(getProjectId(), getRegion(), getName()).execute());
-        return true;
+        try (RegionUrlMapsClient client = createClient(RegionUrlMapsClient.class)) {
+            UrlMap regionUrlMap = getRegionUrlMap(client);
+
+            if (regionUrlMap == null) {
+                return false;
+            }
+
+            copyFrom(regionUrlMap);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (RegionUrlMapsClient client = createClient(RegionUrlMapsClient.class)) {
+            UrlMap.Builder urlMap = toUrlMap(null).toBuilder();
+            urlMap.setRegion(getRegion());
 
-        UrlMap urlMap = toUrlMap(null);
-        urlMap.setRegion(getRegion());
+            if (urlMap.getDefaultUrlRedirect() == null) {
+                urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
+            }
 
-        if (urlMap.getDefaultUrlRedirect() == null) {
-            urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
+            Operation response = client.insert(getProjectId(), getRegion(), urlMap.build());
+            waitForCompletion(response);
         }
-
-        Operation response = client.regionUrlMaps().insert(getProjectId(), getRegion(), urlMap).execute();
-        waitForCompletion(client, response);
 
         refresh();
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-
-        UrlMap urlMap = toUrlMap(changedFieldNames);
-        Operation operation = client.regionUrlMaps().patch(getProjectId(), getRegion(), getName(), urlMap).execute();
-        waitForCompletion(client, operation);
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (RegionUrlMapsClient client = createClient(RegionUrlMapsClient.class)) {
+            UrlMap urlMap = toUrlMap(changedFieldNames);
+            Operation operation = client.patch(getProjectId(), getRegion(), getName(), urlMap);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.regionUrlMaps().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, response);
+        try (RegionUrlMapsClient client = createClient(RegionUrlMapsClient.class)) {
+            Operation response = client.delete(getProjectId(), getRegion(), getName());
+            waitForCompletion(response);
+        }
     }
 
-    static boolean isRegionUrlMap(String selfLink) {
-        return selfLink != null && ProjectRegionUrlMapName.isParsableFrom(formatResource(null, selfLink));
+    private UrlMap getRegionUrlMap(RegionUrlMapsClient client) {
+        UrlMap autoscaler = null;
+
+        try {
+            autoscaler = client.get(GetRegionUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setUrlMap(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return autoscaler;
     }
 }

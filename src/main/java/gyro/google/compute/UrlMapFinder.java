@@ -21,9 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.ListUrlMapsRequest;
 import com.google.cloud.compute.v1.UrlMap;
 import com.google.cloud.compute.v1.UrlMapList;
+import com.google.cloud.compute.v1.UrlMapsClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    compute-url-map: $(external-query google::compute-url-map { name: 'url-map-example' })
  */
 @Type("compute-url-map")
-public class UrlMapFinder extends GoogleFinder<Compute, UrlMap, UrlMapResource> {
+public class UrlMapFinder extends GoogleFinder<UrlMapsClient, UrlMap, UrlMapResource> {
 
     private String name;
 
@@ -54,24 +56,37 @@ public class UrlMapFinder extends GoogleFinder<Compute, UrlMap, UrlMapResource> 
     }
 
     @Override
-    protected List<UrlMap> findAllGoogle(Compute client) throws Exception {
+    protected List<UrlMap> findAllGoogle(UrlMapsClient client) throws Exception {
         List<UrlMap> urlMaps = new ArrayList<>();
         UrlMapList urlMapList;
         String nextPageToken = null;
 
-        do {
-            urlMapList = client.urlMaps().list(getProjectId()).setPageToken(nextPageToken).execute();
-            if (urlMapList.getItems() != null) {
-                urlMaps.addAll(urlMapList.getItems());
-            }
-            nextPageToken = urlMapList.getNextPageToken();
-        } while (nextPageToken != null);
+        try {
+            do {
+                ListUrlMapsRequest.Builder builder = ListUrlMapsRequest.newBuilder().setProject(getProjectId());
 
-        return urlMaps;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                urlMapList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = urlMapList.getNextPageToken();
+
+                if (urlMapList.getItemsList() != null) {
+                    urlMaps.addAll(urlMapList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return urlMaps;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<UrlMap> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.urlMaps().get(getProjectId(), filters.get("name")).execute());
+    protected List<UrlMap> findGoogle(UrlMapsClient client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }
