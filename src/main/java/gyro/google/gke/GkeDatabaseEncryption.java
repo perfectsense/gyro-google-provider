@@ -34,6 +34,10 @@ public class GkeDatabaseEncryption extends Diffable implements Copyable<Database
     @Updatable
     @ValidStrings({ "ENCRYPTED", "DECRYPTED" })
     public DatabaseEncryption.State getState() {
+        if (state == null) {
+            state = DatabaseEncryption.State.DECRYPTED;
+        }
+
         return state;
     }
 
