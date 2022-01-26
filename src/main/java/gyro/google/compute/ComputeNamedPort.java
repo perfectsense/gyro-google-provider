@@ -57,10 +57,10 @@ public class ComputeNamedPort extends Diffable implements Copyable<NamedPort> {
     }
 
     public NamedPort copyTo() {
-        NamedPort namedPort = new NamedPort();
-        namedPort.setName(getName());
-        namedPort.setPort(getPort());
-        return namedPort;
+        NamedPort.Builder builder = NamedPort.newBuilder();
+        builder.setName(getName());
+        builder.setPort(getPort());
+        return builder.build();
     }
 
     @Override

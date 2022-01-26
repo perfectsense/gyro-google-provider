@@ -64,8 +64,7 @@ public class HourlyCycle extends Diffable implements Copyable<ResourcePolicyHour
     }
 
     public ResourcePolicyHourlyCycle copyTo() {
-        return new ResourcePolicyHourlyCycle()
-            .setHoursInCycle(getHoursInCycle())
-            .setStartTime(getStartTime());
+        return ResourcePolicyHourlyCycle.newBuilder().setHoursInCycle(getHoursInCycle()).setStartTime(getStartTime())
+            .build();
     }
 }

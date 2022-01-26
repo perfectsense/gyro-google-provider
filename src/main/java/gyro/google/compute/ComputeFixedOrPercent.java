@@ -81,11 +81,11 @@ public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrP
     }
 
     public FixedOrPercent copyTo() {
-        FixedOrPercent fixedOrPercent = new FixedOrPercent();
-        fixedOrPercent.setFixed(getFixed());
-        fixedOrPercent.setPercent(getPercent());
-        fixedOrPercent.setCalculated(getCalculated());
-        return fixedOrPercent;
+        FixedOrPercent.Builder builder = FixedOrPercent.newBuilder();
+        builder.setFixed(getFixed());
+        builder.setPercent(getPercent());
+        builder.setCalculated(getCalculated());
+        return builder.build();
     }
 
     @Override

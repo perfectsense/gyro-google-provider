@@ -61,23 +61,26 @@ public class ComputeServiceAccount extends Diffable implements Copyable<ServiceA
     @Override
     public void copyFrom(ServiceAccount model) {
         setServiceAccount(findById(ServiceAccountResource.class, Utils.getServiceAccountIdFromEmail(model.getEmail())));
-        setScopes(model.getScopes());
+        setScopes(model.getScopesList());
     }
 
     public ServiceAccount toServiceAccount() {
-        ServiceAccount serviceAccount = new ServiceAccount();
-        serviceAccount.setEmail(Utils.getServiceAccountEmailFromId(getServiceAccount().getId()));
-        serviceAccount.setScopes(getScopes());
-        return serviceAccount;
+        ServiceAccount.Builder builder = ServiceAccount.newBuilder();
+        builder.setEmail(Utils.getServiceAccountEmailFromId(getServiceAccount().getId()));
+        builder.addAllScopes(getScopes());
+
+        return builder.build();
     }
 
     @Override
     public String primaryKey() {
-        String email = Utils.getServiceAccountEmailFromId(getServiceAccount().getId() == null ? getServiceAccount().getName() : getServiceAccount().getId());
+        String email = Utils.getServiceAccountEmailFromId(
+            getServiceAccount().getId() == null ? getServiceAccount().getName() : getServiceAccount().getId());
 
         if (email != null) {
             return email;
         }
+
         return "";
     }
 }

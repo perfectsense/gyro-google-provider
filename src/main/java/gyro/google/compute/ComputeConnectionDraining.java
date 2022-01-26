@@ -50,8 +50,6 @@ public class ComputeConnectionDraining extends Diffable implements Copyable<Conn
     }
 
     public ConnectionDraining toConnectionDraining() {
-        ConnectionDraining connectionDraining = new ConnectionDraining();
-        connectionDraining.setDrainingTimeoutSec(getDrainingTimeoutSec());
-        return connectionDraining;
+        return ConnectionDraining.newBuilder().setDrainingTimeoutSec(getDrainingTimeoutSec()).build();
     }
 }

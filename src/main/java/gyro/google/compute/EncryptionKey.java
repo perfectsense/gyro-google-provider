@@ -52,7 +52,6 @@ public class EncryptionKey extends Diffable implements Copyable<CustomerEncrypti
     }
 
     CustomerEncryptionKey toCustomerEncryptionKey() {
-        return new CustomerEncryptionKey()
-            .setRawKey(getRawKey());
+        return CustomerEncryptionKey.newBuilder().setRawKey(getRawKey()).build();
     }
 }

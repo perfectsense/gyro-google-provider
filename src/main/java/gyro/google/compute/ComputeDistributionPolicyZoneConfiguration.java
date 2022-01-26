@@ -42,9 +42,12 @@ public class ComputeDistributionPolicyZoneConfiguration extends Diffable
     }
 
     public DistributionPolicyZoneConfiguration copyTo() {
-        DistributionPolicyZoneConfiguration distributionPolicyZoneConfiguration = new DistributionPolicyZoneConfiguration();
-        distributionPolicyZoneConfiguration.setZone(getZoneLink());
-        return distributionPolicyZoneConfiguration;
+        DistributionPolicyZoneConfiguration.Builder builder = DistributionPolicyZoneConfiguration.newBuilder();
+        if (getZoneLink() != null) {
+            builder.setZone(getZoneLink());
+        }
+
+        return builder.build();
     }
 
     @Override
