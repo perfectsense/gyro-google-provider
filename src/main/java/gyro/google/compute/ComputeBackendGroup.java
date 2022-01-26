@@ -22,8 +22,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.InstanceGroupManagersClient;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
@@ -111,23 +112,15 @@ public class ComputeBackendGroup extends Diffable implements Copyable<String> {
 
     private boolean isInstanceGroupManager(String zone, String name) {
         ComputeBackend parent = (ComputeBackend) parent();
-        Compute client = parent.getClient();
         String project = parent.getProject();
 
-        try {
-            client.instanceGroupManagers()
-                .get(project, zone, name)
-                .execute();
-
+        try (InstanceGroupManagersClient client = parent.getClient()) {
+            client.get(project, zone, name);
             return true;
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            return false;
         } catch (GyroException ex) {
             throw ex;
-        } catch (GoogleJsonResponseException je) {
-            if (je.getStatusCode() == 404 || (je.getDetails() != null && je.getDetails().getCode() == 404)) {
-                return false;
-            } else {
-                throw new GyroException(je);
-            }
         } catch (Exception ex) {
             throw new GyroException(ex.getMessage(), ex.getCause());
         }
@@ -139,9 +132,7 @@ public class ComputeBackendGroup extends Diffable implements Copyable<String> {
 
         if (Stream.of(getInstanceGroup(), getInstanceGroupManager(), getRegionInstanceGroupManager())
             .allMatch(Objects::isNull)) {
-            errors.add(new ValidationError(
-                this,
-                null,
+            errors.add(new ValidationError(this, null,
                 "One of 'instance-group' or 'instance-group-manager' or 'region-instance-group-manager' is required!"));
         }
 

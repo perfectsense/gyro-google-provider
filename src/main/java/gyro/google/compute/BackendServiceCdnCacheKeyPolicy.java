@@ -110,15 +110,15 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
         setIncludeHost(policy.getIncludeHost());
         setIncludeProtocol(policy.getIncludeProtocol());
         setIncludeQueryString(policy.getIncludeQueryString());
-        setQueryStringBlacklist(policy.getQueryStringBlacklist());
-        setQueryStringWhitelist(policy.getQueryStringWhitelist());
+        setQueryStringBlacklist(policy.getQueryStringBlacklistList());
+        setQueryStringWhitelist(policy.getQueryStringWhitelistList());
     }
 
     CacheKeyPolicy toCacheKeyPolicy() {
-        return new CacheKeyPolicy().setIncludeHost(getIncludeHost())
+        return CacheKeyPolicy.newBuilder().setIncludeHost(getIncludeHost())
             .setIncludeProtocol(getIncludeProtocol())
             .setIncludeQueryString(getIncludeQueryString())
-            .setQueryStringBlacklist(getQueryStringBlacklist())
-            .setQueryStringWhitelist(getQueryStringWhitelist());
+            .addAllQueryStringBlacklist(getQueryStringBlacklist())
+            .addAllQueryStringWhitelist(getQueryStringWhitelist()).build();
     }
 }

@@ -67,13 +67,12 @@ public class BackendBucketCdnPolicy extends Diffable
 
     @Override
     public void copyFrom(com.google.cloud.compute.v1.BackendBucketCdnPolicy backendBucketCdnPolicy) {
-        setSignedUrlKeyNames(backendBucketCdnPolicy.getSignedUrlKeyNames());
+        setSignedUrlKeyNames(backendBucketCdnPolicy.getSignedUrlKeyNamesList());
         setSignedUrlMaxAge(backendBucketCdnPolicy.getSignedUrlCacheMaxAgeSec());
     }
 
     com.google.cloud.compute.v1.BackendBucketCdnPolicy toBackendBucketCdnPolicy() {
-        com.google.cloud.compute.v1.BackendBucketCdnPolicy backendBucketCdnPolicy = new com.google.cloud.compute.v1.BackendBucketCdnPolicy();
-        backendBucketCdnPolicy.setSignedUrlCacheMaxAgeSec(getSignedUrlMaxAge());
-        return backendBucketCdnPolicy;
+        return com.google.cloud.compute.v1.BackendBucketCdnPolicy.newBuilder()
+            .setSignedUrlCacheMaxAgeSec(getSignedUrlMaxAge()).build();
     }
 }

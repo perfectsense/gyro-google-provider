@@ -28,6 +28,7 @@ import com.google.api.client.util.Data;
 import com.google.cloud.compute.v1.Backend;
 import com.google.cloud.compute.v1.BackendService;
 import com.google.cloud.compute.v1.ConnectionDraining;
+import com.google.cloud.compute.v1.InstanceGroupManagersClient;
 import gyro.core.GyroException;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -332,12 +333,17 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         BackendService.Builder builder = BackendService.newBuilder();
 
         if (isCreate) {
-            builder.setLoadBalancingScheme(getLoadBalancingScheme());
+            if (getLoadBalancingScheme() != null) {
+                builder.setLoadBalancingScheme(getLoadBalancingScheme());
+            }
+
             builder.setName(getName());
         }
 
         if (isCreate || changedFieldNames.contains("affinity-cookie-ttl-sec")) {
-            builder.setAffinityCookieTtlSec(getAffinityCookieTtlSec());
+            if (getAffinityCookieTtlSec() != null) {
+                builder.setAffinityCookieTtlSec(getAffinityCookieTtlSec());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("backend")) {
@@ -347,9 +353,9 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         }
 
         if (isCreate || changedFieldNames.contains("connection-draining")) {
-            builder.setConnectionDraining(getConnectionDraining() != null
-                ? getConnectionDraining().toConnectionDraining()
-                : Data.nullOf(ConnectionDraining.class));
+            if (getConnectionDraining() != null) {
+                builder.setConnectionDraining(getConnectionDraining().toConnectionDraining());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("custom-request-headers")) {
@@ -362,11 +368,15 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         }
 
         if (isCreate || changedFieldNames.contains("description")) {
-            builder.setDescription(getDescription());
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("enable-cdn")) {
-            builder.setEnableCDN(getEnableCdn());
+            if (getEnableCdn() != null) {
+                builder.setEnableCDN(getEnableCdn());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("health-check")) {
@@ -377,26 +387,34 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         }
 
         if (isCreate || changedFieldNames.contains("locality-lb-policy")) {
-            builder.setLocalityLbPolicy(getLocalityLbPolicy());
+            if (getLocalityLbPolicy() != null) {
+                builder.setLocalityLbPolicy(getLocalityLbPolicy());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("protocol")) {
-            builder.setProtocol(getProtocol());
+            if (getProtocol() != null) {
+                builder.setProtocol(getProtocol());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("session-affinity")) {
-            builder.setSessionAffinity(getSessionAffinity());
+            if (getSessionAffinity() != null) {
+                builder.setSessionAffinity(getSessionAffinity());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("timeout-sec")) {
-            builder.setTimeoutSec(getTimeoutSec());
+            if (getTimeoutSec() != null) {
+                builder.setTimeoutSec(getTimeoutSec());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("cdn-policy")) {
             if (isCreate) {
-                builder.setCdnPolicy(getCdnPolicy() != null
-                    ? getCdnPolicy().toBackendServiceCdnPolicy()
-                    : Data.nullOf(com.google.cloud.compute.v1.BackendServiceCdnPolicy.class));
+                if (getCdnPolicy() != null) {
+                    builder.setCdnPolicy(getCdnPolicy().toBackendServiceCdnPolicy());
+                }
             } else {
                 if (getCdnPolicy() == null) {
                     throw new GyroException("'cdn-policy' cannot be unset once set.");
@@ -408,6 +426,10 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         }
 
         return builder.build();
+    }
+
+    InstanceGroupManagersClient createInstanceManagersClient() {
+        return createClient(InstanceGroupManagersClient.class);
     }
 
     String getProject() {

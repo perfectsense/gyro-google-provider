@@ -16,9 +16,7 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,14 +25,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.BackendServicesClient;
+import com.google.cloud.compute.v1.GetBackendServiceRequest;
 import com.google.cloud.compute.v1.HealthStatus;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.ResourceGroupReference;
 import com.google.cloud.compute.v1.SecurityPolicyReference;
-import com.google.cloud.compute.v1.ProjectGlobalBackendServiceName;
-import gyro.core.GyroException;
+import com.google.protobuf.InvalidProtocolBufferException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -166,39 +166,78 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         }
     }
 
+    static boolean isBackendService(String selfLink) {
+        if (selfLink == null) {
+            return false;
+        }
+
+        try {
+            BackendService backendService = BackendService.parseFrom(formatResource(null, selfLink).getBytes());
+
+            return backendService != null;
+
+        } catch (InvalidProtocolBufferException ex) {
+            return false;
+        }
+    }
+
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        BackendService response = client.backendServices().get(getProjectId(), getName()).execute();
-        copyFrom(response);
-        return true;
+        try (BackendServicesClient client = createClient(BackendServicesClient.class)) {
+            BackendService response = getBackendServiceResource(client);
+
+            if (response == null) {
+                return false;
+            }
+
+            copyFrom(response);
+
+            return true;
+        }
+    }
+
+    private BackendService getBackendServiceResource(BackendServicesClient client) {
+        BackendService backendService = null;
+
+        try {
+            backendService = client.get(GetBackendServiceRequest.newBuilder()
+                .setProject(getProjectId())
+                .setBackendService(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return backendService;
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (BackendServicesClient client = createClient(BackendServicesClient.class)) {
 
-        BackendService backendService = getBackendService(null);
-        backendService.setPortName(getPortName());
+            BackendService.Builder backendService = getBackendService(null).toBuilder();
 
-        Operation operation = client.backendServices().insert(getProjectId(), backendService).execute();
-        waitForCompletion(client, operation);
+            if (getPortName() != null) {
+                backendService.setPortName(getPortName());
+            }
 
-        if (getSecurityPolicy() != null) {
+            Operation operation = client.insert(getProjectId(), backendService.build());
+            waitForCompletion(operation);
+
+            if (getSecurityPolicy() != null) {
+                state.save();
+
+                saveSecurityPolicy(client);
+            }
+
             state.save();
 
-            saveSecurityPolicy(client);
-        }
+            if (!getSignedUrlKey().isEmpty()) {
 
-        if (!getSignedUrlKey().isEmpty()) {
-            state.save();
-
-            for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                waitForCompletion(
-                    client,
-                    client.backendServices()
-                        .addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey())
-                        .execute());
+                for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
+                    waitForCompletion(client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey()));
+                }
             }
         }
 
@@ -206,75 +245,56 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
-        Compute client = createComputeClient();
+        try (BackendServicesClient client = createClient(BackendServicesClient.class)) {
 
-        BackendServiceResource currentBackendResource = (BackendServiceResource) current;
-        boolean securityPolicyUpdated = false;
+            BackendServiceResource currentBackendResource = (BackendServiceResource) current;
 
-        if (changedFieldNames.contains("enable-cdn") && getEnableCdn()
-            && currentBackendResource.getSecurityPolicy() != null) {
-            saveSecurityPolicy(client);
-            securityPolicyUpdated = true;
-        }
+            boolean securityPolicyUpdated = false;
 
-        BackendService backendService = getBackendService(changedFieldNames);
-        Operation operation = client.backendServices().patch(getProjectId(), getName(), backendService).execute();
-        waitForCompletion(client, operation);
-
-        if (changedFieldNames.contains("port-name")) {
-            backendService.setPortName(getPortName());
-        }
-
-        if (changedFieldNames.contains("signed-url-key")) {
-            // delete old keys
-            List<String> deleteSignedUrlKeys = currentBackendResource.getSignedUrlKey().stream().map(
-                BackendSignedUrlKey::getKey).collect(
-                Collectors.toList());
-
-            for (String urlKey : deleteSignedUrlKeys) {
-                waitForCompletion(
-                    client,
-                    client.backendServices().deleteSignedUrlKey(getProjectId(), getName(), urlKey).execute());
+            if (changedFieldNames.contains("enable-cdn") && getEnableCdn()
+                && currentBackendResource.getSecurityPolicy() != null) {
+                saveSecurityPolicy(client);
+                securityPolicyUpdated = true;
             }
 
-            // add new keys
-            for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                waitForCompletion(
-                    client,
-                    client.backendServices()
-                        .addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey())
-                        .execute());
-            }
-        }
+            BackendService.Builder backendService = getBackendService(changedFieldNames).toBuilder();
+            Operation operation = client.patch(getProjectId(), getName(), backendService.build());
+            waitForCompletion(operation);
 
-        if (changedFieldNames.contains("security-policy") && !securityPolicyUpdated) {
-            saveSecurityPolicy(client);
+            if (changedFieldNames.contains("port-name")) {
+                backendService.setPortName(getPortName());
+            }
+
+            if (changedFieldNames.contains("signed-url-key")) {
+                // delete old keys
+                List<String> deleteSignedUrlKeys = currentBackendResource.getSignedUrlKey().stream().map(
+                    BackendSignedUrlKey::getKey).collect(
+                    Collectors.toList());
+
+                for (String urlKey : deleteSignedUrlKeys) {
+                    waitForCompletion(client.deleteSignedUrlKey(getProjectId(), getName(), urlKey));
+                }
+
+                // add new keys
+                for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
+                    waitForCompletion(client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey()));
+                }
+            }
+
+            if (changedFieldNames.contains("security-policy") && !securityPolicyUpdated) {
+                saveSecurityPolicy(client);
+            }
         }
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.backendServices().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, response);
-    }
-
-    private void saveSecurityPolicy(Compute client) throws Exception {
-        SecurityPolicyResource securityPolicyResource = getSecurityPolicy();
-        SecurityPolicyReference securityPolicyReference = null;
-
-        if (securityPolicyResource != null) {
-            securityPolicyReference = new SecurityPolicyReference();
-            securityPolicyReference.set("securityPolicy", securityPolicyResource.getSelfLink());
+        try (BackendServicesClient client = createClient(BackendServicesClient.class)) {
+            Operation response = client.delete(getProjectId(), getName());
+            waitForCompletion(response);
         }
-
-        Operation securityPolicyOperation = client.backendServices()
-            .setSecurityPolicy(getProjectId(), getName(), securityPolicyReference)
-            .execute();
-        waitForCompletion(client, securityPolicyOperation);
     }
 
     @Override
@@ -290,50 +310,58 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
         return errors;
     }
 
+    private void saveSecurityPolicy(BackendServicesClient client) throws Exception {
+        SecurityPolicyResource securityPolicyResource = getSecurityPolicy();
+        SecurityPolicyReference securityPolicyReference = null;
+
+        if (securityPolicyResource != null) {
+            securityPolicyReference = SecurityPolicyReference.newBuilder()
+                .setSecurityPolicy(securityPolicyResource.getSelfLink()).build();
+        }
+
+        Operation securityPolicyOperation = client.setSecurityPolicy(getProjectId(), getName(),
+            securityPolicyReference);
+        waitForCompletion(securityPolicyOperation);
+    }
+
     public Map<String, Map<String, Integer>> instanceHealth() {
         Map<String, Map<String, Integer>> healthMap = new HashMap<>();
         Map<String, Integer> allHealthMap = new HashMap<>();
         healthMap.put("all", allHealthMap);
         int allTotal = 0;
 
-        Compute client = createComputeClient();
+        try (BackendServicesClient client = createClient(BackendServicesClient.class)) {
 
-        for (ComputeBackend backend : getBackend()) {
-            int backendTotal = 0;
-            ResourceGroupReference resourceGroupReference = new ResourceGroupReference();
-            resourceGroupReference.setGroup(backend.getGroup().referenceLink());
-            List<HealthStatus> healthStatuses;
-            Map<String, Integer> backendHealthMap = new HashMap<>();
-            healthMap.put(backend.getGroup().primaryKey(), backendHealthMap);
+            for (ComputeBackend backend : getBackend()) {
+                int backendTotal = 0;
+                ResourceGroupReference.Builder builder = ResourceGroupReference.newBuilder();
+                builder.setGroup(backend.getGroup().referenceLink());
+                List<HealthStatus> healthStatuses;
+                Map<String, Integer> backendHealthMap = new HashMap<>();
+                healthMap.put(backend.getGroup().primaryKey(), backendHealthMap);
 
-            try {
-                healthStatuses = Optional.ofNullable(client.backendServices()
-                    .getHealth(getProjectId(), getName(), resourceGroupReference)
-                    .execute()
-                    .getHealthStatus())
-                    .orElse(Collections.emptyList());
-            } catch (IOException ex) {
-                throw new GyroException("Failed getting backend statuses!", ex);
+                healthStatuses = Optional.ofNullable(client
+                    .getHealth(getProjectId(), getName(), builder.build())
+                    .getHealthStatusList())
+                    .orElse(new ArrayList<>());
+
+                for (HealthStatus healthStatus : healthStatuses) {
+                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState().name(), 0);
+                    backendHealthMap.put(healthStatus.getHealthState().name(), backendCount + 1);
+                    backendTotal++;
+
+                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState().name(), 0);
+                    allHealthMap.put(healthStatus.getHealthState().name(), allCount + 1);
+                    allTotal++;
+                }
+
+                backendHealthMap.put("Total", backendTotal);
             }
 
-            for (HealthStatus healthStatus : healthStatuses) {
-                int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
-                backendHealthMap.put(healthStatus.getHealthState(), backendCount + 1);
-                backendTotal++;
+            allHealthMap.put("Total", allTotal);
 
-                int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
-                allHealthMap.put(healthStatus.getHealthState(), allCount + 1);
-                allTotal++;
-            }
+            return healthMap;
 
-            backendHealthMap.put("Total", backendTotal);
         }
-
-        allHealthMap.put("Total", allTotal);
-        return healthMap;
-    }
-
-    static boolean isBackendService(String selfLink) {
-        return selfLink != null && (ProjectGlobalBackendServiceName.isParsableFrom(formatResource(null, selfLink)));
     }
 }

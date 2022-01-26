@@ -57,10 +57,6 @@ public class BackendSignedUrlKey extends Diffable {
     }
 
     SignedUrlKey toSignedUrlKey() {
-        SignedUrlKey key = new SignedUrlKey();
-        key.setKeyName(getKey());
-        key.setKeyValue(getValue());
-
-        return key;
+        return SignedUrlKey.newBuilder().setKeyName(getKey()).setKeyValue(getValue()).build();
     }
 }

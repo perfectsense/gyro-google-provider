@@ -22,11 +22,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Data;
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.BackendBucket;
+import com.google.cloud.compute.v1.BackendBucketsClient;
 import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.ProjectGlobalBackendBucketName;
+import com.google.protobuf.InvalidProtocolBufferException;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -217,39 +218,79 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
         }
     }
 
+    static boolean isBackendBucket(String selfLink) {
+        if (selfLink == null) {
+            return false;
+        }
+
+        try {
+            BackendBucket bucket = BackendBucket.parseFrom(formatResource(null, selfLink).getBytes());
+
+            return bucket != null;
+
+        } catch (InvalidProtocolBufferException ex) {
+            return false;
+        }
+    }
+
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.backendBuckets().get(getProjectId(), getName()).execute());
+        BackendBucketsClient client = createClient(BackendBucketsClient.class);
 
+        BackendBucket backendBucket = getBackendBucket(client);
+
+        if (backendBucket == null) {
+            return false;
+        }
+
+        copyFrom(backendBucket);
+        client.close();
         return true;
+
+    }
+
+    private BackendBucket getBackendBucket(BackendBucketsClient client) {
+        BackendBucket bucket = null;
+
+        try {
+            bucket = client.get(getProjectId(), getName());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return bucket;
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (BackendBucketsClient client = createClient(BackendBucketsClient.class)) {
 
-        BackendBucket backendBucket = new BackendBucket();
-        backendBucket.setBucketName(getBucket().getName());
-        backendBucket.setDescription(getDescription());
-        backendBucket.setEnableCdn(getEnableCdn());
-        backendBucket.setName(getName());
-        backendBucket.setCdnPolicy(getCdnPolicy() != null
-            ? getCdnPolicy().toBackendBucketCdnPolicy()
-            : Data.nullOf(com.google.cloud.compute.v1.BackendBucketCdnPolicy.class));
+            BackendBucket.Builder builder = BackendBucket.newBuilder().setBucketName(getBucket().getName())
+                .setName(getName());
 
-        Operation response = client.backendBuckets().insert(getProjectId(), backendBucket).execute();
-        waitForCompletion(client, response);
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
 
-        if (!getSignedUrlKey().isEmpty()) {
-            state.save();
+            if (getEnableCdn() != null) {
+                builder.setEnableCdn(getEnableCdn());
+            }
 
-            for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                waitForCompletion(
-                    client,
-                    client.backendBuckets()
-                        .addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey())
-                        .execute());
+            if (getCdnPolicy() != null) {
+                builder.setCdnPolicy(getCdnPolicy().toBackendBucketCdnPolicy());
+            }
+
+            Operation operation = client.insert(getProjectId(), builder.build());
+            waitForCompletion(operation);
+
+            if (!getSignedUrlKey().isEmpty()) {
+                state.save();
+
+                for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
+                    operation = client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey());
+                    waitForCompletion(operation);
+                }
             }
         }
 
@@ -257,69 +298,61 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
-        Compute client = createComputeClient();
+        try (BackendBucketsClient client = createClient(BackendBucketsClient.class)) {
 
-        BackendBucket backendBucket = new BackendBucket();
+            BackendBucket.Builder builder = BackendBucket.newBuilder();
 
-        if (changedFieldNames.contains("bucket")) {
-            backendBucket.setBucketName(getBucket().getName());
-        }
-
-        if (changedFieldNames.contains("description")) {
-            backendBucket.setDescription(getDescription());
-        }
-
-        if (changedFieldNames.contains("enable-cdn")) {
-            backendBucket.setEnableCdn(getEnableCdn());
-        }
-
-        if (changedFieldNames.contains("cdn-policy")) {
-            if (getCdnPolicy() == null) {
-                throw new GyroException("'cdn-policy' cannot be unset once set.");
+            if (changedFieldNames.contains("bucket")) {
+                builder.setBucketName(getBucket().getName());
             }
 
-            backendBucket.setCdnPolicy(getCdnPolicy().toBackendBucketCdnPolicy());
-        }
-
-        backendBucket.setName(getName());
-
-        Operation operation = client.backendBuckets().patch(getProjectId(), getName(), backendBucket).execute();
-        waitForCompletion(client, operation);
-
-        if (changedFieldNames.contains("signed-url-key")) {
-            // delete old keys
-            List<String> deleteSignedUrlKeys = ((BackendBucketResource) current).getSignedUrlKey().stream().map(
-                BackendSignedUrlKey::getKey).collect(
-                Collectors.toList());
-
-            for (String urlKey : deleteSignedUrlKeys) {
-                waitForCompletion(
-                    client,
-                    client.backendBuckets().deleteSignedUrlKey(getProjectId(), getName(), urlKey).execute());
+            if (changedFieldNames.contains("description")) {
+                builder.setDescription(getDescription());
             }
 
-            // add new keys
-            for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                waitForCompletion(
-                    client,
-                    client.backendBuckets()
-                        .addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey())
-                        .execute());
+            if (changedFieldNames.contains("enable-cdn")) {
+                builder.setEnableCdn(getEnableCdn());
+            }
+
+            if (changedFieldNames.contains("cdn-policy")) {
+                if (getCdnPolicy() == null) {
+                    throw new GyroException("'cdn-policy' cannot be unset once set.");
+                }
+
+                builder.setCdnPolicy(getCdnPolicy().toBackendBucketCdnPolicy());
+            }
+
+            builder.setName(getName());
+
+            Operation operation = client.patch(getProjectId(), getName(), builder.build());
+            waitForCompletion(operation);
+
+            if (changedFieldNames.contains("signed-url-key")) {
+                // delete old keys
+                List<String> deleteSignedUrlKeys = ((BackendBucketResource) current).getSignedUrlKey().stream().map(
+                    BackendSignedUrlKey::getKey).collect(Collectors.toList());
+
+                for (String urlKey : deleteSignedUrlKeys) {
+                    waitForCompletion(client.deleteSignedUrlKey(getProjectId(), getName(), urlKey));
+                }
+
+                // add new keys
+                for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
+                    waitForCompletion(
+                        client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey()));
+                }
             }
         }
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.backendBuckets().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, response);
-    }
+        try (BackendBucketsClient client = createClient(BackendBucketsClient.class)) {
+            Operation response = client.delete(getProjectId(), getName());
 
-    static boolean isBackendBucket(String selfLink) {
-        return selfLink != null && (ProjectGlobalBackendBucketName.isParsableFrom(formatResource(null, selfLink)));
+            waitForCompletion(response);
+        }
     }
 }

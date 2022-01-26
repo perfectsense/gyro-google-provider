@@ -16,8 +16,8 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.Compute;
 import com.google.cloud.compute.v1.Backend;
+import com.google.cloud.compute.v1.InstanceGroupManagersClient;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;
@@ -184,7 +184,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     public void copyFrom(Backend model) {
         // pending field validation once https://github.com/perfectsense/gyro/issues/201 is fixed
 
-        setBalancingMode(model.getBalancingMode());
+        setBalancingMode(model.getBalancingMode().toString().toUpperCase());
         setCapacityScaler(model.getCapacityScaler());
         setDescription(model.getDescription());
         setMaxConnections(model.getMaxConnections());
@@ -206,25 +206,52 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
     }
 
     public Backend toBackend() {
-        Backend backend = new Backend();
-        backend.setBalancingMode(getBalancingMode());
-        backend.setCapacityScaler(getCapacityScaler());
-        backend.setDescription(getDescription());
-        backend.setGroup(getGroup().referenceLink());
-        backend.setMaxConnections(getMaxConnections());
-        backend.setMaxConnectionsPerEndpoint(getMaxConnectionsPerEndpoint());
-        backend.setMaxConnectionsPerInstance(getMaxConnectionsPerInstance());
-        backend.setMaxRate(getMaxRate());
-        backend.setMaxRatePerEndpoint(getMaxRatePerEndpoint());
-        backend.setMaxRatePerInstance(getMaxRatePerInstance());
-        backend.setMaxUtilization(getMaxUtilization());
-        return backend;
+        Backend.Builder builder = Backend.newBuilder()
+            .setBalancingMode(Backend.BalancingMode.valueOf(getBalancingMode())).setGroup(getGroup().referenceLink());
+
+        if (getCapacityScaler() != null) {
+            builder.setCapacityScaler(getCapacityScaler());
+        }
+
+        if (getMaxConnections() != null) {
+            builder.setMaxConnections(getMaxConnections());
+        }
+
+        if (getMaxConnectionsPerEndpoint() != null) {
+            builder.setMaxConnectionsPerEndpoint(getMaxConnectionsPerEndpoint());
+        }
+
+        if (getMaxConnectionsPerInstance() != null) {
+            builder.setMaxConnectionsPerInstance(getMaxConnectionsPerInstance());
+        }
+
+        if (getMaxRate() != null) {
+            builder.setMaxRate(getMaxRate());
+        }
+
+        if (getMaxRatePerEndpoint() != null) {
+            builder.setMaxRatePerEndpoint(getMaxRatePerEndpoint());
+        }
+
+        if (getMaxRatePerInstance() != null) {
+            builder.setMaxRatePerInstance(getMaxRatePerInstance());
+        }
+
+        if (getMaxUtilization() != null) {
+            builder.setMaxUtilization(getMaxUtilization());
+        }
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        return builder.build();
     }
 
-    Compute getClient() {
+    InstanceGroupManagersClient getClient() {
         AbstractBackendServiceResource parent = (AbstractBackendServiceResource) parent();
 
-        return parent.createComputeClient();
+        return parent.createInstanceManagersClient();
     }
 
     String getProject() {
