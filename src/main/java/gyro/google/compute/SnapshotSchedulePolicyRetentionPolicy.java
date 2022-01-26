@@ -21,7 +21,8 @@ import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements Copyable<ResourcePolicySnapshotSchedulePolicyRetentionPolicy> {
+public class SnapshotSchedulePolicyRetentionPolicy extends Diffable
+    implements Copyable<ResourcePolicySnapshotSchedulePolicyRetentionPolicy> {
 
     private Integer maxRetentionDays;
     private String onSourceDiskDelete;
@@ -40,7 +41,7 @@ public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements C
     /**
      * The behavior to apply to scheduled snapshots when the source disk is deleted.
      */
-    @ValidStrings({"APPLY_RETENTION_POLICY", "KEEP_AUTO_SNAPSHOTS", "UNSPECIFIED_ON_SOURCE_DISK_DELETE"})
+    @ValidStrings({ "APPLY_RETENTION_POLICY", "KEEP_AUTO_SNAPSHOTS", "UNSPECIFIED_ON_SOURCE_DISK_DELETE" })
     public String getOnSourceDiskDelete() {
         return onSourceDiskDelete;
     }
@@ -70,12 +71,21 @@ public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements C
     @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicyRetentionPolicy model) {
         setMaxRetentionDays(model.getMaxRetentionDays());
-        setOnSourceDiskDelete(model.getOnSourceDiskDelete());
+        setOnSourceDiskDelete(model.getOnSourceDiskDelete().toString());
     }
 
     public ResourcePolicySnapshotSchedulePolicyRetentionPolicy copyTo() {
-       return new ResourcePolicySnapshotSchedulePolicyRetentionPolicy()
-           .setMaxRetentionDays(getMaxRetentionDays())
-           .setOnSourceDiskDelete(getOnSourceDiskDelete());
+        ResourcePolicySnapshotSchedulePolicyRetentionPolicy.Builder builder = ResourcePolicySnapshotSchedulePolicyRetentionPolicy
+            .newBuilder();
+
+        if (getMaxRetentionDays() != null) {
+            builder.setMaxRetentionDays(getMaxRetentionDays());
+        }
+        if (getOnSourceDiskDelete() != null) {
+            builder.setOnSourceDiskDelete(ResourcePolicySnapshotSchedulePolicyRetentionPolicy.OnSourceDiskDelete.valueOf(
+                getOnSourceDiskDelete()));
+        }
+
+        return builder.build();
     }
 }

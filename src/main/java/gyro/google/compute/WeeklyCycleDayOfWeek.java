@@ -31,7 +31,7 @@ public class WeeklyCycleDayOfWeek extends Diffable implements Copyable<ResourceP
      * Define schedule that runs on a specified day of the week.
      */
     @Required
-    @ValidStrings({"FRIDAY", "MONDAY", "SATURDAY", "SUNDAY", "THURSDAY", "TUESDAY", "WEDNESDAY"})
+    @ValidStrings({ "FRIDAY", "MONDAY", "SATURDAY", "SUNDAY", "THURSDAY", "TUESDAY", "WEDNESDAY" })
     public String getDay() {
         return day;
     }
@@ -59,13 +59,13 @@ public class WeeklyCycleDayOfWeek extends Diffable implements Copyable<ResourceP
 
     @Override
     public void copyFrom(ResourcePolicyWeeklyCycleDayOfWeek model) {
-        setDay(model.getDay());
+        setDay(model.getDay().toString());
         setStartTime(model.getStartTime());
     }
 
     public ResourcePolicyWeeklyCycleDayOfWeek copyTo() {
-        return new ResourcePolicyWeeklyCycleDayOfWeek()
-            .setDay(getDay())
-            .setStartTime(getStartTime());
+        return ResourcePolicyWeeklyCycleDayOfWeek.newBuilder()
+            .setDay(ResourcePolicyWeeklyCycleDayOfWeek.Day.valueOf(getDay()))
+            .setStartTime(getStartTime()).build();
     }
 }

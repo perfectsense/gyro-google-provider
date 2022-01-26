@@ -50,8 +50,8 @@ public class WeeklyCycle extends Diffable implements Copyable<ResourcePolicyWeek
     @Override
     public void copyFrom(ResourcePolicyWeeklyCycle model) {
         getDayOfWeeks().clear();
-        if (model.getDayOfWeeks() != null) {
-            setDayOfWeeks(model.getDayOfWeeks().stream().map(item -> {
+        if (model.getDayOfWeeksList() != null) {
+            setDayOfWeeks(model.getDayOfWeeksList().stream().map(item -> {
                 WeeklyCycleDayOfWeek currentDayOfWeek = newSubresource(WeeklyCycleDayOfWeek.class);
                 currentDayOfWeek.copyFrom(item);
                 return currentDayOfWeek;
@@ -60,7 +60,7 @@ public class WeeklyCycle extends Diffable implements Copyable<ResourcePolicyWeek
     }
 
     public ResourcePolicyWeeklyCycle copyTo() {
-        return new ResourcePolicyWeeklyCycle()
-            .setDayOfWeeks(getDayOfWeeks().stream().map(WeeklyCycleDayOfWeek::copyTo).collect(Collectors.toList()));
+        return ResourcePolicyWeeklyCycle.newBuilder().addAllDayOfWeeks(getDayOfWeeks().stream()
+            .map(WeeklyCycleDayOfWeek::copyTo).collect(Collectors.toList())).build();
     }
 }

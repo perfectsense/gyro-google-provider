@@ -74,7 +74,8 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
     public void copyFrom(ResourcePolicySnapshotSchedulePolicy model) {
         setRetentionPolicy(null);
         if (model.getRetentionPolicy() != null) {
-            SnapshotSchedulePolicyRetentionPolicy currentRetentionPolicy = newSubresource(SnapshotSchedulePolicyRetentionPolicy.class);
+            SnapshotSchedulePolicyRetentionPolicy currentRetentionPolicy = newSubresource(
+                SnapshotSchedulePolicyRetentionPolicy.class);
             currentRetentionPolicy.copyFrom(model.getRetentionPolicy());
             setRetentionPolicy(currentRetentionPolicy);
         }
@@ -88,18 +89,28 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
 
         setSnapshotProperties(null);
         if (model.getSnapshotProperties() != null) {
-            SnapshotSchedulePolicySnapshotProperties currentSnapshotProperties = newSubresource(SnapshotSchedulePolicySnapshotProperties.class);
+            SnapshotSchedulePolicySnapshotProperties currentSnapshotProperties = newSubresource(
+                SnapshotSchedulePolicySnapshotProperties.class);
             currentSnapshotProperties.copyFrom(model.getSnapshotProperties());
             setSnapshotProperties(currentSnapshotProperties);
         }
     }
 
     public ResourcePolicySnapshotSchedulePolicy copyTo() {
-        ResourcePolicySnapshotSchedulePolicy snapshotSchedulePolicy = new ResourcePolicySnapshotSchedulePolicy();
-        snapshotSchedulePolicy.setRetentionPolicy(getRetentionPolicy() != null ? getRetentionPolicy().copyTo() : null);
-        snapshotSchedulePolicy.setSchedule(getSchedule() != null ? getSchedule().copyTo() : null);
-        snapshotSchedulePolicy.setSnapshotProperties(getSnapshotProperties() != null ? getSnapshotProperties().copyTo() : null);
+        ResourcePolicySnapshotSchedulePolicy.Builder builder = ResourcePolicySnapshotSchedulePolicy.newBuilder();
 
-        return snapshotSchedulePolicy;
+        if (getRetentionPolicy() != null) {
+            builder.setRetentionPolicy(getRetentionPolicy().copyTo());
+        }
+
+        if (getSchedule() != null) {
+            builder.setSchedule(getSchedule().copyTo());
+        }
+
+        if (getSnapshotProperties() != null) {
+            builder.setSnapshotProperties(getSnapshotProperties().copyTo());
+        }
+
+        return builder.build();
     }
 }

@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +25,8 @@ import com.google.cloud.compute.v1.ResourcePolicySnapshotSchedulePolicySnapshotP
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 
-public class SnapshotSchedulePolicySnapshotProperties extends Diffable implements Copyable<ResourcePolicySnapshotSchedulePolicySnapshotProperties> {
+public class SnapshotSchedulePolicySnapshotProperties extends Diffable
+    implements Copyable<ResourcePolicySnapshotSchedulePolicySnapshotProperties> {
 
     private Boolean guestFlush;
     private Map<String, String> labels;
@@ -44,6 +47,10 @@ public class SnapshotSchedulePolicySnapshotProperties extends Diffable implement
      * Labels to apply to scheduled snapshots.
      */
     public Map<String, String> getLabels() {
+        if (labels == null) {
+            labels = new HashMap<>();
+        }
+
         return labels;
     }
 
@@ -55,6 +62,10 @@ public class SnapshotSchedulePolicySnapshotProperties extends Diffable implement
      * Cloud Storage bucket storage location of the auto snapshot (regional or multi-regional).
      */
     public List<String> getStorageLocations() {
+        if (storageLocations == null) {
+            storageLocations = new ArrayList<>();
+        }
+
         return storageLocations;
     }
 
@@ -70,14 +81,12 @@ public class SnapshotSchedulePolicySnapshotProperties extends Diffable implement
     @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicySnapshotProperties model) {
         setGuestFlush(model.getGuestFlush());
-        setLabels(model.getLabels());
-        setStorageLocations(model.getStorageLocations());
+        setLabels(model.getLabelsMap());
+        setStorageLocations(model.getStorageLocationsList());
     }
 
     public ResourcePolicySnapshotSchedulePolicySnapshotProperties copyTo() {
-        return new ResourcePolicySnapshotSchedulePolicySnapshotProperties()
-            .setGuestFlush(getGuestFlush())
-            .setLabels(getLabels())
-            .setStorageLocations(getStorageLocations());
+        return ResourcePolicySnapshotSchedulePolicySnapshotProperties.newBuilder().setGuestFlush(getGuestFlush())
+            .putAllLabels(getLabels()).addAllStorageLocations(getStorageLocations()).build();
     }
 }
