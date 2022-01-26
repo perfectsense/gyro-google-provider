@@ -64,17 +64,19 @@ public class SecurityPolicyRuleMatcher extends Diffable
 
     @Override
     public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRuleMatcher matcher) {
-        setVersionedExpr(matcher.getVersionedExpr());
+        setVersionedExpr(matcher.getVersionedExpr().toString());
         SecurityPolicyRuleMatcherConfig config = newSubresource(SecurityPolicyRuleMatcherConfig.class);
         config.copyFrom(matcher.getConfig());
         setConfig(config);
     }
 
     public com.google.cloud.compute.v1.SecurityPolicyRuleMatcher toSecurityPolicyRuleMatcher() {
-        com.google.cloud.compute.v1.SecurityPolicyRuleMatcher matcher = new com.google.cloud.compute.v1.SecurityPolicyRuleMatcher();
-        matcher.setVersionedExpr(getVersionedExpr());
-        matcher.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
+        com.google.cloud.compute.v1.SecurityPolicyRuleMatcher.Builder builder = com.google.cloud.compute.v1.SecurityPolicyRuleMatcher
+            .newBuilder();
+        builder.setVersionedExpr(com.google.cloud.compute.v1.SecurityPolicyRuleMatcher.VersionedExpr.valueOf(
+            getVersionedExpr()));
+        builder.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
 
-        return matcher;
+        return builder.build();
     }
 }

@@ -17,12 +17,15 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.ListSecurityPoliciesRequest;
+import com.google.cloud.compute.v1.SecurityPoliciesClient;
 import com.google.cloud.compute.v1.SecurityPolicy;
 import com.google.cloud.compute.v1.SecurityPolicyList;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -37,7 +40,7 @@ import gyro.google.GoogleFinder;
  *      compute-security-policy: $(external-query google::compute-security-policy { name: "security-policy-example" })
  */
 @Type("compute-security-policy")
-public class SecurityPolicyFinder extends GoogleFinder<Compute, SecurityPolicy, SecurityPolicyResource> {
+public class SecurityPolicyFinder extends GoogleFinder<SecurityPoliciesClient, SecurityPolicy, SecurityPolicyResource> {
 
     private String name;
 
@@ -53,30 +56,39 @@ public class SecurityPolicyFinder extends GoogleFinder<Compute, SecurityPolicy, 
     }
 
     @Override
-    protected List<SecurityPolicy> findAllGoogle(Compute client) throws Exception {
+    protected List<SecurityPolicy> findAllGoogle(SecurityPoliciesClient client) throws Exception {
         List<SecurityPolicy> securityPolicies = new ArrayList<>();
         SecurityPolicyList securityPolicyList;
         String nextPageToken = null;
-        do {
-            securityPolicyList = client.securityPolicies().list(getProjectId()).setPageToken(nextPageToken).execute();
-            if (securityPolicyList.getItems() != null) {
-                securityPolicies.addAll(securityPolicyList.getItems());
-            }
-            nextPageToken = securityPolicyList.getNextPageToken();
-        } while (nextPageToken != null);
 
-        return securityPolicies;
+        try {
+            do {
+                ListSecurityPoliciesRequest.Builder builder = ListSecurityPoliciesRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                securityPolicyList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = securityPolicyList.getNextPageToken();
+
+                if (securityPolicyList.getItemsList() != null) {
+                    securityPolicies.addAll(securityPolicyList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return securityPolicies;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<SecurityPolicy> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<SecurityPolicy> securityPolicies = new ArrayList<>();
-        if (filters.containsKey("name")) {
-            securityPolicies.add(client.securityPolicies()
-                .get(getProjectId(), filters.get("name"))
-                .execute());
-        }
-
-        return securityPolicies;
+    protected List<SecurityPolicy> findGoogle(SecurityPoliciesClient client, Map<String, String> filters)
+        throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }

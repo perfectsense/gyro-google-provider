@@ -52,12 +52,14 @@ public class SecurityPolicyRuleMatcherConfig extends Diffable
 
     @Override
     public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig config) {
-        setSrcIpRanges(config.getSrcIpRanges());
+        setSrcIpRanges(config.getSrcIpRangesList());
     }
 
     public com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig toSecurityPolicyRuleMatcherConfig() {
-        com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig matcherConfig = new com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig();
-        matcherConfig.setSrcIpRanges(getSrcIpRanges());
-        return matcherConfig;
+        com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig.Builder matcherConfig = com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig
+            .newBuilder();
+        matcherConfig.addAllSrcIpRanges(getSrcIpRanges());
+
+        return matcherConfig.build();
     }
 }
