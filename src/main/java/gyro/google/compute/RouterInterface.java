@@ -97,13 +97,22 @@ public class RouterInterface extends Diffable
     }
 
     com.google.cloud.compute.v1.RouterInterface toRouterInterface() {
-        com.google.cloud.compute.v1.RouterInterface routerInterface = new com.google.cloud.compute.v1.RouterInterface();
-        routerInterface.setName(getName());
-        routerInterface.setIpRange(getIpRange());
-        routerInterface.setLinkedInterconnectAttachment(getLinkedInterconnectAttachment());
-        routerInterface.setLinkedVpnTunnel(getLinkedVpnTunnel());
+        com.google.cloud.compute.v1.RouterInterface.Builder builder = com.google.cloud.compute.v1.RouterInterface.newBuilder();
+        builder.setName(getName());
 
-        return routerInterface;
+        if (getIpRange() != null) {
+            builder.setIpRange(getIpRange());
+        }
+
+        if (getLinkedInterconnectAttachment() != null) {
+            builder.setLinkedInterconnectAttachment(getLinkedInterconnectAttachment());
+        }
+
+        if (getLinkedVpnTunnel() != null) {
+            builder.setLinkedVpnTunnel(getLinkedVpnTunnel());
+        }
+
+        return builder.build();
     }
 
     @Override

@@ -203,8 +203,8 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         setIcmpIdleTimeoutSec(model.getIcmpIdleTimeoutSec());
         setMinPortsPerVm(model.getMinPortsPerVm());
         setName(model.getName());
-        setIpAllocationOption(model.getNatIpAllocateOption());
-        setSourceSubnetworkIpRangesToNat(model.getSourceSubnetworkIpRangesToNat());
+        setIpAllocationOption(model.getNatIpAllocateOption().toString());
+        setSourceSubnetworkIpRangesToNat(model.getSourceSubnetworkIpRangesToNat().toString());
         setTcpEstablishedIdleTimeoutSec(model.getTcpEstablishedIdleTimeoutSec());
         setTcpTransitoryIdleTimeoutSec(model.getTcpTransitoryIdleTimeoutSec());
         setUdpIdleTimeoutSec(model.getUdpIdleTimeoutSec());
@@ -217,16 +217,16 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         }
 
         getNatIp().clear();
-        if (model.getNatIps() != null) {
-            setNatIp(model.getNatIps()
+        if (model.getNatIpsList() != null) {
+            setNatIp(model.getNatIpsList()
                 .stream()
                 .map(ip -> findById(AddressResource.class, ip))
                 .collect(Collectors.toList()));
         }
 
         getSubnet().clear();
-        if (model.getSubnetworks() != null) {
-            setSubnet(model.getSubnetworks().stream().map(s -> {
+        if (model.getSubnetworksList() != null) {
+            setSubnet(model.getSubnetworksList().stream().map(s -> {
                 RouterNatSubnetworkToNat routerNatSubnetworkToNat = newSubresource(RouterNatSubnetworkToNat.class);
                 routerNatSubnetworkToNat.copyFrom(s);
                 return routerNatSubnetworkToNat;
@@ -235,27 +235,52 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
     }
 
     com.google.cloud.compute.v1.RouterNat toRouterNat() {
-        com.google.cloud.compute.v1.RouterNat routerNat = new com.google.cloud.compute.v1.RouterNat();
-        routerNat.setIcmpIdleTimeoutSec(getIcmpIdleTimeoutSec());
-        routerNat.setMinPortsPerVm(getMinPortsPerVm());
-        routerNat.setName(getName());
-        routerNat.setNatIpAllocateOption(getIpAllocationOption());
-        routerNat.setNatIps(getNatIp().stream()
-            .map(AbstractAddressResource::getSelfLink)
-            .collect(Collectors.toList()));
-        routerNat.setSourceSubnetworkIpRangesToNat(getSourceSubnetworkIpRangesToNat());
-        routerNat.setSubnetworks(getSubnet().stream()
-            .map(RouterNatSubnetworkToNat::toRouterNatSubnetworkToNat)
-            .collect(Collectors.toList()));
-        routerNat.setTcpEstablishedIdleTimeoutSec(getTcpEstablishedIdleTimeoutSec());
-        routerNat.setTcpTransitoryIdleTimeoutSec(getTcpTransitoryIdleTimeoutSec());
-        routerNat.setUdpIdleTimeoutSec(getUdpIdleTimeoutSec());
+        com.google.cloud.compute.v1.RouterNat.Builder builder = com.google.cloud.compute.v1.RouterNat.newBuilder();
+        builder.setName(getName());
 
-        if (getLogConfig() != null) {
-            routerNat.setLogConfig(getLogConfig().toRouterNatLogConfig());
+        if (getIcmpIdleTimeoutSec() != null) {
+            builder.setIcmpIdleTimeoutSec(getIcmpIdleTimeoutSec());
         }
 
-        return routerNat;
+        if (getMinPortsPerVm() != null) {
+            builder.setMinPortsPerVm(getMinPortsPerVm());
+        }
+
+        if (getIpAllocationOption() != null) {
+            builder.setNatIpAllocateOption(com.google.cloud.compute.v1.RouterNat.NatIpAllocateOption.valueOf(
+                getIpAllocationOption()));
+        }
+
+        if (getNatIp() != null) {
+            builder.addAllNatIps(getNatIp().stream().map(AbstractAddressResource::getSelfLink)
+                .collect(Collectors.toList()));
+        }
+
+        if (getSourceSubnetworkIpRangesToNat() != null) {
+            builder.setSourceSubnetworkIpRangesToNat(com.google.cloud.compute.v1.RouterNat.SourceSubnetworkIpRangesToNat
+                .valueOf(getSourceSubnetworkIpRangesToNat()));
+        }
+
+        builder.addAllSubnetworks(getSubnet().stream().map(RouterNatSubnetworkToNat::toRouterNatSubnetworkToNat)
+            .collect(Collectors.toList()));
+
+        if (getTcpEstablishedIdleTimeoutSec() != null) {
+            builder.setTcpEstablishedIdleTimeoutSec(getTcpEstablishedIdleTimeoutSec());
+        }
+
+        if (getTcpTransitoryIdleTimeoutSec() != null) {
+            builder.setTcpTransitoryIdleTimeoutSec(getTcpTransitoryIdleTimeoutSec());
+        }
+
+        if (getUdpIdleTimeoutSec() != null) {
+            builder.setUdpIdleTimeoutSec(getUdpIdleTimeoutSec());
+        }
+
+        if (getLogConfig() != null) {
+            builder.setLogConfig(getLogConfig().toRouterNatLogConfig());
+        }
+
+        return builder.build();
     }
 
     @Override

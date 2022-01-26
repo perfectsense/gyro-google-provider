@@ -175,16 +175,16 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.cloud
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterBgpPeer model) throws Exception {
         setName(model.getName());
-        setAdvertisedRoutePriority(model.getAdvertisedRoutePriority());
-        setAdvertiseMode(model.getAdvertiseMode());
+        setAdvertisedRoutePriority((long) model.getAdvertisedRoutePriority());
+        setAdvertiseMode(model.getAdvertiseMode().toString());
         setInterfaceName(model.getInterfaceName());
         setIpAddress(model.getIpAddress());
-        setPeerAsn(model.getPeerAsn());
+        setPeerAsn((long) model.getPeerAsn());
         setPeerIpAddress(model.getPeerIpAddress());
-        setAdvertisedGroups(model.getAdvertisedGroups());
+        setAdvertisedGroups(model.getAdvertisedGroupsList().stream().map(Enum::toString).collect(Collectors.toList()));
 
-        if (model.getAdvertisedIpRanges() != null) {
-            setIpRange(model.getAdvertisedIpRanges().stream().map(i -> {
+        if (model.getAdvertisedIpRangesList() != null) {
+            setIpRange(model.getAdvertisedIpRangesList().stream().map(i -> {
                 RouterIpRange routerIpRange = newSubresource(RouterIpRange.class);
                 routerIpRange.copyFrom(i);
                 return routerIpRange;
@@ -193,20 +193,40 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.cloud
     }
 
     com.google.cloud.compute.v1.RouterBgpPeer toRouterBgpPeer() {
-        com.google.cloud.compute.v1.RouterBgpPeer routerBgpPeer = new com.google.cloud.compute.v1.RouterBgpPeer();
-        routerBgpPeer.setName(getName());
-        routerBgpPeer.setAdvertisedRoutePriority(getAdvertisedRoutePriority());
-        routerBgpPeer.setAdvertiseMode(getAdvertiseMode());
-        routerBgpPeer.setInterfaceName(getInterfaceName());
-        routerBgpPeer.setIpAddress(getIpAddress());
-        routerBgpPeer.setPeerAsn(getPeerAsn());
-        routerBgpPeer.setPeerIpAddress(getPeerIpAddress());
-        routerBgpPeer.setAdvertisedGroups(getAdvertisedGroups());
-        routerBgpPeer.setAdvertisedIpRanges(getIpRange().stream()
-            .map(RouterIpRange::toRouterAdvertisedIpRange)
-            .collect(Collectors.toList()));
+        com.google.cloud.compute.v1.RouterBgpPeer.Builder builder = com.google.cloud.compute.v1.RouterBgpPeer.newBuilder();
+        builder.setName(getName());
+        builder.setAdvertisedRoutePriority(getAdvertisedRoutePriority().intValue());
+        builder.setPeerAsn(getPeerAsn().intValue());
 
-        return routerBgpPeer;
+        if (getAdvertiseMode() != null) {
+            builder.setAdvertiseMode(com.google.cloud.compute.v1.RouterBgpPeer.AdvertiseMode.valueOf(getAdvertiseMode()));
+        }
+
+        if (getInterfaceName() != null) {
+            builder.setInterfaceName(getInterfaceName());
+        }
+
+        if (getIpAddress() != null) {
+            builder.setIpAddress(getIpAddress());
+        }
+
+        if (getPeerIpAddress() != null) {
+            builder.setPeerIpAddress(getPeerIpAddress());
+        }
+
+        if (getAdvertisedGroups() != null) {
+            builder.addAllAdvertisedGroups(getAdvertisedGroups().stream()
+                .map(com.google.cloud.compute.v1.RouterBgpPeer.AdvertisedGroups::valueOf)
+                .collect(Collectors.toList()));
+        }
+
+        if (getIpRange() != null) {
+            builder.addAllAdvertisedIpRanges(getIpRange().stream()
+                .map(RouterIpRange::toRouterAdvertisedIpRange)
+                .collect(Collectors.toList()));
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -221,7 +241,8 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.cloud
                 "At least one of 'interface-name' or 'ip-address' or 'peer-ip-address' is required"));
         }
 
-        if (getAdvertiseMode() != null && !getAdvertiseMode().equals("CUSTOM") && (!getIpRange().isEmpty() || !getAdvertisedGroups().isEmpty())) {
+        if (getAdvertiseMode() != null && !getAdvertiseMode().equals("CUSTOM") && (!getIpRange().isEmpty()
+            || !getAdvertisedGroups().isEmpty())) {
             errors.add(new ValidationError(
                 this,
                 null,

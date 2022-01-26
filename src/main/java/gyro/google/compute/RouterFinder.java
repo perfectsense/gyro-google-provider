@@ -21,8 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.ListRoutersRequest;
 import com.google.cloud.compute.v1.Router;
+import com.google.cloud.compute.v1.RoutersClient;
 import com.google.common.base.CaseFormat;
 import gyro.core.Type;
 import gyro.core.finder.Filter;
@@ -39,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    router: $(external-query google::router { region: "us-east1" })
  */
 @Type("router")
-public class RouterFinder extends GoogleFinder<Compute, Router, RouterResource> {
+public class RouterFinder extends GoogleFinder<RoutersClient, Router, RouterResource> {
 
     private String name;
     private String description;
@@ -104,12 +105,12 @@ public class RouterFinder extends GoogleFinder<Compute, Router, RouterResource> 
     }
 
     @Override
-    protected List<Router> findAllGoogle(Compute client) throws Exception {
+    protected List<Router> findAllGoogle(RoutersClient client) throws Exception {
         throw new UnsupportedOperationException("Finding `router` without filters is not supported!!");
     }
 
     @Override
-    protected List<Router> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+    protected List<Router> findGoogle(RoutersClient client, Map<String, String> filters) throws Exception {
         List<Router> routers = new ArrayList<>();
 
         if (filters.containsKey("region")) {
@@ -122,11 +123,8 @@ public class RouterFinder extends GoogleFinder<Compute, Router, RouterResource> 
                     e.getValue()))
                 .collect(Collectors.joining(" AND "));
 
-            routers = client.routers()
-                .list(getProjectId(), filters.get("region"))
-                .setFilter(filterString)
-                .execute()
-                .getItems();
+            routers = client.list(ListRoutersRequest.newBuilder().setProject(getProjectId()).setFilter(filterString)
+                .setRegion(filters.get("region")).build()).getPage().getResponse().getItemsList();
         }
 
         return routers;

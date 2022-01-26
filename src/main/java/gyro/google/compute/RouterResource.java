@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.ListRoutersRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.Router;
+import com.google.cloud.compute.v1.RoutersClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -263,27 +264,27 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
             setRouterBgp(bgp);
         }
 
-        if (model.getNats() != null) {
+        if (model.getNatsList() != null) {
             getRouterNat().clear();
-            for (com.google.cloud.compute.v1.RouterNat n : model.getNats()) {
+            for (com.google.cloud.compute.v1.RouterNat n : model.getNatsList()) {
                 RouterNat nat = newSubresource(RouterNat.class);
                 nat.copyFrom(n);
                 getRouterNat().add(nat);
             }
         }
 
-        if (model.getInterfaces() != null) {
+        if (model.getInterfacesList() != null) {
             getRouterInterface().clear();
-            for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfaces()) {
+            for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfacesList()) {
                 RouterInterface routerInterface = newSubresource(RouterInterface.class);
                 routerInterface.copyFrom(i);
                 getRouterInterface().add(routerInterface);
             }
         }
 
-        if (model.getBgpPeers() != null) {
+        if (model.getBgpPeersList() != null) {
             getRouterBgpPeer().clear();
-            for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeers()) {
+            for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeersList()) {
                 RouterBgpPeer bgpPeer = newSubresource(RouterBgpPeer.class);
                 bgpPeer.copyFrom(p);
                 getRouterBgpPeer().add(bgpPeer);
@@ -293,111 +294,118 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (RoutersClient client = createClient(RoutersClient.class)) {
+            Router router = getRouter(client);
 
-        Router router = getRouter(client);
+            if (router == null) {
+                return false;
+            }
 
-        if (router == null) {
-            return false;
+            copyFrom(router);
+
+            return true;
         }
-
-        copyFrom(router);
-
-        return true;
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (RoutersClient client = createClient(RoutersClient.class)) {
 
-        Router router = new Router();
-        router.setName(getName());
-        router.setDescription(getDescription());
-        router.setRegion(getRegion());
-        router.setInterfaces(getRouterInterface().stream()
-            .map(RouterInterface::toRouterInterface)
-            .collect(Collectors.toList()));
-        router.setBgpPeers(getRouterBgpPeer().stream()
-            .map(RouterBgpPeer::toRouterBgpPeer)
-            .collect(Collectors.toList()));
+            Router.Builder builder = Router.newBuilder();
+            builder.setName(getName());
+            builder.setRegion(getRegion());
 
-        if (getRouterBgp() != null) {
-            router.setBgp(getRouterBgp().toRouterBgp());
-        }
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
 
-        if (getNetwork() != null) {
-            router.setNetwork(getNetwork().getSelfLink());
-        }
+            if (getRouterInterface() != null) {
+                builder.addAllInterfaces(getRouterInterface().stream()
+                    .map(RouterInterface::toRouterInterface)
+                    .collect(Collectors.toList()));
+            }
 
-        Operation operation = client.routers().insert(getProjectId(), getRegion(), router).execute();
-        waitForCompletion(client, operation);
+            if (getRouterBgpPeer() != null) {
+                builder.addAllBgpPeers(getRouterBgpPeer().stream()
+                    .map(RouterBgpPeer::toRouterBgpPeer)
+                    .collect(Collectors.toList()));
+            }
 
-        setSelfLink(operation.getTargetLink());
+            if (getRouterBgp() != null) {
+                builder.setBgp(getRouterBgp().toRouterBgp());
+            }
 
-        state.save();
+            if (getNetwork() != null) {
+                builder.setNetwork(getNetwork().getSelfLink());
+            }
 
-        if (!getRouterNat().isEmpty()) {
-            Router newRouter = new Router();
-            newRouter.setNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
+            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            waitForCompletion(operation);
 
-            operation = client.routers().patch(getProjectId(), getRegion(), getName(), newRouter).execute();
-            waitForCompletion(client, operation);
+            setSelfLink(operation.getTargetLink());
+
+            state.save();
+
+            if (!getRouterNat().isEmpty()) {
+                Router.Builder newRouter = Router.newBuilder();
+                newRouter.addAllNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
+
+                operation = client.patch(getProjectId(), getRegion(), getName(), newRouter.build());
+                waitForCompletion(operation);
+            }
         }
     }
 
     @Override
     protected void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+        try (RoutersClient client = createClient(RoutersClient.class)) {
 
-        Router router = new Router();
+            Router.Builder builder = Router.newBuilder();
 
-        if (changedFieldNames.contains("description")) {
-            router.setDescription(getDescription());
+            if (changedFieldNames.contains("description")) {
+                builder.setDescription(getDescription());
+            }
+
+            if (changedFieldNames.contains("router-bgp")) {
+                builder.setBgp(getRouterBgp() == null
+                    ? com.google.cloud.compute.v1.RouterBgp.newBuilder().build()
+                    : getRouterBgp().toRouterBgp());
+            }
+
+            if (changedFieldNames.contains("router-nats")) {
+                builder.addAllNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
+            }
+
+            if (changedFieldNames.contains("interfaces")) {
+                builder.addAllInterfaces(getRouterInterface().stream()
+                    .map(RouterInterface::toRouterInterface)
+                    .collect(Collectors.toList()));
+            }
+
+            if (changedFieldNames.contains("router-bgp-peers")) {
+                builder.addAllBgpPeers(getRouterBgpPeer().stream()
+                    .map(RouterBgpPeer::toRouterBgpPeer)
+                    .collect(Collectors.toList()));
+            }
+
+            Operation operation = client.patch(getProjectId(), getRegion(), getName(), builder.build());
+            waitForCompletion(operation);
         }
-
-        if (changedFieldNames.contains("router-bgp")) {
-            router.setBgp(getRouterBgp() == null
-                ? new com.google.cloud.compute.v1.RouterBgp()
-                : getRouterBgp().toRouterBgp());
-        }
-
-        if (changedFieldNames.contains("router-nats")) {
-            router.setNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
-        }
-
-        if (changedFieldNames.contains("interfaces")) {
-            router.setInterfaces(getRouterInterface().stream()
-                .map(RouterInterface::toRouterInterface)
-                .collect(Collectors.toList()));
-        }
-
-        if (changedFieldNames.contains("router-bgp-peers")) {
-            router.setBgpPeers(getRouterBgpPeer().stream()
-                .map(RouterBgpPeer::toRouterBgpPeer)
-                .collect(Collectors.toList()));
-        }
-
-        Operation operation = client.routers().patch(getProjectId(), getRegion(), getName(), router).execute();
-        waitForCompletion(client, operation);
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.routers().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, operation);
+        try (RoutersClient client = createClient(RoutersClient.class)) {
+            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            waitForCompletion(operation);
+        }
     }
 
-    private Router getRouter(Compute client) throws java.io.IOException {
-        return client.routers()
-            .list(getProjectId(), getRegion())
-            .setFilter(String.format("selfLink = \"%s\"", getSelfLink()))
-            .execute()
-            .getItems()
-            .stream()
-            .findFirst()
-            .orElse(null);
+    private Router getRouter(RoutersClient client) throws java.io.IOException {
+        return client
+            .list(ListRoutersRequest.newBuilder().setProject(getProjectId()).setRegion(getRegion())
+                .setFilter(String.format("selfLink = \"%s\"", getSelfLink())).build())
+            .getPage().getResponse().getItemsList().stream().findFirst().orElse(null);
     }
 }

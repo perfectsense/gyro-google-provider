@@ -19,6 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
@@ -92,20 +93,28 @@ public class RouterNatSubnetworkToNat extends Diffable
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterNatSubnetworkToNat model) {
         setSubnet(findById(SubnetworkResource.class, model.getName()));
-        setSourceIpRangesToNat(model.getSourceIpRangesToNat());
-        setSecondaryIpRangeNames(model.getSecondaryIpRangeNames());
+        setSourceIpRangesToNat(model.getSourceIpRangesToNatList().stream().map(Enum::toString)
+            .collect(Collectors.toList()));
+        setSecondaryIpRangeNames(model.getSecondaryIpRangeNamesList());
     }
 
     com.google.cloud.compute.v1.RouterNatSubnetworkToNat toRouterNatSubnetworkToNat() {
-        com.google.cloud.compute.v1.RouterNatSubnetworkToNat routerNatSubnetworkToNat = new com.google.cloud.compute.v1.RouterNatSubnetworkToNat();
-        routerNatSubnetworkToNat.setName(subnet.getSelfLink());
-        routerNatSubnetworkToNat.setSecondaryIpRangeNames(getSecondaryIpRangeNames());
+        com.google.cloud.compute.v1.RouterNatSubnetworkToNat.Builder builder = com.google.cloud.compute.v1.RouterNatSubnetworkToNat
+            .newBuilder();
 
-        if (!getSourceIpRangesToNat().isEmpty()) {
-            routerNatSubnetworkToNat.setSourceIpRangesToNat(getSourceIpRangesToNat());
+        builder.setName(subnet.getSelfLink());
+
+        if (getSecondaryIpRangeNames().isEmpty()) {
+            builder.addAllSecondaryIpRangeNames(getSecondaryIpRangeNames());
         }
 
-        return routerNatSubnetworkToNat;
+        if (!getSourceIpRangesToNat().isEmpty()) {
+            builder.addAllSourceIpRangesToNat(getSourceIpRangesToNat().stream()
+                .map(com.google.cloud.compute.v1.RouterNatSubnetworkToNat.SourceIpRangesToNat::valueOf)
+                .collect(Collectors.toList()));
+        }
+
+        return builder.build();
     }
 
     @Override
