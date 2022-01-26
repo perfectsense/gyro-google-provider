@@ -192,8 +192,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         setAutoDelete(model.getAutoDelete());
         setBoot(model.getBoot());
         setDeviceName(model.getDeviceName());
-        setDiskInterface(model.getInterface());
-        setMode(model.getMode());
+        setDiskInterface(model.getInterface().toString());
+        setMode(model.getMode().toString());
         DiskResource diskResource = null;
         String source = model.getSource();
 
@@ -201,7 +201,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
             diskResource = findById(DiskResource.class, source);
         }
         setSource(diskResource);
-        setType(model.getType());
+        setType(model.getType().toString());
 
         setDiskEncryptionKey(null);
         if (model.getDiskEncryptionKey() != null) {
@@ -211,8 +211,8 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         }
 
         getGuestOsFeature().clear();
-        if (model.getGuestOsFeatures() != null) {
-            setGuestOsFeature(model.getGuestOsFeatures().stream()
+        if (model.getGuestOsFeaturesList() != null) {
+            setGuestOsFeature(model.getGuestOsFeaturesList().stream()
                 .map(feature -> {
                     InstanceGuestOsFeature newFeature = newSubresource(InstanceGuestOsFeature.class);
                     newFeature.copyFrom(feature);
@@ -233,21 +233,44 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     }
 
     public AttachedDisk copyTo() {
-        AttachedDisk disk = new AttachedDisk();
-        disk.setAutoDelete(getAutoDelete());
-        disk.setBoot(getBoot());
-        disk.setDeviceName(getDeviceName());
-        disk.setInterface(getDiskInterface());
-        disk.setMode(getMode());
-        disk.setSource(getSource() != null ? getSource().getSelfLink() : null);
-        disk.setType(getType());
-        disk.setDiskEncryptionKey(
-            getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
-        disk.setGuestOsFeatures(getGuestOsFeature() != null ? getGuestOsFeature().stream()
-            .map(InstanceGuestOsFeature::copyTo)
-            .collect(Collectors.toList()) : null);
-        disk.setInitializeParams(getInitializeParams() != null ? getInitializeParams().copyTo() : null);
+        AttachedDisk.Builder builder = AttachedDisk.newBuilder();
+        builder.setAutoDelete(getAutoDelete());
+        builder.setBoot(getBoot());
 
-        return disk;
+        if (getDeviceName() != null) {
+            builder.setDeviceName(getDeviceName());
+        }
+
+        if (getDiskInterface() != null) {
+            builder.setInterface(AttachedDisk.Interface.valueOf(getDiskInterface()));
+        }
+
+        if (getMode() != null) {
+            builder.setMode(AttachedDisk.Mode.valueOf(getMode()));
+        }
+
+        if (getSource() != null) {
+            builder.setSource(getSource() != null ? getSource().getSelfLink() : null);
+        }
+
+        if (getType() != null) {
+            builder.setType(AttachedDisk.Type.valueOf(getType()));
+        }
+
+        if (getDiskEncryptionKey() != null) {
+            builder.setDiskEncryptionKey(
+                getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
+        }
+
+        if (getGuestOsFeature() != null) {
+            builder.addAllGuestOsFeatures(getGuestOsFeature() != null ? getGuestOsFeature().stream()
+                .map(InstanceGuestOsFeature::copyTo).collect(Collectors.toList()) : null);
+        }
+
+        if (getInitializeParams() != null) {
+            builder.setInitializeParams(getInitializeParams() != null ? getInitializeParams().copyTo() : null);
+        }
+
+        return builder.build();
     }
 }

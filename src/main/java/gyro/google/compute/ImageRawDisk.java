@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.cloud.compute.v1.Image;
+import com.google.cloud.compute.v1.RawDisk;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -24,7 +24,7 @@ import gyro.google.Copyable;
 /**
  * A raw disk file used to create an image.
  */
-public class ImageRawDisk extends Diffable implements Copyable<Image.RawDisk> {
+public class ImageRawDisk extends Diffable implements Copyable<RawDisk> {
 
     private String source;
 
@@ -46,12 +46,11 @@ public class ImageRawDisk extends Diffable implements Copyable<Image.RawDisk> {
     }
 
     @Override
-    public void copyFrom(Image.RawDisk model) {
+    public void copyFrom(RawDisk model) {
         setSource(model.getSource());
     }
 
-    Image.RawDisk toRawDisk() {
-        return new Image.RawDisk()
-            .setSource(getSource());
+    RawDisk toRawDisk() {
+        return RawDisk.newBuilder().setSource(getSource()).build();
     }
 }
