@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -46,6 +47,7 @@ import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 import gyro.google.compute.NetworkResource;
 import gyro.google.compute.SubnetworkResource;
+import gyro.google.util.Utils;
 
 /**
  * .. code-block:: gyro
@@ -998,12 +1000,16 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         setEndpoint(model.getEndpoint());
         setSelfLink(model.getSelfLink());
         setInitialClusterVersion(model.getInitialClusterVersion());
-        setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
+        setSubnetwork(Optional.ofNullable(Utils.findResourceByField(SubnetworkResource.class,
+            findByClass(SubnetworkResource.class), model.getSubnetwork()))
+            .orElse(findById(SubnetworkResource.class, model.getSubnetwork())));
         setNodeLocations(model.getLocationsList());
         setEnableKubernetesAlpha(model.getEnableKubernetesAlpha());
         setLoggingService(model.getLoggingService());
         setMonitoringService(model.getMonitoringService());
-        setNetwork(findById(NetworkResource.class, model.getNetwork()));
+        setNetwork(Optional.ofNullable(Utils.findResourceByField(NetworkResource.class,
+            findByClass(NetworkResource.class), model.getNetwork()))
+            .orElse(findById(NetworkResource.class, model.getNetwork())));
         setClusterIpv4Cidr(model.getClusterIpv4Cidr());
         setLabelFingerPrint(model.getLabelFingerprint());
     }
