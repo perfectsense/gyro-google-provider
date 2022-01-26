@@ -18,13 +18,7 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.client.util.Data;
-import com.google.cloud.compute.v1.HTTP2HealthCheck;
-import com.google.cloud.compute.v1.HTTPHealthCheck;
-import com.google.cloud.compute.v1.HTTPSHealthCheck;
 import com.google.cloud.compute.v1.HealthCheck;
-import com.google.cloud.compute.v1.SSLHealthCheck;
-import com.google.cloud.compute.v1.TCPHealthCheck;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -235,35 +229,35 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
         setType(healthCheck.getType());
 
         setHttpHealthCheck(null);
-        if (healthCheck.getHttpHealthCheck() != null) {
+        if (healthCheck.hasHttpHealthCheck()) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
             httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
             setHttpHealthCheck(httpHealthCheck);
         }
 
         setHttpsHealthCheck(null);
-        if (healthCheck.getHttpsHealthCheck() != null) {
+        if (healthCheck.hasHttpsHealthCheck()) {
             HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
             httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
             setHttpsHealthCheck(httpsHealthCheck);
         }
 
         setHttp2HealthCheck(null);
-        if (healthCheck.getHttp2HealthCheck() != null) {
+        if (healthCheck.hasHttp2HealthCheck()) {
             HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
             http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
             setHttp2HealthCheck(http2HealthCheck);
         }
 
         setSslHealthCheck(null);
-        if (healthCheck.getSslHealthCheck() != null) {
+        if (healthCheck.hasSslHealthCheck()) {
             HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
             sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
             setSslHealthCheck(sslHealthCheck);
         }
 
         setTcpHealthCheck(null);
-        if (healthCheck.getTcpHealthCheck() != null) {
+        if (healthCheck.hasTcpHealthCheck()) {
             HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
             tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
             setTcpHealthCheck(tcpHealthCheck);
@@ -299,31 +293,26 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
             healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         }
 
-        healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
         if (getHttpHealthCheck() != null) {
             healthCheck.setType(getHttpHealthCheck().getType());
             healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
         }
 
-        healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
         if (getHttpsHealthCheck() != null) {
             healthCheck.setType(getHttpsHealthCheck().getType());
             healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
         }
 
-        healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
         if (getHttp2HealthCheck() != null) {
             healthCheck.setType(getHttp2HealthCheck().getType());
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
         }
 
-        healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
         if (getSslHealthCheck() != null) {
             healthCheck.setType(getSslHealthCheck().getType());
             healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
         }
 
-        healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
         if (getTcpHealthCheck() != null) {
             healthCheck.setType(getTcpHealthCheck().getType());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());

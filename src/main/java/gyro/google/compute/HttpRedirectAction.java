@@ -99,7 +99,7 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
         setHostRedirect(model.getHostRedirect());
         setPathRedirect(model.getPathRedirect());
         setPrefixRedirect(model.getPrefixRedirect());
-        setRedirectResponseCode(model.getRedirectResponseCode());
+        setRedirectResponseCode(model.getRedirectResponseCode().toString());
         setStripQuery(model.getStripQuery());
         setHttpsRedirect(model.getHttpsRedirect());
 
@@ -111,15 +111,29 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
     }
 
     protected com.google.cloud.compute.v1.HttpRedirectAction toHttpRedirectAction() {
-        com.google.cloud.compute.v1.HttpRedirectAction httpRedirectAction = new com.google.cloud.compute.v1.HttpRedirectAction();
+        com.google.cloud.compute.v1.HttpRedirectAction.Builder httpRedirectAction =
+            com.google.cloud.compute.v1.HttpRedirectAction.newBuilder();
 
-        httpRedirectAction.setHostRedirect(getHostRedirect());
-        httpRedirectAction.setPathRedirect(getPathRedirect());
-        httpRedirectAction.setPrefixRedirect(getPrefixRedirect());
-        httpRedirectAction.setRedirectResponseCode(getRedirectResponseCode());
+        if (getHostRedirect() != null) {
+            httpRedirectAction.setHostRedirect(getHostRedirect());
+        }
+
+        if (getPathRedirect() != null) {
+            httpRedirectAction.setPathRedirect(getPathRedirect());
+        }
+
+        if (getPrefixRedirect() != null) {
+            httpRedirectAction.setPrefixRedirect(getPrefixRedirect());
+        }
+
+        if (getRedirectResponseCode() != null) {
+            httpRedirectAction.setRedirectResponseCode(com.google.cloud.compute.v1.HttpRedirectAction.RedirectResponseCode
+                .valueOf(getRedirectResponseCode()));
+        }
+
         httpRedirectAction.setStripQuery(getStripQuery());
         httpRedirectAction.setHttpsRedirect(getHttpsRedirect());
 
-        return httpRedirectAction;
+        return httpRedirectAction.build();
     }
 }

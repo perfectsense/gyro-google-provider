@@ -37,20 +37,41 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
         if (model != null) {
             setPort(model.getPort());
             setPortName(model.getPortName());
-            setPortSpecification(model.getPortSpecification());
-            setProxyHeader(model.getProxyHeader());
+            setPortSpecification(
+                model.getPortSpecification() != null ? model.getPortSpecification().toString().toUpperCase() : null);
+            setProxyHeader(model.getProxyHeader() != null ? model.getProxyHeader().toString() : null);
             setResponse(model.getResponse());
             setRequestPath(model.getRequest());
         }
     }
 
     public TCPHealthCheck toTcpHealthCheck() {
-        return new TCPHealthCheck()
-            .setPort(getPort())
-            .setPortName(getPortName())
-            .setPortSpecification(getPortSpecification())
-            .setProxyHeader(getProxyHeader())
-            .setResponse(getResponse())
-            .setRequest(getRequestPath());
+        TCPHealthCheck.Builder builder = TCPHealthCheck.newBuilder();
+
+        if (getPort() != null) {
+            builder.setPort(getPort());
+        }
+
+        if (getPortName() != null) {
+            builder.setPortName(getPortName());
+        }
+
+        if (getPortSpecification() != null) {
+            builder.setPortSpecification(TCPHealthCheck.PortSpecification.valueOf(getPortSpecification()));
+        }
+
+        if (getProxyHeader() != null) {
+            builder.setProxyHeader(TCPHealthCheck.ProxyHeader.valueOf(getProxyHeader()));
+        }
+
+        if (getResponse() != null) {
+            builder.setResponse(getResponse());
+        }
+
+        if (getRequestPath() != null) {
+            builder.setRequest(getRequestPath());
+        }
+
+        return builder.build();
     }
 }

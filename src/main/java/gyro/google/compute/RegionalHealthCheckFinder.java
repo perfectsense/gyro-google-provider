@@ -17,19 +17,25 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.HealthCheck;
-import com.google.cloud.compute.v1.HealthCheckList;
-import com.google.cloud.compute.v1.HealthChecksAggregatedList;
-import com.google.cloud.compute.v1.HealthChecksScopedList;
+import com.google.cloud.compute.v1.ListRegionHealthChecksRequest;
+import com.google.cloud.compute.v1.ListRegionsRequest;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionHealthChecksClient;
+import com.google.cloud.compute.v1.RegionsClient;
+import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.Type;
+import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query for regional health checks.
@@ -43,7 +49,8 @@ import gyro.google.GoogleFinder;
  *
  */
 @Type("compute-regional-health-check")
-public class RegionalHealthCheckFinder extends GoogleFinder<Compute, HealthCheck, RegionalHealthCheckResource> {
+public class RegionalHealthCheckFinder
+    extends GoogleFinder<RegionHealthChecksClient, HealthCheck, RegionalHealthCheckResource> {
 
     private String name;
     private String region;
@@ -71,53 +78,123 @@ public class RegionalHealthCheckFinder extends GoogleFinder<Compute, HealthCheck
     }
 
     @Override
-    protected List<HealthCheck> findAllGoogle(Compute client) throws Exception {
-        List<HealthCheck> healthChecks = new ArrayList<>();
-        HealthChecksAggregatedList healthChecksAggregatedList;
-        String nextPageToken = null;
+    protected List<HealthCheck> findAllGoogle(RegionHealthChecksClient client) throws Exception {
+        return getRegionHealthChecks(client, null);
+    }
 
-        do {
-            healthChecksAggregatedList = client.healthChecks()
-                .aggregatedList(getProjectId())
-                .setPageToken(nextPageToken)
-                .execute();
-            healthChecks.addAll(healthChecksAggregatedList
-                .getItems().values().stream()
-                .map(HealthChecksScopedList::getHealthChecks)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(healthCheck -> healthCheck.getRegion() != null)
-                .collect(Collectors.toList()));
-            nextPageToken = healthChecksAggregatedList.getNextPageToken();
-        } while (nextPageToken != null);
+    @Override
+    protected List<HealthCheck> findGoogle(RegionHealthChecksClient client, Map<String, String> filters) {
+        List<HealthCheck> healthChecks = new ArrayList<>();
+        String region = filters.remove("region");
+        String name = filters.remove("name");
+        String filter = Utils.convertToFilters(filters);
+
+        try {
+            if (filters.containsKey("zone")) {
+                throw new GyroException("For zonal healthCheck, use 'compute-healthCheck' instead.");
+            }
+
+            if (region != null && name != null) {
+                healthChecks.add(client.get(GetRegionHealthCheckRequest.newBuilder().setHealthCheck(name)
+                    .setProject(getProjectId()).setRegion(region).build()));
+
+            } else {
+                if (region != null) {
+                    healthChecks.addAll(getHealthChecks(client, filter, region));
+
+                } else if (name != null) {
+                    List<String> regions = getRegions();
+
+                    for (String r : regions) {
+                        try {
+                            healthChecks.add(client.get(GetRegionHealthCheckRequest.newBuilder().setHealthCheck(name)
+                                .setProject(getProjectId()).setRegion(r).build()));
+
+                        } catch (NotFoundException | InvalidArgumentException ex) {
+                            // ignore
+                        }
+                    }
+                } else {
+                    getRegionHealthChecks(client, filter);
+                }
+            }
+        } finally {
+            client.close();
+        }
 
         return healthChecks;
     }
 
-    @Override
-    protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+    private List<HealthCheck> getRegionHealthChecks(RegionHealthChecksClient client, String filter) {
+        List<String> regionList = getRegions();
+
         List<HealthCheck> healthChecks = new ArrayList<>();
-        HealthCheckList healthCheckList;
-        String nextPageToken = null;
 
-        if (filters.containsKey("region") && filters.containsKey("name")) {
-            healthChecks.add(client.regionHealthChecks()
-                .get(getProjectId(), filters.get("region"), filters.get("name"))
-                .execute());
-        } else if (filters.containsKey("region")) {
-            do {
-                healthCheckList = client.regionHealthChecks()
-                    .list(getProjectId(), filters.get("region"))
-                    .setPageToken(nextPageToken)
-                    .execute();
-                nextPageToken = healthCheckList.getNextPageToken();
+        try {
+            for (String region : regionList) {
+                healthChecks.addAll(getHealthChecks(client, filter, region));
+            }
 
-                if (healthCheckList.getItems() != null) {
-                    healthChecks.addAll(healthCheckList.getItems());
-                }
-            } while (nextPageToken != null);
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+
+        } finally {
+            client.close();
         }
 
         return healthChecks;
+    }
+
+    private List<HealthCheck> getHealthChecks(RegionHealthChecksClient client, String filter, String region) {
+        String pageToken = null;
+
+        List<HealthCheck> healthChecks = new ArrayList<>();
+
+        do {
+            ListRegionHealthChecksRequest.Builder builder = ListRegionHealthChecksRequest.newBuilder()
+                .setProject(getProjectId()).setRegion(region);
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            RegionHealthChecksClient.ListPagedResponse response = client.list(builder.build());
+            pageToken = response.getNextPageToken();
+
+            if (response.getPage() != null && response.getPage().getResponse() != null) {
+                healthChecks.addAll(response.getPage().getResponse().getItemsList());
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
+
+        return healthChecks;
+    }
+
+    private List<String> getRegions() {
+        String pageToken = null;
+        List<String> regionList = new ArrayList<>();
+
+        try (RegionsClient regionsClient = credentials(GoogleCredentials.class).createClient(RegionsClient.class)) {
+            do {
+                ListRegionsRequest.Builder builder = ListRegionsRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                RegionsClient.ListPagedResponse list = regionsClient.list(builder.build());
+                pageToken = list.getNextPageToken();
+                regionList.addAll(list.getPage().getResponse().getItemsList()
+                    .stream().map(Region::getName).collect(Collectors.toList()));
+
+            } while (!StringUtils.isEmpty(pageToken));
+        }
+
+        return regionList;
     }
 }

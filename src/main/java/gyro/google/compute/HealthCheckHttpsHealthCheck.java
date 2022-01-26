@@ -53,21 +53,44 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck implements 
             setHost(model.getHost());
             setPort(model.getPort());
             setPortName(model.getPortName());
-            setPortSpecification(model.getPortSpecification());
-            setProxyHeader(model.getProxyHeader());
+            setPortSpecification(model.getPortSpecification() != null ? model.getPortSpecification().toString() : null);
+            setProxyHeader(model.getProxyHeader() != null ? model.getProxyHeader().toString() : null);
             setResponse(model.getResponse());
             setRequestPath(model.getRequestPath());
         }
     }
 
     public HTTPSHealthCheck toHttpsHealthCheck() {
-        return new HTTPSHealthCheck()
-            .setHost(getHost())
-            .setPort(getPort())
-            .setPortName(getPortName())
-            .setPortSpecification(getPortSpecification())
-            .setProxyHeader(getProxyHeader())
-            .setResponse(getResponse())
-            .setRequestPath(getRequestPath());
+        HTTPSHealthCheck.Builder builder = HTTPSHealthCheck.newBuilder();
+
+        if (getHost() != null) {
+            builder.setHost(getHost());
+        }
+
+        if (getPort() != null) {
+            builder.setPort(getPort());
+        }
+
+        if (getPortName() != null) {
+            builder.setPortName(getPortName());
+        }
+
+        if (getPortSpecification() != null) {
+            builder.setPortSpecification(HTTPSHealthCheck.PortSpecification.valueOf(getPortSpecification()));
+        }
+
+        if (getProxyHeader() != null) {
+            builder.setProxyHeader(HTTPSHealthCheck.ProxyHeader.valueOf(getProxyHeader()));
+        }
+
+        if (getResponse() != null) {
+            builder.setResponse(getResponse());
+        }
+
+        if (getRequestPath() != null) {
+            builder.setRequestPath(getRequestPath());
+        }
+
+        return builder.build();
     }
 }

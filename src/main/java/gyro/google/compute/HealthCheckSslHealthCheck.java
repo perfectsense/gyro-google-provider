@@ -37,20 +37,43 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Co
         if (model != null) {
             setPort(model.getPort());
             setPortName(model.getPortName());
-            setPortSpecification(model.getPortSpecification());
-            setProxyHeader(model.getProxyHeader());
+            setPortSpecification(model.getPortSpecification() != null ? model.getPortSpecification()
+                .toString()
+                .toUpperCase()
+                .toUpperCase() : null);
+            setProxyHeader(model.getProxyHeader() != null ? model.getProxyHeader().toString().toUpperCase() : null);
             setResponse(model.getResponse());
             setRequestPath(model.getRequest());
         }
     }
 
     public SSLHealthCheck toSslHealthCheck() {
-        return new SSLHealthCheck()
-            .setPort(getPort())
-            .setPortName(getPortName())
-            .setPortSpecification(getPortSpecification())
-            .setProxyHeader(getProxyHeader())
-            .setResponse(getResponse())
-            .setRequest(getRequestPath());
+        SSLHealthCheck.Builder builder = SSLHealthCheck.newBuilder();
+
+        if (getPort() != null) {
+            builder.setPort(getPort());
+        }
+
+        if (getPortName() != null) {
+            builder.setPortName(getPortName());
+        }
+
+        if (getPortSpecification() != null) {
+            builder.setPortSpecification(SSLHealthCheck.PortSpecification.valueOf(getPortSpecification()));
+        }
+
+        if (getProxyHeader() != null) {
+            builder.setProxyHeader(SSLHealthCheck.ProxyHeader.valueOf(getProxyHeader()));
+        }
+
+        if (getResponse() != null) {
+            builder.setResponse(getResponse());
+        }
+
+        if (getRequestPath() != null) {
+            builder.setRequest(getRequestPath());
+        }
+
+        return builder.build();
     }
 }

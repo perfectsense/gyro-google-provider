@@ -20,8 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.cloud.compute.v1.HttpHealthCheck;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetHealthCheckRequest;
+import com.google.cloud.compute.v1.HTTPHealthCheck;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.HealthChecksClient;
 import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -55,7 +59,7 @@ import gyro.google.Copyable;
  *      end
  */
 @Type("compute-http-health-check")
-public class HttpHealthCheckResource extends ComputeResource implements Copyable<HttpHealthCheck> {
+public class HttpHealthCheckResource extends ComputeResource implements Copyable<HealthCheck> {
 
     private Integer checkIntervalSec;
     private String description;
@@ -193,60 +197,70 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
     }
 
     @Override
-    public void copyFrom(HttpHealthCheck healthCheck) throws Exception {
+    public void copyFrom(HealthCheck healthCheck) throws Exception {
         setCheckIntervalSec(healthCheck.getCheckIntervalSec());
         setDescription(healthCheck.getDescription());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
-        setHost(healthCheck.getHost());
         setName(healthCheck.getName());
-        setPort(healthCheck.getPort());
-        setRequestPath(healthCheck.getRequestPath());
         setTimeoutSec(healthCheck.getTimeoutSec());
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setSelfLink(healthCheck.getSelfLink());
+
+        if (healthCheck.hasHttpHealthCheck()) {
+            setHost(healthCheck.getHttpHealthCheck().getHost());
+            setPort(healthCheck.getHttpHealthCheck().getPort());
+            setRequestPath(healthCheck.getHttpHealthCheck().getRequestPath());
+        }
     }
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        HttpHealthCheck healthCheck = client.httpHealthChecks().get(getProjectId(), getName()).execute();
-        copyFrom(healthCheck);
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            HealthCheck healthCheck = getHealthCheck(client);
 
-        return true;
+            if (healthCheck == null) {
+                return false;
+            }
+
+            copyFrom(healthCheck);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        HttpHealthCheck healthCheck = getHttpHealthCheck(null);
-        Operation operation = client.httpHealthChecks().insert(getProjectId(), healthCheck).execute();
-        waitForCompletion(client, operation);
-
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            HealthCheck healthCheck = getHttpHealthCheck(null);
+            Operation operation = client.insert(getProjectId(), healthCheck);
+            waitForCompletion(operation);
+        }
         refresh();
     }
 
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-        HttpHealthCheck healthCheck = getHttpHealthCheck(changedFieldNames);
-        Operation operation = client.httpHealthChecks().patch(getProjectId(), getName(), healthCheck).execute();
-        waitForCompletion(client, operation);
-
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            HealthCheck healthCheck = getHttpHealthCheck(changedFieldNames);
+            Operation operation = client.patch(getProjectId(), getName(), healthCheck);
+            waitForCompletion(operation);
+        }
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.httpHealthChecks().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            Operation operation = client.delete(getProjectId(), getName());
+            waitForCompletion(operation);
+        }
     }
 
-    public HttpHealthCheck getHttpHealthCheck(Set<String> changedFieldNames) {
+    public HealthCheck getHttpHealthCheck(Set<String> changedFieldNames) {
         boolean isUpdate = changedFieldNames != null && (changedFieldNames.size() > 0);
 
-        HttpHealthCheck healthCheck = new HttpHealthCheck();
+        HealthCheck.Builder healthCheck = HealthCheck.newBuilder();
 
         if (!isUpdate) {
             healthCheck.setName(getName());
@@ -265,15 +279,18 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
         }
 
         if (!isUpdate || changedFieldNames.contains("host")) {
-            healthCheck.setHost(getHost());
-        }
+            HTTPHealthCheck.Builder builder = HTTPHealthCheck.newBuilder();
+            builder.setHost(getHost());
 
-        if (!isUpdate || changedFieldNames.contains("port")) {
-            healthCheck.setPort(getPort());
-        }
+            if (!isUpdate || changedFieldNames.contains("port")) {
+                builder.setPort(getPort());
+            }
 
-        if (!isUpdate || changedFieldNames.contains("request-path")) {
-            healthCheck.setRequestPath(getRequestPath());
+            if (!isUpdate || changedFieldNames.contains("request-path")) {
+                builder.setRequestPath(getRequestPath());
+            }
+
+            healthCheck.setHttpHealthCheck(builder.build());
         }
 
         if (!isUpdate || changedFieldNames.contains("timeout-sec")) {
@@ -284,11 +301,11 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
             healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         }
 
-        return healthCheck;
+        return healthCheck.build();
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getTimeoutSec() != null && getCheckIntervalSec() != null && getTimeoutSec() > getCheckIntervalSec()) {
@@ -298,5 +315,21 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
                 "'timeout-sec' must be less than or equal to 'check-interval-sec'!"));
         }
         return errors;
+    }
+
+    private HealthCheck getHealthCheck(HealthChecksClient client) {
+        HealthCheck healthCheck = null;
+
+        try {
+            healthCheck = client.get(GetHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheck(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return healthCheck;
     }
 }
