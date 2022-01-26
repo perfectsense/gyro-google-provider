@@ -298,4 +298,9 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         Operation operation = client.subnetworks().delete(getProjectId(), getRegion(), getName()).execute();
         waitForCompletion(client, operation);
     }
+
+    public static String selfLinkForName(String projectId, String region, String name) {
+        return String.format("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/subnetworks/%s",
+            projectId, region, name);
+    }
 }

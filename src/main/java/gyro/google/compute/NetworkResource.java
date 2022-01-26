@@ -181,4 +181,9 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         Operation operation = client.networks().delete(getProjectId(), getName()).execute();
         waitForCompletion(client, operation);
     }
+
+    public static String selfLinkForName(String projectId, String name) {
+        return String.format("https://www.googleapis.com/compute/v1/projects/%s/global/networks/%s",
+            projectId, name);
+    }
 }

@@ -998,14 +998,16 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         setEndpoint(model.getEndpoint());
         setSelfLink(model.getSelfLink());
         setInitialClusterVersion(model.getInitialClusterVersion());
-        setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         setNodeLocations(model.getLocationsList());
         setEnableKubernetesAlpha(model.getEnableKubernetesAlpha());
         setLoggingService(model.getLoggingService());
         setMonitoringService(model.getMonitoringService());
-        setNetwork(findById(NetworkResource.class, model.getNetwork()));
         setClusterIpv4Cidr(model.getClusterIpv4Cidr());
         setLabelFingerPrint(model.getLabelFingerprint());
+        setNetwork(findById(NetworkResource.class,
+            NetworkResource.selfLinkForName(getProjectId(), model.getNetwork())));
+        setSubnetwork(findById(SubnetworkResource.class,
+            SubnetworkResource.selfLinkForName(getProjectId(), model.getLocation(), model.getSubnetwork())));
     }
 
     @Override
