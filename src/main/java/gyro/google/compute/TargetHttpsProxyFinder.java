@@ -21,9 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.ListTargetHttpsProxiesRequest;
+import com.google.cloud.compute.v1.TargetHttpsProxiesClient;
 import com.google.cloud.compute.v1.TargetHttpsProxy;
 import com.google.cloud.compute.v1.TargetHttpsProxyList;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +40,8 @@ import gyro.google.GoogleFinder;
  *    compute-target-https-proxy: $(external-query google::compute-target-https-proxy { name: 'target-https-proxy-example' })
  */
 @Type("compute-target-https-proxy")
-public class TargetHttpsProxyFinder extends GoogleFinder<Compute, TargetHttpsProxy, TargetHttpsProxyResource> {
+public class TargetHttpsProxyFinder
+    extends GoogleFinder<TargetHttpsProxiesClient, TargetHttpsProxy, TargetHttpsProxyResource> {
 
     private String name;
 
@@ -54,27 +57,39 @@ public class TargetHttpsProxyFinder extends GoogleFinder<Compute, TargetHttpsPro
     }
 
     @Override
-    protected List<TargetHttpsProxy> findAllGoogle(Compute client) throws Exception {
+    protected List<TargetHttpsProxy> findAllGoogle(TargetHttpsProxiesClient client) throws Exception {
         List<TargetHttpsProxy> targetHttpsProxies = new ArrayList<>();
-        String nextPageToken = null;
         TargetHttpsProxyList targetHttpsProxyList;
+        String nextPageToken = null;
 
-        do {
-            targetHttpsProxyList =
-                client.targetHttpsProxies().list(getProjectId()).setPageToken(nextPageToken).execute();
-            if (targetHttpsProxyList.getItems() != null) {
-                targetHttpsProxies.addAll(targetHttpsProxyList.getItems());
-            }
-            nextPageToken = targetHttpsProxyList.getNextPageToken();
-        } while (nextPageToken != null);
+        try {
+            do {
+                ListTargetHttpsProxiesRequest.Builder builder = ListTargetHttpsProxiesRequest.newBuilder()
+                    .setProject(getProjectId());
 
-        return targetHttpsProxies;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                targetHttpsProxyList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = targetHttpsProxyList.getNextPageToken();
+
+                if (targetHttpsProxyList.getItemsList() != null) {
+                    targetHttpsProxies.addAll(targetHttpsProxyList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return targetHttpsProxies;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<TargetHttpsProxy> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.targetHttpsProxies()
-            .get(getProjectId(), filters.get("name"))
-            .execute());
+    protected List<TargetHttpsProxy> findGoogle(TargetHttpsProxiesClient client, Map<String, String> filters)
+        throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }

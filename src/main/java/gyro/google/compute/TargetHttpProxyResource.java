@@ -18,10 +18,13 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.TargetHttpProxiesClient;
+import com.google.cloud.compute.v1.TargetHttpProxy;
 import com.google.cloud.compute.v1.UrlMapReference;
-import com.google.cloud.compute.v1.ProjectGlobalTargetHttpProxyName;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -46,40 +49,65 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.targetHttpProxies().get(getProjectId(), getName()).execute());
+        try (TargetHttpProxiesClient client = createClient(TargetHttpProxiesClient.class)) {
+            TargetHttpProxy targetHttpProxy = getTargetHttpProxy(client);
 
-        return true;
+            if (targetHttpProxy == null) {
+                return false;
+            }
+
+            copyFrom(targetHttpProxy);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.targetHttpProxies().insert(getProjectId(), toTargetHttpProxy()).execute();
-        waitForCompletion(client, response);
+        try (TargetHttpProxiesClient client = createClient(TargetHttpProxiesClient.class)) {
+            Operation operation = client.insert(getProjectId(), toTargetHttpProxy());
+            waitForCompletion(operation);
+        }
+
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-
-        UrlMapReference urlMapReference = new UrlMapReference();
-        urlMapReference.setUrlMap(getUrlMapSelfLink());
-        Operation response = client.targetHttpProxies().setUrlMap(getProjectId(), getName(), urlMapReference).execute();
-        waitForCompletion(client, response);
-
+        try (TargetHttpProxiesClient client = createClient(TargetHttpProxiesClient.class)) {
+            UrlMapReference.Builder builder = UrlMapReference.newBuilder();
+            builder.setUrlMap(getUrlMapSelfLink());
+            Operation response = client.setUrlMap(getProjectId(), getName(), builder.build());
+            waitForCompletion(response);
+        }
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.targetHttpProxies().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, response);
+        try (TargetHttpProxiesClient client = createClient(TargetHttpProxiesClient.class)) {
+            Operation response = client.delete(getProjectId(), getName());
+            waitForCompletion(response);
+        }
     }
 
     static boolean isTargetHttpProxy(String selfLink) {
-        return selfLink != null && ProjectGlobalTargetHttpProxyName.isParsableFrom(formatResource(null, selfLink));
+        return selfLink != null && selfLink.contains("targetHttpProxies");
+    }
+
+    private TargetHttpProxy getTargetHttpProxy(TargetHttpProxiesClient client) {
+        TargetHttpProxy targetHttpProxy = null;
+
+        try {
+            targetHttpProxy = client.get(GetTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpProxy(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return targetHttpProxy;
     }
 }

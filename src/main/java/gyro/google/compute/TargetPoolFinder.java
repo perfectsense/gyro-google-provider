@@ -24,10 +24,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListTargetPoolsRequest;
+import com.google.cloud.compute.v1.ListTargetPoolsRequest;
 import com.google.cloud.compute.v1.TargetPool;
 import com.google.cloud.compute.v1.TargetPoolAggregatedList;
+import com.google.cloud.compute.v1.TargetPoolList;
+import com.google.cloud.compute.v1.TargetPoolsClient;
 import com.google.cloud.compute.v1.TargetPoolsScopedList;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -42,7 +49,7 @@ import gyro.google.GoogleFinder;
  *    target-pool: $(external-query google::compute-target-pool { name: 'target-pool-example', region: 'us-central1'})
  */
 @Type("compute-target-pool")
-public class TargetPoolFinder extends GoogleFinder<Compute, TargetPool, TargetPoolResource> {
+public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool, TargetPoolResource> {
 
     private String name;
     private String region;
@@ -70,27 +77,92 @@ public class TargetPoolFinder extends GoogleFinder<Compute, TargetPool, TargetPo
     }
 
     @Override
-    protected List<TargetPool> findAllGoogle(Compute client) throws Exception {
+    protected List<TargetPool> findAllGoogle(TargetPoolsClient client) throws Exception {
+        try {
+            return getTargetPools(client);
+        } finally {
+            client.close();
+        }
+    }
+
+    @Override
+    protected List<TargetPool> findGoogle(TargetPoolsClient client, Map<String, String> filters)
+        throws Exception {
+        List<TargetPool> targetPools = new ArrayList<>();
+
+        try {
+            if (filters.containsKey("name") && filters.containsKey("region")) {
+                targetPools = Collections.singletonList(client.get(getProjectId(), filters.get("region"),
+                    filters.get("name")));
+
+            } else if (filters.containsKey("region")) {
+                TargetPoolList targetPoolList;
+                String nextPageToken = null;
+
+                do {
+                    UnaryCallable<ListTargetPoolsRequest, TargetPoolsClient.ListPagedResponse> callable = client
+                        .listPagedCallable();
+
+                    ListTargetPoolsRequest.Builder builder = ListTargetPoolsRequest.newBuilder()
+                        .setRegion(filters.get("region"));
+
+                    if (nextPageToken != null) {
+                        builder.setPageToken(nextPageToken);
+                    }
+
+                    TargetPoolsClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                        getProjectId())
+                        .build());
+                    targetPoolList = pagedResponse.getPage().getResponse();
+                    nextPageToken = pagedResponse.getNextPageToken();
+
+                    if (targetPoolList.getItemsList() != null) {
+                        targetPools.addAll(targetPoolList.getItemsList().stream().filter(Objects::nonNull)
+                            .filter(targetPool -> targetPool.getRegion() != null).collect(Collectors.toList()));
+                    }
+
+                } while (!StringUtils.isEmpty(nextPageToken));
+
+            } else {
+                targetPools.addAll(getTargetPools(client));
+                targetPools.removeIf(d -> !d.getName().equals(filters.get("name")));
+            }
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return targetPools;
+    }
+
+    private List<TargetPool> getTargetPools(TargetPoolsClient client) {
         List<TargetPool> targetPools = new ArrayList<>();
         TargetPoolAggregatedList targetPoolList;
         String nextPageToken = null;
 
         do {
-            targetPoolList = client.targetPools().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
-            targetPools.addAll(targetPoolList.getItems().values().stream()
-                .map(TargetPoolsScopedList::getTargetPools)
+            AggregatedListTargetPoolsRequest.Builder builder = AggregatedListTargetPoolsRequest.newBuilder()
+                .setProject(getProjectId());
+
+            if (nextPageToken != null) {
+                builder.setPageToken(nextPageToken);
+            }
+
+            TargetPoolsClient.AggregatedListPagedResponse aggregatedListPagedResponse = client.aggregatedList(
+                builder.build());
+            targetPoolList = aggregatedListPagedResponse.getPage().getResponse();
+            nextPageToken = aggregatedListPagedResponse.getNextPageToken();
+
+            targetPools.addAll(targetPoolList.getItemsMap().values().stream()
+                .map(TargetPoolsScopedList::getTargetPoolsList)
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
+                .filter(targetPool -> targetPool.getRegion() != null)
                 .collect(Collectors.toList()));
-            nextPageToken = targetPoolList.getNextPageToken();
+
         } while (nextPageToken != null);
 
         return targetPools;
-    }
-
-    @Override
-    protected List<TargetPool> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(
-            client.targetPools().get(getProjectId(), filters.get("region"), filters.get("name")).execute());
     }
 }
