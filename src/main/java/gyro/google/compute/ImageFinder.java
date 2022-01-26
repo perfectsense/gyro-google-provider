@@ -23,9 +23,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
 import com.google.cloud.compute.v1.Image;
 import com.google.cloud.compute.v1.ImageList;
+import com.google.cloud.compute.v1.ImagesClient;
+import com.google.cloud.compute.v1.ListImagesRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -48,7 +50,7 @@ import gyro.google.GoogleFinder;
  *    compute-image: $(external-query google::compute-image { project: 'centos-cloud', family: 'centos-6' })
  */
 @Type("compute-image")
-public class ImageFinder extends GoogleFinder<Compute, Image, ImageResource> {
+public class ImageFinder extends GoogleFinder<ImagesClient, Image, ImageResource> {
 
     private String name;
     private String family;
@@ -88,22 +90,24 @@ public class ImageFinder extends GoogleFinder<Compute, Image, ImageResource> {
     }
 
     @Override
-    protected List<Image> findAllGoogle(Compute client) throws Exception {
-        return listImages(client, getProjectId());
+    protected List<Image> findAllGoogle(ImagesClient client) throws Exception {
+        try {
+            return listImages(client, getProjectId());
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<Image> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+    protected List<Image> findGoogle(ImagesClient client, Map<String, String> filters) throws Exception {
         List<Image> images;
 
         if (filters.containsKey("name")) {
-            images = Collections.singletonList(client.images().get(
-                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("name"))
-                .execute());
+            images = Collections.singletonList(client.get(
+                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("name")));
         } else if (filters.containsKey("family")) {
-            images = Collections.singletonList(client.images().getFromFamily(
-                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("family"))
-                .execute());
+            images = Collections.singletonList(client.getFromFamily(
+                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("family")));
         } else {
             images = listImages(client, filters.get("project"));
         }
@@ -111,19 +115,29 @@ public class ImageFinder extends GoogleFinder<Compute, Image, ImageResource> {
         return images;
     }
 
-    private static List<Image> listImages(Compute client, String project) throws Exception {
+    private static List<Image> listImages(ImagesClient client, String projectId) throws Exception {
         List<Image> images = new ArrayList<>();
         ImageList imageList;
         String nextPageToken = null;
 
         do {
-            imageList = client.images().list(project).setPageToken(nextPageToken).execute();
-            nextPageToken = imageList.getNextPageToken();
+            ListImagesRequest.Builder builder = ListImagesRequest.newBuilder().setProject(projectId);
 
-            if (imageList.getItems() != null) {
-                images.addAll(imageList.getItems().stream().filter(Objects::nonNull).collect(Collectors.toList()));
+            if (nextPageToken != null) {
+                builder.setPageToken(nextPageToken);
             }
-        } while (nextPageToken != null);
+
+            ImagesClient.ListPagedResponse listPagedResponse = client.list(builder.build());
+            imageList = listPagedResponse.getPage().getResponse();
+            nextPageToken = listPagedResponse.getNextPageToken();
+
+            if (imageList.getItemsList() != null) {
+                images.addAll(imageList.getItemsList().stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()));
+            }
+
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return images;
     }
