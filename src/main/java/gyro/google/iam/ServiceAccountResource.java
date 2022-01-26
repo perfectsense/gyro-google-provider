@@ -378,10 +378,10 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     }
 
     public com.google.cloud.compute.v1.ServiceAccount toComputeServiceAccount() {
-        com.google.cloud.compute.v1.ServiceAccount serviceAccount = new com.google.cloud.compute.v1.ServiceAccount();
-        serviceAccount.setEmail(Utils.getServiceAccountEmailFromId(getId()));
+        com.google.cloud.compute.v1.ServiceAccount.Builder builder = com.google.cloud.compute.v1.ServiceAccount.newBuilder();
+        builder.setEmail(Utils.getServiceAccountEmailFromId(getId()));
 
-        return serviceAccount;
+        return builder.build();
     }
 
     private Policy getPolicy(CloudResourceManager client) throws IOException {
