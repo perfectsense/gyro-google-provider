@@ -18,7 +18,10 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetResourcePolicyRequest;
+import com.google.cloud.compute.v1.ResourcePoliciesClient;
 import com.google.cloud.compute.v1.ResourcePolicy;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -67,7 +70,7 @@ import gyro.google.Copyable;
  *                labels: {
  *                    "foo": "bar"
  *                }
-                 storage-locations: ["us-central1"]
+ storage-locations: ["us-central1"]
  *            end
  *        end
  *    end
@@ -148,37 +151,49 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        ResourcePolicy policy = client.resourcePolicies().get(getProjectId(), getRegion(), getName()).execute();
+        try (ResourcePoliciesClient client = createClient(ResourcePoliciesClient.class)) {
+            ResourcePolicy policy = getResourcePolicy(client);
 
-        copyFrom(policy);
+            if (policy == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(policy);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        ResourcePolicy policy = new ResourcePolicy();
-        policy.setName(getName());
-        policy.setDescription(getDescription());
-        policy.setSnapshotSchedulePolicy(getSnapshotSchedulePolicy() != null ? getSnapshotSchedulePolicy().copyTo() : null);
+        try (ResourcePoliciesClient client = createClient(ResourcePoliciesClient.class)) {
+            ResourcePolicy.Builder builder = ResourcePolicy.newBuilder();
+            builder.setName(getName());
 
-        waitForCompletion(client, client.resourcePolicies().insert(getProjectId(), getRegion(), policy).execute());
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
+
+            if (getSnapshotSchedulePolicy() != null) {
+                builder.setSnapshotSchedulePolicy(getSnapshotSchedulePolicy().copyTo());
+            }
+
+            waitForCompletion(client.insert(getProjectId(), getRegion(), builder.build()));
+        }
 
         refresh();
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         // Do nothing since there is no patch/update API.
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        client.resourcePolicies().delete(getProjectId(), getRegion(), getName()).execute();
+        try (ResourcePoliciesClient client = createClient(ResourcePoliciesClient.class)) {
+            waitForCompletion(client.delete(getProjectId(), getRegion(), getName()));
+        }
     }
 
     @Override
@@ -194,5 +209,19 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
             currentSnapshotSchedulePolicy.copyFrom(model.getSnapshotSchedulePolicy());
             setSnapshotSchedulePolicy(currentSnapshotSchedulePolicy);
         }
+    }
+
+    private ResourcePolicy getResourcePolicy(ResourcePoliciesClient client) {
+        ResourcePolicy resourcePolicy = null;
+
+        try {
+            resourcePolicy = client.get(GetResourcePolicyRequest.newBuilder().setProject(getProjectId())
+                .setResourcePolicy(getName()).setRegion(getRegion()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return resourcePolicy;
     }
 }
