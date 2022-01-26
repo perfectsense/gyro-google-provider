@@ -17,13 +17,17 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Firewall;
 import com.google.cloud.compute.v1.FirewallList;
+import com.google.cloud.compute.v1.FirewallsClient;
+import com.google.cloud.compute.v1.ListFirewallsRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +42,7 @@ import gyro.google.GoogleFinder;
  *    firewall-rule: $(external-query google::compute-firewall-rule { name: 'firewall-rule-example'})
  */
 @Type("compute-firewall-rule")
-public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallResource> {
+public class FirewallFinder extends GoogleFinder<FirewallsClient, Firewall, FirewallResource> {
 
     private String name;
 
@@ -54,25 +58,50 @@ public class FirewallFinder extends GoogleFinder<Compute, Firewall, FirewallReso
     }
 
     @Override
-    protected List<Firewall> findAllGoogle(Compute client) throws Exception {
+    protected List<Firewall> findAllGoogle(FirewallsClient client) throws Exception {
         List<Firewall> firewalls = new ArrayList<>();
         FirewallList firewallList;
         String nextPageToken = null;
 
-        do {
-            firewallList = client.firewalls().list(getProjectId()).setPageToken(nextPageToken).execute();
-            nextPageToken = firewallList.getNextPageToken();
+        try {
+            do {
+                UnaryCallable<ListFirewallsRequest, FirewallsClient.ListPagedResponse> callable = client
+                    .listPagedCallable();
 
-            if (firewallList.getItems() != null) {
-                firewalls.addAll(firewallList.getItems());
-            }
-        } while (nextPageToken != null);
+                ListFirewallsRequest.Builder builder = ListFirewallsRequest.newBuilder().setProject(getProjectId());
 
-        return firewalls;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                FirewallsClient.ListPagedResponse listPagedResponse = client.list(builder.build());
+                firewallList = listPagedResponse.getPage().getResponse();
+                nextPageToken = listPagedResponse.getNextPageToken();
+
+                if (firewallList.getItemsList() != null) {
+                    firewalls.addAll(firewallList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return firewalls;
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<Firewall> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.firewalls().get(getProjectId(), filters.get("name")).execute());
+    protected List<Firewall> findGoogle(FirewallsClient client, Map<String, String> filters) throws Exception {
+        ArrayList<Firewall> firewalls = new ArrayList<>();
+
+        try {
+            firewalls.add(client.get(getProjectId(), filters.get("name")));
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return firewalls;
     }
 }

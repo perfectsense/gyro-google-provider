@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import com.google.cloud.compute.v1.Firewall.Denied;
+import com.google.cloud.compute.v1.Denied;
 import gyro.google.Copyable;
 
 public class FirewallDenied extends FirewallRule implements Copyable<Denied> {
@@ -27,15 +27,20 @@ public class FirewallDenied extends FirewallRule implements Copyable<Denied> {
     @Override
     public void copyFrom(Denied denied) {
         setProtocol(denied.getIPProtocol());
-        setPorts(denied.getPorts() != null ? new HashSet<>(denied.getPorts()) : null);
+        setPorts(denied.getPortsList() != null ? new HashSet<>(denied.getPortsList()) : null);
     }
 
     Denied toDenied() {
-        Denied denied = new Denied();
-        denied.setIPProtocol(getProtocol());
-        if (!getPorts().isEmpty()) {
-            denied.setPorts(new ArrayList<>(getPorts()));
+        Denied.Builder builder = Denied.newBuilder();
+
+        if (getProtocol() != null) {
+            builder.setIPProtocol(getProtocol());
         }
-        return denied;
+
+        if (!getPorts().isEmpty()) {
+            builder.addAllPorts(new ArrayList<>(getPorts()));
+        }
+
+        return builder.build();
     }
 }
