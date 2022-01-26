@@ -17,19 +17,25 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Disk;
-import com.google.cloud.compute.v1.DiskAggregatedList;
-import com.google.cloud.compute.v1.DisksScopedList;
+import com.google.cloud.compute.v1.DiskList;
+import com.google.cloud.compute.v1.ListRegionDisksRequest;
+import com.google.cloud.compute.v1.ListRegionsRequest;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionDisksClient;
+import com.google.cloud.compute.v1.RegionsClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
+import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
 
 /**
@@ -43,7 +49,7 @@ import gyro.google.GoogleFinder;
  *    compute-region-disk: $(external-query google::compute-region-disk { name: 'disk-example', region: 'us-east1' })
  */
 @Type("compute-region-disk")
-public class RegionDiskFinder extends GoogleFinder<Compute, Disk, RegionDiskResource> {
+public class RegionDiskFinder extends GoogleFinder<RegionDisksClient, Disk, RegionDiskResource> {
 
     private String region;
     private String name;
@@ -71,38 +77,90 @@ public class RegionDiskFinder extends GoogleFinder<Compute, Disk, RegionDiskReso
     }
 
     @Override
-    protected List<Disk> findAllGoogle(Compute client) throws Exception {
-        List<Disk> disks = new ArrayList<>();
-        DiskAggregatedList diskAggregatedList;
-        String nextPageToken = null;
-
-        do {
-            diskAggregatedList = client.disks().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
-            disks.addAll(diskAggregatedList
-                .getItems().values().stream()
-                .map(DisksScopedList::getDisks)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(disk -> disk.getRegion() != null)
-                .collect(Collectors.toList()));
-            nextPageToken = diskAggregatedList.getNextPageToken();
-        } while (nextPageToken != null);
-
-        return disks;
+    protected List<Disk> findAllGoogle(RegionDisksClient client) throws Exception {
+        try {
+            return getRegionDisks(client, getRegions());
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<Disk> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        if (filters.containsKey("name")) {
-            return Collections.singletonList(client.regionDisks()
-                .get(getProjectId(), filters.get("region"), filters.get("name"))
-                .execute());
-        } else {
-            return Optional.ofNullable(client.regionDisks()
-                .list(getProjectId(), filters.get("region"))
-                .execute()
-                .getItems())
-                .orElse(new ArrayList<>());
+    protected List<Disk> findGoogle(RegionDisksClient client, Map<String, String> filters) throws Exception {
+        List<Disk> regionDisks = new ArrayList<>();
+
+        try {
+            if (filters.containsKey("name") && filters.containsKey("region")) {
+                regionDisks.add(client.get(getProjectId(), filters.get("region"), filters.get("name")));
+            } else if (filters.containsKey("region")) {
+                regionDisks.addAll(getRegionDisks(client, Collections.singletonList(filters.get("region"))));
+            } else {
+                regionDisks.addAll(getRegionDisks(client, getRegions()));
+                regionDisks.removeIf(d -> !d.getName().equals(filters.get("name")));
+            }
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
         }
+
+        return regionDisks;
+    }
+
+    private List<Disk> getRegionDisks(RegionDisksClient client, List<String> regions) {
+        List<Disk> regionDisks = new ArrayList<>();
+
+        DiskList regionDiskList;
+
+        for (String region : regions) {
+            String nextPageToken = null;
+            do {
+                UnaryCallable<ListRegionDisksRequest, RegionDisksClient.ListPagedResponse> callable = client
+                    .listPagedCallable();
+
+                ListRegionDisksRequest.Builder builder = ListRegionDisksRequest.newBuilder()
+                    .setRegion(region);
+
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                RegionDisksClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                    getProjectId()).build());
+                regionDiskList = pagedResponse.getPage().getResponse();
+                nextPageToken = pagedResponse.getNextPageToken();
+
+                if (regionDiskList.getItemsList() != null) {
+                    regionDisks.addAll(regionDiskList.getItemsList().stream().filter(Objects::nonNull)
+                        .filter(regionDisk -> regionDisk.getRegion() != null).collect(Collectors.toList()));
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+        }
+        return regionDisks;
+    }
+
+    private List<String> getRegions() {
+        String pageToken = null;
+        List<String> regionList = new ArrayList<>();
+
+        try (RegionsClient regionsClient = credentials(GoogleCredentials.class).createClient(RegionsClient.class)) {
+            do {
+                ListRegionsRequest.Builder builder = ListRegionsRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                RegionsClient.ListPagedResponse list = regionsClient.list(builder.build());
+                pageToken = list.getNextPageToken();
+                regionList.addAll(list.getPage().getResponse().getItemsList()
+                    .stream().map(Region::getName).collect(Collectors.toList()));
+
+            } while (!StringUtils.isEmpty(pageToken));
+        }
+
+        return regionList;
     }
 }

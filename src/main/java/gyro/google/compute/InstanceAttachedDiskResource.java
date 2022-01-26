@@ -21,11 +21,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AttachedDisk;
 import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstancesClient;
+import com.google.cloud.compute.v1.Operation;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
@@ -106,38 +107,31 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute compute = createClient(Compute.class);
-        InstanceAttachedDiskResource currentResource = (InstanceAttachedDiskResource) current;
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            InstanceAttachedDiskResource currentResource = (InstanceAttachedDiskResource) current;
 
-        if (changedFieldNames.contains("instance")) {
-            detachDisk(currentResource);
-            attachDisk();
-
-        } else if (changedFieldNames.contains("attached-disk")) {
-
-            if (!currentResource.getAttachedDisk().getSource().equals(getAttachedDisk().getSource())) {
-                attachDisk();
+            if (changedFieldNames.contains("instance")) {
                 detachDisk(currentResource);
+                attachDisk();
 
-                // Since current has now changed reflect in currentResource for any future calls. This is mainly
-                // to get the correct new deviceName.
-                AttachedDisk currentAttachedDisk = currentAttachedDisk();
-                currentResource.copyFrom(currentAttachedDisk);
-            }
+            } else if (changedFieldNames.contains("attached-disk")) {
+                if (!currentResource.getAttachedDisk().getSource().equals(getAttachedDisk().getSource())) {
+                    attachDisk();
+                    detachDisk(currentResource);
 
-            if (currentResource.getAttachedDisk().getAutoDelete() != getAttachedDisk().getAutoDelete()) {
-                waitForCompletion(
-                    compute,
-                    compute.instances()
-                        .setDiskAutoDelete(
-                            getProjectId(),
-                            getInstance().getZone(),
-                            getInstance().getName(),
-                            Boolean.TRUE.equals(getAttachedDisk().getAutoDelete()),
-                            currentResource.getAttachedDisk().getDeviceName())
-                        .execute());
+                    // Since current has now changed reflect in currentResource for any future calls. This is mainly
+                    // to get the correct new deviceName.
+                    AttachedDisk currentAttachedDisk = currentAttachedDisk();
+                    currentResource.copyFrom(currentAttachedDisk);
+                }
+
+                if (currentResource.getAttachedDisk().getAutoDelete() != getAttachedDisk().getAutoDelete()) {
+                    Operation operation = client.setDiskAutoDelete(getProjectId(), getInstance().getZone(),
+                        getInstance().getName(), Boolean.TRUE.equals(getAttachedDisk().getAutoDelete()),
+                        currentResource.getAttachedDisk().getDeviceName());
+                    waitForCompletion(operation);
+                }
             }
         }
 
@@ -157,66 +151,53 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
     }
 
     private AttachedDisk currentAttachedDisk() {
-        Compute compute = createClient(Compute.class);
-        AtomicReference<Instance> instanceResult = new AtomicReference<>();
-        String attachedDiskSourceSelfLink = formatResource(getProjectId(), attachedDisk.getSource().getSelfLink());
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            AtomicReference<Instance> instanceResult = new AtomicReference<>();
+            String attachedDiskSourceSelfLink = formatResource(
+                getProjectId(), getAttachedDisk().getSource().getSelfLink());
 
-        Wait.atMost(30, TimeUnit.SECONDS)
-            .prompt(false)
-            .checkEvery(10, TimeUnit.SECONDS)
-            .until(() -> {
-                try {
-                    Instance currentInstance = compute.instances()
-                        .get(getProjectId(), getInstance().getZone(), getInstance().getName())
-                        .execute();
-                    instanceResult.set(currentInstance);
-                    return true;
-                } catch (GoogleJsonResponseException e) {
-                    if (e.getDetails().getErrors().stream()
-                        .map(GoogleJsonError.ErrorInfo::getReason)
-                        .anyMatch("resourceNotReady"::equals)) {
+            Wait.atMost(30, TimeUnit.SECONDS)
+                .prompt(false)
+                .checkEvery(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    try {
+                        Instance currentInstance = client
+                            .get(getProjectId(), getInstance().getZone(), getInstance().getName());
+                        instanceResult.set(currentInstance);
+
+                        return true;
+
+                    } catch (NotFoundException | InvalidArgumentException e) {
                         return false;
                     }
+                });
 
-                    throw e;
-                }
-            });
+            List<AttachedDisk> disks = instanceResult.get().getDisksList();
 
-        List<AttachedDisk> disks = instanceResult.get().getDisks();
+            if (disks != null) {
+                return disks.stream()
+                    .filter(disk -> formatResource(getProjectId(), disk.getSource()).equals(attachedDiskSourceSelfLink))
+                    .findFirst()
+                    .orElse(null);
+            }
 
-        if (disks != null) {
-            return disks.stream()
-                .filter(disk -> formatResource(getProjectId(), disk.getSource()).equals(attachedDiskSourceSelfLink))
-                .findFirst()
-                .orElse(null);
+            return null;
         }
-
-        return null;
     }
 
     private void detachDisk(InstanceAttachedDiskResource resource) throws Exception {
-        Compute compute = createClient(Compute.class);
-        waitForCompletion(
-            compute,
-            compute.instances()
-                .detachDisk(
-                    resource.getProjectId(),
-                    resource.getInstance().getZone(),
-                    resource.getInstance().getName(),
-                    resource.getAttachedDisk().getDeviceName())
-                .execute());
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            Operation operation = client.detachDisk(resource.getProjectId(), resource.getInstance().getZone(),
+                resource.getInstance().getName(), resource.getAttachedDisk().getDeviceName());
+            waitForCompletion(operation);
+        }
     }
 
     private void attachDisk() throws Exception {
-        Compute compute = createClient(Compute.class);
-        waitForCompletion(
-            compute,
-            compute.instances()
-                .attachDisk(
-                    getProjectId(),
-                    getInstance().getZone(),
-                    getInstance().getName(),
-                    getAttachedDisk().copyTo())
-                .execute());
+        try (InstancesClient client = createClient(InstancesClient.class)) {
+            Operation operation = client.attachDisk(getProjectId(), getInstance().getZone(), getInstance().getName(),
+                getAttachedDisk().copyTo());
+            waitForCompletion(operation);
+        }
     }
 }

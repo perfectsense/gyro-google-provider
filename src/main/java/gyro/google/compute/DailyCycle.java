@@ -63,8 +63,7 @@ public class DailyCycle extends Diffable implements Copyable<ResourcePolicyDaily
     }
 
     public ResourcePolicyDailyCycle copyTo() {
-        return new ResourcePolicyDailyCycle()
-            .setDaysInCycle(getDaysInCycle())
-            .setStartTime(getStartTime());
+        return ResourcePolicyDailyCycle.newBuilder().setDaysInCycle(getDaysInCycle())
+            .setStartTime(getStartTime()).build();
     }
 }

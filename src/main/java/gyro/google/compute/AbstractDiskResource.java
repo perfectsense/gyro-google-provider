@@ -20,20 +20,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.ComputeRequest;
-import com.google.cloud.compute.v1.Compute;
 import com.google.cloud.compute.v1.CustomerEncryptionKey;
 import com.google.cloud.compute.v1.Disk;
-import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.ProjectRegionDiskName;
-import com.google.cloud.compute.v1.ProjectZoneDiskName;
-import gyro.core.GyroException;
-import gyro.core.Wait;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -220,7 +210,7 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     }
 
     public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink != null ? toDiskUrl(getProjectId(), selfLink) : null;
+        this.selfLink = selfLink;
     }
 
     /**
@@ -284,43 +274,5 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         }
 
         return disk.build();
-    }
-
-    static String toDiskUrl(String projectId, String disk) {
-        String parseDisk = formatResource(projectId, disk);
-        if (Disk.isParsableFrom(parseDisk)) {
-            return ProjectZoneDiskName.parse(parseDisk).toString();
-        }
-        if (ProjectRegionDiskName.isParsableFrom(parseDisk)) {
-            return ProjectRegionDiskName.parse(parseDisk).toString();
-        }
-        return disk;
-    }
-
-    void createDisk(Compute client, ComputeRequest<Operation> insert) throws Exception {
-        boolean success = Wait.atMost(30, TimeUnit.SECONDS)
-            .prompt(false)
-            .checkEvery(10, TimeUnit.SECONDS)
-            .until(() -> executeCreateDisk(client, insert));
-        if (!success) {
-            throw new GyroException(String.format("The resource '%s' is not ready", getSourceSnapshot().getSelfLink()));
-        }
-    }
-
-    private boolean executeCreateDisk(Compute client, ComputeRequest<Operation> insert) throws Exception {
-        try {
-            Operation operation = insert.execute();
-            waitForCompletion(client, operation);
-        } catch (GoogleJsonResponseException je) {
-            if (je.getDetails()
-                .getErrors()
-                .stream()
-                .map(GoogleJsonError.ErrorInfo::getReason)
-                .anyMatch("resourceNotReady"::equals)) {
-                return false;
-            }
-            throw je;
-        }
-        return true;
     }
 }
