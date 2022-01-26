@@ -21,9 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
+import com.google.cloud.compute.v1.ListRoutesRequest;
 import com.google.cloud.compute.v1.Route;
 import com.google.cloud.compute.v1.RouteList;
+import com.google.cloud.compute.v1.RoutesClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    route: $(external-query google::compute-route { name: 'route-example'})
  */
 @Type("compute-route")
-public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
+public class RouteFinder extends GoogleFinder<RoutesClient, Route, RouteResource> {
 
     private String name;
 
@@ -54,25 +56,39 @@ public class RouteFinder extends GoogleFinder<Compute, Route, RouteResource> {
     }
 
     @Override
-    protected List<Route> findAllGoogle(Compute client) throws Exception {
+    protected List<Route> findAllGoogle(RoutesClient client) throws Exception {
         List<Route> routes = new ArrayList<>();
         RouteList routeList;
         String nextPageToken = null;
 
-        do {
-            routeList = client.routes().list(getProjectId()).setPageToken(nextPageToken).execute();
-            nextPageToken = routeList.getNextPageToken();
+        try {
+            do {
+                ListRoutesRequest.Builder builder = ListRoutesRequest.newBuilder()
+                    .setProject(getProjectId());
 
-            if (routeList.getItems() != null) {
-                routes.addAll(routeList.getItems());
-            }
-        } while (nextPageToken != null);
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
 
-        return routes;
+                routeList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = routeList.getNextPageToken();
+
+                if (routeList.getItemsList() != null) {
+                    routes.addAll(routeList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return routes;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<Route> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.routes().get(getProjectId(), filters.get("name")).execute());
+    protected List<Route> findGoogle(RoutesClient client, Map<String, String> filters)
+        throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }

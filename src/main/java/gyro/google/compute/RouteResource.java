@@ -24,9 +24,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.api.services.compute.Compute;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetRouteRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.Route;
+import com.google.cloud.compute.v1.RoutesClient;
+import com.google.cloud.compute.v1.Warnings;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -209,13 +213,13 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     @Override
     public void copyFrom(Route route) {
         setName(route.getName());
-        setId(route.getId().toString());
+        setId(String.valueOf(route.getId()));
         setSelfLink(route.getSelfLink());
         setDescription(route.getDescription());
         setDestRange(route.getDestRange());
         setNetwork(findById(NetworkResource.class, route.getNetwork()));
-        setPriority(route.getPriority());
-        setTags(route.getTags() != null ? new HashSet<>(route.getTags()) : null);
+        setPriority((long) route.getPriority());
+        setTags(route.getTagsList() != null ? new HashSet<>(route.getTagsList()) : null);
         setNextHopGateway(route.getNextHopGateway());
         setNextHopVpnTunnel(route.getNextHopVpnTunnel());
         setNextHopIp(route.getNextHopIp());
@@ -223,38 +227,62 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (RoutesClient client = createClient(RoutesClient.class)) {
+            Route route = getRoute(client);
 
-        Route route = client.routes().get(getProjectId(), getName()).execute();
-        copyFrom(route);
+            if (route == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(route);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (RoutesClient client = createClient(RoutesClient.class)) {
 
-        Route route = new Route();
-        route.setName(getName());
-        route.setDescription(getDescription());
-        route.setNetwork(getNetwork().getSelfLink());
-        route.setDestRange(getDestRange());
-        route.setNextHopGateway(getNextHopGateway());
-        route.setNextHopVpnTunnel(getNextHopVpnTunnel());
-        route.setNextHopIp(getNextHopIp());
-        route.setPriority(getPriority());
-        route.setTags(new ArrayList<>(getTags()));
+            Route.Builder builder = Route.newBuilder();
+            builder.setName(getName());
+            builder.setNetwork(getNetwork().getSelfLink());
+            builder.setDestRange(getDestRange());
 
-        Operation operation = client.routes().insert(getProjectId(), route).execute();
-        waitForCompletion(client, operation);
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
 
-        route = client.routes().get(getProjectId(), getName()).execute();
-        copyFrom(route);
-        if (route.getWarnings() != null && !route.getWarnings().isEmpty()) {
-            GyroCore.ui().write(
-                "\n@|cyan Route created with warnings:|@ %s\n",
-                route.getWarnings().stream().map(Route.Warnings::getMessage).collect(Collectors.joining("\n")));
+            if (getNextHopGateway() != null) {
+                builder.setNextHopGateway(getNextHopGateway());
+            }
+
+            if (getNextHopVpnTunnel() != null) {
+                builder.setNextHopVpnTunnel(getNextHopVpnTunnel());
+            }
+
+            if (getNextHopIp() != null) {
+                builder.setNextHopIp(getNextHopIp());
+            }
+
+            if (getPriority() != null) {
+                builder.setPriority(getPriority().intValue());
+            }
+
+            if (getTags() != null) {
+                builder.addAllTags(getTags());
+            }
+
+            Operation operation = client.insert(getProjectId(), builder.build());
+            waitForCompletion(operation);
+
+            Route route = client.get(getProjectId(), getName());
+            copyFrom(route);
+            if (builder.getWarningsList() != null && !builder.getWarningsList().isEmpty()) {
+                GyroCore.ui().write(
+                    "\n@|cyan Route created with warnings:|@ %s\n",
+                    builder.getWarningsList().stream().map(Warnings::getMessage).collect(Collectors.joining("\n")));
+            }
         }
     }
 
@@ -265,10 +293,10 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.routes().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+        try (RoutesClient client = createClient(RoutesClient.class)) {
+            Operation operation = client.delete(getProjectId(), getName());
+            waitForCompletion(operation);
+        }
     }
 
     @Override
@@ -292,5 +320,19 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
         }
 
         return errors;
+    }
+
+    private Route getRoute(RoutesClient client) {
+        Route route = null;
+
+        try {
+            route = client.get(GetRouteRequest.newBuilder().setProject(getProjectId())
+                .setRoute(getName()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return route;
     }
 }
