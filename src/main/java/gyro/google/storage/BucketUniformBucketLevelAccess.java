@@ -19,6 +19,7 @@ package gyro.google.storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.Bucket.IamConfiguration.UniformBucketLevelAccess;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 /**
@@ -31,6 +32,7 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
     /**
      * When ``true`` access is controlled only by bucket-level or above IAM policies.
      */
+    @Updatable
     public Boolean getEnabled() {
         return enabled;
     }

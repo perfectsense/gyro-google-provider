@@ -475,13 +475,18 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
         bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
 
-        bucket = storage.buckets()
+        Storage.Buckets.Insert insert = storage.buckets()
             .insert(getProjectId(), bucket)
-            .setPredefinedAcl(getPredefinedAcl())
-            .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
             .setUserProject(getUserProject())
-            .setProjection("full")
-            .execute();
+            .setProjection("full");
+
+        if (getIamConfiguration() != null
+            && getIamConfiguration().getUniformBucketLevelAccess() != null
+            && Boolean.FALSE.equals(getIamConfiguration().getUniformBucketLevelAccess().getEnabled())) {
+            insert.setPredefinedAcl(getPredefinedAcl()).setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl());
+        }
+
+        bucket = insert.execute();
 
         if (getIamPolicy() != null) {
             state.save();
@@ -558,13 +563,18 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
                 getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
         }
 
-        bucket = storage.buckets()
+        Storage.Buckets.Patch patch = storage.buckets()
             .patch(getName(), bucket)
-            .setPredefinedAcl(getPredefinedAcl())
-            .setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl())
             .setUserProject(getUserProject())
-            .setProjection("full")
-            .execute();
+            .setProjection("full");
+
+        if (getIamConfiguration() != null
+            && getIamConfiguration().getUniformBucketLevelAccess() != null
+            && Boolean.FALSE.equals(getIamConfiguration().getUniformBucketLevelAccess().getEnabled())) {
+           patch.setPredefinedAcl(getPredefinedAcl()).setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl());
+        }
+
+        bucket = patch.execute();
 
         if (changedFieldNames.contains("iam-policy") && getIamPolicy() != null) {
             storage.buckets()
