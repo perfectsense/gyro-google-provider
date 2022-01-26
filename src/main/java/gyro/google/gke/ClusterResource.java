@@ -32,6 +32,7 @@ import com.google.container.v1.ClusterUpdate;
 import com.google.container.v1.CreateClusterRequest;
 import com.google.container.v1.IntraNodeVisibilityConfig;
 import com.google.container.v1.SetLabelsRequest;
+import com.google.container.v1.SetNetworkPolicyRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
@@ -453,6 +454,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
      *
      * @subresource gyro.google.gke.GkeNetworkPolicy
      */
+    @Updatable
     public GkeNetworkPolicy getNetworkPolicyConfig() {
         return networkPolicyConfig;
     }
@@ -1290,6 +1292,14 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
                 builder.setDesiredMonitoringService(getMonitoringService());
                 updateCluster(client, builder);
                 builder.clear();
+            }
+
+            if (changedFieldNames.contains("network-policy-config")) {
+                client.setNetworkPolicy(SetNetworkPolicyRequest.newBuilder()
+                    .setName(getClusterId())
+                    .setNetworkPolicy(getNetworkPolicyConfig().toNetworkPolicy()).build());
+
+                waitForActiveStatus(client);
             }
 
             if (changedFieldNames.contains("labels")) {
