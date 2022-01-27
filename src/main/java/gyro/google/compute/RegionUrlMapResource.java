@@ -20,8 +20,11 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionUrlMapRequest;
 import com.google.cloud.compute.v1.GetRegionUrlMapRequest;
+import com.google.cloud.compute.v1.InsertRegionUrlMapRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRegionUrlMapRequest;
 import com.google.cloud.compute.v1.RegionUrlMapsClient;
 import com.google.cloud.compute.v1.UrlMap;
 import gyro.core.GyroUI;
@@ -128,7 +131,12 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
                 urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
             }
 
-            Operation response = client.insert(getProjectId(), getRegion(), urlMap.build());
+            Operation response = client.insertCallable().call(InsertRegionUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setUrlMapResource(urlMap)
+                .build());
+
             waitForCompletion(response);
         }
 
@@ -139,7 +147,13 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (RegionUrlMapsClient client = createClient(RegionUrlMapsClient.class)) {
             UrlMap urlMap = toUrlMap(changedFieldNames);
-            Operation operation = client.patch(getProjectId(), getRegion(), getName(), urlMap);
+            Operation operation = client.patchCallable().call(PatchRegionUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setUrlMap(getName())
+                .setUrlMapResource(urlMap)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -149,7 +163,12 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionUrlMapsClient client = createClient(RegionUrlMapsClient.class)) {
-            Operation response = client.delete(getProjectId(), getRegion(), getName());
+            Operation response = client.deleteCallable().call(DeleteRegionUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setUrlMap(getName())
+                .build());
+
             waitForCompletion(response);
         }
     }

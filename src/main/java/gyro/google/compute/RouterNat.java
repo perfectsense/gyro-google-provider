@@ -247,8 +247,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         }
 
         if (getIpAllocationOption() != null) {
-            builder.setNatIpAllocateOption(com.google.cloud.compute.v1.RouterNat.NatIpAllocateOption.valueOf(
-                getIpAllocationOption()));
+            builder.setNatIpAllocateOption(getIpAllocationOption());
         }
 
         if (getNatIp() != null) {
@@ -257,8 +256,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         }
 
         if (getSourceSubnetworkIpRangesToNat() != null) {
-            builder.setSourceSubnetworkIpRangesToNat(com.google.cloud.compute.v1.RouterNat.SourceSubnetworkIpRangesToNat
-                .valueOf(getSourceSubnetworkIpRangesToNat()));
+            builder.setSourceSubnetworkIpRangesToNat(getSourceSubnetworkIpRangesToNat());
         }
 
         builder.addAllSubnetworks(getSubnet().stream().map(RouterNatSubnetworkToNat::toRouterNatSubnetworkToNat)

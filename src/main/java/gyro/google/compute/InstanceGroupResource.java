@@ -24,7 +24,10 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddInstancesInstanceGroupRequest;
+import com.google.cloud.compute.v1.DeleteInstanceGroupRequest;
 import com.google.cloud.compute.v1.GetInstanceGroupRequest;
+import com.google.cloud.compute.v1.InsertInstanceGroupRequest;
 import com.google.cloud.compute.v1.InstanceGroup;
 import com.google.cloud.compute.v1.InstanceGroupsAddInstancesRequest;
 import com.google.cloud.compute.v1.InstanceGroupsClient;
@@ -35,6 +38,8 @@ import com.google.cloud.compute.v1.InstanceGroupsSetNamedPortsRequest;
 import com.google.cloud.compute.v1.InstanceReference;
 import com.google.cloud.compute.v1.ListInstancesInstanceGroupsRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RemoveInstancesInstanceGroupRequest;
+import com.google.cloud.compute.v1.SetNamedPortsInstanceGroupRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -225,7 +230,11 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
-            Operation operation = client.insert(getProjectId(), getZone(), toInstanceGroup());
+            Operation operation = client.insertCallable().call(InsertInstanceGroupRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupResource(toInstanceGroup())
+                .build());
             waitForCompletion(operation);
 
             state.save();
@@ -277,7 +286,11 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
-            Operation operation = client.delete(getProjectId(), getZone(), getName());
+            Operation operation = client.deleteCallable().call(DeleteInstanceGroupRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -308,20 +321,33 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     }
 
     private void addInstances(InstanceGroupsClient client, List<String> instances) throws Exception {
-        waitForCompletion(client.addInstances(getProjectId(), getZone(), getName(),
-            InstanceGroupsAddInstancesRequest.newBuilder()
-                .addAllInstances(instances.stream()
-                    .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
-                    .collect(Collectors.toList())).build()));
+        InstanceGroupsAddInstancesRequest.Builder builder = InstanceGroupsAddInstancesRequest.newBuilder()
+            .addAllInstances(instances.stream()
+                .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
+                .collect(Collectors.toList()));
+
+        Operation operation = client.addInstancesCallable().call(AddInstancesInstanceGroupRequest.newBuilder()
+                .setProject(getProjectId())
+                .setInstanceGroup(getName())
+                .setInstanceGroupsAddInstancesRequestResource(builder)
+            .build());
+
+        waitForCompletion(operation);
     }
 
     private void removeInstances(InstanceGroupsClient client, List<String> instances) throws Exception {
-        waitForCompletion(
-            client.removeInstances(getProjectId(), getZone(), getName(),
-                InstanceGroupsRemoveInstancesRequest.newBuilder()
-                    .addAllInstances(instances.stream()
-                        .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
-                        .collect(Collectors.toList())).build()));
+        InstanceGroupsRemoveInstancesRequest.Builder builder = InstanceGroupsRemoveInstancesRequest.newBuilder()
+            .addAllInstances(instances.stream()
+                .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
+                .collect(Collectors.toList()));
+
+        Operation operation = client.removeInstancesCallable().call(RemoveInstancesInstanceGroupRequest.newBuilder()
+            .setProject(getProjectId())
+            .setInstanceGroup(getName())
+            .setInstanceGroupsRemoveInstancesRequestResource(builder)
+            .build());
+
+        waitForCompletion(operation);
     }
 
     private List<InstanceResource> listInstances() throws IOException {
@@ -375,7 +401,13 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         InstanceGroupsSetNamedPortsRequest.Builder builder = InstanceGroupsSetNamedPortsRequest.newBuilder();
         builder.addAllNamedPorts(getNamedPort().stream().map(InstanceGroupNamedPort::toNamedPort)
             .collect(Collectors.toList()));
-        Operation operation = client.setNamedPorts(getProjectId(), getZone(), getName(), builder.build());
+        Operation operation = client.setNamedPortsCallable().call(SetNamedPortsInstanceGroupRequest.newBuilder()
+            .setProject(getProjectId())
+            .setZone(getZone())
+            .setInstanceGroup(getName())
+            .setInstanceGroupsSetNamedPortsRequestResource(builder)
+            .build());
+
         waitForCompletion(operation);
     }
 

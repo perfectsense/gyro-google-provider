@@ -83,7 +83,7 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
         builder.addAllValues(getValues());
 
         if (getOperator() != null) {
-            builder.setOperator(SchedulingNodeAffinity.Operator.valueOf(getOperator()));
+            builder.setOperator(getOperator());
         }
 
         return builder.build();

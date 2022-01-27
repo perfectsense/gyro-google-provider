@@ -23,8 +23,11 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteSslPolicyRequest;
 import com.google.cloud.compute.v1.GetSslPolicyRequest;
+import com.google.cloud.compute.v1.InsertSslPolicyRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchSslPolicyRequest;
 import com.google.cloud.compute.v1.SslPoliciesClient;
 import com.google.cloud.compute.v1.SslPolicy;
 import com.google.cloud.compute.v1.Warnings;
@@ -250,7 +253,11 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (SslPoliciesClient client = createClient(SslPoliciesClient.class)) {
-            Operation operation = client.insert(getProjectId(), toSslPolicy());
+            Operation operation = client.insertCallable().call(InsertSslPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslPolicyResource(toSslPolicy())
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -260,7 +267,12 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     @Override
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (SslPoliciesClient client = createClient(SslPoliciesClient.class)) {
-            Operation operation = client.patch(getProjectId(), getName(), toSslPolicy());
+            Operation operation = client.patchCallable().call(PatchSslPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslPolicy(getName())
+                .setSslPolicyResource(toSslPolicy())
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -270,8 +282,12 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (SslPoliciesClient client = createClient(SslPoliciesClient.class)) {
-            Operation response = client.delete(getProjectId(), getName());
-            waitForCompletion(response);
+            Operation operation = client.deleteCallable().call(DeleteSslPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslPolicy(getName())
+                .build());
+
+            waitForCompletion(operation);
         }
     }
 
@@ -290,9 +306,9 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
 
     private SslPolicy toSslPolicy() {
         SslPolicy.Builder builder = SslPolicy.newBuilder().addAllEnabledFeatures(getEnabledFeatures())
-            .setMinTlsVersion(SslPolicy.MinTlsVersion.valueOf(getMinTlsVersion()))
+            .setMinTlsVersion(getMinTlsVersion())
             .setName(getName()).addAllCustomFeatures(getCustomFeatures())
-            .setProfile(SslPolicy.Profile.valueOf(getProfile()));
+            .setProfile(getProfile());
 
         if (getDescription() != null) {
             builder.setDescription(getDescription());

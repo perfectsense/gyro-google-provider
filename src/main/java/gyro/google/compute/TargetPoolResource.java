@@ -23,10 +23,16 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddHealthCheckTargetPoolRequest;
+import com.google.cloud.compute.v1.AddInstanceTargetPoolRequest;
+import com.google.cloud.compute.v1.DeleteTargetPoolRequest;
 import com.google.cloud.compute.v1.GetTargetPoolRequest;
 import com.google.cloud.compute.v1.HealthCheckReference;
+import com.google.cloud.compute.v1.InsertTargetPoolRequest;
 import com.google.cloud.compute.v1.InstanceReference;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RemoveHealthCheckTargetPoolRequest;
+import com.google.cloud.compute.v1.RemoveInstanceTargetPoolRequest;
 import com.google.cloud.compute.v1.SetBackupTargetPoolRequest;
 import com.google.cloud.compute.v1.TargetPool;
 import com.google.cloud.compute.v1.TargetPoolsAddHealthCheckRequest;
@@ -279,11 +285,16 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
         }
 
         if (getSessionAffinity() != null) {
-            builder.setSessionAffinity(TargetPool.SessionAffinity.valueOf(getSessionAffinity()));
+            builder.setSessionAffinity(getSessionAffinity());
         }
 
         try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertTargetPoolRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetPoolResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -302,9 +313,12 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                     builder.setTarget(getBackupPool().getSelfLink());
                 }
 
-                Operation response = client.setBackup(SetBackupTargetPoolRequest.newBuilder()
-                    .setProject(getProjectId()).setRegion(getRegion()).setTargetPool(getName())
-                    .setFailoverRatio(getFailoverRatio()).build());
+                Operation response = client.setBackupCallable().call(SetBackupTargetPoolRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetPool(getName())
+                    .setFailoverRatio(getFailoverRatio())
+                    .build());
                 waitForCompletion(response);
             }
 
@@ -316,7 +330,15 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                     builder.addAllInstances(removeInstances.stream()
                         .map(e -> InstanceReference.newBuilder().setInstance(e.getSelfLink()).build())
                         .collect(Collectors.toList()));
-                    Operation response = client.removeInstance(getProjectId(), getRegion(), getName(), builder.build());
+
+                    Operation response = client.removeInstanceOperationCallable()
+                        .call(RemoveInstanceTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsRemoveInstanceRequestResource(builder)
+                            .build());
+
                     waitForCompletion(response);
                 }
 
@@ -327,7 +349,15 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                     builder.addAllInstances(newInstances.stream()
                         .map(e -> InstanceReference.newBuilder().setInstance(e.getSelfLink()).build())
                         .collect(Collectors.toList()));
-                    Operation response = client.addInstance(getProjectId(), getRegion(), getName(), builder.build());
+
+                    Operation response = client.addInstanceCallable()
+                        .call(AddInstanceTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsAddInstanceRequestResource(builder)
+                            .build());
+
                     waitForCompletion(response);
                 }
             }
@@ -340,8 +370,15 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                     builder.addAllHealthChecks(removeHealthChecks.stream()
                         .map(e -> HealthCheckReference.newBuilder().setHealthCheck(e.getSelfLink()).build())
                         .collect(Collectors.toList()));
-                    Operation response = client.removeHealthCheck(getProjectId(), getRegion(), getName(),
-                        builder.build());
+
+                    Operation response = client.removeHealthCheckCallable().call(
+                        RemoveHealthCheckTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsRemoveHealthCheckRequestResource(builder)
+                            .build());
+
                     waitForCompletion(response);
                 }
 
@@ -352,7 +389,15 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                     builder.addAllHealthChecks(newHealthChecks.stream()
                         .map(e -> HealthCheckReference.newBuilder().setHealthCheck(e.getSelfLink()).build())
                         .collect(Collectors.toList()));
-                    Operation response = client.addHealthCheck(getProjectId(), getRegion(), getName(), builder.build());
+
+                    Operation response = client.addHealthCheckCallable()
+                        .call(AddHealthCheckTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsAddHealthCheckRequestResource(builder)
+                            .build());
+
                     waitForCompletion(response);
                 }
             }
@@ -364,7 +409,12 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteTargetPoolRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetPool(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

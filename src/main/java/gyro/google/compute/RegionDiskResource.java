@@ -23,14 +23,20 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddResourcePoliciesRegionDiskRequest;
+import com.google.cloud.compute.v1.DeleteRegionDiskRequest;
 import com.google.cloud.compute.v1.Disk;
 import com.google.cloud.compute.v1.GetRegionDiskRequest;
+import com.google.cloud.compute.v1.InsertRegionDiskRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.RegionDisksAddResourcePoliciesRequest;
 import com.google.cloud.compute.v1.RegionDisksClient;
 import com.google.cloud.compute.v1.RegionDisksRemoveResourcePoliciesRequest;
 import com.google.cloud.compute.v1.RegionDisksResizeRequest;
 import com.google.cloud.compute.v1.RegionSetLabelsRequest;
+import com.google.cloud.compute.v1.RemoveResourcePoliciesRegionDiskRequest;
+import com.google.cloud.compute.v1.ResizeRegionDiskRequest;
+import com.google.cloud.compute.v1.SetLabelsRegionDiskRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -166,7 +172,12 @@ public class RegionDiskResource extends AbstractDiskResource {
             builder.addAllResourcePolicies(getResourcePolicy().stream().map(ResourcePolicyResource::getSelfLink)
                 .collect(Collectors.toList()));
 
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRegionDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setDiskResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -196,7 +207,12 @@ public class RegionDiskResource extends AbstractDiskResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionDisksClient client = createClient(RegionDisksClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRegionDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setDisk(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -221,7 +237,14 @@ public class RegionDiskResource extends AbstractDiskResource {
 
         RegionDisksResizeRequest.Builder builder = RegionDisksResizeRequest.newBuilder();
         builder.setSizeGb(getSizeGb());
-        Operation operation = client.resize(getProjectId(), getRegion(), getName(), builder.build());
+
+        Operation operation = client.resizeCallable().call(ResizeRegionDiskRequest.newBuilder()
+            .setProject(getProjectId())
+            .setRegion(getRegion())
+            .setDisk(getName())
+            .setRegionDisksResizeRequestResource(builder)
+            .build());
+
         waitForCompletion(operation);
     }
 
@@ -229,7 +252,14 @@ public class RegionDiskResource extends AbstractDiskResource {
         RegionSetLabelsRequest.Builder builder = RegionSetLabelsRequest.newBuilder();
         builder.putAllLabels(getLabels());
         builder.setLabelFingerprint(getLabelFingerprint());
-        Operation operation = client.setLabels(getProjectId(), getRegion(), getName(), builder.build());
+
+        Operation operation = client.setLabelsCallable().call(SetLabelsRegionDiskRequest.newBuilder()
+            .setProject(getProjectId())
+            .setRegion(getRegion())
+            .setResource(getName())
+            .setRegionSetLabelsRequestResource(builder)
+            .build());
+
         waitForCompletion(operation);
     }
 
@@ -244,14 +274,32 @@ public class RegionDiskResource extends AbstractDiskResource {
             .collect(Collectors.toList());
 
         if (!removed.isEmpty()) {
-            Operation operation = client.removeResourcePolicies(getProjectId(), getRegion(), getName(),
-                RegionDisksRemoveResourcePoliciesRequest.newBuilder().addAllResourcePolicies(removed).build());
+            RegionDisksRemoveResourcePoliciesRequest.Builder builder = RegionDisksRemoveResourcePoliciesRequest
+                .newBuilder()
+                .addAllResourcePolicies(removed);
+
+            Operation operation = client.removeResourcePoliciesCallable().call(RemoveResourcePoliciesRegionDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setDisk(getName())
+                .setRegionDisksRemoveResourcePoliciesRequestResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
         if (!added.isEmpty()) {
-            Operation operation = client.addResourcePolicies(getProjectId(), getRegion(), getName(),
-                RegionDisksAddResourcePoliciesRequest.newBuilder().addAllResourcePolicies(added).build());
+            RegionDisksAddResourcePoliciesRequest.Builder builder = RegionDisksAddResourcePoliciesRequest.newBuilder()
+                .addAllResourcePolicies(added);
+
+            Operation operation = client.addResourcePoliciesCallable().call(
+                AddResourcePoliciesRegionDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setDisk(getName())
+                    .setRegionDisksAddResourcePoliciesRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
     }

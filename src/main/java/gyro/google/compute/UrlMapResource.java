@@ -22,8 +22,11 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteUrlMapRequest;
 import com.google.cloud.compute.v1.GetUrlMapRequest;
+import com.google.cloud.compute.v1.InsertUrlMapRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchUrlMapRequest;
 import com.google.cloud.compute.v1.UrlMap;
 import com.google.cloud.compute.v1.UrlMapsClient;
 import gyro.core.GyroUI;
@@ -158,7 +161,11 @@ public class UrlMapResource extends AbstractUrlMapResource {
                 builder.setDefaultService(defaultService);
             }
 
-            Operation response = client.insert(getProjectId(), builder.build());
+            Operation response = client.insertCallable().call(InsertUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setUrlMapResource(builder)
+                .build());
+
             waitForCompletion(response);
         }
 
@@ -169,7 +176,12 @@ public class UrlMapResource extends AbstractUrlMapResource {
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (UrlMapsClient client = createClient(UrlMapsClient.class)) {
             UrlMap urlMap = toUrlMap(changedFieldNames);
-            Operation operation = client.patch(getProjectId(), getName(), urlMap);
+            Operation operation = client.patchCallable().call(PatchUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setUrlMap(getName())
+                .setUrlMapResource(urlMap)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -179,7 +191,11 @@ public class UrlMapResource extends AbstractUrlMapResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (UrlMapsClient client = createClient(UrlMapsClient.class)) {
-            Operation response = client.delete(getProjectId(), getName());
+            Operation response = client.deleteCallable().call(DeleteUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setUrlMap(getName())
+                .build());
+
             waitForCompletion(response);
         }
     }

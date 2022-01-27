@@ -19,7 +19,6 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
@@ -93,8 +92,7 @@ public class RouterNatSubnetworkToNat extends Diffable
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterNatSubnetworkToNat model) {
         setSubnet(findById(SubnetworkResource.class, model.getName()));
-        setSourceIpRangesToNat(model.getSourceIpRangesToNatList().stream().map(Enum::toString)
-            .collect(Collectors.toList()));
+        setSourceIpRangesToNat(model.getSourceIpRangesToNatList());
         setSecondaryIpRangeNames(model.getSecondaryIpRangeNamesList());
     }
 
@@ -109,9 +107,7 @@ public class RouterNatSubnetworkToNat extends Diffable
         }
 
         if (!getSourceIpRangesToNat().isEmpty()) {
-            builder.addAllSourceIpRangesToNat(getSourceIpRangesToNat().stream()
-                .map(com.google.cloud.compute.v1.RouterNatSubnetworkToNat.SourceIpRangesToNat::valueOf)
-                .collect(Collectors.toList()));
+            builder.addAllSourceIpRangesToNat(getSourceIpRangesToNat());
         }
 
         return builder.build();

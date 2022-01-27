@@ -22,9 +22,12 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteGlobalForwardingRuleRequest;
 import com.google.cloud.compute.v1.ForwardingRule;
 import com.google.cloud.compute.v1.GlobalForwardingRulesClient;
+import com.google.cloud.compute.v1.InsertGlobalForwardingRuleRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetTargetGlobalForwardingRuleRequest;
 import com.google.cloud.compute.v1.TargetReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -119,7 +122,11 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
             ForwardingRule.Builder builder = toForwardingRule().toBuilder();
             builder.setTarget(getTarget());
 
-            Operation operation = client.insert(getProjectId(), builder.build());
+            Operation operation = client.insertCallable().call(InsertGlobalForwardingRuleRequest.newBuilder()
+                .setProject(getProjectId())
+                .setForwardingRuleResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
         refresh();
@@ -133,7 +140,12 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
                 TargetReference.Builder builder = TargetReference.newBuilder();
                 builder.setTarget(getTarget());
 
-                Operation operation = client.setTarget(getProjectId(), getName(), builder.build());
+                Operation operation = client.setTargetCallable().call(SetTargetGlobalForwardingRuleRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setForwardingRule(getName())
+                    .setTargetReferenceResource(builder)
+                    .build());
+
                 waitForCompletion(operation);
             }
         }
@@ -144,7 +156,11 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (GlobalForwardingRulesClient client = createClient(GlobalForwardingRulesClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteGlobalForwardingRuleRequest.newBuilder()
+                .setProject(getProjectId())
+                .setForwardingRule(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

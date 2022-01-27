@@ -126,7 +126,7 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
         }
 
         if (getOnHostMaintenance() != null) {
-            builder.setOnHostMaintenance(Scheduling.OnHostMaintenance.valueOf(getOnHostMaintenance()));
+            builder.setOnHostMaintenance(getOnHostMaintenance());
         }
 
         return builder.build();

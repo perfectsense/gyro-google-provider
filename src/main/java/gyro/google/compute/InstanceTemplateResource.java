@@ -23,7 +23,9 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteInstanceTemplateRequest;
 import com.google.cloud.compute.v1.GetInstanceTemplateRequest;
+import com.google.cloud.compute.v1.InsertInstanceTemplateRequest;
 import com.google.cloud.compute.v1.InstanceProperties;
 import com.google.cloud.compute.v1.InstanceTemplate;
 import com.google.cloud.compute.v1.InstanceTemplatesClient;
@@ -236,7 +238,10 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
         }
 
         try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
-            waitForCompletion(client.insert(getProjectId(), builder.build()));
+            waitForCompletion(client.insertCallable().call(InsertInstanceTemplateRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setInstanceTemplateResource(builder)
+                .build()));
         }
 
         refresh();
@@ -250,7 +255,10 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
-            waitForCompletion(client.delete(getProjectId(), getName()));
+            waitForCompletion(client.deleteCallable().call(DeleteInstanceTemplateRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setInstanceTemplate(getName())
+                .build()));
         }
     }
 

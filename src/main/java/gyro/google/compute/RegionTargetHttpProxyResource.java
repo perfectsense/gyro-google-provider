@@ -20,9 +20,12 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.GetRegionTargetHttpProxyRequest;
+import com.google.cloud.compute.v1.InsertRegionTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.RegionTargetHttpProxiesClient;
+import com.google.cloud.compute.v1.SetUrlMapRegionTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.TargetHttpProxy;
 import com.google.cloud.compute.v1.UrlMapReference;
 import gyro.core.GyroUI;
@@ -90,7 +93,12 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
         try (RegionTargetHttpProxiesClient client = createClient(RegionTargetHttpProxiesClient.class)) {
             TargetHttpProxy.Builder builder = toTargetHttpProxy().toBuilder();
             builder.setRegion(getRegion());
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRegionTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpProxyResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -108,7 +116,14 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
                 builder.clearUrlMap();
             }
 
-            Operation operation = client.setUrlMap(getProjectId(), getRegion(), getName(), builder.build());
+            Operation operation = client.setUrlMapCallable()
+                .call(SetUrlMapRegionTargetHttpProxyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetHttpProxy(getName())
+                    .setUrlMapReferenceResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
 
@@ -118,7 +133,12 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionTargetHttpProxiesClient client = createClient(RegionTargetHttpProxiesClient.class)) {
-            Operation response = client.delete(getProjectId(), getRegion(), getName());
+            Operation response = client.deleteCallable().call(DeleteRegionTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpProxy(getName())
+                .build());
+
             waitForCompletion(response);
         }
     }

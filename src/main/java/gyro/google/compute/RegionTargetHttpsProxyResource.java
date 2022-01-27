@@ -23,7 +23,9 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionTargetHttpsProxyRequest;
 import com.google.cloud.compute.v1.GetRegionTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.InsertRegionTargetHttpsProxyRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.RegionTargetHttpsProxiesClient;
 import com.google.cloud.compute.v1.TargetHttpsProxy;
@@ -171,7 +173,7 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
             builder.setRegion(getRegion());
             builder.setUrlMap(getRegionUrlMap().getSelfLink());
             if (getQuicOverride() != null) {
-                builder.setQuicOverride(TargetHttpsProxy.QuicOverride.valueOf(getQuicOverride()));
+                builder.setQuicOverride(getQuicOverride());
             }
             if (getSslPolicy() != null) {
                 builder.setSslPolicy(getSslPolicy().getSelfLink());
@@ -182,7 +184,12 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
                     .collect(Collectors.toList()));
             }
 
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRegionTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpsProxyResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -197,7 +204,12 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionTargetHttpsProxiesClient client = createClient(RegionTargetHttpsProxiesClient.class)) {
-            Operation response = client.delete(getProjectId(), getRegion(), getName());
+            Operation response = client.deleteCallable().call(DeleteRegionTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpsProxy(getName())
+                .build());
+
             waitForCompletion(response);
         }
     }

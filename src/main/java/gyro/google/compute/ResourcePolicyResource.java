@@ -20,7 +20,9 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteResourcePolicyRequest;
 import com.google.cloud.compute.v1.GetResourcePolicyRequest;
+import com.google.cloud.compute.v1.InsertResourcePolicyRequest;
 import com.google.cloud.compute.v1.ResourcePoliciesClient;
 import com.google.cloud.compute.v1.ResourcePolicy;
 import gyro.core.GyroUI;
@@ -178,7 +180,11 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
                 builder.setSnapshotSchedulePolicy(getSnapshotSchedulePolicy().copyTo());
             }
 
-            waitForCompletion(client.insert(getProjectId(), getRegion(), builder.build()));
+            waitForCompletion(client.insertCallable().call(InsertResourcePolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setResourcePolicyResource(builder)
+                .build()));
         }
 
         refresh();
@@ -192,7 +198,11 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (ResourcePoliciesClient client = createClient(ResourcePoliciesClient.class)) {
-            waitForCompletion(client.delete(getProjectId(), getRegion(), getName()));
+            waitForCompletion(client.deleteCallable().call(DeleteResourcePolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setResourcePolicy(getName())
+                .build()));
         }
     }
 

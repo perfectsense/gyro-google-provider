@@ -127,8 +127,7 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
         }
 
         if (getRedirectResponseCode() != null) {
-            httpRedirectAction.setRedirectResponseCode(com.google.cloud.compute.v1.HttpRedirectAction.RedirectResponseCode
-                .valueOf(getRedirectResponseCode()));
+            httpRedirectAction.setRedirectResponseCode(getRedirectResponseCode());
         }
 
         httpRedirectAction.setStripQuery(getStripQuery());

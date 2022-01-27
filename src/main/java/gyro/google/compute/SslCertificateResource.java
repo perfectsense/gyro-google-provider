@@ -20,7 +20,9 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteSslCertificateRequest;
 import com.google.cloud.compute.v1.GetSslCertificateRequest;
+import com.google.cloud.compute.v1.InsertSslCertificateRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.SslCertificate;
 import com.google.cloud.compute.v1.SslCertificatesClient;
@@ -74,7 +76,11 @@ public class SslCertificateResource extends AbstractSslCertificateResource {
                 builder.setDescription(getDescription());
             }
 
-            Operation operation = client.insert(getProjectId(), builder.build());
+            Operation operation = client.insertCallable().call(InsertSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslCertificateResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
         refresh();
@@ -89,7 +95,11 @@ public class SslCertificateResource extends AbstractSslCertificateResource {
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (SslCertificatesClient client = createClient(SslCertificatesClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslCertificate(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

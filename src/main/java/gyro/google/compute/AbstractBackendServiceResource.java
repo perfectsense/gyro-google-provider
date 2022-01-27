@@ -310,12 +310,12 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
                 .collect(Collectors.toList());
         }
         setHealthCheck(diffableHealthCheck);
-        setLoadBalancingScheme(model.getLoadBalancingScheme());
-        setLocalityLbPolicy(model.getLocalityLbPolicy());
+        setLoadBalancingScheme(BackendService.LoadBalancingScheme.valueOf(model.getLoadBalancingScheme()));
+        setLocalityLbPolicy(BackendService.LocalityLbPolicy.valueOf(model.getLocalityLbPolicy()));
         setName(model.getName());
-        setProtocol(model.getProtocol());
+        setProtocol(BackendService.Protocol.valueOf(model.getProtocol()));
         setSelfLink(model.getSelfLink());
-        setSessionAffinity(model.getSessionAffinity());
+        setSessionAffinity(BackendService.SessionAffinity.valueOf(model.getSessionAffinity()));
         setTimeoutSec(model.getTimeoutSec());
 
         if (model.getCdnPolicy() != null) {
@@ -334,7 +334,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
         if (isCreate) {
             if (getLoadBalancingScheme() != null) {
-                builder.setLoadBalancingScheme(getLoadBalancingScheme());
+                builder.setLoadBalancingScheme(getLoadBalancingScheme().name());
             }
 
             builder.setName(getName());
@@ -388,19 +388,19 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
         if (isCreate || changedFieldNames.contains("locality-lb-policy")) {
             if (getLocalityLbPolicy() != null) {
-                builder.setLocalityLbPolicy(getLocalityLbPolicy());
+                builder.setLocalityLbPolicy(getLocalityLbPolicy().name());
             }
         }
 
         if (isCreate || changedFieldNames.contains("protocol")) {
             if (getProtocol() != null) {
-                builder.setProtocol(getProtocol());
+                builder.setProtocol(getProtocol().name());
             }
         }
 
         if (isCreate || changedFieldNames.contains("session-affinity")) {
             if (getSessionAffinity() != null) {
-                builder.setSessionAffinity(getSessionAffinity());
+                builder.setSessionAffinity(getSessionAffinity().name());
             }
         }
 

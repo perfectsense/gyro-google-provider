@@ -22,8 +22,11 @@ import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Autoscaler;
 import com.google.cloud.compute.v1.AutoscalersClient;
+import com.google.cloud.compute.v1.DeleteAutoscalerRequest;
 import com.google.cloud.compute.v1.GetAutoscalerRequest;
+import com.google.cloud.compute.v1.InsertAutoscalerRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchAutoscalerRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
@@ -112,7 +115,12 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (AutoscalersClient client = createClient(AutoscalersClient.class)) {
-            Operation operation = client.delete(getProjectId(), getZone(), getName());
+            Operation operation = client.deleteCallable().call(DeleteAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setAutoscaler(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -125,7 +133,12 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
             .ifPresent(builder::setTarget);
 
         try (AutoscalersClient client = createClient(AutoscalersClient.class)) {
-            Operation operation = client.insert(getProjectId(), getZone(), builder.build());
+            Operation operation = client.insertCallable().call(InsertAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setAutoscalerResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -133,7 +146,12 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
     @Override
     void patch(Autoscaler autoscaler) {
         try (AutoscalersClient client = createClient(AutoscalersClient.class)) {
-            Operation operation = client.patch(getProjectId(), getZone(), autoscaler);
+            Operation operation = client.patchCallable().call(PatchAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setAutoscalerResource(autoscaler)
+                .build());
+
             waitForCompletion(operation);
         }
     }

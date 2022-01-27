@@ -24,7 +24,9 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.GetInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.InsertInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceGroupManager;
 import com.google.cloud.compute.v1.InstanceGroupManagersClient;
@@ -33,6 +35,9 @@ import com.google.cloud.compute.v1.InstanceGroupManagersSetTargetPoolsRequest;
 import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.ManagedInstance;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.SetInstanceTemplateInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.SetTargetPoolsInstanceGroupManagerRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroInstance;
 import gyro.core.GyroInstances;
@@ -101,7 +106,12 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
-            Operation operation = client.delete(getProjectId(), getZone(), getName());
+            Operation operation = client.deleteCallable().call(DeleteInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManager(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -109,7 +119,11 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     @Override
     void insert(InstanceGroupManager instanceGroupManager) {
         try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
-            Operation operation = client.insert(getProjectId(), getZone(), instanceGroupManager);
+            Operation operation = client.insertCallable().call(InsertInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManagerResource(instanceGroupManager)
+                .build());
             waitForCompletion(operation);
         }
     }
@@ -117,7 +131,11 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
     @Override
     void patch(InstanceGroupManager instanceGroupManager) {
         try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
-            Operation operation = client.patch(getProjectId(), getZone(), getName(), instanceGroupManager);
+            Operation operation = client.patchCallable().call(PatchInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManagerResource(instanceGroupManager)
+                .build());
             waitForCompletion(operation);
         }
     }
@@ -131,7 +149,13 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
             : instanceTemplate.getSelfLink());
 
         try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
-            Operation operation = client.setInstanceTemplate(getProjectId(), getZone(), getName(), builder.build());
+            Operation operation = client.setInstanceTemplateCallable().call(
+                SetInstanceTemplateInstanceGroupManagerRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setInstanceGroupManagersSetInstanceTemplateRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
     }
@@ -143,7 +167,13 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
             .map(TargetPoolResource::getSelfLink).collect(Collectors.toList()));
 
         try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
-            Operation operation = client.setTargetPools(getProjectId(), getZone(), getName(), builder.build());
+            Operation operation = client.setTargetPoolsCallable().call(SetTargetPoolsInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManager(getName())
+                .setInstanceGroupManagersSetTargetPoolsRequestResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
     }

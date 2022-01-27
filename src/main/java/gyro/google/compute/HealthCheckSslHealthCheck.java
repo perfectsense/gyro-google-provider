@@ -59,11 +59,11 @@ public class HealthCheckSslHealthCheck extends AbstractHealthCheck implements Co
         }
 
         if (getPortSpecification() != null) {
-            builder.setPortSpecification(SSLHealthCheck.PortSpecification.valueOf(getPortSpecification()));
+            builder.setPortSpecification(getPortSpecification());
         }
 
         if (getProxyHeader() != null) {
-            builder.setProxyHeader(SSLHealthCheck.ProxyHeader.valueOf(getProxyHeader()));
+            builder.setProxyHeader(getProxyHeader());
         }
 
         if (getResponse() != null) {

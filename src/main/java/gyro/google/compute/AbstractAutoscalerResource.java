@@ -184,7 +184,7 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
         setDescription(model.getDescription());
         setRecommendedSize(model.getRecommendedSize());
         setSelfLink(model.getSelfLink());
-        setStatus(model.getStatus());
+        setStatus(Autoscaler.Status.valueOf(model.getStatus()));
 
         List<ComputeAutoscalerStatusDetails> diffableAutoscalerStatusDetails = null;
         List<AutoscalerStatusDetails> statusDetails = model.getStatusDetailsList();

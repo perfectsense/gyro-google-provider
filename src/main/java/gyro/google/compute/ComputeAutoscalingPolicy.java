@@ -169,7 +169,7 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
         builder.setMinNumReplicas(getMinNumReplicas());
 
         if (getMode() != null) {
-            builder.setMode(AutoscalingPolicy.Mode.valueOf(getMode()));
+            builder.setMode(getMode());
         }
 
         return builder.build();

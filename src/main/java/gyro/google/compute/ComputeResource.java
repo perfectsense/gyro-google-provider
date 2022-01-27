@@ -19,6 +19,7 @@ package gyro.google.compute;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.api.gax.longrunning.OperationFuture;
 import com.google.cloud.compute.v1.Error;
 import com.google.cloud.compute.v1.Errors;
 import com.google.cloud.compute.v1.GetGlobalOperationRequest;
@@ -47,6 +48,22 @@ public abstract class ComputeResource extends GoogleResource {
 
     public void waitForCompletion(Operation operation) {
         waitForCompletion(operation, 0, null);
+    }
+
+    public void waitForCompletionAsync(OperationFuture<Operation, Operation> future) {
+        waitForCompletionAsync(future, 0, null);
+    }
+
+    public void waitForCompletionAsync(OperationFuture<Operation, Operation> future, long duration, TimeUnit unit) {
+        Waiter waiter = new Waiter().prompt(false);
+
+        if (duration > 0 && unit != null) {
+            waiter.atMost(duration, unit);
+        } else {
+            waiter.atMost(DEFAULT_WAIT_DURATION, DEFAULT_WAIT_TIME_UNIT);
+        }
+
+        waiter.until(() -> future.peekMetadata().isDone());
     }
 
     public void waitForCompletion(Operation operation, long duration, TimeUnit unit) {

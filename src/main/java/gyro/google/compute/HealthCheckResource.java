@@ -20,9 +20,12 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteHealthCheckRequest;
 import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.HealthChecksClient;
+import com.google.cloud.compute.v1.InsertHealthCheckRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchHealthCheckRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -134,7 +137,11 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
             HealthCheck healthCheck = getHealthCheck(null);
-            Operation operation = client.insert(getProjectId(), healthCheck);
+            Operation operation = client.insertCallable().call(InsertHealthCheckRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setHealthCheckResource(healthCheck)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -145,7 +152,12 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
             HealthCheck healthCheck = getHealthCheck(changedFieldNames);
-            Operation operation = client.patch(getProjectId(), getName(), healthCheck);
+            Operation operation = client.patchCallable().call(PatchHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheck(getName())
+                .setHealthCheckResource(healthCheck)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -155,8 +167,11 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
-            HealthCheck healthCheck = client.get(getProjectId(), getName());
-            Operation operation = client.delete(getProjectId(), healthCheck.getName());
+            Operation operation = client.deleteCallable().call(DeleteHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheck(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

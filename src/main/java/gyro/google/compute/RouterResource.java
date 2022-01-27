@@ -21,8 +21,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.cloud.compute.v1.DeleteRouterRequest;
+import com.google.cloud.compute.v1.InsertRouterRequest;
 import com.google.cloud.compute.v1.ListRoutersRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRouterRequest;
 import com.google.cloud.compute.v1.Router;
 import com.google.cloud.compute.v1.RoutersClient;
 import gyro.core.GyroUI;
@@ -339,7 +342,12 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 builder.setNetwork(getNetwork().getSelfLink());
             }
 
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRouterRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setRouterResource(builder)
+                .build());
+
             waitForCompletion(operation);
 
             setSelfLink(operation.getTargetLink());
@@ -350,7 +358,13 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 Router.Builder newRouter = Router.newBuilder();
                 newRouter.addAllNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
 
-                operation = client.patch(getProjectId(), getRegion(), getName(), newRouter.build());
+                operation = client.patchCallable().call(PatchRouterRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setRouter(getName())
+                    .setRouterResource(builder)
+                    .build());
+
                 waitForCompletion(operation);
             }
         }
@@ -389,7 +403,13 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                     .collect(Collectors.toList()));
             }
 
-            Operation operation = client.patch(getProjectId(), getRegion(), getName(), builder.build());
+            Operation operation = client.patchCallable().call(PatchRouterRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setRouter(getName())
+                .setRouterResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -397,7 +417,12 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (RoutersClient client = createClient(RoutersClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRouterRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setRouter(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

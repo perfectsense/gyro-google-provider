@@ -90,7 +90,7 @@ public class ComputeDiskInstantiationConfig extends Diffable implements Copyable
         setAutoDelete(model.getAutoDelete());
         setCustomImage(model.getCustomImage());
         setDeviceName(model.getDeviceName());
-        setInstantiateFrom(model.getInstantiateFrom().toString().toUpperCase());
+        setInstantiateFrom(model.getInstantiateFrom());
     }
 
     public DiskInstantiationConfig toDiskInstantiationConfig() {
@@ -98,7 +98,7 @@ public class ComputeDiskInstantiationConfig extends Diffable implements Copyable
         builder.setAutoDelete(getAutoDelete());
 
         if (getInstantiateFrom() != null) {
-            builder.setInstantiateFrom(DiskInstantiationConfig.InstantiateFrom.valueOf(getInstantiateFrom()));
+            builder.setInstantiateFrom(getInstantiateFrom());
         }
 
         if (getCustomImage() != null) {

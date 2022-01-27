@@ -125,7 +125,7 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
         }
 
         if (getNetworkTier() != null) {
-            builder.setNetworkTier(AccessConfig.NetworkTier.valueOf(getNetworkTier()));
+            builder.setNetworkTier(getNetworkTier());
         }
 
         if (getPublicPtrDomainName() != null) {
@@ -137,7 +137,7 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
         }
 
         if (getType() != null) {
-            builder.setType(AccessConfig.Type.valueOf(getType())).build();
+            builder.setType(getType()).build();
         }
 
         return builder.build();

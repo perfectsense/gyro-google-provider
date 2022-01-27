@@ -18,7 +18,9 @@ package gyro.google.compute;
 
 import java.util.Set;
 
+import com.google.cloud.compute.v1.AddRuleSecurityPolicyRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRuleSecurityPolicyRequest;
 import com.google.cloud.compute.v1.RemoveRuleSecurityPolicyRequest;
 import com.google.cloud.compute.v1.SecurityPoliciesClient;
 import gyro.core.GyroUI;
@@ -146,8 +148,12 @@ public class SecurityPolicyRule extends ComputeResource
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
             SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
-            Operation operation = client.addRule(getProjectId(), securityPolicyResource.getName(),
-                toSecurityPolicyRule());
+            Operation operation = client.addRuleCallable().call(AddRuleSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicy(securityPolicyResource.getName())
+                .setSecurityPolicyRuleResource(toSecurityPolicyRule())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -176,8 +182,13 @@ public class SecurityPolicyRule extends ComputeResource
             }
 
             SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
-            Operation operation = client.patchRule(getProjectId(), securityPolicyResource.getName(),
-                builder.setPriority(getPriority()).build());
+            Operation operation = client.patchRuleCallable().call(
+                PatchRuleSecurityPolicyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setSecurityPolicy(securityPolicyResource.getName())
+                    .setSecurityPolicyRuleResource(toSecurityPolicyRule())
+                    .build());
+
             waitForCompletion(operation);
         }
         refresh();
@@ -188,9 +199,12 @@ public class SecurityPolicyRule extends ComputeResource
         try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
             SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
             if (getPriority() != 2147483647) {
-                Operation operation = client.removeRule(RemoveRuleSecurityPolicyRequest.newBuilder()
-                    .setProject(getProjectId()).setSecurityPolicy(securityPolicyResource.getName())
-                    .setPriority(getPriority()).build());
+                Operation operation = client.removeRuleCallable().call(RemoveRuleSecurityPolicyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setSecurityPolicy(securityPolicyResource.getName())
+                    .setPriority(getPriority())
+                    .build());
+
                 waitForCompletion(operation);
             }
         }

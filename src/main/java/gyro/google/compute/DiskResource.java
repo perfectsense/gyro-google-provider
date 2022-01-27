@@ -24,14 +24,20 @@ import java.util.stream.Collectors;
 import com.google.api.client.util.Data;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddResourcePoliciesDiskRequest;
 import com.google.cloud.compute.v1.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.DeleteDiskRequest;
 import com.google.cloud.compute.v1.Disk;
 import com.google.cloud.compute.v1.DisksAddResourcePoliciesRequest;
 import com.google.cloud.compute.v1.DisksClient;
 import com.google.cloud.compute.v1.DisksRemoveResourcePoliciesRequest;
 import com.google.cloud.compute.v1.DisksResizeRequest;
 import com.google.cloud.compute.v1.GetDiskRequest;
+import com.google.cloud.compute.v1.InsertDiskRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RemoveResourcePoliciesDiskRequest;
+import com.google.cloud.compute.v1.ResizeDiskRequest;
+import com.google.cloud.compute.v1.SetLabelsDiskRequest;
 import com.google.cloud.compute.v1.ZoneSetLabelsRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -174,7 +180,12 @@ public class DiskResource extends AbstractDiskResource {
             disk.addAllResourcePolicies(getResourcePolicy().stream().map(ResourcePolicyResource::getSelfLink)
                 .collect(Collectors.toList()));
 
-            Operation operation = client.insert(getProjectId(), getZone(), disk.build());
+            Operation operation = client.insertCallable().call(InsertDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setDiskResource(disk)
+                .buildPartial());
+
             waitForCompletion(operation, 30, TimeUnit.SECONDS);
         }
 
@@ -205,7 +216,12 @@ public class DiskResource extends AbstractDiskResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (DisksClient client = createClient(DisksClient.class)) {
-            Operation operation = client.delete(getProjectId(), getZone(), getName());
+            Operation operation = client.deleteCallable().call(DeleteDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setDisk(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -216,8 +232,16 @@ public class DiskResource extends AbstractDiskResource {
                 "Size of the disk cannot be decreased once set. Current size %s.", oldDiskResource.getSizeGb()));
         }
 
-        Operation operation = client.resize(getProjectId(), getZone(), getName(),
-            DisksResizeRequest.newBuilder().setSizeGb(getSizeGb()).build());
+        DisksResizeRequest.Builder builder = DisksResizeRequest.newBuilder().setSizeGb(getSizeGb());
+
+        Operation operation = client.resizeCallable().call(
+            ResizeDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setDisk(getName())
+                .setDisksResizeRequestResource(builder)
+                .build());
+
         waitForCompletion(operation);
     }
 
@@ -225,7 +249,13 @@ public class DiskResource extends AbstractDiskResource {
         ZoneSetLabelsRequest.Builder builder = ZoneSetLabelsRequest.newBuilder();
         builder.putAllLabels(getLabels());
         builder.setLabelFingerprint(getLabelFingerprint());
-        Operation operation = client.setLabels(getProjectId(), getZone(), getName(), builder.build());
+        Operation operation = client.setLabelsCallable().call(SetLabelsDiskRequest.newBuilder()
+            .setProject(getProjectId())
+            .setZone(getZone())
+            .setResource(getName())
+            .setZoneSetLabelsRequestResource(builder)
+            .build());
+
         waitForCompletion(operation);
     }
 
@@ -240,14 +270,32 @@ public class DiskResource extends AbstractDiskResource {
             .collect(Collectors.toList());
 
         if (!removed.isEmpty()) {
-            Operation operation = client.removeResourcePolicies(getProjectId(), getZone(), getName(),
-                DisksRemoveResourcePoliciesRequest.newBuilder().addAllResourcePolicies(removed).build());
+            DisksRemoveResourcePoliciesRequest.Builder builder = DisksRemoveResourcePoliciesRequest.newBuilder()
+                .addAllResourcePolicies(removed);
+
+            Operation operation = client.removeResourcePoliciesCallable().call(
+                RemoveResourcePoliciesDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setDisk(getName())
+                    .setDisksRemoveResourcePoliciesRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
 
         if (!added.isEmpty()) {
-            Operation operation = client.addResourcePolicies(getProjectId(), getZone(), getName(),
-                DisksAddResourcePoliciesRequest.newBuilder().addAllResourcePolicies(added).build());
+            DisksAddResourcePoliciesRequest.Builder builder = DisksAddResourcePoliciesRequest.newBuilder()
+                .addAllResourcePolicies(added);
+
+            Operation operation = client.addResourcePoliciesCallable().call(
+                AddResourcePoliciesDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setDisk(getName())
+                    .setDisksAddResourcePoliciesRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
     }

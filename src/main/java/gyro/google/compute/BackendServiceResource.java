@@ -27,13 +27,19 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddSignedUrlKeyBackendServiceRequest;
 import com.google.cloud.compute.v1.BackendService;
 import com.google.cloud.compute.v1.BackendServicesClient;
+import com.google.cloud.compute.v1.DeleteBackendServiceRequest;
+import com.google.cloud.compute.v1.DeleteSignedUrlKeyBackendServiceRequest;
 import com.google.cloud.compute.v1.GetBackendServiceRequest;
 import com.google.cloud.compute.v1.HealthStatus;
+import com.google.cloud.compute.v1.InsertBackendServiceRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchBackendServiceRequest;
 import com.google.cloud.compute.v1.ResourceGroupReference;
 import com.google.cloud.compute.v1.SecurityPolicyReference;
+import com.google.cloud.compute.v1.SetSecurityPolicyBackendServiceRequest;
 import com.google.protobuf.InvalidProtocolBufferException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -222,7 +228,10 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 backendService.setPortName(getPortName());
             }
 
-            Operation operation = client.insert(getProjectId(), backendService.build());
+            Operation operation = client.insertCallable().call(InsertBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setBackendServiceResource(backendService)
+                .build());
             waitForCompletion(operation);
 
             if (getSecurityPolicy() != null) {
@@ -234,9 +243,13 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
             state.save();
 
             if (!getSignedUrlKey().isEmpty()) {
-
                 for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                    waitForCompletion(client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey()));
+                    waitForCompletion(client.addSignedUrlKeyOperationCallable().call(
+                        AddSignedUrlKeyBackendServiceRequest.newBuilder()
+                            .setProject(getProject())
+                            .setBackendService(getName())
+                            .setSignedUrlKeyResource(urlKey.toSignedUrlKey())
+                            .build()));
                 }
             }
         }
@@ -260,7 +273,10 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
             }
 
             BackendService.Builder backendService = getBackendService(changedFieldNames).toBuilder();
-            Operation operation = client.patch(getProjectId(), getName(), backendService.build());
+            Operation operation = client.patchCallable().call(PatchBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setBackendService(getName())
+                .build());
             waitForCompletion(operation);
 
             if (changedFieldNames.contains("port-name")) {
@@ -274,12 +290,22 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                     Collectors.toList());
 
                 for (String urlKey : deleteSignedUrlKeys) {
-                    waitForCompletion(client.deleteSignedUrlKey(getProjectId(), getName(), urlKey));
+                    waitForCompletion(client.deleteSignedUrlKeyCallable().call(
+                        DeleteSignedUrlKeyBackendServiceRequest.newBuilder()
+                            .setProject(getProject())
+                            .setBackendService(getName())
+                            .setKeyName(urlKey)
+                            .build()));
                 }
 
                 // add new keys
                 for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                    waitForCompletion(client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey()));
+                    waitForCompletion(client.addSignedUrlKeyOperationCallable().call(
+                        AddSignedUrlKeyBackendServiceRequest.newBuilder()
+                            .setProject(getProject())
+                            .setBackendService(getName())
+                            .setSignedUrlKeyResource(urlKey.toSignedUrlKey())
+                            .build()));
                 }
             }
 
@@ -292,7 +318,10 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (BackendServicesClient client = createClient(BackendServicesClient.class)) {
-            Operation response = client.delete(getProjectId(), getName());
+            Operation response = client.deleteCallable().call(DeleteBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setBackendService(getName())
+                .build());
             waitForCompletion(response);
         }
     }
@@ -319,8 +348,12 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setSecurityPolicy(securityPolicyResource.getSelfLink()).build();
         }
 
-        Operation securityPolicyOperation = client.setSecurityPolicy(getProjectId(), getName(),
-            securityPolicyReference);
+        Operation securityPolicyOperation = client.setSecurityPolicyCallable().call(
+            SetSecurityPolicyBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setBackendService(getName())
+                .setSecurityPolicyReferenceResource(securityPolicyReference)
+                .build());
         waitForCompletion(securityPolicyOperation);
     }
 
@@ -346,12 +379,12 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                     .orElse(new ArrayList<>());
 
                 for (HealthStatus healthStatus : healthStatuses) {
-                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState().name(), 0);
-                    backendHealthMap.put(healthStatus.getHealthState().name(), backendCount + 1);
+                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                    backendHealthMap.put(healthStatus.getHealthState(), backendCount + 1);
                     backendTotal++;
 
-                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState().name(), 0);
-                    allHealthMap.put(healthStatus.getHealthState().name(), allCount + 1);
+                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                    allHealthMap.put(healthStatus.getHealthState(), allCount + 1);
                     allTotal++;
                 }
 

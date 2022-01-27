@@ -25,10 +25,13 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteFirewallRequest;
 import com.google.cloud.compute.v1.Firewall;
 import com.google.cloud.compute.v1.FirewallLogConfig;
 import com.google.cloud.compute.v1.FirewallsClient;
+import com.google.cloud.compute.v1.InsertFirewallRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchFirewallRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -431,7 +434,11 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (FirewallsClient client = createClient(FirewallsClient.class)) {
-            Operation operation = client.insert(getProjectId(), toFirewall());
+            Operation operation = client.insertCallable().call(InsertFirewallRequest.newBuilder()
+                .setProject(getProjectId())
+                .setFirewallResource(toFirewall())
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -441,7 +448,12 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (FirewallsClient client = createClient(FirewallsClient.class)) {
-            Operation operation = client.patch(getProjectId(), getName(), toFirewall());
+            Operation operation = client.patchCallable().call(PatchFirewallRequest.newBuilder()
+                .setProject(getProjectId())
+                .setFirewall(getName())
+                .setFirewallResource(toFirewall())
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -451,7 +463,11 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (FirewallsClient client = createClient(FirewallsClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteFirewallRequest.newBuilder()
+                .setProject(getProjectId())
+                .setFirewall(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -509,7 +525,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
     private Firewall toFirewall() {
         Firewall.Builder builder = Firewall.newBuilder().setName(getName()).setNetwork(getNetwork().getSelfLink())
-            .setDirection(Firewall.Direction.valueOf(getDirection())).setDisabled(getDisabled())
+            .setDirection(getDirection()).setDisabled(getDisabled())
             .setPriority(getPriority());
 
         if (getDescription() != null) {

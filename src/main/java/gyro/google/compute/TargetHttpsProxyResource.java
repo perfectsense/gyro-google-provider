@@ -23,8 +23,14 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteTargetHttpsProxyRequest;
 import com.google.cloud.compute.v1.GetTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.InsertTargetHttpsProxyRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetQuicOverrideTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.SetSslCertificatesTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.SetSslPolicyTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.SetUrlMapTargetHttpsProxyRequest;
 import com.google.cloud.compute.v1.SslPolicyReference;
 import com.google.cloud.compute.v1.TargetHttpsProxiesClient;
 import com.google.cloud.compute.v1.TargetHttpsProxiesSetQuicOverrideRequest;
@@ -167,7 +173,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
             targetHttpsProxy.setUrlMap(getUrlMap().getSelfLink());
 
             if (getQuicOverride() != null) {
-                targetHttpsProxy.setQuicOverride(TargetHttpsProxy.QuicOverride.valueOf(getQuicOverride()));
+                targetHttpsProxy.setQuicOverride(getQuicOverride());
             }
 
             if (getSslCertificates() != null) {
@@ -177,7 +183,11 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
             targetHttpsProxy.addAllSslCertificates(getSslCertificates().stream()
                 .map(AbstractSslCertificateResource::getSelfLink).collect(Collectors.toList()));
 
-            Operation operation = client.insert(getProjectId(), targetHttpsProxy.build());
+            Operation operation = client.insertCallable().call(InsertTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpsProxyResource(targetHttpsProxy)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -191,11 +201,14 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
 
             if (changedFieldNames.contains("quic-override")) {
                 TargetHttpsProxiesSetQuicOverrideRequest.Builder builder = TargetHttpsProxiesSetQuicOverrideRequest.newBuilder();
-                builder.setQuicOverride(getQuicOverride() != null
-                    ? TargetHttpsProxiesSetQuicOverrideRequest.QuicOverride.valueOf(getQuicOverride())
-                    : TargetHttpsProxiesSetQuicOverrideRequest.QuicOverride.NONE);
+                builder.setQuicOverride(getQuicOverride());
 
-                Operation response = client.setQuicOverride(getProjectId(), getName(), builder.build());
+                Operation response = client.setQuicOverrideCallable().call(SetQuicOverrideTargetHttpsProxyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setTargetHttpsProxy(getName())
+                        .setTargetHttpsProxiesSetQuicOverrideRequestResource(builder)
+                    .build());
+
                 waitForCompletion(response);
             }
 
@@ -205,21 +218,38 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
                 sslCertificates.addAllSslCertificates(getSslCertificates().stream()
                     .map(AbstractSslCertificateResource::getSelfLink)
                     .collect(Collectors.toList()));
-                Operation response = client.setSslCertificates(getProjectId(), getName(), sslCertificates.build());
+                Operation response = client.setSslCertificatesCallable()
+                    .call(SetSslCertificatesTargetHttpsProxyRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setTargetHttpsProxy(getName())
+                        .setTargetHttpsProxiesSetSslCertificatesRequestResource(sslCertificates)
+                        .build());
+
                 waitForCompletion(response);
             }
 
             if (changedFieldNames.contains("ssl-policy")) {
                 SslPolicyReference.Builder sslPolicy = SslPolicyReference.newBuilder();
                 sslPolicy.setSslPolicy(getSslPolicy().getSelfLink());
-                Operation response = client.setSslPolicy(getProjectId(), getName(), sslPolicy.build());
+                Operation response = client.setSslPolicyCallable().call(SetSslPolicyTargetHttpsProxyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setTargetHttpsProxy(getName())
+                    .setSslPolicyReferenceResource(sslPolicy)
+                    .build());
+
                 waitForCompletion(response);
             }
 
             if (changedFieldNames.contains("url-map")) {
                 UrlMapReference.Builder urlMapReference = UrlMapReference.newBuilder();
                 urlMapReference.setUrlMap(getUrlMap().getSelfLink());
-                Operation operation = client.setUrlMap(getProjectId(), getName(), urlMapReference.build());
+                Operation operation = client.setUrlMapCallable()
+                    .call(SetUrlMapTargetHttpsProxyRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setTargetHttpsProxy(getName())
+                        .setUrlMapReferenceResource(urlMapReference)
+                        .build());
+
                 waitForCompletion(operation);
             }
         }
@@ -230,7 +260,11 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (TargetHttpsProxiesClient client = createClient(TargetHttpsProxiesClient.class)) {
-            Operation response = client.delete(getProjectId(), getName());
+            Operation response = client.deleteCallable().call(DeleteTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpsProxy(getName())
+                .build());
+
             waitForCompletion(response);
         }
     }

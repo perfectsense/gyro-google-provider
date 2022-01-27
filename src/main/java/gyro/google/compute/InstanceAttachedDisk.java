@@ -242,11 +242,11 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         }
 
         if (getDiskInterface() != null) {
-            builder.setInterface(AttachedDisk.Interface.valueOf(getDiskInterface()));
+            builder.setInterface(getDiskInterface());
         }
 
         if (getMode() != null) {
-            builder.setMode(AttachedDisk.Mode.valueOf(getMode()));
+            builder.setMode(getMode());
         }
 
         if (getSource() != null) {
@@ -254,7 +254,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         }
 
         if (getType() != null) {
-            builder.setType(AttachedDisk.Type.valueOf(getType()));
+            builder.setType(getType());
         }
 
         if (getDiskEncryptionKey() != null) {

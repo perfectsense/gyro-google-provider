@@ -21,6 +21,7 @@ import java.util.Optional;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.DeleteRegionAutoscalerRequest;
 import com.google.cloud.compute.v1.GetRegionAutoscalerRequest;
 import com.google.cloud.compute.v1.InsertRegionAutoscalerRequest;
 import com.google.cloud.compute.v1.Operation;
@@ -114,8 +115,14 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
     @Override
     protected void doDelete(GyroUI ui, State state) {
         try (RegionAutoscalersClient client = createClient(RegionAutoscalersClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRegionAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAutoscaler(getName())
+                .build());
+
             state.save();
+
             waitForCompletion(operation);
         }
     }
@@ -128,8 +135,12 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
             .ifPresent(builder::setTarget);
 
         try (RegionAutoscalersClient client = createClient(RegionAutoscalersClient.class)) {
-            Operation operation = client.insert(InsertRegionAutoscalerRequest.newBuilder()
-                .setProject(getProjectId()).setRegion(getRegion()).setAutoscalerResource(builder.build()).build());
+            Operation operation = client.insertCallable().call(InsertRegionAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAutoscalerResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -137,8 +148,14 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
     @Override
     void patch(Autoscaler autoscaler) {
         try (RegionAutoscalersClient client = createClient(RegionAutoscalersClient.class)) {
-            Operation operation = client.patch(PatchRegionAutoscalerRequest.newBuilder().setProject(getProjectId())
-                .setRegion(getRegion()).setAutoscaler(getName()).setAutoscalerResource(autoscaler).build());
+            Operation operation = client.patchCallable()
+                .call(PatchRegionAutoscalerRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setAutoscaler(getName())
+                    .setAutoscalerResource(autoscaler)
+                    .build());
+
             waitForCompletion(operation);
         }
     }

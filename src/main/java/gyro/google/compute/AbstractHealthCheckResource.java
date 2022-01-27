@@ -226,7 +226,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
         setSelfLink(healthCheck.getSelfLink());
-        setType(healthCheck.getType());
+        setType(HealthCheck.Type.valueOf(healthCheck.getType()));
 
         setHttpHealthCheck(null);
         if (healthCheck.hasHttpHealthCheck()) {
@@ -294,27 +294,27 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
         }
 
         if (getHttpHealthCheck() != null) {
-            healthCheck.setType(getHttpHealthCheck().getType());
+            healthCheck.setType(getHttpHealthCheck().getType().name());
             healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
         }
 
         if (getHttpsHealthCheck() != null) {
-            healthCheck.setType(getHttpsHealthCheck().getType());
+            healthCheck.setType(getHttpsHealthCheck().getType().name());
             healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
         }
 
         if (getHttp2HealthCheck() != null) {
-            healthCheck.setType(getHttp2HealthCheck().getType());
+            healthCheck.setType(getHttp2HealthCheck().getType().name());
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
         }
 
         if (getSslHealthCheck() != null) {
-            healthCheck.setType(getSslHealthCheck().getType());
+            healthCheck.setType(getSslHealthCheck().getType().name());
             healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
         }
 
         if (getTcpHealthCheck() != null) {
-            healthCheck.setType(getTcpHealthCheck().getType());
+            healthCheck.setType(getTcpHealthCheck().getType().name());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
         }
 
