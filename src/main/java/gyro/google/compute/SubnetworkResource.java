@@ -19,14 +19,12 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.GetSubnetworkRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.Subnetwork;
-import com.google.cloud.compute.v1.SubnetworkOrBuilder;
 import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksSetPrivateIpGoogleAccessRequest;
 import gyro.core.GyroUI;
