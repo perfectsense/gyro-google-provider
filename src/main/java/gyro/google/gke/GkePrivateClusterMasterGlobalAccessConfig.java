@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2021, Brightspot.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package gyro.google.storage;
+package gyro.google.gke;
 
-import com.google.api.services.storage.model.Bucket;
-import com.google.api.services.storage.model.Bucket.IamConfiguration.UniformBucketLevelAccess;
+import com.google.container.v1.PrivateClusterMasterGlobalAccessConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
-/**
- * UniformBucketLevelAccess configuration for a Bucket.
- */
-public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<UniformBucketLevelAccess> {
+public class GkePrivateClusterMasterGlobalAccessConfig extends Diffable
+    implements Copyable<PrivateClusterMasterGlobalAccessConfig> {
 
     private Boolean enabled;
 
     /**
-     * When ``true`` access is controlled only by bucket-level or above IAM policies.
+     * When set to ``true`` master is accessible globally.
      */
+    @Required
     @Updatable
     public Boolean getEnabled() {
         return enabled;
@@ -41,16 +40,17 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
         this.enabled = enabled;
     }
 
+    @Override
     public String primaryKey() {
         return "";
     }
 
     @Override
-    public void copyFrom(UniformBucketLevelAccess model) {
+    public void copyFrom(PrivateClusterMasterGlobalAccessConfig model) throws Exception {
         setEnabled(model.getEnabled());
     }
 
-    public UniformBucketLevelAccess toIamConfigurationUniformBucketLevelAccess() {
-        return new Bucket.IamConfiguration.UniformBucketLevelAccess().setEnabled(getEnabled());
+    PrivateClusterMasterGlobalAccessConfig toPrivateClusterMasterGlobalAccessConfig() {
+        return PrivateClusterMasterGlobalAccessConfig.newBuilder().setEnabled(getEnabled()).build();
     }
 }

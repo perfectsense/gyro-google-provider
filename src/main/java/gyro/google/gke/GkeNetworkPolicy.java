@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2021, Brightspot.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package gyro.google.storage;
+package gyro.google.gke;
 
-import com.google.api.services.storage.model.Bucket;
-import com.google.api.services.storage.model.Bucket.IamConfiguration.UniformBucketLevelAccess;
+import com.google.container.v1.NetworkPolicy;
 import gyro.core.resource.Diffable;
-import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-/**
- * UniformBucketLevelAccess configuration for a Bucket.
- */
-public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<UniformBucketLevelAccess> {
+public class GkeNetworkPolicy extends Diffable implements Copyable<NetworkPolicy> {
 
     private Boolean enabled;
+    private NetworkPolicy.Provider provider;
 
     /**
-     * When ``true`` access is controlled only by bucket-level or above IAM policies.
+     * When set to ``true``, the network policy is enabled on the cluster.
      */
-    @Updatable
+    @Required
     public Boolean getEnabled() {
         return enabled;
     }
@@ -41,16 +39,30 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
         this.enabled = enabled;
     }
 
+    /**
+     * The selected network policy provider.
+     */
+    @ValidStrings("CALICO")
+    public NetworkPolicy.Provider getProvider() {
+        return provider;
+    }
+
+    public void setProvider(NetworkPolicy.Provider provider) {
+        this.provider = provider;
+    }
+
+    @Override
     public String primaryKey() {
         return "";
     }
 
     @Override
-    public void copyFrom(UniformBucketLevelAccess model) {
+    public void copyFrom(NetworkPolicy model) throws Exception {
         setEnabled(model.getEnabled());
+        setProvider(model.getProvider());
     }
 
-    public UniformBucketLevelAccess toIamConfigurationUniformBucketLevelAccess() {
-        return new Bucket.IamConfiguration.UniformBucketLevelAccess().setEnabled(getEnabled());
+    NetworkPolicy toNetworkPolicy() {
+        return NetworkPolicy.newBuilder().setEnabled(getEnabled()).setProvider(getProvider()).build();
     }
 }
