@@ -279,6 +279,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     private Map<String, String> labels;
     private List<GkeNodePool> nodePool;
     private String masterVersion;
+    private GkeIdentityServiceConfig identityServiceConfig;
 
     // Read-only
     private String tpuIpv4CidrBlock;
@@ -838,6 +839,20 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.labelFingerPrint = labelFingerPrint;
     }
 
+    /**
+     * The identity service configuration.
+     *
+     * @subresource gyro.google.gke.GkeIdentityServiceConfig
+     */
+    @Updatable
+    public GkeIdentityServiceConfig getIdentityServiceConfig() {
+        return identityServiceConfig;
+    }
+
+    public void setIdentityServiceConfig(GkeIdentityServiceConfig identityServiceConfig) {
+        this.identityServiceConfig = identityServiceConfig;
+    }
+
     @Override
     public void copyFrom(Cluster model) throws Exception {
         setMasterAuthConfig(null);
@@ -981,6 +996,11 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
                 return config;
             }).collect(Collectors.toList()));
         }
+
+        setIdentityServiceConfig(null);
+        GkeIdentityServiceConfig config = newSubresource(GkeIdentityServiceConfig.class);
+        config.copyFrom(model.getIdentityServiceConfig());
+        setIdentityServiceConfig(config);
 
         setNodePool(model.getNodePoolsList().stream().map(n -> {
             GkeNodePool gkeNodePool = newSubresource(GkeNodePool.class);
@@ -1164,6 +1184,10 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             builder.setDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
         }
 
+        if (getIdentityServiceConfig() != null) {
+            builder.setIdentityServiceConfig(getIdentityServiceConfig().toIdentityServiceConfig());
+        }
+
         try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
             client.createCluster(CreateClusterRequest.newBuilder()
                 .setParent(getParent())
@@ -1296,6 +1320,12 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             if (changedFieldNames.contains("labels")) {
                 client.setLabels(SetLabelsRequest.newBuilder().setLabelFingerprint(getLabelFingerPrint())
                     .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
+            }
+
+            if (changedFieldNames.contains("identity-service-config")) {
+                builder.setDesiredIdentityServiceConfig(getIdentityServiceConfig().toIdentityServiceConfig());
+                updateCluster(client, builder);
+                builder.clear();
             }
         }
 
