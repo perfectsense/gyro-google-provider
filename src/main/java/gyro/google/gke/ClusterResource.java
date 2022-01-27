@@ -43,6 +43,7 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -458,6 +459,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
      *
      * @subresource gyro.google.gke.GkeNetworkPolicy
      */
+    @ConflictsWith("autopilot")
     public GkeNetworkPolicy getNetworkPolicyConfig() {
         return networkPolicyConfig;
     }
@@ -859,6 +861,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
      *
      * @subresource gyro.google.gke.GkeAutopilot
      */
+    @ConflictsWith("network-policy-config")
     public GkeAutopilot getAutopilot() {
         return autopilot;
     }
