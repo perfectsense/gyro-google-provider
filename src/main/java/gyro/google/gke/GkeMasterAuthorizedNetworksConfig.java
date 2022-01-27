@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.container.v1.MasterAuthorizedNetworksConfig;
+import com.google.container.v1beta1.MasterAuthorizedNetworksConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;

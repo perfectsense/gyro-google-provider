@@ -19,7 +19,7 @@ package gyro.google.gke;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.container.v1.AutoprovisioningNodePoolDefaults;
+import com.google.container.v1beta1.AutoprovisioningNodePoolDefaults;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;

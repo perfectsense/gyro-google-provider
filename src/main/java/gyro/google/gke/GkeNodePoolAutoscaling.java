@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.container.v1.NodePoolAutoscaling;
+import com.google.container.v1beta1.NodePoolAutoscaling;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Min;

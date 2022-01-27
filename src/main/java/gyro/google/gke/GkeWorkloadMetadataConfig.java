@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.WorkloadMetadataConfig;
+import com.google.container.v1beta1.WorkloadMetadataConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;

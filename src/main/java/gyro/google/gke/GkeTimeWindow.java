@@ -23,7 +23,7 @@ import java.util.AbstractMap;
 import java.util.Date;
 import java.util.Map;
 
-import com.google.container.v1.TimeWindow;
+import com.google.container.v1beta1.TimeWindow;
 import com.google.protobuf.Timestamp;
 import gyro.core.GyroException;
 import gyro.core.resource.Diffable;

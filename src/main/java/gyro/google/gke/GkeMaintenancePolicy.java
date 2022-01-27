@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.MaintenancePolicy;
+import com.google.container.v1beta1.MaintenancePolicy;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

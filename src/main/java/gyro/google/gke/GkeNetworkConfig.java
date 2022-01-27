@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.NetworkConfig;
+import com.google.container.v1beta1.NetworkConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;

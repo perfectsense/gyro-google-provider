@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.container.v1.MaintenanceWindow;
+import com.google.container.v1beta1.MaintenanceWindow;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

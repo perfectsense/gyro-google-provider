@@ -26,12 +26,15 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.cloud.container.v1.ClusterManagerClient;
-import com.google.container.v1.Cluster;
-import com.google.container.v1.ClusterUpdate;
-import com.google.container.v1.CreateClusterRequest;
-import com.google.container.v1.IntraNodeVisibilityConfig;
-import com.google.container.v1.SetLabelsRequest;
+import com.google.cloud.container.v1beta1.ClusterManagerClient;
+import com.google.container.v1beta1.Cluster;
+import com.google.container.v1beta1.ClusterUpdate;
+import com.google.container.v1beta1.CreateClusterRequest;
+import com.google.container.v1beta1.DeleteClusterRequest;
+import com.google.container.v1beta1.GetClusterRequest;
+import com.google.container.v1beta1.IntraNodeVisibilityConfig;
+import com.google.container.v1beta1.SetLabelsRequest;
+import com.google.container.v1beta1.UpdateClusterRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
@@ -1302,7 +1305,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
-            client.deleteCluster(getClusterId());
+            client.deleteCluster(DeleteClusterRequest.newBuilder().setName(getClusterId()).build());
 
             Wait.atMost(5, TimeUnit.MINUTES)
                 .checkEvery(1, TimeUnit.MINUTES)
@@ -1311,7 +1314,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     private void updateCluster(ClusterManagerClient client, ClusterUpdate.Builder builder) {
-        client.updateCluster(getClusterId(), builder.build());
+        client.updateCluster(UpdateClusterRequest.newBuilder().setUpdate(builder.build()).build());
 
         waitForActiveStatus(client);
     }
@@ -1326,7 +1329,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         Cluster cluster = null;
 
         try {
-            cluster = client.getCluster(getClusterId());
+            cluster = client.getCluster(GetClusterRequest.newBuilder().setName(getClusterId()).build());
         } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore
         }

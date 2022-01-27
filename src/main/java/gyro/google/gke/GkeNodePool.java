@@ -23,11 +23,13 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.cloud.container.v1.ClusterManagerClient;
-import com.google.container.v1.CreateNodePoolRequest;
-import com.google.container.v1.NodePool;
-import com.google.container.v1.SetNodePoolAutoscalingRequest;
-import com.google.container.v1.UpdateNodePoolRequest;
+import com.google.cloud.container.v1beta1.ClusterManagerClient;
+import com.google.container.v1beta1.CreateNodePoolRequest;
+import com.google.container.v1beta1.DeleteNodePoolRequest;
+import com.google.container.v1beta1.GetNodePoolRequest;
+import com.google.container.v1beta1.NodePool;
+import com.google.container.v1beta1.SetNodePoolAutoscalingRequest;
+import com.google.container.v1beta1.UpdateNodePoolRequest;
 import gyro.core.GyroUI;
 import gyro.core.Wait;
 import gyro.core.resource.Output;
@@ -374,7 +376,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
-            client.deleteNodePool(getNodePoolId());
+            client.deleteNodePool(DeleteNodePoolRequest.newBuilder().setName(getNodePoolId()).build());
 
             Wait.atMost(15, TimeUnit.MINUTES)
                 .checkEvery(1, TimeUnit.MINUTES)
@@ -438,7 +440,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
         NodePool nodePool = null;
 
         try {
-            nodePool = client.getNodePool(getNodePoolId());
+            nodePool = client.getNodePool(GetNodePoolRequest.newBuilder().setName(getNodePoolId()).build());
         } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore
         }
