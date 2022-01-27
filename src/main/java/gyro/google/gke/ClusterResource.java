@@ -280,6 +280,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     private List<GkeNodePool> nodePool;
     private String masterVersion;
     private GkeIdentityServiceConfig identityServiceConfig;
+    private GkeAutopilot autopilot;
 
     // Read-only
     private String tpuIpv4CidrBlock;
@@ -853,6 +854,19 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.identityServiceConfig = identityServiceConfig;
     }
 
+    /**
+     * The autopilot configuration.
+     *
+     * @subresource gyro.google.gke.GkeAutopilot
+     */
+    public GkeAutopilot getAutopilot() {
+        return autopilot;
+    }
+
+    public void setAutopilot(GkeAutopilot autopilot) {
+        this.autopilot = autopilot;
+    }
+
     @Override
     public void copyFrom(Cluster model) throws Exception {
         setMasterAuthConfig(null);
@@ -997,10 +1011,13 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }).collect(Collectors.toList()));
         }
 
-        setIdentityServiceConfig(null);
-        GkeIdentityServiceConfig config = newSubresource(GkeIdentityServiceConfig.class);
-        config.copyFrom(model.getIdentityServiceConfig());
-        setIdentityServiceConfig(config);
+        GkeIdentityServiceConfig gkeIdentityServiceConfig = newSubresource(GkeIdentityServiceConfig.class);
+        gkeIdentityServiceConfig.copyFrom(model.getIdentityServiceConfig());
+        setIdentityServiceConfig(gkeIdentityServiceConfig);
+
+        GkeAutopilot gkeAutopilot = newSubresource(GkeAutopilot.class);
+        gkeAutopilot.copyFrom(model.getAutopilot());
+        setAutopilot(gkeAutopilot);
 
         setNodePool(model.getNodePoolsList().stream().map(n -> {
             GkeNodePool gkeNodePool = newSubresource(GkeNodePool.class);
@@ -1186,6 +1203,10 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
         if (getIdentityServiceConfig() != null) {
             builder.setIdentityServiceConfig(getIdentityServiceConfig().toIdentityServiceConfig());
+        }
+
+        if (getAutopilot() != null) {
+            builder.setAutopilot(getAutopilot().toAutopilot());
         }
 
         try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
