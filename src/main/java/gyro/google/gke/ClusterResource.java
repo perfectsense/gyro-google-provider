@@ -1032,17 +1032,26 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }).collect(Collectors.toList()));
         }
 
-        GkeIdentityServiceConfig gkeIdentityServiceConfig = newSubresource(GkeIdentityServiceConfig.class);
-        gkeIdentityServiceConfig.copyFrom(model.getIdentityServiceConfig());
-        setIdentityServiceConfig(gkeIdentityServiceConfig);
+        setIdentityServiceConfig(null);
+        if (model.hasIdentityServiceConfig()) {
+            GkeIdentityServiceConfig gkeIdentityServiceConfig = newSubresource(GkeIdentityServiceConfig.class);
+            gkeIdentityServiceConfig.copyFrom(model.getIdentityServiceConfig());
+            setIdentityServiceConfig(gkeIdentityServiceConfig);
+        }
 
-        GkeAutopilot gkeAutopilot = newSubresource(GkeAutopilot.class);
-        gkeAutopilot.copyFrom(model.getAutopilot());
-        setAutopilot(gkeAutopilot);
+        setAutopilot(null);
+        if (model.hasAutopilot()) {
+            GkeAutopilot gkeAutopilot = newSubresource(GkeAutopilot.class);
+            gkeAutopilot.copyFrom(model.getAutopilot());
+            setAutopilot(gkeAutopilot);
+        }
 
-        GkeLoggingConfig gkeLoggingConfig = newSubresource(GkeLoggingConfig.class);
-        gkeLoggingConfig.copyFrom(model.getLoggingConfig());
-        setLoggingConfig(gkeLoggingConfig);
+        setLoggingConfig(null);
+        if (model.hasLoggingConfig()) {
+            GkeLoggingConfig gkeLoggingConfig = newSubresource(GkeLoggingConfig.class);
+            gkeLoggingConfig.copyFrom(model.getLoggingConfig());
+            setLoggingConfig(gkeLoggingConfig);
+        }
 
         setNodePool(model.getNodePoolsList().stream().map(n -> {
             GkeNodePool gkeNodePool = newSubresource(GkeNodePool.class);
