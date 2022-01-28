@@ -265,18 +265,21 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
         bgp.copyFrom(model.getBgp());
         setRouterBgp(bgp);
 
+        getRouterNat().clear();
         for (com.google.cloud.compute.v1.RouterNat n : model.getNatsList()) {
             RouterNat nat = newSubresource(RouterNat.class);
             nat.copyFrom(n);
             getRouterNat().add(nat);
         }
 
+        getRouterInterface().clear();
         for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfacesList()) {
-            RouterInterface routerInterface = newSubresource(RouterInterface.class);
-            routerInterface.copyFrom(i);
-            getRouterInterface().add(routerInterface);
+            RouterInterface routerInterface1 = newSubresource(RouterInterface.class);
+            routerInterface1.copyFrom(i);
+            getRouterInterface().add(routerInterface1);
         }
 
+        getRouterBgpPeer().clear();
         for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeersList()) {
             RouterBgpPeer bgpPeer = newSubresource(RouterBgpPeer.class);
             bgpPeer.copyFrom(p);
@@ -376,7 +379,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                     : getRouterBgp().toRouterBgp());
             }
 
-            if (changedFieldNames.contains("router-nats")) {
+            if (changedFieldNames.contains("router-nat")) {
                 builder.addAllNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
             }
 
