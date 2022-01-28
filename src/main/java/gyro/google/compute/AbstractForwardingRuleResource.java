@@ -30,7 +30,7 @@ import gyro.google.Copyable;
 public abstract class AbstractForwardingRuleResource extends ComputeResource implements Copyable<ForwardingRule> {
 
     private String ipAddress;
-    private ForwardingRule.IPProtocol ipProtocol;
+    private ForwardingRule.IPProtocolEnum ipProtocol;
     private Boolean allPorts;
     private String description;
     private ForwardingRule.IpVersion ipVersion;
@@ -61,11 +61,11 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
      */
     @Required
     @ValidStrings({ "TCP", "UDP", "ESP", "AH", "SCTP", "ICMP" })
-    public ForwardingRule.IPProtocol getIpProtocol() {
+    public ForwardingRule.IPProtocolEnum getIpProtocol() {
         return ipProtocol;
     }
 
-    public void setIpProtocol(ForwardingRule.IPProtocol ipProtocol) {
+    public void setIpProtocol(ForwardingRule.IPProtocolEnum ipProtocol) {
         this.ipProtocol = ipProtocol;
     }
 
@@ -205,13 +205,13 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     @Override
     public void copyFrom(ForwardingRule forwardingRule) {
         setIpAddress(forwardingRule.getIPAddress());
-        setIpProtocol(forwardingRule.getIPProtocol());
+        setIpProtocol(ForwardingRule.IPProtocolEnum.valueOf(forwardingRule.getIPProtocol()));
         setAllPorts(forwardingRule.getAllPorts());
         setDescription(forwardingRule.getDescription());
-        setIpVersion(forwardingRule.getIpVersion());
-        setLoadBalancingScheme(forwardingRule.getLoadBalancingScheme());
+        setIpVersion(ForwardingRule.IpVersion.valueOf(forwardingRule.getIpVersion()));
+        setLoadBalancingScheme(ForwardingRule.LoadBalancingScheme.valueOf(forwardingRule.getLoadBalancingScheme()));
         setName(forwardingRule.getName());
-        setNetworkTier(forwardingRule.getNetworkTier());
+        setNetworkTier(ForwardingRule.NetworkTier.valueOf(forwardingRule.getNetworkTier()));
         setPortRange(forwardingRule.getPortRange());
         setPorts(forwardingRule.getPortsList());
         setServiceLabel(forwardingRule.getServiceLabel());
@@ -222,13 +222,13 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     ForwardingRule toForwardingRule() {
         ForwardingRule.Builder forwardingRule = ForwardingRule.newBuilder();
         forwardingRule.setIPAddress(getIpAddress());
-        forwardingRule.setIPProtocol(getIpProtocol());
+        forwardingRule.setIPProtocol(getIpProtocol().name());
         forwardingRule.setAllPorts(getAllPorts());
         forwardingRule.setDescription(getDescription());
-        forwardingRule.setIpVersion(getIpVersion());
-        forwardingRule.setLoadBalancingScheme(getLoadBalancingScheme());
+        forwardingRule.setIpVersion(getIpVersion().name());
+        forwardingRule.setLoadBalancingScheme(getLoadBalancingScheme().name());
         forwardingRule.setName(getName());
-        forwardingRule.setNetworkTier(getNetworkTier());
+        forwardingRule.setNetworkTier(getNetworkTier().name());
         forwardingRule.setServiceLabel(getServiceLabel());
         // This should be used even though the docs says it's deprecated as setting port is not working.
         forwardingRule.setPortRange(getPortRange());

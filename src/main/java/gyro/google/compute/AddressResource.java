@@ -22,7 +22,9 @@ import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Address;
 import com.google.cloud.compute.v1.AddressesClient;
+import com.google.cloud.compute.v1.DeleteAddressRequest;
 import com.google.cloud.compute.v1.GetAddressRequest;
+import com.google.cloud.compute.v1.InsertAddressRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -97,7 +99,7 @@ public class AddressResource extends AbstractAddressResource {
             Address.Builder builder = copyTo().toBuilder().setRegion(getRegion());
 
             if (getNetworkTier() != null) {
-                builder.setNetworkTier(Address.NetworkTier.valueOf(getNetworkTier())).build();
+                builder.setNetworkTier(getNetworkTier());
             }
 
             // When Network/Subnetwork have just been created they may still be unavailable, so wait until ready.
@@ -116,7 +118,11 @@ public class AddressResource extends AbstractAddressResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (AddressesClient client = createClient(AddressesClient.class)) {
-            waitForCompletion(client.delete(getProjectId(), getRegion(), getName()));
+            waitForCompletion(client.deleteCallable().call(DeleteAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAddress(getName())
+                .build()));
         }
     }
 
@@ -133,8 +139,11 @@ public class AddressResource extends AbstractAddressResource {
 
     private boolean createAddress(AddressesClient client, Address address) throws Exception {
         try {
-            waitForCompletion(client.insert(getProjectId(), getRegion(), address));
-
+            waitForCompletion(client.insertCallable().call(InsertAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAddressResource(address)
+                .build()));
         } catch (InvalidArgumentException ex) {
             if (ex.getCause().getMessage().contains("resourceNotReady")) {
                 return false;

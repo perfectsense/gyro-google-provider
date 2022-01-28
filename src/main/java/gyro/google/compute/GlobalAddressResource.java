@@ -19,8 +19,10 @@ package gyro.google.compute;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Address;
+import com.google.cloud.compute.v1.DeleteGlobalAddressRequest;
 import com.google.cloud.compute.v1.GetGlobalAddressRequest;
 import com.google.cloud.compute.v1.GlobalAddressesClient;
+import com.google.cloud.compute.v1.InsertGlobalAddressRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
@@ -78,10 +80,13 @@ public class GlobalAddressResource extends AbstractAddressResource {
             Address.Builder builder = copyTo().toBuilder();
 
             if (getIpVersion() != null) {
-                builder.setIpVersion(Address.IpVersion.valueOf(getIpVersion()));
+                builder.setIpVersion(getIpVersion());
             }
 
-            waitForCompletion(client.insert(getProjectId(), builder.build()));
+            waitForCompletion(client.insertCallable().call(InsertGlobalAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setAddressResource(builder)
+                .build()));
         }
 
         refresh();
@@ -90,14 +95,17 @@ public class GlobalAddressResource extends AbstractAddressResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (GlobalAddressesClient client = createClient(GlobalAddressesClient.class)) {
-            waitForCompletion(client.delete(getProjectId(), getName()));
+            waitForCompletion(client.deleteCallable().call(DeleteGlobalAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setAddress(getName())
+                .build()));
         }
     }
 
     @Override
     public void copyFrom(Address model) {
         super.copyFrom(model);
-        setIpVersion(model.getIpVersion() == null ? null : model.getIpVersion().toString().toUpperCase());
+        setIpVersion(model.getIpVersion());
     }
 
     private Address getAddress(GlobalAddressesClient client) {

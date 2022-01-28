@@ -23,10 +23,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AttachDiskInstanceRequest;
 import com.google.cloud.compute.v1.AttachedDisk;
+import com.google.cloud.compute.v1.DetachDiskInstanceRequest;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetDiskAutoDeleteInstanceRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.Wait;
@@ -127,9 +130,15 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                 }
 
                 if (currentResource.getAttachedDisk().getAutoDelete() != getAttachedDisk().getAutoDelete()) {
-                    Operation operation = client.setDiskAutoDelete(getProjectId(), getInstance().getZone(),
-                        getInstance().getName(), Boolean.TRUE.equals(getAttachedDisk().getAutoDelete()),
-                        currentResource.getAttachedDisk().getDeviceName());
+                    Operation operation = client.setDiskAutoDeleteOperationCallable()
+                        .call(
+                            SetDiskAutoDeleteInstanceRequest.newBuilder()
+                                .setProject(getProjectId())
+                                .setInstance(getInstance().getName())
+                                .setDeviceName(currentResource.getAttachedDisk().getDeviceName())
+                                .setAutoDelete(Boolean.TRUE.equals(getAttachedDisk().getAutoDelete()))
+                                .build());
+
                     waitForCompletion(operation);
                 }
             }
@@ -187,16 +196,28 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
 
     private void detachDisk(InstanceAttachedDiskResource resource) throws Exception {
         try (InstancesClient client = createClient(InstancesClient.class)) {
-            Operation operation = client.detachDisk(resource.getProjectId(), resource.getInstance().getZone(),
-                resource.getInstance().getName(), resource.getAttachedDisk().getDeviceName());
+            Operation operation = client.detachDiskCallable()
+                .call(
+                    DetachDiskInstanceRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setInstance(getInstance().getName())
+                        .setDeviceName(resource.getAttachedDisk().getDeviceName())
+                        .build());
+
             waitForCompletion(operation);
         }
     }
 
     private void attachDisk() throws Exception {
         try (InstancesClient client = createClient(InstancesClient.class)) {
-            Operation operation = client.attachDisk(getProjectId(), getInstance().getZone(), getInstance().getName(),
-                getAttachedDisk().copyTo());
+            Operation operation = client.attachDiskOperationCallable()
+                .call(
+                    AttachDiskInstanceRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setInstance(getInstance().getName())
+                        .setAttachedDiskResource(getAttachedDisk().copyTo())
+                        .build());
+
             waitForCompletion(operation);
         }
     }

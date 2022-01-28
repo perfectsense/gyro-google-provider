@@ -171,8 +171,8 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         setDescription(model.getDescription());
         setAddress(model.getAddress());
         setPrefixLength(model.getPrefixLength());
-        setAddressType(model.getAddressType());
-        setPurpose(model.getPurpose());
+        setAddressType(Address.AddressType.valueOf(model.getAddressType()));
+        setPurpose(Address.Purpose.valueOf(model.getPurpose()));
 
         setSubnetwork(null);
         if ((model.getSubnetwork() != null) && !model.getSubnetwork().endsWith("default")) {
@@ -184,7 +184,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
             setNetwork(findById(NetworkResource.class, model.getNetwork()));
         }
 
-        setStatus(model.getStatus());
+        setStatus(Address.Status.valueOf(model.getStatus()));
         setSelfLink(model.getSelfLink());
     }
 
@@ -200,7 +200,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         }
 
         if (getPurpose() != null) {
-            builder.setPurpose(getPurpose());
+            builder.setPurpose(getPurpose().name());
         }
 
         if (getSubnetwork() != null) {
@@ -216,7 +216,7 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         }
 
         if (getAddressType() != null) {
-            builder.setAddressType(getAddressType());
+            builder.setAddressType(getAddressType().name());
         }
 
         return builder.build();

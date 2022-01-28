@@ -73,8 +73,7 @@ public class SecurityPolicyRuleMatcher extends Diffable
     public com.google.cloud.compute.v1.SecurityPolicyRuleMatcher toSecurityPolicyRuleMatcher() {
         com.google.cloud.compute.v1.SecurityPolicyRuleMatcher.Builder builder = com.google.cloud.compute.v1.SecurityPolicyRuleMatcher
             .newBuilder();
-        builder.setVersionedExpr(com.google.cloud.compute.v1.SecurityPolicyRuleMatcher.VersionedExpr.valueOf(
-            getVersionedExpr()));
+        builder.setVersionedExpr(getVersionedExpr());
         builder.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
 
         return builder.build();

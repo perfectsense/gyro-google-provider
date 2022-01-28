@@ -20,8 +20,11 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.GetTargetHttpProxyRequest;
+import com.google.cloud.compute.v1.InsertTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetUrlMapTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.TargetHttpProxiesClient;
 import com.google.cloud.compute.v1.TargetHttpProxy;
 import com.google.cloud.compute.v1.UrlMapReference;
@@ -65,7 +68,11 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (TargetHttpProxiesClient client = createClient(TargetHttpProxiesClient.class)) {
-            Operation operation = client.insert(getProjectId(), toTargetHttpProxy());
+            Operation operation = client.insertCallable().call(InsertTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpProxyResource(toTargetHttpProxy())
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -77,7 +84,13 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
         try (TargetHttpProxiesClient client = createClient(TargetHttpProxiesClient.class)) {
             UrlMapReference.Builder builder = UrlMapReference.newBuilder();
             builder.setUrlMap(getUrlMapSelfLink());
-            Operation response = client.setUrlMap(getProjectId(), getName(), builder.build());
+
+            Operation response = client.setUrlMapCallable().call(SetUrlMapTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpProxy(getName())
+                .setUrlMapReferenceResource(builder)
+                .build());
+
             waitForCompletion(response);
         }
         refresh();
@@ -86,7 +99,11 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (TargetHttpProxiesClient client = createClient(TargetHttpProxiesClient.class)) {
-            Operation response = client.delete(getProjectId(), getName());
+            Operation response = client.deleteCallable().call(DeleteTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpProxy(getName())
+                .build());
+
             waitForCompletion(response);
         }
     }

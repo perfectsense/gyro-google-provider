@@ -207,7 +207,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
 
     public Backend toBackend() {
         Backend.Builder builder = Backend.newBuilder()
-            .setBalancingMode(Backend.BalancingMode.valueOf(getBalancingMode())).setGroup(getGroup().referenceLink());
+            .setBalancingMode(getBalancingMode()).setGroup(getGroup().referenceLink());
 
         if (getCapacityScaler() != null) {
             builder.setCapacityScaler(getCapacityScaler());

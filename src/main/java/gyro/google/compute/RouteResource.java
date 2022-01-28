@@ -26,7 +26,9 @@ import java.util.stream.Stream;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRouteRequest;
 import com.google.cloud.compute.v1.GetRouteRequest;
+import com.google.cloud.compute.v1.InsertRouteRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.Route;
 import com.google.cloud.compute.v1.RoutesClient;
@@ -273,7 +275,11 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
                 builder.addAllTags(getTags());
             }
 
-            Operation operation = client.insert(getProjectId(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRouteRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRouteResource(builder)
+                .buildPartial());
+
             waitForCompletion(operation);
 
             Route route = client.get(getProjectId(), getName());
@@ -294,7 +300,11 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (RoutesClient client = createClient(RoutesClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRouteRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRoute(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

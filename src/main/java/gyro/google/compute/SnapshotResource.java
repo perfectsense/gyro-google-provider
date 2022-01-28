@@ -24,10 +24,13 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.CreateSnapshotDiskRequest;
+import com.google.cloud.compute.v1.DeleteSnapshotRequest;
 import com.google.cloud.compute.v1.DisksClient;
 import com.google.cloud.compute.v1.GetSnapshotRequest;
 import com.google.cloud.compute.v1.GlobalSetLabelsRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetLabelsSnapshotRequest;
 import com.google.cloud.compute.v1.Snapshot;
 import com.google.cloud.compute.v1.SnapshotsClient;
 import gyro.core.GyroUI;
@@ -335,15 +338,26 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             if (getSourceDisk() != null) {
                 builder.setSourceDisk(getSourceDisk().getSelfLink());
 
-                Operation operation = client.createSnapshot(getProjectId(), getSourceDisk().getZone(),
-                    getSourceDisk().getName(), builder.build());
+                Operation operation = client.createSnapshotCallable().call(
+                    CreateSnapshotDiskRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setDisk(getSourceDisk().getName())
+                        .setSnapshotResource(builder)
+                        .build());
+
                 waitForCompletion(operation);
 
             } else if (getSourceRegionDisk() != null) {
                 builder.setSourceDisk(getSourceRegionDisk().getSelfLink());
 
-                Operation operation = client.createSnapshot(getProjectId(), getSourceRegionDisk().getRegion(),
-                    getSourceRegionDisk().getName(), builder.build());
+                Operation operation = client.createSnapshotCallable()
+                    .call(
+                        CreateSnapshotDiskRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setDisk(getSourceRegionDisk().getName())
+                            .setSnapshotResource(builder)
+                            .build());
+
                 waitForCompletion(operation);
             }
 
@@ -362,7 +376,12 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
                 builder.setLabelFingerprint(getLabelFingerprint());
             }
 
-            Operation operation = client.setLabels(getProjectId(), getName(), builder.build());
+            Operation operation = client.setLabelsCallable().call(SetLabelsSnapshotRequest.newBuilder()
+                .setProject(getProjectId())
+                .setResource(getName())
+                .setGlobalSetLabelsRequestResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -372,7 +391,11 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (SnapshotsClient client = createClient(SnapshotsClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteSnapshotRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSnapshot(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

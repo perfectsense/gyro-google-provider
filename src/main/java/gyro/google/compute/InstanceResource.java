@@ -28,13 +28,21 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteInstanceRequest;
 import com.google.cloud.compute.v1.GetInstanceRequest;
+import com.google.cloud.compute.v1.InsertInstanceRequest;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.InstancesSetLabelsRequest;
 import com.google.cloud.compute.v1.InstancesSetMachineTypeRequest;
 import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Metadata;
+import com.google.cloud.compute.v1.SetLabelsInstanceRequest;
+import com.google.cloud.compute.v1.SetMachineTypeInstanceRequest;
+import com.google.cloud.compute.v1.SetMetadataInstanceRequest;
+import com.google.cloud.compute.v1.SetTagsInstanceRequest;
+import com.google.cloud.compute.v1.StartInstanceRequest;
+import com.google.cloud.compute.v1.StopInstanceRequest;
 import com.google.cloud.compute.v1.Tags;
 import gyro.core.GyroInstance;
 import gyro.core.GyroUI;
@@ -432,7 +440,11 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             builder.setDescription(getDescription());
             builder.setMachineType(getMachineType());
 
-            waitForCompletion(client.insert(getProjectId(), getZone(), builder.build()));
+            waitForCompletion(client.insertCallable().call(InsertInstanceRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceResource(builder)
+                .build()));
 
             Wait.atMost(2, TimeUnit.MINUTES)
                 .checkEvery(20, TimeUnit.SECONDS)
@@ -455,34 +467,69 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             if (changedFieldNames.contains("labels")) {
                 // Always use the currentResoure#labelFingerprint in case updated via console. API will neither error or
                 // update if an older fingerprint is used.
+
+                InstancesSetLabelsRequest.Builder builder = InstancesSetLabelsRequest.newBuilder()
+                    .setLabelFingerprint(currentResource.getLabelFingerprint())
+                    .putAllLabels(getLabels());
+
                 waitForCompletion(
-                    client.setLabels(getProjectId(), getZone(), getName(), InstancesSetLabelsRequest.newBuilder()
-                        .setLabelFingerprint(currentResource.getLabelFingerprint())
-                        .putAllLabels(getLabels()).build()));
+                    client.setLabelsCallable()
+                        .call(SetLabelsInstanceRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setZone(getZone())
+                            .setInstance(getName())
+                            .setInstancesSetLabelsRequestResource(builder)
+                            .build()));
             }
 
             if (changedFieldNames.contains("status")) {
                 if ("RUNNING".equals(getStatus())) {
-                    waitForCompletion(client.start(getProjectId(), getZone(), getName()));
+                    waitForCompletion(client.startCallable().call(StartInstanceRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setZone(getZone())
+                        .setInstance(getName())
+                        .build()));
                 } else if ("TERMINATED".equals(getStatus())) {
                     // These take a considerable amount of time so don't wait.
-                    client.stop(getProjectId(), getZone(), getName());
+                    client.stopCallable().call(StopInstanceRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setZone(getZone())
+                        .setInstance(getName())
+                        .build());
                 }
             }
 
             if (changedFieldNames.contains("metadata")) {
-                waitForCompletion(client.setMetadata(getProjectId(), getZone(), getName(),
-                    buildMetadata(getMetadataFingerprint())));
+                waitForCompletion(client.setMetadataCallable().call(
+                    SetMetadataInstanceRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setZone(getZone())
+                        .setInstance(getName())
+                        .setMetadataResource(buildMetadata(getMetadataFingerprint()))
+                        .build()));
             }
 
             if (changedFieldNames.contains("tags")) {
-                waitForCompletion(client.setTags(getProjectId(), getZone(), getName(),
-                    buildTags(getTagsFingerprint())));
+                waitForCompletion(client.setTagsCallable().call(
+                    SetTagsInstanceRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setZone(getZone())
+                        .setInstance(getName())
+                        .setTagsResource(buildTags(getTagsFingerprint()))
+                        .build()));
             }
 
             if (changedFieldNames.contains("machine-type")) {
-                waitForCompletion(client.setMachineType(getProjectId(), getZone(), getName(),
-                    InstancesSetMachineTypeRequest.newBuilder().setMachineType(getMachineType()).build()));
+                InstancesSetMachineTypeRequest.Builder builder = InstancesSetMachineTypeRequest.newBuilder()
+                        .setMachineType(getMachineType());
+
+                waitForCompletion(client.setMachineTypeCallable().call(
+                    SetMachineTypeInstanceRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setZone(getZone())
+                        .setInstance(getName())
+                        .setInstancesSetMachineTypeRequestResource(builder)
+                        .build()));
             }
         }
 
@@ -492,7 +539,11 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (InstancesClient client = createClient(InstancesClient.class)) {
-            waitForCompletion(client.delete(getProjectId(), getZone(), getName()));
+            waitForCompletion(client.deleteCallable().call(DeleteInstanceRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstance(getName())
+                .build()));
         }
     }
 

@@ -20,6 +20,7 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteNetworkRequest;
 import com.google.cloud.compute.v1.GetNetworkRequest;
 import com.google.cloud.compute.v1.InsertNetworkRequest;
 import com.google.cloud.compute.v1.Network;
@@ -27,6 +28,7 @@ import com.google.cloud.compute.v1.NetworkRoutingConfig;
 import com.google.cloud.compute.v1.NetworksClient;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.PatchNetworkRequest;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -154,12 +156,12 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         Network network = Network.newBuilder().setName(getName()).setDescription(getDescription())
             .setAutoCreateSubnetworks(false)
             .setRoutingConfig(NetworkRoutingConfig.newBuilder()
-                .setRoutingMode(NetworkRoutingConfig.RoutingMode.valueOf(getRoutingMode()))
+                .setRoutingMode(getRoutingMode())
                 .build())
             .build();
 
         try (NetworksClient client = createClient(NetworksClient.class)) {
-            Operation operation = client.insert(InsertNetworkRequest.newBuilder()
+            Operation operation = client.insertCallable().call(InsertNetworkRequest.newBuilder()
                 .setNetworkResource(network)
                 .setProject(getProjectId())
                 .build());
@@ -174,17 +176,21 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
         NetworkRoutingConfig.Builder builder = NetworkRoutingConfig.newBuilder();
-        builder.setRoutingMode(NetworkRoutingConfig.RoutingMode.valueOf(getRoutingMode()));
+        builder.setRoutingMode(getRoutingMode());
 
         try (NetworksClient client = createClient(NetworksClient.class)) {
             Network.Builder network = Network.newBuilder(getNetwork(client));
             network.setRoutingConfig(builder.build());
 
-            Operation operation = client.patch(PatchNetworkRequest.newBuilder().setNetwork(getName())
-                .setNetworkResource(network.build()).setProject(getProjectId()).build());
+            Operation operation = client
+                .patchCallable().call(PatchNetworkRequest.newBuilder()
+                    .setNetwork(getName())
+                    .setNetworkResource(network.build()).setProject(getProjectId()).build());
 
             state.save();
             waitForCompletion(operation);
+        } catch (Exception ex) {
+            throw new GyroException(ex);
         }
 
         refresh();
@@ -193,9 +199,14 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     @Override
     public void doDelete(GyroUI ui, State state) {
         try (NetworksClient client = createClient(NetworksClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteNetworkRequest.newBuilder()
+                .setNetwork(getName())
+                .setProject(getProjectId())
+                .build());
 
             waitForCompletion(operation);
+        } catch (Exception ex) {
+            throw new GyroException(ex);
         }
     }
 

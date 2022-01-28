@@ -195,7 +195,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
 
     @Override
     public String primaryKey() {
-        return String.format("RouterNat: %s", getName());
+        return getName();
     }
 
     @Override
@@ -203,35 +203,26 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         setIcmpIdleTimeoutSec(model.getIcmpIdleTimeoutSec());
         setMinPortsPerVm(model.getMinPortsPerVm());
         setName(model.getName());
-        setIpAllocationOption(model.getNatIpAllocateOption().toString());
-        setSourceSubnetworkIpRangesToNat(model.getSourceSubnetworkIpRangesToNat().toString());
+        setIpAllocationOption(model.getNatIpAllocateOption());
+        setSourceSubnetworkIpRangesToNat(model.getSourceSubnetworkIpRangesToNat());
         setTcpEstablishedIdleTimeoutSec(model.getTcpEstablishedIdleTimeoutSec());
         setTcpTransitoryIdleTimeoutSec(model.getTcpTransitoryIdleTimeoutSec());
         setUdpIdleTimeoutSec(model.getUdpIdleTimeoutSec());
 
-        setLogConfig(null);
-        if (model.getLogConfig() != null) {
-            RouterNatLogConfig logConfig = newSubresource(RouterNatLogConfig.class);
-            logConfig.copyFrom(model.getLogConfig());
-            setLogConfig(logConfig);
-        }
+        RouterNatLogConfig logConfig = newSubresource(RouterNatLogConfig.class);
+        logConfig.copyFrom(model.getLogConfig());
+        setLogConfig(logConfig);
 
-        getNatIp().clear();
-        if (model.getNatIpsList() != null) {
-            setNatIp(model.getNatIpsList()
-                .stream()
-                .map(ip -> findById(AddressResource.class, ip))
-                .collect(Collectors.toList()));
-        }
+        setNatIp(model.getNatIpsList()
+            .stream()
+            .map(ip -> findById(AddressResource.class, ip))
+            .collect(Collectors.toList()));
 
-        getSubnet().clear();
-        if (model.getSubnetworksList() != null) {
-            setSubnet(model.getSubnetworksList().stream().map(s -> {
-                RouterNatSubnetworkToNat routerNatSubnetworkToNat = newSubresource(RouterNatSubnetworkToNat.class);
-                routerNatSubnetworkToNat.copyFrom(s);
-                return routerNatSubnetworkToNat;
-            }).collect(Collectors.toList()));
-        }
+        setSubnet(model.getSubnetworksList().stream().map(s -> {
+            RouterNatSubnetworkToNat routerNatSubnetworkToNat = newSubresource(RouterNatSubnetworkToNat.class);
+            routerNatSubnetworkToNat.copyFrom(s);
+            return routerNatSubnetworkToNat;
+        }).collect(Collectors.toList()));
     }
 
     com.google.cloud.compute.v1.RouterNat toRouterNat() {
@@ -247,8 +238,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         }
 
         if (getIpAllocationOption() != null) {
-            builder.setNatIpAllocateOption(com.google.cloud.compute.v1.RouterNat.NatIpAllocateOption.valueOf(
-                getIpAllocationOption()));
+            builder.setNatIpAllocateOption(getIpAllocationOption());
         }
 
         if (getNatIp() != null) {
@@ -257,8 +247,7 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         }
 
         if (getSourceSubnetworkIpRangesToNat() != null) {
-            builder.setSourceSubnetworkIpRangesToNat(com.google.cloud.compute.v1.RouterNat.SourceSubnetworkIpRangesToNat
-                .valueOf(getSourceSubnetworkIpRangesToNat()));
+            builder.setSourceSubnetworkIpRangesToNat(getSourceSubnetworkIpRangesToNat());
         }
 
         builder.addAllSubnetworks(getSubnet().stream().map(RouterNatSubnetworkToNat::toRouterNatSubnetworkToNat)

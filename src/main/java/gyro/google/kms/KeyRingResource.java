@@ -100,7 +100,7 @@ public class KeyRingResource extends GoogleResource implements Copyable<KeyRing>
     public void copyFrom(KeyRing model) throws Exception {
         setId(model.getName());
         setName(Utils.getKmsKeyRingNameFromId(getId()));
-        setLocation(Utils.getKmsLocationFromId(getId()));
+        setLocation(Utils.getLocationFromId(getId()));
     }
 
     @Override

@@ -59,13 +59,13 @@ public class WeeklyCycleDayOfWeek extends Diffable implements Copyable<ResourceP
 
     @Override
     public void copyFrom(ResourcePolicyWeeklyCycleDayOfWeek model) {
-        setDay(model.getDay().toString());
+        setDay(model.getDay());
         setStartTime(model.getStartTime());
     }
 
     public ResourcePolicyWeeklyCycleDayOfWeek copyTo() {
         return ResourcePolicyWeeklyCycleDayOfWeek.newBuilder()
-            .setDay(ResourcePolicyWeeklyCycleDayOfWeek.Day.valueOf(getDay()))
+            .setDay(getDay())
             .setStartTime(getStartTime()).build();
     }
 }

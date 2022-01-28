@@ -22,8 +22,11 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteSecurityPolicyRequest;
 import com.google.cloud.compute.v1.GetSecurityPolicyRequest;
+import com.google.cloud.compute.v1.InsertSecurityPolicyRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchSecurityPolicyRequest;
 import com.google.cloud.compute.v1.SecurityPoliciesClient;
 import com.google.cloud.compute.v1.SecurityPolicy;
 import gyro.core.GyroUI;
@@ -177,7 +180,11 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
-            Operation operation = client.patch(getProjectId(), getName(), toSecurityPolicy());
+            Operation operation = client.patchCallable().call(PatchSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicy(getName())
+                .setSecurityPolicyResource(toSecurityPolicy())
+                .build());
             waitForCompletion(operation);
         }
 
@@ -187,7 +194,10 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
-            Operation operation = client.insert(getProjectId(), toSecurityPolicy());
+            Operation operation = client.insertCallable().call(InsertSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicyResource(toSecurityPolicy())
+                .build());
             waitForCompletion(operation);
         }
 
@@ -197,7 +207,10 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicy(getName())
+                .build());
             waitForCompletion(operation);
         }
     }

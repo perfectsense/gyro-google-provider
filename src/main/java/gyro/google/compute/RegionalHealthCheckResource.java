@@ -4,9 +4,12 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.GetRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.InsertRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.RegionHealthChecksClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -146,7 +149,12 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
             HealthCheck.Builder builder = getHealthCheck(null).toBuilder();
             builder.setRegion(getRegion());
 
-            Operation operation = client.insert(getProjectId(), builder.getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRegionHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setHealthCheckResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -162,8 +170,13 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
                 builder.setRegion(getRegion());
             }
 
-            Operation operation = client
-                .patch(getProjectId(), getRegion(), getName(), builder.build());
+            Operation operation = client.patchCallable().call(PatchRegionHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setHealthCheck(getName())
+                .setHealthCheckResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -173,7 +186,12 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionHealthChecksClient client = createClient(RegionHealthChecksClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRegionHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setHealthCheck(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

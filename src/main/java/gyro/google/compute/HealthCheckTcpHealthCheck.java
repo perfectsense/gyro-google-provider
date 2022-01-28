@@ -57,11 +57,11 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
         }
 
         if (getPortSpecification() != null) {
-            builder.setPortSpecification(TCPHealthCheck.PortSpecification.valueOf(getPortSpecification()));
+            builder.setPortSpecification(getPortSpecification());
         }
 
         if (getProxyHeader() != null) {
-            builder.setProxyHeader(TCPHealthCheck.ProxyHeader.valueOf(getProxyHeader()));
+            builder.setProxyHeader(getProxyHeader());
         }
 
         if (getResponse() != null) {

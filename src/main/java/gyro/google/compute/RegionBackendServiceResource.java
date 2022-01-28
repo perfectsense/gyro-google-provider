@@ -26,9 +26,12 @@ import java.util.Set;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.DeleteRegionBackendServiceRequest;
 import com.google.cloud.compute.v1.GetRegionBackendServiceRequest;
 import com.google.cloud.compute.v1.HealthStatus;
+import com.google.cloud.compute.v1.InsertRegionBackendServiceRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRegionBackendServiceRequest;
 import com.google.cloud.compute.v1.RegionBackendServicesClient;
 import com.google.cloud.compute.v1.ResourceGroupReference;
 import gyro.core.GyroException;
@@ -107,7 +110,11 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
             BackendService backendService = getBackendService(null);
-            Operation operation = client.insert(getProjectId(), getRegion(), backendService);
+            Operation operation = client.insertCallable().call(InsertRegionBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setRegion(getRegion())
+                .setBackendServiceResource(backendService)
+                .build());
             waitForCompletion(operation);
         }
 
@@ -118,7 +125,11 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
             BackendService backendService = getBackendService(changedFieldNames);
-            Operation operation = client.patch(getProjectId(), getRegion(), getName(), backendService);
+            Operation operation = client.patchCallable().call(PatchRegionBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setRegion(getRegion())
+                .setBackendServiceResource(backendService)
+                .build());
             waitForCompletion(operation);
         }
     }
@@ -126,7 +137,11 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRegionBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setRegion(getRegion())
+                .setBackendService(getName())
+                .build());
             waitForCompletion(operation);
         }
     }

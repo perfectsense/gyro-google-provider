@@ -27,12 +27,15 @@ import com.google.api.client.util.Data;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.DeleteImageRequest;
 import com.google.cloud.compute.v1.GetImageRequest;
 import com.google.cloud.compute.v1.GlobalSetLabelsRequest;
 import com.google.cloud.compute.v1.Image;
 import com.google.cloud.compute.v1.ImagesClient;
+import com.google.cloud.compute.v1.InsertImageRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.RawDisk;
+import com.google.cloud.compute.v1.SetLabelsImageRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -479,7 +482,11 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
             // Image doesn't currently have an API for storageLocations so manually set it
             builder.addAllStorageLocations(getStorageLocations());
 
-            Operation operation = client.insert(getProjectId(), builder.build());
+            Operation operation = client.insertCallable().call(InsertImageRequest.newBuilder()
+                .setProject(getProjectId())
+                .setImageResource(builder)
+                .build());
+
             // Images are slow to complete so wait max of 3 minutes for completion
             waitForCompletion(operation, 3, TimeUnit.MINUTES);
         }
@@ -493,7 +500,12 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
             GlobalSetLabelsRequest.Builder builder = GlobalSetLabelsRequest.newBuilder();
             builder.putAllLabels(getLabels());
             builder.setLabelFingerprint(getLabelFingerprint());
-            Operation operation = client.setLabels(getProjectId(), getName(), builder.build());
+            Operation operation = client.setLabelsCallable().call(SetLabelsImageRequest.newBuilder()
+                .setProject(getProjectId())
+                .setResource(getName())
+                .setGlobalSetLabelsRequestResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -503,7 +515,11 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (ImagesClient client = createClient(ImagesClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteImageRequest.newBuilder()
+                .setProject(getProjectId())
+                .setImage(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

@@ -110,7 +110,7 @@ public class RouterBgp extends Diffable implements Copyable<com.google.cloud.com
     public void copyFrom(com.google.cloud.compute.v1.RouterBgp model) {
         setAsn((long) model.getAsn());
         setAdvertiseMode(model.getAdvertiseMode().toString());
-        setAdvertisedGroups(model.getAdvertisedGroupsList().stream().map(Enum::toString).collect(Collectors.toList()));
+        setAdvertisedGroups(model.getAdvertisedGroupsList());
 
         if (model.getAdvertisedIpRangesList() != null) {
             setIpRange(model.getAdvertisedIpRangesList().stream().map(i -> {
@@ -126,13 +126,11 @@ public class RouterBgp extends Diffable implements Copyable<com.google.cloud.com
         builder.setAsn(getAsn().intValue());
 
         if (getAdvertiseMode() != null) {
-            builder.setAdvertiseMode(com.google.cloud.compute.v1.RouterBgp.AdvertiseMode.valueOf(getAdvertiseMode()));
+            builder.setAdvertiseMode(getAdvertiseMode());
         }
 
         if (getAdvertisedGroups() != null) {
-            builder.addAllAdvertisedGroups(getAdvertisedGroups().stream()
-                .map(com.google.cloud.compute.v1.RouterBgp.AdvertisedGroups::valueOf)
-                .collect(Collectors.toList()));
+            builder.addAllAdvertisedGroups(getAdvertisedGroups());
         }
 
         if (getIpRange() != null) {

@@ -21,8 +21,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.cloud.compute.v1.DeleteRouterRequest;
+import com.google.cloud.compute.v1.InsertRouterRequest;
 import com.google.cloud.compute.v1.ListRoutersRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRouterRequest;
 import com.google.cloud.compute.v1.Router;
 import com.google.cloud.compute.v1.RoutersClient;
 import gyro.core.GyroUI;
@@ -258,37 +261,26 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
         setRegion(Utils.extractName(model.getRegion()));
         setNetwork(findById(NetworkResource.class, model.getNetwork()));
 
-        if (model.getBgp() != null) {
-            RouterBgp bgp = newSubresource(RouterBgp.class);
-            bgp.copyFrom(model.getBgp());
-            setRouterBgp(bgp);
+        RouterBgp bgp = newSubresource(RouterBgp.class);
+        bgp.copyFrom(model.getBgp());
+        setRouterBgp(bgp);
+
+        for (com.google.cloud.compute.v1.RouterNat n : model.getNatsList()) {
+            RouterNat nat = newSubresource(RouterNat.class);
+            nat.copyFrom(n);
+            getRouterNat().add(nat);
         }
 
-        if (model.getNatsList() != null) {
-            getRouterNat().clear();
-            for (com.google.cloud.compute.v1.RouterNat n : model.getNatsList()) {
-                RouterNat nat = newSubresource(RouterNat.class);
-                nat.copyFrom(n);
-                getRouterNat().add(nat);
-            }
+        for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfacesList()) {
+            RouterInterface routerInterface = newSubresource(RouterInterface.class);
+            routerInterface.copyFrom(i);
+            getRouterInterface().add(routerInterface);
         }
 
-        if (model.getInterfacesList() != null) {
-            getRouterInterface().clear();
-            for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfacesList()) {
-                RouterInterface routerInterface = newSubresource(RouterInterface.class);
-                routerInterface.copyFrom(i);
-                getRouterInterface().add(routerInterface);
-            }
-        }
-
-        if (model.getBgpPeersList() != null) {
-            getRouterBgpPeer().clear();
-            for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeersList()) {
-                RouterBgpPeer bgpPeer = newSubresource(RouterBgpPeer.class);
-                bgpPeer.copyFrom(p);
-                getRouterBgpPeer().add(bgpPeer);
-            }
+        for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeersList()) {
+            RouterBgpPeer bgpPeer = newSubresource(RouterBgpPeer.class);
+            bgpPeer.copyFrom(p);
+            getRouterBgpPeer().add(bgpPeer);
         }
     }
 
@@ -339,7 +331,12 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 builder.setNetwork(getNetwork().getSelfLink());
             }
 
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRouterRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setRouterResource(builder)
+                .build());
+
             waitForCompletion(operation);
 
             setSelfLink(operation.getTargetLink());
@@ -350,7 +347,13 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 Router.Builder newRouter = Router.newBuilder();
                 newRouter.addAllNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
 
-                operation = client.patch(getProjectId(), getRegion(), getName(), newRouter.build());
+                operation = client.patchCallable().call(PatchRouterRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setRouter(getName())
+                    .setRouterResource(builder)
+                    .build());
+
                 waitForCompletion(operation);
             }
         }
@@ -389,7 +392,13 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                     .collect(Collectors.toList()));
             }
 
-            Operation operation = client.patch(getProjectId(), getRegion(), getName(), builder.build());
+            Operation operation = client.patchCallable().call(PatchRouterRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setRouter(getName())
+                .setRouterResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -397,7 +406,12 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (RoutersClient client = createClient(RoutersClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRouterRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setRouter(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

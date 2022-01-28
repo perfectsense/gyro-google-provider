@@ -26,6 +26,7 @@ import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Metadata;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.ProjectsClient;
+import com.google.cloud.compute.v1.SetCommonInstanceMetadataProjectRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -146,7 +147,11 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     }
 
     private void setMetadata(ProjectsClient client, Metadata metadata) {
-        Operation operation = client.setCommonInstanceMetadata(getProjectId(), metadata);
+        Operation operation = client.setCommonInstanceMetadataCallable().call(SetCommonInstanceMetadataProjectRequest.newBuilder()
+            .setProject(getProjectId())
+            .setMetadataResource(metadata)
+            .build());
+
         waitForCompletion(operation);
     }
 

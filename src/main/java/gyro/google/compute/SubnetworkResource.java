@@ -16,15 +16,22 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+import com.google.api.gax.longrunning.OperationFuture;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.GetSubnetworkRequest;
+import com.google.cloud.compute.v1.InsertSubnetworkRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchSubnetworkRequest;
+import com.google.cloud.compute.v1.SetPrivateIpGoogleAccessSubnetworkRequest;
 import com.google.cloud.compute.v1.Subnetwork;
 import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksSetPrivateIpGoogleAccessRequest;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -61,6 +68,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     private String region;
     private Boolean enableFlowLogs;
     private Boolean privateIpGoogleAccess;
+    private List<SubnetworkSecondaryRange> secondaryIpRange;
 
     // Read-only
     private String id;
@@ -158,6 +166,24 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
+     * The secondary IP ranges that may be allocated for this subnet.
+     *
+     * @subresource gyro.google.compute.SubnetworkSecondaryRange
+     */
+    @Updatable
+    public List<SubnetworkSecondaryRange> getSecondaryIpRange() {
+        if (secondaryIpRange == null) {
+            secondaryIpRange = new ArrayList<>();
+        }
+
+        return secondaryIpRange;
+    }
+
+    public void setSecondaryIpRange(List<SubnetworkSecondaryRange> secondaryIpRanges) {
+        this.secondaryIpRange = secondaryIpRanges;
+    }
+
+    /**
      * The Id of the subnet.
      */
     @Output
@@ -196,6 +222,14 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
             subnetwork.getNetwork()));
         setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
         setSelfLink(subnetwork.getSelfLink());
+
+        getSecondaryIpRange().clear();
+        List<com.google.cloud.compute.v1.SubnetworkSecondaryRange> secondaryIpRanges = subnetwork.getSecondaryIpRangesList();
+        secondaryIpRanges.forEach(ipRange -> {
+            SubnetworkSecondaryRange secondaryRange = newSubresource(SubnetworkSecondaryRange.class);
+            secondaryRange.copyFrom(ipRange);
+            getSecondaryIpRange().add(secondaryRange);
+        });
     }
 
     @Override
@@ -215,12 +249,23 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Subnetwork subnetwork = Subnetwork.newBuilder().setName(getName()).setNetwork(getNetwork().getSelfLink())
+        Subnetwork.Builder builder = Subnetwork.newBuilder()
+            .setName(getName())
+            .setNetwork(getNetwork().getSelfLink())
             .setDescription(getDescription()).setIpCidrRange(getIpCidrRange()).setEnableFlowLogs(getEnableFlowLogs())
-            .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess()).build();
+            .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
+
+        if (!getSecondaryIpRange().isEmpty()) {
+            getSecondaryIpRange().forEach(range -> builder.addSecondaryIpRanges(range.toSecondaryIpRange()));
+        }
 
         try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
-            Operation operation = client.insert(getProjectId(), getRegion(), subnetwork);
+            Subnetwork subnetwork = builder.build();
+            Operation operation = client.insertCallable().call(InsertSubnetworkRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setSubnetworkResource(subnetwork)
+                    .build());
 
             waitForCompletion(operation);
         }
@@ -230,23 +275,51 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Operation operation;
-
         if (changedFieldNames.contains("enable-flow-logs")) {
             try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
                 Subnetwork.Builder builder = Subnetwork.newBuilder(getSubnetwork(client));
                 builder.setEnableFlowLogs(getEnableFlowLogs());
-                operation = client.patch(getProjectId(), getRegion(), getName(), builder.build());
+
+                Operation operation = client.patchCallable().call(PatchSubnetworkRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setRegion(getRegion())
+                        .setSubnetworkResource(builder.build())
+                        .build());
 
                 waitForCompletion(operation);
+            } catch (Exception ex) {
+                throw new GyroException(ex);
             }
         }
 
         if (changedFieldNames.contains("private-ip-google-access")) {
             try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
                 SubnetworksSetPrivateIpGoogleAccessRequest flag = SubnetworksSetPrivateIpGoogleAccessRequest.newBuilder()
-                    .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess()).build();
-                operation = client.setPrivateIpGoogleAccess(getProjectId(), getRegion(), getName(), flag);
+                    .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess())
+                    .build();
+
+                Operation operation = client.setPrivateIpGoogleAccessCallable()
+                    .call(SetPrivateIpGoogleAccessSubnetworkRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setRegion(getRegion())
+                        .setSubnetwork(getName())
+                        .setSubnetworksSetPrivateIpGoogleAccessRequestResource(flag)
+                        .build());
+
+                waitForCompletion(operation);
+            }
+        }
+
+        if (changedFieldNames.contains("secondary-ip-range")) {
+            try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
+                Subnetwork.Builder builder = Subnetwork.newBuilder(getSubnetwork(client));
+                getSecondaryIpRange().forEach(range -> builder.addSecondaryIpRanges(range.toSecondaryIpRange()));
+
+                Operation operation = client.patchCallable().call(PatchSubnetworkRequest.newBuilder()
+                    .setSubnetworkResource(builder)
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .build());
 
                 waitForCompletion(operation);
             }
@@ -256,9 +329,12 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     @Override
     public void doDelete(GyroUI ui, State state) {
         try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            OperationFuture<Operation, Operation> future = client.deleteAsync(getProjectId(), getRegion(), getName());
+            Operation operation = future.get();
 
             waitForCompletion(operation);
+        } catch (Exception ex) {
+            throw new GyroException(ex);
         }
     }
 

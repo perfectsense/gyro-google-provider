@@ -25,15 +25,20 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.GetRegionInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.InsertRegionInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceGroupManager;
 import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.ManagedInstance;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRegionInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.RegionInstanceGroupManagersClient;
 import com.google.cloud.compute.v1.RegionInstanceGroupManagersSetTargetPoolsRequest;
 import com.google.cloud.compute.v1.RegionInstanceGroupManagersSetTemplateRequest;
+import com.google.cloud.compute.v1.SetInstanceTemplateRegionInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.SetTargetPoolsRegionInstanceGroupManagerRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroInstance;
 import gyro.core.GyroInstances;
@@ -126,7 +131,13 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionInstanceGroupManagersClient client = createClient(RegionInstanceGroupManagersClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteOperationCallable().call(
+                DeleteRegionInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setInstanceGroupManager(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -140,7 +151,12 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
                 builder.setDistributionPolicy(getDistributionPolicy().copyTo());
             }
 
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRegionInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setInstanceGroupManagerResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -148,7 +164,12 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
     @Override
     void patch(InstanceGroupManager instanceGroupManager) throws Exception {
         try (RegionInstanceGroupManagersClient client = createClient(RegionInstanceGroupManagersClient.class)) {
-            Operation operation = client.patch(getProjectId(), getRegion(), getName(), instanceGroupManager);
+            Operation operation = client.patchCallable().call(PatchRegionInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setInstanceGroupManagerResource(instanceGroupManager)
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -163,7 +184,14 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
                 ? Data.nullOf(String.class)
                 : instanceTemplate.getSelfLink());
 
-            Operation operation = client.setInstanceTemplate(getProjectId(), getRegion(), getName(), builder.build());
+            Operation operation = client.setInstanceTemplateOperationCallable().call(
+                SetInstanceTemplateRegionInstanceGroupManagerRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setInstanceGroupManager(getName())
+                    .setRegionInstanceGroupManagersSetTemplateRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
     }
@@ -177,7 +205,14 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
             builder.addAllTargetPools(targetPoolResources.stream().map(TargetPoolResource::getSelfLink)
                 .collect(Collectors.toList()));
 
-            Operation operation = client.setTargetPools(getProjectId(), getRegion(), getName(), builder.build());
+            Operation operation = client.setTargetPoolsOperationCallable().call(
+                SetTargetPoolsRegionInstanceGroupManagerRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setInstanceGroupManager(getName())
+                    .setRegionInstanceGroupManagersSetTargetPoolsRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
     }

@@ -24,9 +24,14 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddSignedUrlKeyBackendBucketRequest;
 import com.google.cloud.compute.v1.BackendBucket;
 import com.google.cloud.compute.v1.BackendBucketsClient;
+import com.google.cloud.compute.v1.DeleteBackendBucketRequest;
+import com.google.cloud.compute.v1.DeleteSignedUrlKeyBackendBucketRequest;
+import com.google.cloud.compute.v1.InsertBackendBucketRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchBackendBucketRequest;
 import com.google.protobuf.InvalidProtocolBufferException;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -281,14 +286,23 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
                 builder.setCdnPolicy(getCdnPolicy().toBackendBucketCdnPolicy());
             }
 
-            Operation operation = client.insert(getProjectId(), builder.build());
+            Operation operation = client.insertCallable().call(InsertBackendBucketRequest.newBuilder()
+                .setProject(getProjectId())
+                .setBackendBucketResource(builder)
+                .build());
+
             waitForCompletion(operation);
 
             if (!getSignedUrlKey().isEmpty()) {
                 state.save();
 
                 for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                    operation = client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey());
+                    operation = client.addSignedUrlKeyCallable().call(AddSignedUrlKeyBackendBucketRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setBackendBucket(getName())
+                        .setSignedUrlKeyResource(urlKey.toSignedUrlKey())
+                        .build());
+
                     waitForCompletion(operation);
                 }
             }
@@ -326,7 +340,12 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
 
             builder.setName(getName());
 
-            Operation operation = client.patch(getProjectId(), getName(), builder.build());
+            Operation operation = client.patchCallable().call(PatchBackendBucketRequest.newBuilder()
+                .setProject(getProjectId())
+                .setBackendBucket(getName())
+                .setBackendBucketResource(builder)
+                .build());
+
             waitForCompletion(operation);
 
             if (changedFieldNames.contains("signed-url-key")) {
@@ -335,13 +354,22 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
                     BackendSignedUrlKey::getKey).collect(Collectors.toList());
 
                 for (String urlKey : deleteSignedUrlKeys) {
-                    waitForCompletion(client.deleteSignedUrlKey(getProjectId(), getName(), urlKey));
+                    waitForCompletion(client.deleteSignedUrlKeyOperationCallable().call(
+                        DeleteSignedUrlKeyBackendBucketRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setBackendBucket(getName())
+                            .setKeyName(urlKey)
+                            .build()));
                 }
 
                 // add new keys
                 for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
-                    waitForCompletion(
-                        client.addSignedUrlKey(getProjectId(), getName(), urlKey.toSignedUrlKey()));
+                    waitForCompletion(client.addSignedUrlKeyOperationCallable()
+                        .call(AddSignedUrlKeyBackendBucketRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setBackendBucket(getName())
+                            .setSignedUrlKeyResource(urlKey.toSignedUrlKey())
+                            .build()));
                 }
             }
         }
@@ -350,7 +378,10 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (BackendBucketsClient client = createClient(BackendBucketsClient.class)) {
-            Operation response = client.delete(getProjectId(), getName());
+            Operation response = client.deleteCallable().call(DeleteBackendBucketRequest.newBuilder()
+                .setProject(getProjectId())
+                .setBackendBucket(getName())
+                .build());
 
             waitForCompletion(response);
         }

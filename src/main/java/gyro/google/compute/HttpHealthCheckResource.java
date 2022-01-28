@@ -22,11 +22,14 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteHealthCheckRequest;
 import com.google.cloud.compute.v1.GetHealthCheckRequest;
 import com.google.cloud.compute.v1.HTTPHealthCheck;
 import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.HealthChecksClient;
+import com.google.cloud.compute.v1.InsertHealthCheckRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchHealthCheckRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -232,7 +235,11 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
             HealthCheck healthCheck = getHttpHealthCheck(null);
-            Operation operation = client.insert(getProjectId(), healthCheck);
+            Operation operation = client.insertCallable().call(InsertHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheckResource(healthCheck)
+                .build());
+
             waitForCompletion(operation);
         }
         refresh();
@@ -243,7 +250,12 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
             HealthCheck healthCheck = getHttpHealthCheck(changedFieldNames);
-            Operation operation = client.patch(getProjectId(), getName(), healthCheck);
+            Operation operation = client.patchCallable().call(PatchHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheck(getName())
+                .setHealthCheckResource(healthCheck)
+                .build());
+
             waitForCompletion(operation);
         }
         refresh();
@@ -252,7 +264,11 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
-            Operation operation = client.delete(getProjectId(), getName());
+            Operation operation = client.deleteCallable().call(DeleteHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheck(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }

@@ -24,7 +24,11 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AttachNetworkEndpointsNetworkEndpointGroupRequest;
+import com.google.cloud.compute.v1.DeleteNetworkEndpointGroupRequest;
+import com.google.cloud.compute.v1.DetachNetworkEndpointsNetworkEndpointGroupRequest;
 import com.google.cloud.compute.v1.GetNetworkEndpointGroupRequest;
+import com.google.cloud.compute.v1.InsertNetworkEndpointGroupRequest;
 import com.google.cloud.compute.v1.NetworkEndpoint;
 import com.google.cloud.compute.v1.NetworkEndpointGroup;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsAttachEndpointsRequest;
@@ -267,14 +271,19 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
             }
 
             if (getType() != null) {
-                builder.setNetworkEndpointType(NetworkEndpointGroup.NetworkEndpointType.valueOf(getType()));
+                builder.setNetworkEndpointType(getType());
             }
 
             if (getDescription() != null) {
                 builder.setDescription(getDescription());
             }
 
-            Operation operation = client.insert(getProjectId(), getZone(), builder.build());
+            Operation operation = client.insertCallable().call(InsertNetworkEndpointGroupRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setNetworkEndpointGroupResource(builder)
+                .build());
+
             waitForCompletion(operation);
 
             // Saves the state before trying to save the endpoints
@@ -304,7 +313,12 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (NetworkEndpointGroupsClient client = createClient(NetworkEndpointGroupsClient.class)) {
-            Operation operation = client.delete(getProjectId(), getZone(), getName());
+            Operation operation = client.deleteCallable().call(DeleteNetworkEndpointGroupRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setNetworkEndpointGroup(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
@@ -312,13 +326,13 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     private List<NetworkEndpointResource> getNetworkEndpoint() {
         try (NetworkEndpointGroupsClient client = createClient(NetworkEndpointGroupsClient.class)) {
             NetworkEndpointGroupsListEndpointsRequest.Builder builder = NetworkEndpointGroupsListEndpointsRequest.newBuilder();
-            builder.setHealthStatus(NetworkEndpointGroupsListEndpointsRequest.HealthStatus.SHOW);
+            builder.setHealthStatus(NetworkEndpointGroupsListEndpointsRequest.HealthStatus.SHOW.name());
             List<NetworkEndpointWithHealthStatus> endpoints = client.listNetworkEndpoints(getProjectId(), getZone(),
                 getName(), builder.build()).getPage().getResponse().getItemsList();
 
             getEndpoint().clear();
 
-            return endpoints != null ? endpoints.stream()
+            return endpoints.stream()
                 .map(endpoint -> {
                     NetworkEndpointResource endpointResource = newSubresource(NetworkEndpointResource.class);
                     // API returns only the name not the instance self-link so reconstruct the self-link.
@@ -329,7 +343,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
 
                     endpointResource.copyFrom(endpoint.toBuilder().setNetworkEndpoint(endpointBuilder.build()).build());
                     return endpointResource;
-                }).collect(Collectors.toList()) : Collections.emptyList();
+                }).collect(Collectors.toList());
         }
     }
 
@@ -343,7 +357,14 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
                 .map(NetworkEndpointResource::toNetworkEndpoint)
                 .collect(Collectors.toList()));
 
-            operation = client.detachNetworkEndpoints(getProjectId(), getZone(), getName(), builder.build());
+            operation = client.detachNetworkEndpointsOperationCallable()
+                .call(DetachNetworkEndpointsNetworkEndpointGroupRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setNetworkEndpointGroup(getName())
+                    .setNetworkEndpointGroupsDetachEndpointsRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
 
@@ -353,7 +374,14 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
                 .map(NetworkEndpointResource::toNetworkEndpoint)
                 .collect(Collectors.toList()));
 
-            operation = client.attachNetworkEndpoints(getProjectId(), getZone(), getName(), builder.build());
+            operation = client.attachNetworkEndpointsCallable()
+                .call(AttachNetworkEndpointsNetworkEndpointGroupRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setNetworkEndpointGroup(getName())
+                    .setNetworkEndpointGroupsAttachEndpointsRequestResource(builder)
+                    .build());
+
             waitForCompletion(operation);
         }
     }

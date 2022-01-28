@@ -76,11 +76,11 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck implements 
         }
 
         if (getPortSpecification() != null) {
-            builder.setPortSpecification(HTTPSHealthCheck.PortSpecification.valueOf(getPortSpecification()));
+            builder.setPortSpecification(getPortSpecification());
         }
 
         if (getProxyHeader() != null) {
-            builder.setProxyHeader(HTTPSHealthCheck.ProxyHeader.valueOf(getProxyHeader()));
+            builder.setProxyHeader(getProxyHeader());
         }
 
         if (getResponse() != null) {

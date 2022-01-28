@@ -20,7 +20,9 @@ import java.util.Set;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionSslCertificateRequest;
 import com.google.cloud.compute.v1.GetRegionSslCertificateRequest;
+import com.google.cloud.compute.v1.InsertRegionSslCertificateRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.RegionSslCertificatesClient;
 import com.google.cloud.compute.v1.SslCertificate;
@@ -95,7 +97,12 @@ public class RegionSslCertificateResource extends AbstractSslCertificateResource
             builder.setCertificate(readCertificateFile());
             builder.setPrivateKey(readPrivateKeyFile());
 
-            Operation operation = client.insert(getProjectId(), getRegion(), builder.build());
+            Operation operation = client.insertCallable().call(InsertRegionSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setSslCertificateResource(builder)
+                .build());
+
             waitForCompletion(operation);
         }
 
@@ -110,7 +117,12 @@ public class RegionSslCertificateResource extends AbstractSslCertificateResource
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
         try (RegionSslCertificatesClient client = createClient(RegionSslCertificatesClient.class)) {
-            Operation operation = client.delete(getProjectId(), getRegion(), getName());
+            Operation operation = client.deleteCallable().call(DeleteRegionSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setSslCertificate(getName())
+                .build());
+
             waitForCompletion(operation);
         }
     }
