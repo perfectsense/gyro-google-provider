@@ -18,9 +18,15 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.DeleteRegionAutoscalerRequest;
+import com.google.cloud.compute.v1.GetRegionAutoscalerRequest;
+import com.google.cloud.compute.v1.InsertRegionAutoscalerRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRegionAutoscalerRequest;
+import com.google.cloud.compute.v1.RegionAutoscalersClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
@@ -92,41 +98,82 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
     }
 
     @Override
-    protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.regionAutoscalers().get(getProjectId(), getRegion(), getName()).execute());
-        return true;
+    protected boolean doRefresh() {
+        try (RegionAutoscalersClient client = createClient(RegionAutoscalersClient.class)) {
+            Autoscaler autoscaler = getRegionAutoscaler(client);
+
+            if (autoscaler == null) {
+                return false;
+            }
+
+            copyFrom(autoscaler);
+
+            return true;
+        }
     }
 
     @Override
-    protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.regionAutoscalers()
-            .delete(getProjectId(), getRegion(), getName())
-            .execute();
-        waitForCompletion(client, operation);
+    protected void doDelete(GyroUI ui, State state) {
+        try (RegionAutoscalersClient client = createClient(RegionAutoscalersClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteRegionAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAutoscaler(getName())
+                .build());
+
+            state.save();
+
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void insert(Autoscaler autoscaler) throws Exception {
+    void insert(Autoscaler autoscaler) {
+        Autoscaler.Builder builder = autoscaler.toBuilder();
         Optional.ofNullable(getInstanceGroupManager())
             .map(RegionInstanceGroupManagerResource::getSelfLink)
-            .ifPresent(autoscaler::setTarget);
+            .ifPresent(builder::setTarget);
 
-        Compute client = createComputeClient();
-        Operation operation = client.regionAutoscalers()
-            .insert(getProjectId(), getRegion(), autoscaler)
-            .execute();
-        waitForCompletion(client, operation);
+        try (RegionAutoscalersClient client = createClient(RegionAutoscalersClient.class)) {
+            Operation operation = client.insertCallable().call(InsertRegionAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAutoscalerResource(builder)
+                .build());
+
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void patch(Autoscaler autoscaler) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.regionAutoscalers()
-            .patch(getProjectId(), getRegion(), autoscaler)
-            .setAutoscaler(getName())
-            .execute();
-        waitForCompletion(client, operation);
+    void patch(Autoscaler autoscaler) {
+        try (RegionAutoscalersClient client = createClient(RegionAutoscalersClient.class)) {
+            Operation operation = client.patchCallable()
+                .call(PatchRegionAutoscalerRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setAutoscaler(getName())
+                    .setAutoscalerResource(autoscaler)
+                    .build());
+
+            waitForCompletion(operation);
+        }
+    }
+
+    private Autoscaler getRegionAutoscaler(RegionAutoscalersClient client) {
+        Autoscaler autoscaler = null;
+
+        try {
+            autoscaler = client.get(GetRegionAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAutoscaler(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return autoscaler;
     }
 }

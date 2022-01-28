@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.api.services.compute.model.PathRule;
+import com.google.cloud.compute.v1.PathRule;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
@@ -100,7 +100,7 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
 
     @Override
     public void copyFrom(PathRule model) {
-        setPaths(model.getPaths());
+        setPaths(model.getPathsList());
 
         String service = model.getService();
         setBackendBucket(null);
@@ -146,8 +146,8 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
     }
 
     public PathRule copyTo() {
-        PathRule pathRule = new PathRule();
-        pathRule.setPaths(getPaths());
+        PathRule.Builder builder = PathRule.newBuilder();
+        builder.addAllPaths(getPaths());
 
         String service = "";
         if (getBackendBucket() != null) {
@@ -159,11 +159,11 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         }
 
         if (getUrlRedirect() != null) {
-            pathRule.setUrlRedirect(getUrlRedirect().toHttpRedirectAction());
+            builder.setUrlRedirect(getUrlRedirect().toHttpRedirectAction());
         } else {
-            pathRule.setService(service);
+            builder.setService(service);
         }
 
-        return pathRule;
+        return builder.build();
     }
 }

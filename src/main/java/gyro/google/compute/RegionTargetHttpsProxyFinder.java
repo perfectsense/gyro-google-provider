@@ -17,20 +17,25 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.TargetHttpsProxiesScopedList;
-import com.google.api.services.compute.model.TargetHttpsProxy;
-import com.google.api.services.compute.model.TargetHttpsProxyAggregatedList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetRegionTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.ListRegionTargetHttpsProxiesRequest;
+import com.google.cloud.compute.v1.ListRegionsRequest;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionTargetHttpsProxiesClient;
+import com.google.cloud.compute.v1.RegionsClient;
+import com.google.cloud.compute.v1.TargetHttpsProxy;
+import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.Type;
+import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query for a region target https proxy.
@@ -44,7 +49,7 @@ import gyro.google.GoogleFinder;
  */
 @Type("compute-region-target-https-proxy")
 public class RegionTargetHttpsProxyFinder
-    extends GoogleFinder<Compute, TargetHttpsProxy, RegionTargetHttpsProxyResource> {
+    extends GoogleFinder<RegionTargetHttpsProxiesClient, TargetHttpsProxy, RegionTargetHttpsProxyResource> {
 
     private String name;
     private String region;
@@ -72,45 +77,130 @@ public class RegionTargetHttpsProxyFinder
     }
 
     @Override
-    protected List<TargetHttpsProxy> findAllGoogle(Compute client) throws Exception {
-        List<TargetHttpsProxy> targetHttpsProxies = new ArrayList<>();
-        TargetHttpsProxyAggregatedList targetHttpsProxyList;
-        String nextPageToken = null;
-
-        do {
-            targetHttpsProxyList = client.targetHttpsProxies()
-                .aggregatedList(getProjectId())
-                .setPageToken(nextPageToken)
-                .execute();
-            targetHttpsProxies.addAll(targetHttpsProxyList
-                .getItems().values().stream()
-                .map(TargetHttpsProxiesScopedList::getTargetHttpsProxies)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(targetHttpsProxy -> targetHttpsProxy.getRegion() != null)
-                .collect(Collectors.toList()));
-            nextPageToken = targetHttpsProxyList.getNextPageToken();
-        } while (nextPageToken != null);
-
-        return targetHttpsProxies;
+    protected List<TargetHttpsProxy> findAllGoogle(RegionTargetHttpsProxiesClient client) throws Exception {
+        return getRegionTargetHttpsProxies(client, null);
     }
 
     @Override
-    protected List<TargetHttpsProxy> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<TargetHttpsProxy> targetHttpsProxies = new ArrayList<>();
+    protected List<TargetHttpsProxy> findGoogle(RegionTargetHttpsProxiesClient client, Map<String, String> filters)
+        throws Exception {
+        List<TargetHttpsProxy> proxies = new ArrayList<>();
+        String region = filters.remove("region");
+        String name = filters.remove("name");
+        String filter = Utils.convertToFilters(filters);
 
-        if (filters.containsKey("name")) {
-            targetHttpsProxies = Collections.singletonList(client.regionTargetHttpsProxies()
-                .get(getProjectId(), filters.get("region"), filters.get("name"))
-                .execute());
-        } else {
-            targetHttpsProxies = Optional.ofNullable(client.regionTargetHttpsProxies()
-                .list(getProjectId(), filters.get("region"))
-                .execute()
-                .getItems())
-                .orElse(new ArrayList<>());
+        try {
+            if (filters.containsKey("zone")) {
+                throw new GyroException("For zonal autoscaler, use 'compute-autoscaler' instead.");
+            }
+
+            if (region != null && name != null) {
+                proxies.add(client.get(GetRegionTargetHttpsProxyRequest.newBuilder().setTargetHttpsProxy(name)
+                    .setProject(getProjectId()).setRegion(region).build()));
+
+            } else {
+                if (region != null) {
+                    proxies.addAll(getTargetHttpsProxies(client, filter, region));
+
+                } else if (name != null) {
+                    List<String> regions = getRegions();
+
+                    for (String r : regions) {
+                        try {
+                            proxies.add(client.get(GetRegionTargetHttpsProxyRequest.newBuilder()
+                                .setTargetHttpsProxy(name)
+                                .setProject(getProjectId())
+                                .setRegion(r)
+                                .build()));
+
+                        } catch (NotFoundException | InvalidArgumentException ex) {
+                            // ignore
+                        }
+                    }
+                } else {
+                    getRegionTargetHttpsProxies(client, filter);
+                }
+            }
+        } finally {
+            client.close();
         }
 
-        return targetHttpsProxies;
+        return proxies;
+    }
+
+    private List<TargetHttpsProxy> getRegionTargetHttpsProxies(RegionTargetHttpsProxiesClient client, String filter) {
+        List<String> regionList = getRegions();
+
+        List<TargetHttpsProxy> proxies = new ArrayList<>();
+
+        try {
+            for (String region : regionList) {
+                proxies.addAll(getTargetHttpsProxies(client, filter, region));
+            }
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+
+        } finally {
+            client.close();
+        }
+
+        return proxies;
+    }
+
+    private List<TargetHttpsProxy> getTargetHttpsProxies(
+        RegionTargetHttpsProxiesClient client,
+        String filter,
+        String region) {
+        String pageToken = null;
+
+        List<TargetHttpsProxy> proxies = new ArrayList<>();
+
+        do {
+            ListRegionTargetHttpsProxiesRequest.Builder builder = ListRegionTargetHttpsProxiesRequest.newBuilder()
+                .setProject(getProjectId()).setRegion(region);
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            RegionTargetHttpsProxiesClient.ListPagedResponse response = client.list(builder.build());
+            pageToken = response.getNextPageToken();
+
+            if (response.getPage() != null && response.getPage().getResponse() != null) {
+                proxies.addAll(response.getPage().getResponse().getItemsList());
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
+
+        return proxies;
+    }
+
+    private List<String> getRegions() {
+        String pageToken = null;
+        List<String> regionList = new ArrayList<>();
+
+        try (RegionsClient regionsClient = credentials(GoogleCredentials.class).createClient(RegionsClient.class)) {
+            do {
+                ListRegionsRequest.Builder builder = ListRegionsRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                RegionsClient.ListPagedResponse list = regionsClient.list(builder.build());
+                pageToken = list.getNextPageToken();
+                regionList.addAll(list.getPage().getResponse().getItemsList()
+                    .stream().map(Region::getName).collect(Collectors.toList()));
+
+            } while (!StringUtils.isEmpty(pageToken));
+        }
+
+        return regionList;
     }
 }

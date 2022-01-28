@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.NodeManagement;
+import com.google.container.v1beta1.NodeManagement;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;

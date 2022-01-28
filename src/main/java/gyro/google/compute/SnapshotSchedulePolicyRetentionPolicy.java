@@ -16,12 +16,13 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ResourcePolicySnapshotSchedulePolicyRetentionPolicy;
+import com.google.cloud.compute.v1.ResourcePolicySnapshotSchedulePolicyRetentionPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
-public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements Copyable<ResourcePolicySnapshotSchedulePolicyRetentionPolicy> {
+public class SnapshotSchedulePolicyRetentionPolicy extends Diffable
+    implements Copyable<ResourcePolicySnapshotSchedulePolicyRetentionPolicy> {
 
     private Integer maxRetentionDays;
     private String onSourceDiskDelete;
@@ -40,7 +41,7 @@ public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements C
     /**
      * The behavior to apply to scheduled snapshots when the source disk is deleted.
      */
-    @ValidStrings({"APPLY_RETENTION_POLICY", "KEEP_AUTO_SNAPSHOTS", "UNSPECIFIED_ON_SOURCE_DISK_DELETE"})
+    @ValidStrings({ "APPLY_RETENTION_POLICY", "KEEP_AUTO_SNAPSHOTS", "UNSPECIFIED_ON_SOURCE_DISK_DELETE" })
     public String getOnSourceDiskDelete() {
         return onSourceDiskDelete;
     }
@@ -74,8 +75,16 @@ public class SnapshotSchedulePolicyRetentionPolicy extends Diffable implements C
     }
 
     public ResourcePolicySnapshotSchedulePolicyRetentionPolicy copyTo() {
-       return new ResourcePolicySnapshotSchedulePolicyRetentionPolicy()
-           .setMaxRetentionDays(getMaxRetentionDays())
-           .setOnSourceDiskDelete(getOnSourceDiskDelete());
+        ResourcePolicySnapshotSchedulePolicyRetentionPolicy.Builder builder = ResourcePolicySnapshotSchedulePolicyRetentionPolicy
+            .newBuilder();
+
+        if (getMaxRetentionDays() != null) {
+            builder.setMaxRetentionDays(getMaxRetentionDays());
+        }
+        if (getOnSourceDiskDelete() != null) {
+            builder.setOnSourceDiskDelete(getOnSourceDiskDelete());
+        }
+
+        return builder.build();
     }
 }

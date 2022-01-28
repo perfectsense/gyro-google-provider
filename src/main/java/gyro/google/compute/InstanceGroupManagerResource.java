@@ -22,14 +22,22 @@ import java.util.stream.Collectors;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.InstanceGroupManagersListManagedInstancesResponse;
-import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest;
-import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest;
-import com.google.api.services.compute.model.ManagedInstance;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.GetInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.InsertInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstanceGroupManager;
+import com.google.cloud.compute.v1.InstanceGroupManagersClient;
+import com.google.cloud.compute.v1.InstanceGroupManagersSetInstanceTemplateRequest;
+import com.google.cloud.compute.v1.InstanceGroupManagersSetTargetPoolsRequest;
+import com.google.cloud.compute.v1.InstancesClient;
+import com.google.cloud.compute.v1.ManagedInstance;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.SetInstanceTemplateInstanceGroupManagerRequest;
+import com.google.cloud.compute.v1.SetTargetPoolsInstanceGroupManagerRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroInstance;
 import gyro.core.GyroInstances;
@@ -82,88 +90,112 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.instanceGroupManagers().get(getProjectId(), getZone(), getName()).execute());
-        return true;
+        try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
+            InstanceGroupManager instanceGroupManager = getInstanceGroupManager(client);
+
+            if (instanceGroupManager == null) {
+                return false;
+            }
+
+            copyFrom(instanceGroupManager);
+
+            return true;
+        }
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroupManagers()
-            .delete(getProjectId(), getZone(), getName())
-            .execute();
-        waitForCompletion(client, operation);
+        try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManager(getName())
+                .build());
+
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void insert(InstanceGroupManager instanceGroupManager) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroupManagers()
-            .insert(getProjectId(), getZone(), instanceGroupManager)
-            .execute();
-        waitForCompletion(client, operation);
+    void insert(InstanceGroupManager instanceGroupManager) {
+        try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
+            Operation operation = client.insertCallable().call(InsertInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManagerResource(instanceGroupManager)
+                .build());
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void patch(InstanceGroupManager instanceGroupManager) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroupManagers()
-            .patch(getProjectId(), getZone(), getName(), instanceGroupManager)
-            .execute();
-        waitForCompletion(client, operation);
+    void patch(InstanceGroupManager instanceGroupManager) {
+        try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
+            Operation operation = client.patchCallable().call(PatchInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManagerResource(instanceGroupManager)
+                .build());
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void setInstanceTemplate() throws Exception {
-        InstanceGroupManagersSetInstanceTemplateRequest request = new InstanceGroupManagersSetInstanceTemplateRequest();
+    void setInstanceTemplate() {
+        InstanceGroupManagersSetInstanceTemplateRequest.Builder builder = InstanceGroupManagersSetInstanceTemplateRequest
+            .newBuilder();
         InstanceTemplateResource instanceTemplate = getInstanceTemplate();
-        request.setInstanceTemplate(instanceTemplate == null
-            ? Data.nullOf(String.class)
+        builder.setInstanceTemplate(instanceTemplate == null ? Data.nullOf(String.class)
             : instanceTemplate.getSelfLink());
 
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroupManagers()
-            .setInstanceTemplate(getProjectId(), getZone(), getName(), request)
-            .execute();
-        waitForCompletion(client, operation);
+        try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
+            Operation operation = client.setInstanceTemplateCallable().call(
+                SetInstanceTemplateInstanceGroupManagerRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setInstanceGroupManagersSetInstanceTemplateRequestResource(builder)
+                    .build());
+
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void setTargetPools() throws Exception {
-        InstanceGroupManagersSetTargetPoolsRequest request = new InstanceGroupManagersSetTargetPoolsRequest();
-        List<TargetPoolResource> targetPoolResources = getTargetPools();
-        request.setTargetPools(targetPoolResources.isEmpty()
-            ? Data.nullOf(ArrayList.class)
-            : targetPoolResources.stream()
-                .map(TargetPoolResource::getSelfLink)
-                .collect(Collectors.toList()));
+    void setTargetPools() {
+        InstanceGroupManagersSetTargetPoolsRequest.Builder builder = InstanceGroupManagersSetTargetPoolsRequest.newBuilder();
+        builder.addAllTargetPools(getTargetPools().stream()
+            .map(TargetPoolResource::getSelfLink).collect(Collectors.toList()));
 
-        Compute client = createComputeClient();
-        Operation operation = client.instanceGroupManagers()
-            .setTargetPools(getProjectId(), getZone(), getName(), request)
-            .execute();
-        waitForCompletion(client, operation);
+        try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class)) {
+            Operation operation = client.setTargetPoolsCallable().call(SetTargetPoolsInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManager(getName())
+                .setInstanceGroupManagersSetTargetPoolsRequestResource(builder)
+                .build());
+
+            waitForCompletion(operation);
+        }
     }
 
     @Override
     public List<GyroInstance> getInstances() {
         List<GyroInstance> instances = new ArrayList<>();
 
-        Compute client = createComputeClient();
+        try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class);
+            InstancesClient instancesClient = createClient(InstancesClient.class)) {
 
-        try {
-            InstanceGroupManagersListManagedInstancesResponse response = client.instanceGroupManagers()
-                .listManagedInstances(getProjectId(), getZone(), getName())
-                .execute();
+            InstanceGroupManagersClient.ListManagedInstancesPagedResponse response = client
+                .listManagedInstances(getProjectId(), getZone(), getName());
 
-            List<String> instanceNameList = response.getManagedInstances().stream()
+            List<String> instanceNameList = response.getPage().getResponse().getManagedInstancesList().stream()
                 .filter(o -> o.getCurrentAction().equals("NONE"))
                 .map(ManagedInstance::getInstance)
                 .collect(Collectors.toList());
 
             for (String instanceName : instanceNameList) {
-                Instance instance = getInstance(client, instanceName.substring(instanceName.lastIndexOf("/") + 1), getZone());
+                Instance instance = getInstance(instancesClient,
+                    instanceName.substring(instanceName.lastIndexOf("/") + 1), getZone());
 
                 if (instance != null) {
                     InstanceResource resource = newSubresource(InstanceResource.class);
@@ -171,12 +203,30 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
                     instances.add(resource);
                 }
             }
+
         } catch (GoogleJsonResponseException je) {
-           throw new GyroException(formatGoogleExceptionMessage(je));
+            throw new GyroException(formatGoogleExceptionMessage(je));
         } catch (Exception ex) {
-           throw new GyroException(ex);
+            throw new GyroException(ex);
         }
 
         return instances;
+    }
+
+    private InstanceGroupManager getInstanceGroupManager(InstanceGroupManagersClient client) {
+        InstanceGroupManager instanceGroupManager = null;
+
+        try {
+            instanceGroupManager = client.get(GetInstanceGroupManagerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setInstanceGroupManager(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return instanceGroupManager;
     }
 }

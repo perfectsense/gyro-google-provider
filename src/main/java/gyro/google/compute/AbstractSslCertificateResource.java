@@ -18,7 +18,7 @@ package gyro.google.compute;
 
 import java.io.InputStreamReader;
 
-import com.google.api.services.compute.model.SslCertificate;
+import com.google.cloud.compute.v1.SslCertificate;
 import com.google.common.io.CharStreams;
 import gyro.core.GyroException;
 import gyro.core.resource.Id;

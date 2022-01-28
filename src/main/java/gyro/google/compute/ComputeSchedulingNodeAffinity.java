@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.api.services.compute.model.SchedulingNodeAffinity;
+import com.google.cloud.compute.v1.SchedulingNodeAffinity;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -48,7 +48,7 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
     /**
      * Defines the operation of node selection.
      */
-    @ValidStrings({"IN", "NOT_IN"})
+    @ValidStrings({ "IN", "NOT_IN" })
     public String getOperator() {
         return operator;
     }
@@ -74,16 +74,19 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
     @Override
     public void copyFrom(SchedulingNodeAffinity model) {
         setKey(model.getKey());
-        setOperator(model.getOperator());
-        setValues(model.getValues());
+        setOperator(model.getOperator().toString().toUpperCase());
+        setValues(model.getValuesList());
     }
 
     public SchedulingNodeAffinity toSchedulingNodeAffinity() {
-        SchedulingNodeAffinity schedulingNodeAffinity = new SchedulingNodeAffinity();
-        schedulingNodeAffinity.setKey(getKey());
-        schedulingNodeAffinity.setOperator(getOperator());
-        schedulingNodeAffinity.setValues(getValues());
-        return schedulingNodeAffinity;
+        SchedulingNodeAffinity.Builder builder = SchedulingNodeAffinity.newBuilder().setKey(getKey());
+        builder.addAllValues(getValues());
+
+        if (getOperator() != null) {
+            builder.setOperator(getOperator());
+        }
+
+        return builder.build();
     }
 
     @Override

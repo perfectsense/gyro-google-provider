@@ -17,16 +17,21 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Address;
-import com.google.api.services.compute.model.AddressAggregatedList;
-import com.google.api.services.compute.model.AddressList;
-import com.google.api.services.compute.model.AddressesScopedList;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.Address;
+import com.google.cloud.compute.v1.AddressAggregatedList;
+import com.google.cloud.compute.v1.AddressList;
+import com.google.cloud.compute.v1.AddressesClient;
+import com.google.cloud.compute.v1.AddressesScopedList;
+import com.google.cloud.compute.v1.AggregatedListAddressesRequest;
+import com.google.cloud.compute.v1.ListAddressesRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -42,7 +47,7 @@ import gyro.google.GoogleFinder;
  *
  */
 @Type("address")
-public class AddressFinder extends GoogleFinder<Compute, Address, AddressResource> {
+public class AddressFinder extends GoogleFinder<AddressesClient, Address, AddressResource> {
 
     private String filter;
     private String region;
@@ -70,49 +75,76 @@ public class AddressFinder extends GoogleFinder<Compute, Address, AddressResourc
     }
 
     @Override
-    protected List<Address> findAllGoogle(Compute client) throws Exception {
+    protected List<Address> findAllGoogle(AddressesClient client) throws Exception {
+        try {
+            return getAddresses(client, null);
+        } finally {
+            client.close();
+        }
+    }
+
+    @Override
+    protected List<Address> findGoogle(AddressesClient client, Map<String, String> filters) throws Exception {
+        List<Address> addresses = new ArrayList<>();
+        String pageToken = null;
+        try {
+            if (filters.containsKey("region")) {
+
+                do {
+                    ListAddressesRequest.Builder builder = ListAddressesRequest.newBuilder().setProject(getProjectId())
+                        .setRegion(filters.get("region")).setFilter(filters.getOrDefault("filter", ""));
+
+                    if (pageToken != null) {
+                        builder.setPageToken(pageToken);
+                    }
+
+                    AddressList addressList = client.list(builder.build()).getPage().getResponse();
+                    pageToken = addressList.getNextPageToken();
+
+                    if (addressList.getItemsList() != null) {
+                        addresses.addAll(addressList.getItemsList());
+                    }
+
+                } while (!StringUtils.isEmpty(pageToken));
+            } else {
+                return getAddresses(client, filters.get("filter"));
+            }
+
+        } finally {
+            client.close();
+        }
+        return addresses;
+    }
+
+    private List<Address> getAddresses(AddressesClient client, String filter) {
         List<Address> addresses = new ArrayList<>();
         String pageToken = null;
 
         do {
-            AddressAggregatedList aggregatedList = client.addresses().aggregatedList(getProjectId())
-                .setPageToken(pageToken)
-                .execute();
+            UnaryCallable<AggregatedListAddressesRequest, AddressAggregatedList> callable = client
+                .aggregatedListCallable();
+            AggregatedListAddressesRequest.Builder builder = AggregatedListAddressesRequest.newBuilder();
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            AddressAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
             pageToken = aggregatedList.getNextPageToken();
 
-            aggregatedList.getItems().remove("global");
+            if (aggregatedList.getItemsMap() != null) {
+                addresses.addAll(aggregatedList.getItemsMap().values().stream()
+                    .map(AddressesScopedList::getAddressesList)
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+            }
 
-            addresses.addAll(aggregatedList.getItems().values().stream()
-                .map(AddressesScopedList::getAddresses)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .collect(Collectors.toList()));
-
-        } while (pageToken != null);
-
-        return addresses;
-    }
-
-    @Override
-    protected List<Address> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<Address> addresses = new ArrayList<>();
-
-        if (filters.containsKey("region")) {
-            String pageToken = null;
-
-            do {
-                AddressList addressList = client.addresses().list(getProjectId(), filters.get("region"))
-                    .setFilter(filters.get("filter"))
-                    .setPageToken(pageToken)
-                    .execute();
-                pageToken = addressList.getNextPageToken();
-
-                if (addressList.getItems() != null) {
-                    addresses.addAll(addressList.getItems());
-                }
-
-            } while (pageToken != null);
-        }
+        } while (!StringUtils.isEmpty(pageToken));
 
         return addresses;
     }

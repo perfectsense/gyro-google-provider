@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.DistributionPolicy;
-import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
+import com.google.cloud.compute.v1.DistributionPolicy;
+import com.google.cloud.compute.v1.DistributionPolicyZoneConfiguration;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -49,21 +49,22 @@ public class ComputeDistributionPolicy extends Diffable implements Copyable<Dist
     }
 
     public DistributionPolicy copyTo() {
-        DistributionPolicy distributionPolicy = new DistributionPolicy();
+        DistributionPolicy.Builder builder = DistributionPolicy.newBuilder();
         List<ComputeDistributionPolicyZoneConfiguration> zone = getZone();
 
         if (!zone.isEmpty()) {
-            distributionPolicy.setZones(zone.stream()
+            builder.addAllZones(zone.stream()
                 .map(ComputeDistributionPolicyZoneConfiguration::copyTo)
                 .collect(Collectors.toList()));
         }
-        return distributionPolicy;
+
+        return builder.build();
     }
 
     @Override
     public void copyFrom(DistributionPolicy model) {
         List<ComputeDistributionPolicyZoneConfiguration> diffableZone = null;
-        List<DistributionPolicyZoneConfiguration> zones = model.getZones();
+        List<DistributionPolicyZoneConfiguration> zones = model.getZonesList();
 
         if (zones != null && !zones.isEmpty()) {
             diffableZone = zones
@@ -72,10 +73,11 @@ public class ComputeDistributionPolicy extends Diffable implements Copyable<Dist
                     ComputeDistributionPolicyZoneConfiguration computeDistributionPolicyZoneConfiguration = newSubresource(
                         ComputeDistributionPolicyZoneConfiguration.class);
                     computeDistributionPolicyZoneConfiguration.copyFrom(zone);
+
                     return computeDistributionPolicyZoneConfiguration;
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toList());
         }
+
         setZone(diffableZone);
     }
 

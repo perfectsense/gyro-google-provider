@@ -18,8 +18,9 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-import com.google.api.services.compute.model.TargetHttpProxy;
+import com.google.cloud.compute.v1.TargetHttpProxy;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -107,24 +108,27 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
         setName(targetHttpProxy.getName());
         setDescription(targetHttpProxy.getDescription());
         setSelfLink(targetHttpProxy.getSelfLink());
+        setRegionUrlMap(findById(RegionUrlMapResource.class, urlMap));
 
         String urlMap = targetHttpProxy.getUrlMap();
         setUrlMap(null);
         if (UrlMapResource.isUrlMap(urlMap)) {
             setUrlMap(findById(UrlMapResource.class, urlMap));
         }
-
-        setRegionUrlMap(null);
-        if (RegionUrlMapResource.isRegionUrlMap(urlMap)) {
-            setRegionUrlMap(findById(RegionUrlMapResource.class, urlMap));
-        }
     }
 
     TargetHttpProxy toTargetHttpProxy() {
-        return new TargetHttpProxy()
-            .setName(getName())
-            .setDescription(getDescription())
-            .setUrlMap(getUrlMapSelfLink());
+        TargetHttpProxy.Builder builder = TargetHttpProxy.newBuilder().setName(getName());
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getUrlMap() != null) {
+            builder.setUrlMap(getUrlMapSelfLink()).build();
+        }
+
+        return builder.build();
     }
 
     String getUrlMapSelfLink() {
@@ -137,7 +141,7 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getUrlMap() == null && getRegionUrlMap() == null) {

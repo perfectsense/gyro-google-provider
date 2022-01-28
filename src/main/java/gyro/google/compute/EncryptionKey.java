@@ -1,6 +1,6 @@
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.CustomerEncryptionKey;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.Required;
@@ -52,7 +52,6 @@ public class EncryptionKey extends Diffable implements Copyable<CustomerEncrypti
     }
 
     CustomerEncryptionKey toCustomerEncryptionKey() {
-        return new CustomerEncryptionKey()
-            .setRawKey(getRawKey());
+        return CustomerEncryptionKey.newBuilder().setRawKey(getRawKey()).build();
     }
 }

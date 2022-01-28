@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ResourcePolicyWeeklyCycleDayOfWeek;
+import com.google.cloud.compute.v1.ResourcePolicyWeeklyCycleDayOfWeek;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -31,7 +31,7 @@ public class WeeklyCycleDayOfWeek extends Diffable implements Copyable<ResourceP
      * Define schedule that runs on a specified day of the week.
      */
     @Required
-    @ValidStrings({"FRIDAY", "MONDAY", "SATURDAY", "SUNDAY", "THURSDAY", "TUESDAY", "WEDNESDAY"})
+    @ValidStrings({ "FRIDAY", "MONDAY", "SATURDAY", "SUNDAY", "THURSDAY", "TUESDAY", "WEDNESDAY" })
     public String getDay() {
         return day;
     }
@@ -64,8 +64,8 @@ public class WeeklyCycleDayOfWeek extends Diffable implements Copyable<ResourceP
     }
 
     public ResourcePolicyWeeklyCycleDayOfWeek copyTo() {
-        return new ResourcePolicyWeeklyCycleDayOfWeek()
+        return ResourcePolicyWeeklyCycleDayOfWeek.newBuilder()
             .setDay(getDay())
-            .setStartTime(getStartTime());
+            .setStartTime(getStartTime()).build();
     }
 }

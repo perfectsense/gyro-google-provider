@@ -17,13 +17,17 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Network;
-import com.google.api.services.compute.model.NetworkList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.ListNetworksRequest;
+import com.google.cloud.compute.v1.Network;
+import com.google.cloud.compute.v1.NetworkList;
+import com.google.cloud.compute.v1.NetworksClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +42,7 @@ import gyro.google.GoogleFinder;
  *    network: $(external-query google::compute-network { name: 'network-example'})
  */
 @Type("compute-network")
-public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResource> {
+public class NetworkFinder extends GoogleFinder<NetworksClient, Network, NetworkResource> {
 
     private String name;
 
@@ -54,25 +58,51 @@ public class NetworkFinder extends GoogleFinder<Compute, Network, NetworkResourc
     }
 
     @Override
-    protected List<Network> findAllGoogle(Compute client) throws Exception {
+    protected List<Network> findAllGoogle(NetworksClient client) throws Exception {
         List<Network> networks = new ArrayList<>();
         NetworkList networkList;
         String nextPageToken = null;
 
-        do {
-            networkList = client.networks().list(getProjectId()).setPageToken(nextPageToken).execute();
-            nextPageToken = networkList.getNextPageToken();
+        try {
+            do {
+                UnaryCallable<ListNetworksRequest, NetworksClient.ListPagedResponse> callable = client
+                    .listPagedCallable();
+                ListNetworksRequest.Builder builder = ListNetworksRequest.newBuilder();
 
-            if (networkList.getItems() != null) {
-                networks.addAll(networkList.getItems());
-            }
-        } while (nextPageToken != null);
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                NetworksClient.ListPagedResponse listPagedResponse = callable.call(builder
+                    .setProject(getProjectId()).build());
+                networkList = listPagedResponse.getPage().getResponse();
+                nextPageToken = listPagedResponse.getNextPageToken();
+
+                if (networkList.getItemsList() != null) {
+                    networks.addAll(networkList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+        } finally {
+            client.close();
+        }
 
         return networks;
     }
 
     @Override
-    protected List<Network> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.networks().get(getProjectId(), filters.get("name")).execute());
+    protected List<Network> findGoogle(NetworksClient client, Map<String, String> filters) {
+        ArrayList<Network> networks = new ArrayList<>();
+
+        try {
+            networks.add(client.get(getProjectId(), filters.get("name")));
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return networks;
     }
 }

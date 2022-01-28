@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.AcceleratorConfig;
+import com.google.cloud.compute.v1.AcceleratorConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -60,10 +60,8 @@ public class ComputeAcceleratorConfig extends Diffable implements Copyable<Accel
     }
 
     public AcceleratorConfig toAcceleratorConfig() {
-        AcceleratorConfig acceleratorConfig = new AcceleratorConfig();
-        acceleratorConfig.setAcceleratorCount(getAcceleratorCount());
-        acceleratorConfig.setAcceleratorType(getAcceleratorType());
-        return acceleratorConfig;
+        return AcceleratorConfig.newBuilder().setAcceleratorCount(getAcceleratorCount())
+            .setAcceleratorType(getAcceleratorType()).build();
     }
 
     @Override

@@ -25,9 +25,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.model.Backend;
-import com.google.api.services.compute.model.BackendService;
-import com.google.api.services.compute.model.ConnectionDraining;
+import com.google.cloud.compute.v1.Backend;
+import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.ConnectionDraining;
+import com.google.cloud.compute.v1.InstanceGroupManagersClient;
 import gyro.core.GyroException;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -47,12 +48,12 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     private String description;
     private Boolean enableCdn;
     private List<HealthCheckResource> healthCheck;
-    private String loadBalancingScheme;
-    private String localityLbPolicy;
+    private BackendService.LoadBalancingScheme loadBalancingScheme;
+    private BackendService.LocalityLbPolicy localityLbPolicy;
     private String name;
-    private String protocol;
+    private BackendService.Protocol protocol;
     private String selfLink;
-    private String sessionAffinity;
+    private BackendService.SessionAffinity sessionAffinity;
     private Integer timeoutSec;
     private BackendServiceCdnPolicy cdnPolicy;
 
@@ -159,12 +160,12 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
      *
      * @no-docs ValidStrings
      */
-    @ValidStrings({"INTERNAL", "INTERNAL_MANAGED", "INTERNAL_SELF_MANAGED", "EXTERNAL"})
-    public String getLoadBalancingScheme() {
+    @ValidStrings({ "INTERNAL", "INTERNAL_MANAGED", "INTERNAL_SELF_MANAGED", "EXTERNAL" })
+    public BackendService.LoadBalancingScheme getLoadBalancingScheme() {
         return loadBalancingScheme;
     }
 
-    public void setLoadBalancingScheme(String loadBalancingScheme) {
+    public void setLoadBalancingScheme(BackendService.LoadBalancingScheme loadBalancingScheme) {
         this.loadBalancingScheme = loadBalancingScheme;
     }
 
@@ -173,11 +174,11 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
      */
     @Updatable
     @ValidStrings({ "ROUND_ROBIN", "LEAST_REQUEST", "RING_HASH", "RANDOM", "ORIGINAL_DESTINATION", "MAGLEV" })
-    public String getLocalityLbPolicy() {
+    public BackendService.LocalityLbPolicy getLocalityLbPolicy() {
         return localityLbPolicy;
     }
 
-    public void setLocalityLbPolicy(String localityLbPolicy) {
+    public void setLocalityLbPolicy(BackendService.LocalityLbPolicy localityLbPolicy) {
         this.localityLbPolicy = localityLbPolicy;
     }
 
@@ -199,11 +200,11 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
      */
     @Updatable
     @ValidStrings({ "HTTP", "HTTPS", "TCP", "SSL", "UDP" })
-    public String getProtocol() {
+    public BackendService.Protocol getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(String protocol) {
+    public void setProtocol(BackendService.Protocol protocol) {
         this.protocol = protocol;
     }
 
@@ -225,18 +226,13 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
      */
     @Updatable
     @ValidStrings({
-        "NONE",
-        "CLIENT_IP",
-        "GENERATED_COOKIE",
-        "CLIENT_IP_PROTO",
-        "CLIENT_IP_PORT_PROTO",
-        "HEADER_FIELD",
-        "HTTP_COOKIE" })
-    public String getSessionAffinity() {
+        "NONE", "CLIENT_IP", "GENERATED_COOKIE", "CLIENT_IP_PROTO",
+        "CLIENT_IP_PORT_PROTO", "HEADER_FIELD", "HTTP_COOKIE" })
+    public BackendService.SessionAffinity getSessionAffinity() {
         return sessionAffinity;
     }
 
-    public void setSessionAffinity(String sessionAffinity) {
+    public void setSessionAffinity(BackendService.SessionAffinity sessionAffinity) {
         this.sessionAffinity = sessionAffinity;
     }
 
@@ -270,7 +266,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     public void copyFrom(BackendService model) {
         setAffinityCookieTtlSec(model.getAffinityCookieTtlSec());
         List<ComputeBackend> diffableBackends = null;
-        List<Backend> backends = model.getBackends();
+        List<Backend> backends = model.getBackendsList();
 
         if (backends != null && !backends.isEmpty()) {
             diffableBackends = backends
@@ -293,7 +289,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         }
         setConnectionDraining(diffableConnectionDraining);
         Map<String, String> customHeaderMap = null;
-        List<String> customRequestHeaders = model.getCustomRequestHeaders();
+        List<String> customRequestHeaders = model.getCustomRequestHeadersList();
 
         if (customRequestHeaders != null) {
             customHeaderMap = customRequestHeaders
@@ -306,7 +302,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         setDescription(model.getDescription());
         setEnableCdn(model.getEnableCDN());
         List<HealthCheckResource> diffableHealthCheck = null;
-        List<String> healthChecks = model.getHealthChecks();
+        List<String> healthChecks = model.getHealthChecksList();
 
         if (healthChecks != null) {
             diffableHealthCheck = healthChecks.stream()
@@ -314,12 +310,12 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
                 .collect(Collectors.toList());
         }
         setHealthCheck(diffableHealthCheck);
-        setLoadBalancingScheme(model.getLoadBalancingScheme());
-        setLocalityLbPolicy(model.getLocalityLbPolicy());
+        setLoadBalancingScheme(BackendService.LoadBalancingScheme.valueOf(model.getLoadBalancingScheme()));
+        setLocalityLbPolicy(BackendService.LocalityLbPolicy.valueOf(model.getLocalityLbPolicy()));
         setName(model.getName());
-        setProtocol(model.getProtocol());
+        setProtocol(BackendService.Protocol.valueOf(model.getProtocol()));
         setSelfLink(model.getSelfLink());
-        setSessionAffinity(model.getSessionAffinity());
+        setSessionAffinity(BackendService.SessionAffinity.valueOf(model.getSessionAffinity()));
         setTimeoutSec(model.getTimeoutSec());
 
         if (model.getCdnPolicy() != null) {
@@ -334,31 +330,36 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     protected BackendService getBackendService(Set<String> changedFieldNames) {
         boolean isCreate = changedFieldNames == null;
 
-        BackendService backendService = new BackendService();
+        BackendService.Builder builder = BackendService.newBuilder();
 
         if (isCreate) {
-            backendService.setLoadBalancingScheme(getLoadBalancingScheme());
-            backendService.setName(getName());
+            if (getLoadBalancingScheme() != null) {
+                builder.setLoadBalancingScheme(getLoadBalancingScheme().name());
+            }
+
+            builder.setName(getName());
         }
 
         if (isCreate || changedFieldNames.contains("affinity-cookie-ttl-sec")) {
-            backendService.setAffinityCookieTtlSec(getAffinityCookieTtlSec());
+            if (getAffinityCookieTtlSec() != null) {
+                builder.setAffinityCookieTtlSec(getAffinityCookieTtlSec());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("backend")) {
-            backendService.setBackends(getBackend().stream()
+            builder.addAllBackends(getBackend().stream()
                 .map(ComputeBackend::toBackend)
                 .collect(Collectors.toList()));
         }
 
         if (isCreate || changedFieldNames.contains("connection-draining")) {
-            backendService.setConnectionDraining(getConnectionDraining() != null
-                ? getConnectionDraining().toConnectionDraining()
-                : Data.nullOf(ConnectionDraining.class));
+            if (getConnectionDraining() != null) {
+                builder.setConnectionDraining(getConnectionDraining().toConnectionDraining());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("custom-request-headers")) {
-            backendService.setCustomRequestHeaders(!getCustomRequestHeaders().isEmpty()
+            builder.addAllCustomRequestHeaders(!getCustomRequestHeaders().isEmpty()
                 ? getCustomRequestHeaders().entrySet()
                 .stream()
                 .map(e -> String.format("%s:%s", e.getKey(), e.getValue()))
@@ -367,52 +368,68 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         }
 
         if (isCreate || changedFieldNames.contains("description")) {
-            backendService.setDescription(getDescription());
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("enable-cdn")) {
-            backendService.setEnableCDN(getEnableCdn());
+            if (getEnableCdn() != null) {
+                builder.setEnableCDN(getEnableCdn());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("health-check")) {
-            backendService.setHealthChecks(getHealthCheck()
+            builder.addAllHealthChecks(getHealthCheck()
                 .stream()
                 .map(HealthCheckResource::getSelfLink)
                 .collect(Collectors.toList()));
         }
 
         if (isCreate || changedFieldNames.contains("locality-lb-policy")) {
-            backendService.setLocalityLbPolicy(getLocalityLbPolicy());
+            if (getLocalityLbPolicy() != null) {
+                builder.setLocalityLbPolicy(getLocalityLbPolicy().name());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("protocol")) {
-            backendService.setProtocol(getProtocol());
+            if (getProtocol() != null) {
+                builder.setProtocol(getProtocol().name());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("session-affinity")) {
-            backendService.setSessionAffinity(getSessionAffinity());
+            if (getSessionAffinity() != null) {
+                builder.setSessionAffinity(getSessionAffinity().name());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("timeout-sec")) {
-            backendService.setTimeoutSec(getTimeoutSec());
+            if (getTimeoutSec() != null) {
+                builder.setTimeoutSec(getTimeoutSec());
+            }
         }
 
         if (isCreate || changedFieldNames.contains("cdn-policy")) {
             if (isCreate) {
-                backendService.setCdnPolicy(getCdnPolicy() != null
-                    ? getCdnPolicy().toBackendServiceCdnPolicy()
-                    : Data.nullOf(com.google.api.services.compute.model.BackendServiceCdnPolicy.class));
+                if (getCdnPolicy() != null) {
+                    builder.setCdnPolicy(getCdnPolicy().toBackendServiceCdnPolicy());
+                }
             } else {
                 if (getCdnPolicy() == null) {
                     throw new GyroException("'cdn-policy' cannot be unset once set.");
                 } else {
-                    backendService.setCdnPolicy(getCdnPolicy().toBackendServiceCdnPolicy());
+                    builder.setCdnPolicy(getCdnPolicy().toBackendServiceCdnPolicy());
                 }
             }
 
         }
 
-        return backendService;
+        return builder.build();
+    }
+
+    InstanceGroupManagersClient createInstanceManagersClient() {
+        return createClient(InstanceGroupManagersClient.class);
     }
 
     String getProject() {

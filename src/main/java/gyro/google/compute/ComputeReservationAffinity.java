@@ -19,7 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.api.services.compute.model.ReservationAffinity;
+import com.google.cloud.compute.v1.ReservationAffinity;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -83,15 +83,19 @@ public class ComputeReservationAffinity extends Diffable implements Copyable<Res
     public void copyFrom(ReservationAffinity model) {
         setConsumeReservationType(model.getConsumeReservationType());
         setKey(model.getKey());
-        setValues(model.getValues());
+        setValues(model.getValuesList());
     }
 
     public ReservationAffinity toReservationAffinity() {
-        ReservationAffinity reservationAffinity = new ReservationAffinity();
-        reservationAffinity.setConsumeReservationType(getConsumeReservationType());
-        reservationAffinity.setKey(getKey());
-        reservationAffinity.setValues(getValues());
-        return reservationAffinity;
+        ReservationAffinity.Builder builder = ReservationAffinity.newBuilder();
+        builder.setKey(getKey());
+        builder.addAllValues(getValues());
+
+        if (getConsumeReservationType() != null) {
+            builder.setConsumeReservationType(getConsumeReservationType());
+        }
+
+        return builder.build();
     }
 
     @Override

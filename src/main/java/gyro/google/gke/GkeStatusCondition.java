@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.StatusCondition;
+import com.google.container.v1beta1.StatusCondition;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;

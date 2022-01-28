@@ -23,10 +23,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Firewall;
-import com.google.api.services.compute.model.FirewallLogConfig;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteFirewallRequest;
+import com.google.cloud.compute.v1.Firewall;
+import com.google.cloud.compute.v1.FirewallLogConfig;
+import com.google.cloud.compute.v1.FirewallsClient;
+import com.google.cloud.compute.v1.InsertFirewallRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchFirewallRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -375,22 +380,22 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         setDescription(firewall.getDescription());
 
         setDestinationRanges(
-            firewall.getDestinationRanges() != null ? new HashSet<>(firewall.getDestinationRanges()) : null);
-        setDirection(firewall.getDirection());
+            firewall.getDestinationRangesList() != null ? new HashSet<>(firewall.getDestinationRangesList()) : null);
+        setDirection(firewall.getDirection().toString());
         setDisabled(firewall.getDisabled());
         setPriority(firewall.getPriority());
-        setSourceRanges(firewall.getSourceRanges() != null ? new HashSet<>(firewall.getSourceRanges()) : null);
-        setSourceServiceAccounts(
-            firewall.getSourceServiceAccounts() != null ? new HashSet<>(firewall.getSourceServiceAccounts()) : null);
-        setSourceTags(firewall.getSourceTags() != null ? new HashSet<>(firewall.getSourceTags()) : null);
+        setSourceRanges(firewall.getSourceRangesList() != null ? new HashSet<>(firewall.getSourceRangesList()) : null);
+        setSourceServiceAccounts(firewall.getSourceServiceAccountsList() != null
+            ? new HashSet<>(firewall.getSourceServiceAccountsList()) : null);
+        setSourceTags(firewall.getSourceTagsList() != null ? new HashSet<>(firewall.getSourceTagsList()) : null);
         setLogConfig(firewall.getLogConfig().getEnable());
-        setTargetServiceAccounts(
-            firewall.getTargetServiceAccounts() != null ? new HashSet<>(firewall.getTargetServiceAccounts()) : null);
-        setTargetTags(firewall.getTargetTags() != null ? new HashSet<>(firewall.getTargetTags()) : null);
+        setTargetServiceAccounts(firewall.getTargetServiceAccountsList() != null
+            ? new HashSet<>(firewall.getTargetServiceAccountsList()) : null);
+        setTargetTags(firewall.getTargetTagsList() != null ? new HashSet<>(firewall.getTargetTagsList()) : null);
 
         getAllowed().clear();
-        if (firewall.getAllowed() != null && !firewall.getAllowed().isEmpty()) {
-            setAllowed(firewall.getAllowed().stream().map(rule -> {
+        if (firewall.getAllowedList() != null && !firewall.getAllowedList().isEmpty()) {
+            setAllowed(firewall.getAllowedList().stream().map(rule -> {
                 FirewallAllowed allowed = newSubresource(FirewallAllowed.class);
                 allowed.copyFrom(rule);
                 return allowed;
@@ -398,70 +403,81 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
         }
 
         getDenied().clear();
-        if (firewall.getDenied() != null && !firewall.getDenied().isEmpty()) {
-            setDenied(firewall.getDenied().stream().map(rule -> {
+        if (firewall.getDeniedList() != null && !firewall.getDeniedList().isEmpty()) {
+            setDenied(firewall.getDeniedList().stream().map(rule -> {
                 FirewallDenied denied = newSubresource(FirewallDenied.class);
                 denied.copyFrom(rule);
                 return denied;
             }).collect(Collectors.toList()));
         }
 
-        setId(firewall.getId().toString());
+        setId(String.valueOf(firewall.getId()));
         setSelfLink(firewall.getSelfLink());
     }
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (FirewallsClient client = createClient(FirewallsClient.class)) {
 
-        Firewall firewall = getFirewall(client);
+            Firewall firewall = getFirewall(client);
 
-        if (firewall == null) {
-            return false;
+            if (firewall == null) {
+                return false;
+            }
+
+            copyFrom(firewall);
+
+            return true;
         }
-
-        copyFrom(firewall);
-
-        return true;
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (FirewallsClient client = createClient(FirewallsClient.class)) {
+            Operation operation = client.insertCallable().call(InsertFirewallRequest.newBuilder()
+                .setProject(getProjectId())
+                .setFirewallResource(toFirewall())
+                .build());
 
-        Compute.Firewalls.Insert insert = client.firewalls().insert(getProjectId(), toFirewall());
-        Operation operation = insert.execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+        try (FirewallsClient client = createClient(FirewallsClient.class)) {
+            Operation operation = client.patchCallable().call(PatchFirewallRequest.newBuilder()
+                .setProject(getProjectId())
+                .setFirewall(getName())
+                .setFirewallResource(toFirewall())
+                .build());
 
-        Operation operation = client.firewalls().patch(getProjectId(), getName(), toFirewall()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (FirewallsClient client = createClient(FirewallsClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteFirewallRequest.newBuilder()
+                .setProject(getProjectId())
+                .setFirewall(getName())
+                .build());
 
-        Operation operation = client.firewalls().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getRuleType().equals("ALLOW") && getAllowed().isEmpty()) {
-            errors.add(new ValidationError(
-                this,
-                "allowed",
+            errors.add(new ValidationError(this, "allowed",
                 "'allowed' needs to be set when 'rule-type' set to 'ALLOW'."));
         }
 
@@ -471,9 +487,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
         if (getDirection().equals("INGRESS")) {
             if (!getDestinationRanges().isEmpty()) {
-                errors.add(new ValidationError(
-                    this,
-                    "destination-ranges",
+                errors.add(new ValidationError(this, "destination-ranges",
                     "'destination-ranges' cannot be set when 'direction' set to 'INGRESS'"));
             }
 
@@ -486,30 +500,22 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
         } else if (getDirection().equals("EGRESS")) {
             if (!getSourceRanges().isEmpty()) {
-                errors.add(new ValidationError(
-                    this,
-                    "source-ranges",
+                errors.add(new ValidationError(this, "source-ranges",
                     "'source-ranges' cannot be set when 'direction' set to 'EGRESS'"));
             }
 
             if (!getSourceTags().isEmpty()) {
-                errors.add(new ValidationError(
-                    this,
-                    "source-tags",
+                errors.add(new ValidationError(this, "source-tags",
                     "'source-tags' cannot be set when 'direction' set to 'EGRESS'"));
             }
 
             if (!getSourceServiceAccounts().isEmpty()) {
-                errors.add(new ValidationError(
-                    this,
-                    "source-service-accounts",
+                errors.add(new ValidationError(this, "source-service-accounts",
                     "'source-service-accounts' cannot be set when 'direction' set to 'EGRESS'"));
             }
 
             if (getDestinationRanges().isEmpty()) {
-                errors.add(new ValidationError(
-                    this,
-                    null,
+                errors.add(new ValidationError(this, null,
                     "'destination-ranges' is required when 'direction' set to 'EGRESS'"));
             }
         }
@@ -518,40 +524,72 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     private Firewall toFirewall() {
-        Firewall firewall = new Firewall();
+        Firewall.Builder builder = Firewall.newBuilder().setName(getName()).setNetwork(getNetwork().getSelfLink())
+            .setDirection(getDirection()).setDisabled(getDisabled())
+            .setPriority(getPriority());
 
-        firewall.setName(getName());
-        firewall.setNetwork(getNetwork().getSelfLink());
-        firewall.setDirection(getDirection());
-        firewall.setDescription(getDescription());
-        firewall.setDisabled(getDisabled());
-        firewall.setPriority(getPriority());
-        firewall.setLogConfig(new FirewallLogConfig().setEnable(getLogConfig()));
-        firewall.setDestinationRanges(!getDestinationRanges().isEmpty()
-            ? new ArrayList<>(getDestinationRanges())
-            : Collections.emptyList());
-        firewall.setTargetTags(!getTargetTags().isEmpty() ? new ArrayList<>(getTargetTags()) : Collections.emptyList());
-        firewall.setTargetServiceAccounts(!getTargetServiceAccounts().isEmpty() ? new ArrayList<>(
-            getTargetServiceAccounts()) : Collections.emptyList());
-        firewall.setSourceServiceAccounts(!getSourceServiceAccounts().isEmpty() ? new ArrayList<>(
-            getSourceServiceAccounts()) : Collections.emptyList());
-        firewall.setSourceTags(!getSourceTags().isEmpty() ? new ArrayList<>(getSourceTags()) : Collections.emptyList());
-        firewall.setSourceRanges(!getSourceRanges().isEmpty()
-            ? new ArrayList<>(getSourceRanges())
-            : Collections.emptyList());
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getLogConfig() != null) {
+            builder.setLogConfig(FirewallLogConfig.newBuilder().setEnable(getLogConfig()).build());
+        }
+
+        if (getDestinationRanges() != null) {
+            builder.addAllDestinationRanges(!getDestinationRanges().isEmpty()
+                ? new ArrayList<>(getDestinationRanges())
+                : Collections.emptyList());
+        }
+
+        if (getTargetTags() != null) {
+            builder.addAllTargetTags(!getTargetTags().isEmpty()
+                ? new ArrayList<>(getTargetTags())
+                : Collections.emptyList());
+        }
+
+        if (getTargetServiceAccounts() != null) {
+            builder.addAllTargetServiceAccounts(!getTargetServiceAccounts().isEmpty() ? new ArrayList<>(
+                getTargetServiceAccounts()) : Collections.emptyList());
+        }
+
+        if (getSourceServiceAccounts() != null) {
+            builder.addAllSourceServiceAccounts(!getSourceServiceAccounts().isEmpty() ? new ArrayList<>(
+                getSourceServiceAccounts()) : Collections.emptyList());
+        }
+
+        if (getSourceTags() != null) {
+            builder.addAllSourceTags(!getSourceTags().isEmpty()
+                ? new ArrayList<>(getSourceTags())
+                : Collections.emptyList());
+        }
+
+        if (getSourceRanges() != null) {
+            builder.addAllSourceRanges(!getSourceRanges().isEmpty()
+                ? new ArrayList<>(getSourceRanges())
+                : Collections.emptyList());
+        }
 
         if (getRuleType().equals("ALLOW")) {
-            firewall.setAllowed(getAllowed().stream().map(FirewallAllowed::toAllowed).collect(Collectors.toList()));
-            firewall.setDenied(Collections.emptyList());
+            builder.addAllAllowed(getAllowed().stream().map(FirewallAllowed::toAllowed).collect(Collectors.toList()));
+            builder.addAllDenied(Collections.emptyList());
         } else if (getRuleType().equals("DENY")) {
-            firewall.setDenied(getDenied().stream().map(FirewallDenied::toDenied).collect(Collectors.toList()));
-            firewall.setAllowed(Collections.emptyList());
+            builder.addAllDenied(getDenied().stream().map(FirewallDenied::toDenied).collect(Collectors.toList()));
+            builder.addAllAllowed(Collections.emptyList());
+        }
+
+        return builder.build();
+    }
+
+    private Firewall getFirewall(FirewallsClient client) throws Exception {
+        Firewall firewall = null;
+
+        try {
+            firewall = client.get(getProjectId(), getName());
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
         }
 
         return firewall;
-    }
-
-    private Firewall getFirewall(Compute client) throws Exception {
-        return client.firewalls().get(getProjectId(), getName()).execute();
     }
 }

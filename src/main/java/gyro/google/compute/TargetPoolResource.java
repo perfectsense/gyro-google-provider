@@ -21,16 +21,26 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HealthCheckReference;
-import com.google.api.services.compute.model.InstanceReference;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.TargetPool;
-import com.google.api.services.compute.model.TargetPoolsAddHealthCheckRequest;
-import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest;
-import com.google.api.services.compute.model.TargetPoolsRemoveHealthCheckRequest;
-import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest;
-import com.google.api.services.compute.model.TargetReference;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddHealthCheckTargetPoolRequest;
+import com.google.cloud.compute.v1.AddInstanceTargetPoolRequest;
+import com.google.cloud.compute.v1.DeleteTargetPoolRequest;
+import com.google.cloud.compute.v1.GetTargetPoolRequest;
+import com.google.cloud.compute.v1.HealthCheckReference;
+import com.google.cloud.compute.v1.InsertTargetPoolRequest;
+import com.google.cloud.compute.v1.InstanceReference;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RemoveHealthCheckTargetPoolRequest;
+import com.google.cloud.compute.v1.RemoveInstanceTargetPoolRequest;
+import com.google.cloud.compute.v1.SetBackupTargetPoolRequest;
+import com.google.cloud.compute.v1.TargetPool;
+import com.google.cloud.compute.v1.TargetPoolsAddHealthCheckRequest;
+import com.google.cloud.compute.v1.TargetPoolsAddInstanceRequest;
+import com.google.cloud.compute.v1.TargetPoolsClient;
+import com.google.cloud.compute.v1.TargetPoolsRemoveHealthCheckRequest;
+import com.google.cloud.compute.v1.TargetPoolsRemoveInstanceRequest;
+import com.google.cloud.compute.v1.TargetReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -219,17 +229,17 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
         setDescription(model.getDescription());
         setFailoverRatio(model.getFailoverRatio());
         setName(model.getName());
-        setSessionAffinity(model.getSessionAffinity());
+        setSessionAffinity(model.getSessionAffinity().toString());
         setRegion(model.getRegion());
         setSelfLink(model.getSelfLink());
 
-        List<String> instances = model.getInstances();
+        List<String> instances = model.getInstancesList();
         setInstances(null);
         if (instances != null) {
             setInstances(instances.stream().map(e -> findById(InstanceResource.class, e)).collect(Collectors.toList()));
         }
 
-        List<String> healthChecks = model.getHealthChecks();
+        List<String> healthChecks = model.getHealthChecksList();
         setHealthChecks(null);
         if (healthChecks != null) {
             setHealthChecks(healthChecks.stream()
@@ -240,30 +250,53 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
+            TargetPool targetPool = getTargetPool(client);
 
-        TargetPool targetPool = client.targetPools().get(getProjectId(), getRegion(), getName()).execute();
-        copyFrom(targetPool);
+            if (targetPool == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(targetPool);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        TargetPool targetPool = new TargetPool();
-        targetPool.setBackupPool(getBackupPool() != null ? getBackupPool().getSelfLink() : null);
-        targetPool.setDescription(getDescription());
-        targetPool.setFailoverRatio(getFailoverRatio());
-        targetPool.setName(getName());
-        targetPool.setSessionAffinity(getSessionAffinity());
-        targetPool.setInstances(
+        TargetPool.Builder builder = TargetPool.newBuilder();
+        builder.setName(getName());
+        builder.addAllInstances(
             getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
-        targetPool.setHealthChecks(
+        builder.addAllHealthChecks(
             getHealthChecks().stream().map(HttpHealthCheckResource::getSelfLink).collect(Collectors.toList()));
 
-        Compute client = createComputeClient();
-        Operation operation = client.targetPools().insert(getProjectId(), getRegion(), targetPool).execute();
-        waitForCompletion(client, operation);
+        if (getBackupPool() != null) {
+            builder.setBackupPool(getBackupPool().getSelfLink());
+        }
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getFailoverRatio() != null) {
+            builder.setFailoverRatio(getFailoverRatio());
+        }
+
+        if (getSessionAffinity() != null) {
+            builder.setSessionAffinity(getSessionAffinity());
+        }
+
+        try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
+            Operation operation = client.insertCallable().call(InsertTargetPoolRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetPoolResource(builder)
+                .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
@@ -271,79 +304,102 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         TargetPoolResource currentTargetPool = (TargetPoolResource) current;
-        Compute client = createComputeClient();
+        try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
 
-        if (changedFieldNames.contains("backup-pool") || changedFieldNames.contains("failover-ratio")) {
-            TargetReference targetReference = new TargetReference();
-            targetReference.setTarget(getBackupPool() != null ? getBackupPool().getSelfLink() : null);
-            Operation response = client.targetPools()
-                .setBackup(getProjectId(), getRegion(), getName(), targetReference)
-                .setFailoverRatio(getFailoverRatio())
-                .execute();
-            waitForCompletion(client, response);
-        }
+            if (changedFieldNames.contains("backup-pool") || changedFieldNames.contains("failover-ratio")) {
+                TargetReference.Builder builder = TargetReference.newBuilder();
 
-        if (changedFieldNames.contains("instances")) {
-            List<InstanceResource> removeInstances = currentTargetPool.getInstances();
-            removeInstances.removeAll(getInstances());
-            if (!removeInstances.isEmpty()) {
-                TargetPoolsRemoveInstanceRequest removeInstanceRequest = new TargetPoolsRemoveInstanceRequest();
-                removeInstanceRequest.setInstances(
-                    removeInstances.stream()
-                        .map(e -> new InstanceReference().setInstance(e.getSelfLink()))
-                        .collect(Collectors.toList()));
-                Operation response =
-                    client.targetPools()
-                        .removeInstance(getProjectId(), getRegion(), getName(), removeInstanceRequest)
-                        .execute();
-                waitForCompletion(client, response);
+                if (getBackupPool() != null) {
+                    builder.setTarget(getBackupPool().getSelfLink());
+                }
+
+                Operation response = client.setBackupCallable().call(SetBackupTargetPoolRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetPool(getName())
+                    .setFailoverRatio(getFailoverRatio())
+                    .build());
+                waitForCompletion(response);
             }
 
-            List<InstanceResource> newInstances = getInstances();
-            newInstances.removeAll(currentTargetPool.getInstances());
-            if (!newInstances.isEmpty()) {
-                TargetPoolsAddInstanceRequest addInstanceRequest = new TargetPoolsAddInstanceRequest();
-                addInstanceRequest.setInstances(
-                    newInstances.stream()
-                        .map(e -> new InstanceReference().setInstance(e.getSelfLink()))
+            if (changedFieldNames.contains("instances")) {
+                List<InstanceResource> removeInstances = currentTargetPool.getInstances();
+                removeInstances.removeAll(getInstances());
+                if (!removeInstances.isEmpty()) {
+                    TargetPoolsRemoveInstanceRequest.Builder builder = TargetPoolsRemoveInstanceRequest.newBuilder();
+                    builder.addAllInstances(removeInstances.stream()
+                        .map(e -> InstanceReference.newBuilder().setInstance(e.getSelfLink()).build())
                         .collect(Collectors.toList()));
-                Operation response =
-                    client.targetPools()
-                        .addInstance(getProjectId(), getRegion(), getName(), addInstanceRequest)
-                        .execute();
-                waitForCompletion(client, response);
-            }
-        }
 
-        if (changedFieldNames.contains("health-checks")) {
-            List<HttpHealthCheckResource> removeHealthChecks = currentTargetPool.getHealthChecks();
-            removeHealthChecks.removeAll(getHealthChecks());
-            if (!removeHealthChecks.isEmpty()) {
-                TargetPoolsRemoveHealthCheckRequest removeHealthCheckRequest = new TargetPoolsRemoveHealthCheckRequest();
-                removeHealthCheckRequest.setHealthChecks(
-                    removeHealthChecks.stream()
-                        .map(e -> new HealthCheckReference().setHealthCheck(e.getSelfLink()))
+                    Operation response = client.removeInstanceOperationCallable()
+                        .call(RemoveInstanceTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsRemoveInstanceRequestResource(builder)
+                            .build());
+
+                    waitForCompletion(response);
+                }
+
+                List<InstanceResource> newInstances = getInstances();
+                newInstances.removeAll(currentTargetPool.getInstances());
+                if (!newInstances.isEmpty()) {
+                    TargetPoolsAddInstanceRequest.Builder builder = TargetPoolsAddInstanceRequest.newBuilder();
+                    builder.addAllInstances(newInstances.stream()
+                        .map(e -> InstanceReference.newBuilder().setInstance(e.getSelfLink()).build())
                         .collect(Collectors.toList()));
-                Operation response =
-                    client.targetPools()
-                        .removeHealthCheck(getProjectId(), getRegion(), getName(), removeHealthCheckRequest)
-                        .execute();
-                waitForCompletion(client, response);
+
+                    Operation response = client.addInstanceCallable()
+                        .call(AddInstanceTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsAddInstanceRequestResource(builder)
+                            .build());
+
+                    waitForCompletion(response);
+                }
             }
 
-            List<HttpHealthCheckResource> newHealthChecks = getHealthChecks();
-            newHealthChecks.removeAll(currentTargetPool.getHealthChecks());
-            if (!newHealthChecks.isEmpty()) {
-                TargetPoolsAddHealthCheckRequest addHealthCheckRequest = new TargetPoolsAddHealthCheckRequest();
-                addHealthCheckRequest.setHealthChecks(
-                    newHealthChecks.stream()
-                        .map(e -> new HealthCheckReference().setHealthCheck(e.getSelfLink()))
+            if (changedFieldNames.contains("health-checks")) {
+                List<HttpHealthCheckResource> removeHealthChecks = currentTargetPool.getHealthChecks();
+                removeHealthChecks.removeAll(getHealthChecks());
+                if (!removeHealthChecks.isEmpty()) {
+                    TargetPoolsRemoveHealthCheckRequest.Builder builder = TargetPoolsRemoveHealthCheckRequest.newBuilder();
+                    builder.addAllHealthChecks(removeHealthChecks.stream()
+                        .map(e -> HealthCheckReference.newBuilder().setHealthCheck(e.getSelfLink()).build())
                         .collect(Collectors.toList()));
-                Operation response =
-                    client.targetPools()
-                        .addHealthCheck(getProjectId(), getRegion(), getName(), addHealthCheckRequest)
-                        .execute();
-                waitForCompletion(client, response);
+
+                    Operation response = client.removeHealthCheckCallable().call(
+                        RemoveHealthCheckTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsRemoveHealthCheckRequestResource(builder)
+                            .build());
+
+                    waitForCompletion(response);
+                }
+
+                List<HttpHealthCheckResource> newHealthChecks = getHealthChecks();
+                newHealthChecks.removeAll(currentTargetPool.getHealthChecks());
+                if (!newHealthChecks.isEmpty()) {
+                    TargetPoolsAddHealthCheckRequest.Builder builder = TargetPoolsAddHealthCheckRequest.newBuilder();
+                    builder.addAllHealthChecks(newHealthChecks.stream()
+                        .map(e -> HealthCheckReference.newBuilder().setHealthCheck(e.getSelfLink()).build())
+                        .collect(Collectors.toList()));
+
+                    Operation response = client.addHealthCheckCallable()
+                        .call(AddHealthCheckTargetPoolRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setRegion(getRegion())
+                            .setTargetPool(getName())
+                            .setTargetPoolsAddHealthCheckRequestResource(builder)
+                            .build());
+
+                    waitForCompletion(response);
+                }
             }
         }
 
@@ -352,9 +408,30 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteTargetPoolRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetPool(getName())
+                .build());
 
-        Operation operation = client.targetPools().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
+    }
+
+    private TargetPool getTargetPool(TargetPoolsClient client) {
+        TargetPool targetHttpProxy = null;
+
+        try {
+            targetHttpProxy = client.get(GetTargetPoolRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetPool(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return targetHttpProxy;
     }
 }

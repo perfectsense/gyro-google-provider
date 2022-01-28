@@ -18,10 +18,17 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Network;
-import com.google.api.services.compute.model.NetworkRoutingConfig;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteNetworkRequest;
+import com.google.cloud.compute.v1.GetNetworkRequest;
+import com.google.cloud.compute.v1.InsertNetworkRequest;
+import com.google.cloud.compute.v1.Network;
+import com.google.cloud.compute.v1.NetworkRoutingConfig;
+import com.google.cloud.compute.v1.NetworksClient;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchNetworkRequest;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -122,63 +129,105 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void copyFrom(Network network) {
-        setId(network.getId().toString());
+        setId(String.valueOf(network.getId()));
         setSelfLink(network.getSelfLink());
-        setRoutingMode(network.getRoutingConfig().getRoutingMode());
+        setRoutingMode(network.getRoutingConfig().getRoutingMode().toString());
         setDescription(network.getDescription());
         setName(network.getName());
     }
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (NetworksClient client = createClient(NetworksClient.class)) {
+            Network network = getNetwork(client);
 
-        Network network = client.networks().get(getProjectId(), getName()).execute();
-        copyFrom(network);
+            if (network == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(network);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        Network network = Network.newBuilder().setName(getName()).setDescription(getDescription())
+            .setAutoCreateSubnetworks(false)
+            .setRoutingConfig(NetworkRoutingConfig.newBuilder()
+                .setRoutingMode(getRoutingMode())
+                .build())
+            .build();
 
-        Network network = new Network();
-        network.setName(getName());
-        network.setDescription(getDescription());
-        network.setAutoCreateSubnetworks(false);
+        try (NetworksClient client = createClient(NetworksClient.class)) {
+            Operation operation = client.insertCallable().call(InsertNetworkRequest.newBuilder()
+                .setNetworkResource(network)
+                .setProject(getProjectId())
+                .build());
 
-        NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
-        networkRoutingConfig.setRoutingMode(getRoutingMode());
-        network.setRoutingConfig(networkRoutingConfig);
-
-        Compute.Networks.Insert insert = client.networks().insert(getProjectId(), network);
-        Operation operation = insert.execute();
-        waitForCompletion(client, operation);
+            state.save();
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
-    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+        NetworkRoutingConfig.Builder builder = NetworkRoutingConfig.newBuilder();
+        builder.setRoutingMode(getRoutingMode());
 
-        NetworkRoutingConfig networkRoutingConfig = new NetworkRoutingConfig();
-        networkRoutingConfig.setRoutingMode(getRoutingMode());
+        try (NetworksClient client = createClient(NetworksClient.class)) {
+            Network.Builder network = Network.newBuilder(getNetwork(client));
+            network.setRoutingConfig(builder.build());
 
-        Network network = client.networks().get(getProjectId(), getName()).execute();
-        network.setRoutingConfig(networkRoutingConfig);
+            Operation operation = client
+                .patchCallable().call(PatchNetworkRequest.newBuilder()
+                    .setNetwork(getName())
+                    .setNetworkResource(network.build()).setProject(getProjectId()).build());
 
-        Operation operation = client.networks().patch(getProjectId(), getName(), network).execute();
-        waitForCompletion(client, operation);
+            state.save();
+            waitForCompletion(operation);
+        } catch (Exception ex) {
+            throw new GyroException(ex);
+        }
+
         refresh();
     }
 
     @Override
-    public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+    public void doDelete(GyroUI ui, State state) {
+        try (NetworksClient client = createClient(NetworksClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteNetworkRequest.newBuilder()
+                .setNetwork(getName())
+                .setProject(getProjectId())
+                .build());
 
-        Operation operation = client.networks().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        } catch (Exception ex) {
+            throw new GyroException(ex);
+        }
+    }
+
+    private Network getNetwork(NetworksClient client) {
+        Network network = null;
+
+        try {
+            network = client.get(GetNetworkRequest.newBuilder()
+                .setProject(getProjectId())
+                .setNetwork(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return network;
+    }
+
+    public static String selfLinkForName(String projectId, String name) {
+        return String.format("https://www.googleapis.com/compute/v1/projects/%s/global/networks/%s",
+            projectId, name);
     }
 }

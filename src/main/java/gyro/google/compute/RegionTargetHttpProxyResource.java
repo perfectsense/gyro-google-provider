@@ -18,10 +18,16 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.TargetHttpProxy;
-import com.google.api.services.compute.model.UrlMapReference;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionTargetHttpProxyRequest;
+import com.google.cloud.compute.v1.GetRegionTargetHttpProxyRequest;
+import com.google.cloud.compute.v1.InsertRegionTargetHttpProxyRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RegionTargetHttpProxiesClient;
+import com.google.cloud.compute.v1.SetUrlMapRegionTargetHttpProxyRequest;
+import com.google.cloud.compute.v1.TargetHttpProxy;
+import com.google.cloud.compute.v1.UrlMapReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -69,46 +75,88 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.regionTargetHttpProxies().get(getProjectId(), getRegion(), getName()).execute());
+        try (RegionTargetHttpProxiesClient client = createClient(RegionTargetHttpProxiesClient.class)) {
+            TargetHttpProxy proxies = getRegionTargetHttpProxy(client);
 
-        return true;
+            if (proxies == null) {
+                return false;
+            }
+
+            copyFrom(proxies);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (RegionTargetHttpProxiesClient client = createClient(RegionTargetHttpProxiesClient.class)) {
+            TargetHttpProxy.Builder builder = toTargetHttpProxy().toBuilder();
+            builder.setRegion(getRegion());
+            Operation operation = client.insertCallable().call(InsertRegionTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpProxyResource(builder)
+                .build());
 
-        TargetHttpProxy targetHttpProxy = toTargetHttpProxy();
-        targetHttpProxy.setRegion(getRegion());
-
-        Operation operation = client.regionTargetHttpProxies()
-            .insert(getProjectId(), getRegion(), targetHttpProxy)
-            .execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+        try (RegionTargetHttpProxiesClient client = createClient(RegionTargetHttpProxiesClient.class)) {
+            UrlMapReference.Builder builder = UrlMapReference.newBuilder();
 
-        UrlMapReference urlMapReference = new UrlMapReference();
-        urlMapReference.setUrlMap(getUrlMapSelfLink());
-        Operation operation =
-            client.regionTargetHttpProxies()
-                .setUrlMap(getProjectId(), getRegion(), getName(), urlMapReference)
-                .execute();
-        waitForCompletion(client, operation);
+            if (getUrlMap() != null) {
+                builder.setUrlMap(getUrlMapSelfLink());
+            } else {
+                builder.clearUrlMap();
+            }
+
+            Operation operation = client.setUrlMapCallable()
+                .call(SetUrlMapRegionTargetHttpProxyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setTargetHttpProxy(getName())
+                    .setUrlMapReferenceResource(builder)
+                    .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.regionTargetHttpProxies().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, response);
+        try (RegionTargetHttpProxiesClient client = createClient(RegionTargetHttpProxiesClient.class)) {
+            Operation response = client.deleteCallable().call(DeleteRegionTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpProxy(getName())
+                .build());
+
+            waitForCompletion(response);
+        }
+    }
+
+    private TargetHttpProxy getRegionTargetHttpProxy(RegionTargetHttpProxiesClient client) {
+        TargetHttpProxy proxies = null;
+
+        try {
+            proxies = client.get(GetRegionTargetHttpProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpProxy(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return proxies;
     }
 }

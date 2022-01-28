@@ -18,19 +18,27 @@ package gyro.google.compute;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.CustomerEncryptionKey;
-import com.google.api.services.compute.model.Disk;
-import com.google.api.services.compute.model.DisksAddResourcePoliciesRequest;
-import com.google.api.services.compute.model.DisksRemoveResourcePoliciesRequest;
-import com.google.api.services.compute.model.DisksResizeRequest;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.ZoneSetLabelsRequest;
-import com.google.cloud.compute.v1.ProjectZoneDiskName;
-import com.google.cloud.compute.v1.ProjectZoneDiskTypeName;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.AddResourcePoliciesDiskRequest;
+import com.google.cloud.compute.v1.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.DeleteDiskRequest;
+import com.google.cloud.compute.v1.Disk;
+import com.google.cloud.compute.v1.DisksAddResourcePoliciesRequest;
+import com.google.cloud.compute.v1.DisksClient;
+import com.google.cloud.compute.v1.DisksRemoveResourcePoliciesRequest;
+import com.google.cloud.compute.v1.DisksResizeRequest;
+import com.google.cloud.compute.v1.GetDiskRequest;
+import com.google.cloud.compute.v1.InsertDiskRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RemoveResourcePoliciesDiskRequest;
+import com.google.cloud.compute.v1.ResizeDiskRequest;
+import com.google.cloud.compute.v1.SetLabelsDiskRequest;
+import com.google.cloud.compute.v1.ZoneSetLabelsRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -101,9 +109,7 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     public void setType(String type) {
-        // Full URLs are required for type, so format the type to a full URL so it is accepted
-        requires("zone");
-        this.type = type != null ? toZoneDiskTypeUrl(getProjectId(), type, getZone()) : null;
+        this.type = type;
     }
 
     /**
@@ -137,59 +143,71 @@ public class DiskResource extends AbstractDiskResource {
 
         setZone(disk.getZone());
         setType(disk.getType());
-
-        setSourceImage(null);
-        if (ImageResource.parseImage(getProjectId(), disk.getSourceImage()) != null
-            || ImageResource.parseFamilyImage(getProjectId(), disk.getSourceImage()) != null) {
-            setSourceImage(findById(ImageResource.class, disk.getSourceImage()));
-        }
+        setSourceImage(findById(ImageResource.class, disk.getSourceImage()));
     }
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (DisksClient client = createClient(DisksClient.class)) {
 
-        Disk disk = client.disks().get(getProjectId(), getZone(), getName()).execute();
-        copyFrom(disk);
+            Disk disk = getDisk(client);
 
-        return true;
+            if (disk == null) {
+                return false;
+            }
+
+            copyFrom(disk);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (DisksClient client = createClient(DisksClient.class)) {
+            Disk.Builder disk = toDisk().toBuilder();
+            disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
+                ? getSourceImageEncryptionKey().toCustomerEncryptionKey() : Data.nullOf(CustomerEncryptionKey.class));
 
-        Disk disk = toDisk();
-        disk.setZone(getZone());
-        disk.setType(getType());
-        disk.setSourceImage(getSourceImage() != null ? getSourceImage().getSelfLink() : null);
-        disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
-            ? getSourceImageEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
-        disk.setResourcePolicies(!getResourcePolicy().isEmpty() ? getResourcePolicy().stream()
-            .map(ResourcePolicyResource::getSelfLink)
-            .collect(Collectors.toList()) : null);
+            if (getType() != null) {
+                disk.setType(getType());
+            }
 
-        Compute.Disks.Insert insert = client.disks().insert(getProjectId(), getZone(), disk);
-        createDisk(client, insert);
+            if (getSourceImage() != null) {
+                disk.setSourceImage(getSourceImage().getSelfLink());
+            }
+
+            disk.addAllResourcePolicies(getResourcePolicy().stream().map(ResourcePolicyResource::getSelfLink)
+                .collect(Collectors.toList()));
+
+            Operation operation = client.insertCallable().call(InsertDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setDiskResource(disk)
+                .buildPartial());
+
+            waitForCompletion(operation, 30, TimeUnit.SECONDS);
+        }
 
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
 
-        if (changedFieldNames.contains("size-gb")) {
-            saveSizeGb(client, (DiskResource) current);
-        }
+        try (DisksClient client = createClient(DisksClient.class)) {
 
-        if (changedFieldNames.contains("labels")) {
-            saveLabels(client);
-        }
+            if (changedFieldNames.contains("size-gb")) {
+                saveSizeGb(client, (DiskResource) current);
+            }
 
-        if (changedFieldNames.contains("resource-policy")) {
-            saveResourcePolicies(client, (DiskResource) current);
+            if (changedFieldNames.contains("labels")) {
+                saveLabels(client);
+            }
+
+            if (changedFieldNames.contains("resource-policy")) {
+                saveResourcePolicies(client, (DiskResource) current);
+            }
         }
 
         refresh();
@@ -197,34 +215,51 @@ public class DiskResource extends AbstractDiskResource {
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (DisksClient client = createClient(DisksClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setDisk(getName())
+                .build());
 
-        Operation operation = client.disks().delete(getProjectId(), getZone(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
     }
 
-    private void saveSizeGb(Compute client, DiskResource oldDiskResource) throws Exception {
+    private void saveSizeGb(DisksClient client, DiskResource oldDiskResource) throws Exception {
         if (getSizeGb() < oldDiskResource.getSizeGb()) {
             throw new GyroException(String.format(
-                "Size of the disk cannot be decreased once set. Current size %s.",
-                oldDiskResource.getSizeGb()));
+                "Size of the disk cannot be decreased once set. Current size %s.", oldDiskResource.getSizeGb()));
         }
 
-        DisksResizeRequest resizeRequest = new DisksResizeRequest();
-        resizeRequest.setSizeGb(getSizeGb());
-        Operation operation = client.disks().resize(getProjectId(), getZone(), getName(), resizeRequest).execute();
-        waitForCompletion(client, operation);
+        DisksResizeRequest.Builder builder = DisksResizeRequest.newBuilder().setSizeGb(getSizeGb());
+
+        Operation operation = client.resizeCallable().call(
+            ResizeDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setDisk(getName())
+                .setDisksResizeRequestResource(builder)
+                .build());
+
+        waitForCompletion(operation);
     }
 
-    private void saveLabels(Compute client) throws Exception {
-        ZoneSetLabelsRequest labelsRequest = new ZoneSetLabelsRequest();
-        labelsRequest.setLabels(getLabels());
-        labelsRequest.setLabelFingerprint(getLabelFingerprint());
-        Operation operation = client.disks().setLabels(getProjectId(), getZone(), getName(), labelsRequest).execute();
-        waitForCompletion(client, operation);
+    private void saveLabels(DisksClient client) throws Exception {
+        ZoneSetLabelsRequest.Builder builder = ZoneSetLabelsRequest.newBuilder();
+        builder.putAllLabels(getLabels());
+        builder.setLabelFingerprint(getLabelFingerprint());
+        Operation operation = client.setLabelsCallable().call(SetLabelsDiskRequest.newBuilder()
+            .setProject(getProjectId())
+            .setZone(getZone())
+            .setResource(getName())
+            .setZoneSetLabelsRequestResource(builder)
+            .build());
+
+        waitForCompletion(operation);
     }
 
-    private void saveResourcePolicies(Compute client, DiskResource current) throws Exception {
+    private void saveResourcePolicies(DisksClient client, DiskResource current) throws Exception {
         List<String> removed = current.getResourcePolicy().stream()
             .filter(policy -> !getResourcePolicy().contains(policy))
             .map(ResourcePolicyResource::getSelfLink)
@@ -235,44 +270,47 @@ public class DiskResource extends AbstractDiskResource {
             .collect(Collectors.toList());
 
         if (!removed.isEmpty()) {
-            Operation operation = client.disks()
-                .removeResourcePolicies(getProjectId(),
-                    getZone(),
-                    getName(),
-                    new DisksRemoveResourcePoliciesRequest().setResourcePolicies(removed))
-                .execute();
-            waitForCompletion(client, operation);
+            DisksRemoveResourcePoliciesRequest.Builder builder = DisksRemoveResourcePoliciesRequest.newBuilder()
+                .addAllResourcePolicies(removed);
+
+            Operation operation = client.removeResourcePoliciesCallable().call(
+                RemoveResourcePoliciesDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setDisk(getName())
+                    .setDisksRemoveResourcePoliciesRequestResource(builder)
+                    .build());
+
+            waitForCompletion(operation);
         }
 
         if (!added.isEmpty()) {
-            Operation operation = client.disks()
-                .addResourcePolicies(
-                    getProjectId(),
-                    getZone(),
-                    getName(),
-                    new DisksAddResourcePoliciesRequest().setResourcePolicies(added))
-                .execute();
-            waitForCompletion(client, operation);
+            DisksAddResourcePoliciesRequest.Builder builder = DisksAddResourcePoliciesRequest.newBuilder()
+                .addAllResourcePolicies(added);
+
+            Operation operation = client.addResourcePoliciesCallable().call(
+                AddResourcePoliciesDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setDisk(getName())
+                    .setDisksAddResourcePoliciesRequestResource(builder)
+                    .build());
+
+            waitForCompletion(operation);
         }
     }
 
-    static ProjectZoneDiskName parseDisk(String projectId, String selfLink) {
-        if (selfLink == null) {
-            return null;
+    private Disk getDisk(DisksClient client) {
+        Disk disk = null;
+
+        try {
+            disk = client.get(GetDiskRequest.newBuilder().setProject(getProjectId()).setZone(getZone())
+                .setDisk(getName()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
         }
 
-        String parseDiskName = formatResource(projectId, selfLink);
-        if (ProjectZoneDiskName.isParsableFrom(parseDiskName)) {
-            return ProjectZoneDiskName.parse(parseDiskName);
-        }
-        return null;
-    }
-
-    static String toZoneDiskTypeUrl(String projectId, String type, String zone) {
-        String parseDiskType = formatResource(projectId, type);
-        if (ProjectZoneDiskTypeName.isParsableFrom(parseDiskType)) {
-            return ProjectZoneDiskTypeName.parse(parseDiskType).toString();
-        }
-        return ProjectZoneDiskTypeName.format(type, projectId, zone);
+        return disk;
     }
 }

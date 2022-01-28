@@ -18,13 +18,7 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.client.util.Data;
-import com.google.api.services.compute.model.HTTP2HealthCheck;
-import com.google.api.services.compute.model.HTTPHealthCheck;
-import com.google.api.services.compute.model.HTTPSHealthCheck;
-import com.google.api.services.compute.model.HealthCheck;
-import com.google.api.services.compute.model.SSLHealthCheck;
-import com.google.api.services.compute.model.TCPHealthCheck;
+import com.google.cloud.compute.v1.HealthCheck;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -47,7 +41,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     private String name;
     private String selfLink;
     private Integer timeoutSec;
-    private String type;
+    private HealthCheck.Type type;
     private Integer unhealthyThreshold;
 
     /**
@@ -177,12 +171,12 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     /**
      * The type of health check.
      */
-    @ValidStrings({"TCP", "SSL", "HTTP", "HTTPS", "HTTP2"})
-    public String getType() {
+    @ValidStrings({ "TCP", "SSL", "HTTP", "HTTPS", "HTTP2" })
+    public HealthCheck.Type getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(HealthCheck.Type type) {
         this.type = type;
     }
 
@@ -232,38 +226,38 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
         setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
         setHealthyThreshold(healthCheck.getHealthyThreshold());
         setSelfLink(healthCheck.getSelfLink());
-        setType(healthCheck.getType());
+        setType(HealthCheck.Type.valueOf(healthCheck.getType()));
 
         setHttpHealthCheck(null);
-        if (healthCheck.getHttpHealthCheck() != null) {
+        if (healthCheck.hasHttpHealthCheck()) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
             httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
             setHttpHealthCheck(httpHealthCheck);
         }
 
         setHttpsHealthCheck(null);
-        if (healthCheck.getHttpsHealthCheck() != null) {
+        if (healthCheck.hasHttpsHealthCheck()) {
             HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
             httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
             setHttpsHealthCheck(httpsHealthCheck);
         }
 
         setHttp2HealthCheck(null);
-        if (healthCheck.getHttp2HealthCheck() != null) {
+        if (healthCheck.hasHttp2HealthCheck()) {
             HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
             http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
             setHttp2HealthCheck(http2HealthCheck);
         }
 
         setSslHealthCheck(null);
-        if (healthCheck.getSslHealthCheck() != null) {
+        if (healthCheck.hasSslHealthCheck()) {
             HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
             sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
             setSslHealthCheck(sslHealthCheck);
         }
 
         setTcpHealthCheck(null);
-        if (healthCheck.getTcpHealthCheck() != null) {
+        if (healthCheck.hasTcpHealthCheck()) {
             HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
             tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
             setTcpHealthCheck(tcpHealthCheck);
@@ -273,7 +267,7 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     public HealthCheck getHealthCheck(Set<String> changedFieldNames) {
         boolean isUpdate = changedFieldNames != null && (changedFieldNames.size() > 0);
 
-        HealthCheck healthCheck = new HealthCheck();
+        HealthCheck.Builder healthCheck = HealthCheck.newBuilder();
 
         if (!isUpdate) {
             healthCheck.setName(getName());
@@ -299,36 +293,31 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
             healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         }
 
-        healthCheck.setHttpHealthCheck(Data.nullOf(HTTPHealthCheck.class));
         if (getHttpHealthCheck() != null) {
-            healthCheck.setType(getHttpHealthCheck().getType());
+            healthCheck.setType(getHttpHealthCheck().getType().name());
             healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
         }
 
-        healthCheck.setHttpsHealthCheck(Data.nullOf(HTTPSHealthCheck.class));
         if (getHttpsHealthCheck() != null) {
-            healthCheck.setType(getHttpsHealthCheck().getType());
+            healthCheck.setType(getHttpsHealthCheck().getType().name());
             healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
         }
 
-        healthCheck.setHttp2HealthCheck(Data.nullOf(HTTP2HealthCheck.class));
         if (getHttp2HealthCheck() != null) {
-            healthCheck.setType(getHttp2HealthCheck().getType());
+            healthCheck.setType(getHttp2HealthCheck().getType().name());
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
         }
 
-        healthCheck.setSslHealthCheck(Data.nullOf(SSLHealthCheck.class));
         if (getSslHealthCheck() != null) {
-            healthCheck.setType(getSslHealthCheck().getType());
+            healthCheck.setType(getSslHealthCheck().getType().name());
             healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
         }
 
-        healthCheck.setTcpHealthCheck(Data.nullOf(TCPHealthCheck.class));
         if (getTcpHealthCheck() != null) {
-            healthCheck.setType(getTcpHealthCheck().getType());
+            healthCheck.setType(getTcpHealthCheck().getType().name());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());
         }
 
-        return healthCheck;
+        return healthCheck.build();
     }
 }

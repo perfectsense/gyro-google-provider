@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ConnectionDraining;
+import com.google.cloud.compute.v1.ConnectionDraining;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;
@@ -50,8 +50,6 @@ public class ComputeConnectionDraining extends Diffable implements Copyable<Conn
     }
 
     public ConnectionDraining toConnectionDraining() {
-        ConnectionDraining connectionDraining = new ConnectionDraining();
-        connectionDraining.setDrainingTimeoutSec(getDrainingTimeoutSec());
-        return connectionDraining;
+        return ConnectionDraining.newBuilder().setDrainingTimeoutSec(getDrainingTimeoutSec()).build();
     }
 }

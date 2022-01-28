@@ -18,9 +18,14 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.SslCertificate;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionSslCertificateRequest;
+import com.google.cloud.compute.v1.GetRegionSslCertificateRequest;
+import com.google.cloud.compute.v1.InsertRegionSslCertificateRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RegionSslCertificatesClient;
+import com.google.cloud.compute.v1.SslCertificate;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -70,42 +75,72 @@ public class RegionSslCertificateResource extends AbstractSslCertificateResource
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (RegionSslCertificatesClient client = createClient(RegionSslCertificatesClient.class)) {
+            SslCertificate certificates = getRegionSslCertificate(client);
 
-        SslCertificate sslCertificate =
-            client.regionSslCertificates().get(getProjectId(), getRegion(), getName()).execute();
-        copyFrom(sslCertificate);
+            if (certificates == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(certificates);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (RegionSslCertificatesClient client = createClient(RegionSslCertificatesClient.class)) {
+            SslCertificate.Builder builder = SslCertificate.newBuilder();
+            builder.setName(getName());
+            builder.setDescription(getDescription());
+            builder.setCertificate(readCertificateFile());
+            builder.setPrivateKey(readPrivateKeyFile());
 
-        SslCertificate certificate = new SslCertificate();
-        certificate.setName(getName());
-        certificate.setDescription(getDescription());
-        certificate.setCertificate(readCertificateFile());
-        certificate.setPrivateKey(readPrivateKeyFile());
+            Operation operation = client.insertCallable().call(InsertRegionSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setSslCertificateResource(builder)
+                .build());
 
-        Operation operation = client.regionSslCertificates().insert(getProjectId(), getRegion(), certificate).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
-    protected void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (RegionSslCertificatesClient client = createClient(RegionSslCertificatesClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteRegionSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setSslCertificate(getName())
+                .build());
 
-        Operation operation = client.regionSslCertificates().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
+    }
+
+    private SslCertificate getRegionSslCertificate(RegionSslCertificatesClient client) {
+        SslCertificate certificates = null;
+
+        try {
+            certificates = client.get(GetRegionSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setSslCertificate(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return certificates;
     }
 }

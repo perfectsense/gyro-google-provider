@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization;
+import com.google.cloud.compute.v1.AutoscalingPolicyCpuUtilization;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;
@@ -44,9 +44,9 @@ public class ComputeAutoscalingPolicyCpuUtilization extends Diffable
     }
 
     public AutoscalingPolicyCpuUtilization copyTo() {
-        AutoscalingPolicyCpuUtilization autoscalingPolicyCpuUtilization = new AutoscalingPolicyCpuUtilization();
-        autoscalingPolicyCpuUtilization.setUtilizationTarget(getUtilizationTarget());
-        return autoscalingPolicyCpuUtilization;
+        AutoscalingPolicyCpuUtilization.Builder builder = AutoscalingPolicyCpuUtilization.newBuilder();
+        builder.setUtilizationTarget(getUtilizationTarget());
+        return builder.build();
     }
 
     @Override

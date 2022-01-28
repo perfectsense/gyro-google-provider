@@ -24,13 +24,18 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.google.api.client.util.Data;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.CustomerEncryptionKey;
-import com.google.api.services.compute.model.GlobalSetLabelsRequest;
-import com.google.api.services.compute.model.Image;
-import com.google.api.services.compute.model.Operation;
-import com.google.cloud.compute.v1.ProjectGlobalImageFamilyName;
-import com.google.cloud.compute.v1.ProjectGlobalImageName;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.CustomerEncryptionKey;
+import com.google.cloud.compute.v1.DeleteImageRequest;
+import com.google.cloud.compute.v1.GetImageRequest;
+import com.google.cloud.compute.v1.GlobalSetLabelsRequest;
+import com.google.cloud.compute.v1.Image;
+import com.google.cloud.compute.v1.ImagesClient;
+import com.google.cloud.compute.v1.InsertImageRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RawDisk;
+import com.google.cloud.compute.v1.SetLabelsImageRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -326,7 +331,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     }
 
     public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink != null ? toImageUrl(getProjectId(), selfLink) : null;
+        this.selfLink = selfLink;
     }
 
     /**
@@ -391,101 +396,136 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
         setSourceDiskId(image.getSourceDiskId());
         setSourceImageId(image.getSourceImageId());
         setSourceSnapshotId(image.getSourceSnapshotId());
-        setStatus(image.getStatus());
+        setStatus(image.getStatus().toString());
+        setSourceDisk(findById(DiskResource.class, image.getSourceDisk()));
+        setSourceImage(findById(ImageResource.class, image.getSourceImage()));
+        setSourceSnapshot(findById(SnapshotResource.class, image.getSourceSnapshot()));
 
         // Image doesn't currently have an API for storageLocations so manually get it
         setStorageLocations(null);
-        if (image.get("storageLocations") instanceof List) {
-            setStorageLocations((List<String>) image.get("storageLocations"));
-        }
-
-        setSourceDisk(null);
-        if (DiskResource.parseDisk(getProjectId(), image.getSourceDisk()) != null) {
-            setSourceDisk(findById(DiskResource.class, image.getSourceDisk()));
-        }
-
-        setSourceImage(null);
-        if (parseImage(getProjectId(), image.getSourceImage()) != null
-            || parseFamilyImage(getProjectId(), image.getSourceImage()) != null) {
-            setSourceImage(findById(ImageResource.class, image.getSourceImage()));
-        }
-
-        setSourceSnapshot(null);
-        if (SnapshotResource.parseSnapshot(getProjectId(), image.getSourceSnapshot()) != null) {
-            setSourceSnapshot(findById(SnapshotResource.class, image.getSourceSnapshot()));
+        if (image.getStorageLocationsList() != null && !(image.getStorageLocationsList().isEmpty())) {
+            setStorageLocations(image.getStorageLocationsList());
         }
     }
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (ImagesClient client = createClient(ImagesClient.class)) {
+            Image image = getImage(client);
 
-        Image image = client.images().get(getProjectId(), getName()).execute();
-        copyFrom(image);
+            if (image == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(image);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (ImagesClient client = createClient(ImagesClient.class)) {
 
-        Image image = new Image();
-        image.setName(getName());
-        image.setDescription(getDescription());
-        image.setFamily(getFamily());
-        image.setLabels(getLabels());
-        image.setRawDisk(getRawDisk() != null ? getRawDisk().toRawDisk() : Data.nullOf(Image.RawDisk.class));
-        image.setImageEncryptionKey(getImageEncryptionKey() != null
-            ? getImageEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
-        image.setSourceDisk(getSourceDisk() != null ? getSourceDisk().getSelfLink() : null);
-        image.setSourceDiskEncryptionKey(getSourceDiskEncryptionKey() != null
-            ? getSourceDiskEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
-        image.setSourceImage(getSourceImage() != null ? getSourceImage().getSelfLink() : null);
-        image.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
-            ? getSourceImageEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
-        image.setSourceSnapshot(getSourceSnapshot() != null ? getSourceSnapshot().getSelfLink() : null);
-        image.setSourceSnapshotEncryptionKey(getSourceSnapshotEncryptionKey() != null
-            ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
+            Image.Builder builder = Image.newBuilder();
+            builder.setName(getName());
+            builder.putAllLabels(getLabels());
 
-        // Image doesn't currently have an API for storageLocations so manually set it
-        image.set("storageLocations", getStorageLocations());
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
 
-        Operation operation = client.images().insert(getProjectId(), image).execute();
-        // Images are slow to complete so wait max of 3 minutes for completion
-        waitForCompletion(client, operation, 3, TimeUnit.MINUTES);
+            if (getFamily() != null) {
+                builder.setFamily(getFamily());
+            }
+
+            if (getRawDisk() != null) {
+                builder.setRawDisk(getRawDisk() != null ? getRawDisk().toRawDisk() : Data.nullOf(RawDisk.class));
+            }
+
+            if (getImageEncryptionKey() != null) {
+                builder.setImageEncryptionKey(getImageEncryptionKey() != null
+                    ? getImageEncryptionKey().toCustomerEncryptionKey()
+                    : Data.nullOf(CustomerEncryptionKey.class));
+            }
+
+            if (getSourceDisk() != null) {
+                builder.setSourceDisk(getSourceDisk() != null ? getSourceDisk().getSelfLink() : null);
+            }
+
+            if (getSourceDiskEncryptionKey() != null) {
+                builder.setSourceDiskEncryptionKey(getSourceDiskEncryptionKey() != null
+                    ? getSourceDiskEncryptionKey().toCustomerEncryptionKey()
+                    : Data.nullOf(CustomerEncryptionKey.class));
+            }
+
+            if (getSourceImage() != null) {
+                builder.setSourceImage(getSourceImage() != null ? getSourceImage().getSelfLink() : null);
+            }
+
+            if (getSourceImageEncryptionKey() != null) {
+                builder.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
+                    ? getSourceImageEncryptionKey().toCustomerEncryptionKey()
+                    : Data.nullOf(CustomerEncryptionKey.class));
+            }
+
+            if (getSourceSnapshot() != null) {
+                builder.setSourceSnapshot(getSourceSnapshot() != null ? getSourceSnapshot().getSelfLink() : null);
+            }
+
+            if (getSourceSnapshotEncryptionKey() != null) {
+                builder.setSourceSnapshotEncryptionKey(getSourceSnapshotEncryptionKey() != null
+                    ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
+                    : Data.nullOf(CustomerEncryptionKey.class));
+            }
+
+            // Image doesn't currently have an API for storageLocations so manually set it
+            builder.addAllStorageLocations(getStorageLocations());
+
+            Operation operation = client.insertCallable().call(InsertImageRequest.newBuilder()
+                .setProject(getProjectId())
+                .setImageResource(builder)
+                .build());
+
+            // Images are slow to complete so wait max of 3 minutes for completion
+            waitForCompletion(operation, 3, TimeUnit.MINUTES);
+        }
 
         refresh();
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (ImagesClient client = createClient(ImagesClient.class)) {
+            GlobalSetLabelsRequest.Builder builder = GlobalSetLabelsRequest.newBuilder();
+            builder.putAllLabels(getLabels());
+            builder.setLabelFingerprint(getLabelFingerprint());
+            Operation operation = client.setLabelsCallable().call(SetLabelsImageRequest.newBuilder()
+                .setProject(getProjectId())
+                .setResource(getName())
+                .setGlobalSetLabelsRequestResource(builder)
+                .build());
 
-        GlobalSetLabelsRequest labelsRequest = new GlobalSetLabelsRequest();
-        labelsRequest.setLabels(getLabels());
-        labelsRequest.setLabelFingerprint(getLabelFingerprint());
-        Operation operation = client.images().setLabels(getProjectId(), getName(), labelsRequest).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (ImagesClient client = createClient(ImagesClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteImageRequest.newBuilder()
+                .setProject(getProjectId())
+                .setImage(getName())
+                .build());
 
-        Operation operation = client.images().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getSourceDisk() == null && getRawDisk() == null && getSourceImage() == null
@@ -506,38 +546,16 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
         return errors;
     }
 
-    static ProjectGlobalImageFamilyName parseFamilyImage(String projectId, String selfLink) {
-        if (selfLink == null) {
-            return null;
+    private Image getImage(ImagesClient client) {
+        Image image = null;
+
+        try {
+            image = client.get(GetImageRequest.newBuilder().setProject(getProjectId()).setImage(getName()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
         }
 
-        String parseFamilyImage = formatResource(projectId, selfLink);
-        if (ProjectGlobalImageFamilyName.isParsableFrom(parseFamilyImage)) {
-            return ProjectGlobalImageFamilyName.parse(parseFamilyImage);
-        }
-        return null;
-    }
-
-    static ProjectGlobalImageName parseImage(String projectId, String selfLink) {
-        if (selfLink == null) {
-            return null;
-        }
-
-        String parseImage = formatResource(projectId, selfLink);
-        if (ProjectGlobalImageName.isParsableFrom(parseImage)) {
-            return ProjectGlobalImageName.parse(parseImage);
-        }
-        return null;
-    }
-
-    static String toImageUrl(String projectId, String image) {
-        String parseImage = formatResource(projectId, image);
-        if (ProjectGlobalImageName.isParsableFrom(parseImage)) {
-            return ProjectGlobalImageName.parse(parseImage).toString();
-        }
-        if (ProjectGlobalImageFamilyName.isParsableFrom(parseImage)) {
-            return ProjectGlobalImageFamilyName.parse(parseImage).toString();
-        }
         return image;
     }
 }

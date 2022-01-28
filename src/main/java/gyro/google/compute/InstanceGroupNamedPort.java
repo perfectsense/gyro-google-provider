@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.NamedPort;
+import com.google.cloud.compute.v1.NamedPort;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
@@ -64,9 +64,6 @@ public class InstanceGroupNamedPort extends Diffable implements Copyable<NamedPo
     }
 
     NamedPort toNamedPort() {
-        NamedPort namedPort = new NamedPort();
-        namedPort.setName(getName());
-        namedPort.setPort(getPort());
-        return namedPort;
+        return NamedPort.newBuilder().setName(getName()).setPort(getPort()).build();
     }
 }

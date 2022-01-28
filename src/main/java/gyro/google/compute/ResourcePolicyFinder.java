@@ -17,16 +17,21 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.ResourcePoliciesScopedList;
-import com.google.api.services.compute.model.ResourcePolicy;
-import com.google.api.services.compute.model.ResourcePolicyAggregatedList;
-import com.google.api.services.compute.model.ResourcePolicyList;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListResourcePoliciesRequest;
+import com.google.cloud.compute.v1.ListResourcePoliciesRequest;
+import com.google.cloud.compute.v1.ResourcePoliciesClient;
+import com.google.cloud.compute.v1.ResourcePoliciesScopedList;
+import com.google.cloud.compute.v1.ResourcePolicy;
+import com.google.cloud.compute.v1.ResourcePolicyAggregatedList;
+import com.google.cloud.compute.v1.ResourcePolicyList;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -42,7 +47,7 @@ import gyro.google.GoogleFinder;
  *
  */
 @Type("compute-resource-policy")
-public class ResourcePolicyFinder extends GoogleFinder<Compute, ResourcePolicy, ResourcePolicyResource> {
+public class ResourcePolicyFinder extends GoogleFinder<ResourcePoliciesClient, ResourcePolicy, ResourcePolicyResource> {
 
     private String region;
     private String filter;
@@ -70,47 +75,80 @@ public class ResourcePolicyFinder extends GoogleFinder<Compute, ResourcePolicy, 
     }
 
     @Override
-    protected List<ResourcePolicy> findAllGoogle(Compute client) throws Exception {
-        List<ResourcePolicy> policies = new ArrayList<>();
-        String pageToken = null;
-
-        do {
-            ResourcePolicyAggregatedList aggregatedList = client.resourcePolicies().aggregatedList(getProjectId())
-                .setPageToken(pageToken)
-                .execute();
-            pageToken = aggregatedList.getNextPageToken();
-
-            policies.addAll(aggregatedList.getItems().values().stream()
-                .map(ResourcePoliciesScopedList::getResourcePolicies)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .collect(Collectors.toList()));
-
-        } while (pageToken != null);
-
-        return policies;
+    protected List<ResourcePolicy> findAllGoogle(ResourcePoliciesClient client) throws Exception {
+        try {
+            return getResourcePolicies(client, null);
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<ResourcePolicy> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<ResourcePolicy> policies = new ArrayList<>();
+    protected List<ResourcePolicy> findGoogle(ResourcePoliciesClient client, Map<String, String> filters)
+        throws Exception {
+        List<ResourcePolicy> addresses = new ArrayList<>();
+        String pageToken = null;
+        try {
+            if (filters.containsKey("region")) {
 
-        if (filters.containsKey("region")) {
-            String pageToken = null;
+                do {
+                    ListResourcePoliciesRequest.Builder builder = ListResourcePoliciesRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setRegion(filters.get("region"))
+                        .setFilter(filters.getOrDefault("filter", ""));
 
-            do {
-                ResourcePolicyList policyList = client.resourcePolicies().list(getProjectId(), filters.get("region"))
-                    .setFilter(filters.get("filter"))
-                    .setPageToken(pageToken)
-                    .execute();
-                pageToken = policyList.getNextPageToken();
+                    if (pageToken != null) {
+                        builder.setPageToken(pageToken);
+                    }
 
-                if (policyList.getItems() != null) {
-                    policies.addAll(policyList.getItems());
-                }
-            } while (pageToken != null);
+                    ResourcePolicyList addressList = client.list(builder.build()).getPage().getResponse();
+                    pageToken = addressList.getNextPageToken();
+
+                    if (addressList.getItemsList() != null) {
+                        addresses.addAll(addressList.getItemsList());
+                    }
+
+                } while (!StringUtils.isEmpty(pageToken));
+            } else {
+                return getResourcePolicies(client, filters.get("filter"));
+            }
+
+        } finally {
+            client.close();
         }
+        return addresses;
+    }
 
-        return policies;
+    private List<ResourcePolicy> getResourcePolicies(ResourcePoliciesClient client, String filter) {
+        List<ResourcePolicy> addresses = new ArrayList<>();
+        String pageToken = null;
+
+        do {
+            UnaryCallable<AggregatedListResourcePoliciesRequest, ResourcePolicyAggregatedList> callable = client
+                .aggregatedListCallable();
+            AggregatedListResourcePoliciesRequest.Builder builder = AggregatedListResourcePoliciesRequest.newBuilder();
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            ResourcePolicyAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            pageToken = aggregatedList.getNextPageToken();
+
+            if (aggregatedList.getItemsMap() != null) {
+                addresses.addAll(aggregatedList.getItemsMap().values().stream()
+                    .map(ResourcePoliciesScopedList::getResourcePoliciesList)
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
+
+        return addresses;
     }
 }

@@ -18,10 +18,15 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.ForwardingRule;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.TargetReference;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteForwardingRuleRequest;
+import com.google.cloud.compute.v1.ForwardingRule;
+import com.google.cloud.compute.v1.ForwardingRulesClient;
+import com.google.cloud.compute.v1.InsertForwardingRuleRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetTargetForwardingRuleRequest;
+import com.google.cloud.compute.v1.TargetReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -87,41 +92,80 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.forwardingRules().get(getProjectId(), getRegion(), getName()).execute());
-        return true;
+        try (ForwardingRulesClient client = createClient(ForwardingRulesClient.class)) {
+            ForwardingRule forwardingRule = getForwardingRule(client);
+
+            if (forwardingRule == null) {
+                return false;
+            }
+
+            copyFrom(forwardingRule);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (ForwardingRulesClient client = createClient(ForwardingRulesClient.class)) {
+            ForwardingRule.Builder builder = toForwardingRule().toBuilder();
+            builder.setTarget(getTargetPool().getSelfLink());
 
-        ForwardingRule forwardingRule = toForwardingRule();
-        forwardingRule.setTarget(getTargetPool().getSelfLink());
+            Operation operation = client.insertCallable().call(InsertForwardingRuleRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setForwardingRuleResource(builder)
+                .build());
 
-        Operation response = client.forwardingRules().insert(getProjectId(), getRegion(), forwardingRule).execute();
-        waitForCompletion(client, response);
+            waitForCompletion(operation);
+        }
+
         refresh();
     }
 
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+        try (ForwardingRulesClient client = createClient(ForwardingRulesClient.class)) {
+            TargetReference.Builder builder = TargetReference.newBuilder();
+            builder.setTarget(getTargetPool().getSelfLink());
 
-        TargetReference targetReference = new TargetReference();
-        targetReference.setTarget(getTargetPool().getSelfLink());
-        Operation response =
-            client.forwardingRules().setTarget(getProjectId(), getRegion(), getName(), targetReference).execute();
-        waitForCompletion(client, response);
+            Operation operation = client.setTargetCallable()
+                .call(SetTargetForwardingRuleRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setForwardingRule(getName())
+                    .setTargetReferenceResource(builder)
+                    .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.forwardingRules().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, response);
+        try (ForwardingRulesClient client = createClient(ForwardingRulesClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteForwardingRuleRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setForwardingRule(getName())
+                .build());
+
+            waitForCompletion(operation);
+        }
+    }
+
+    private ForwardingRule getForwardingRule(ForwardingRulesClient client) {
+        ForwardingRule forwardingRule = null;
+
+        try {
+            forwardingRule = client.get(getProjectId(), getRegion(), getName());
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return forwardingRule;
     }
 }

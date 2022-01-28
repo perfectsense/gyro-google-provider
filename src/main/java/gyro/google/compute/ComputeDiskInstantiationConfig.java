@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.DiskInstantiationConfig;
+import com.google.cloud.compute.v1.DiskInstantiationConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
@@ -94,12 +94,18 @@ public class ComputeDiskInstantiationConfig extends Diffable implements Copyable
     }
 
     public DiskInstantiationConfig toDiskInstantiationConfig() {
-        DiskInstantiationConfig diskInstantiationConfig = new DiskInstantiationConfig();
-        diskInstantiationConfig.setAutoDelete(getAutoDelete());
-        diskInstantiationConfig.setCustomImage(getCustomImage());
-        diskInstantiationConfig.setDeviceName(getDeviceName());
-        diskInstantiationConfig.setInstantiateFrom(getInstantiateFrom());
-        return diskInstantiationConfig;
+        DiskInstantiationConfig.Builder builder = DiskInstantiationConfig.newBuilder().setDeviceName(getDeviceName());
+        builder.setAutoDelete(getAutoDelete());
+
+        if (getInstantiateFrom() != null) {
+            builder.setInstantiateFrom(getInstantiateFrom());
+        }
+
+        if (getCustomImage() != null) {
+            builder.setCustomImage(getCustomImage());
+        }
+
+        return builder.build();
     }
 
     @Override

@@ -21,9 +21,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.TargetHttpsProxy;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.GetRegionTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.InsertRegionTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RegionTargetHttpsProxiesClient;
+import com.google.cloud.compute.v1.TargetHttpsProxy;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -126,7 +131,7 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
         super.copyFrom(model);
 
         setRegion(model.getRegion());
-        setQuicOverride(model.getQuicOverride());
+        setQuicOverride(model.getQuicOverride().toString());
 
         setRegionUrlMap(null);
         if (model.getUrlMap() != null) {
@@ -134,8 +139,8 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
         }
 
         getRegionSslCertificates().clear();
-        if (model.getSslCertificates() != null) {
-            setRegionSslCertificates(model.getSslCertificates().stream()
+        if (model.getSslCertificatesList() != null) {
+            setRegionSslCertificates(model.getSslCertificatesList().stream()
                 .map(cert -> findById(RegionSslCertificateResource.class, cert))
                 .collect(Collectors.toList()));
         }
@@ -148,31 +153,45 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.regionTargetHttpsProxies().get(getProjectId(), getRegion(), getName()).execute());
+        try (RegionTargetHttpsProxiesClient client = createClient(RegionTargetHttpsProxiesClient.class)) {
+            TargetHttpsProxy proxies = getRegionTargetHttpsProxy(client);
 
-        return true;
+            if (proxies == null) {
+                return false;
+            }
+
+            copyFrom(proxies);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (RegionTargetHttpsProxiesClient client = createClient(RegionTargetHttpsProxiesClient.class)) {
+            TargetHttpsProxy.Builder builder = toTargetHttpsProxy().toBuilder();
+            builder.setRegion(getRegion());
+            builder.setUrlMap(getRegionUrlMap().getSelfLink());
+            if (getQuicOverride() != null) {
+                builder.setQuicOverride(getQuicOverride());
+            }
+            if (getSslPolicy() != null) {
+                builder.setSslPolicy(getSslPolicy().getSelfLink());
+            }
+            if (getRegionSslCertificates() != null) {
+                builder.addAllSslCertificates(getRegionSslCertificates().stream()
+                    .map(AbstractSslCertificateResource::getSelfLink)
+                    .collect(Collectors.toList()));
+            }
 
-        TargetHttpsProxy targetHttpsProxy = toTargetHttpsProxy();
-        targetHttpsProxy.setRegion(getRegion());
-        targetHttpsProxy.setUrlMap(getRegionUrlMap().getSelfLink());
-        targetHttpsProxy.setQuicOverride(getQuicOverride());
-        targetHttpsProxy.setSslPolicy(getSslPolicy() != null ? getSslPolicy().getSelfLink() : null);
-        targetHttpsProxy.setSslCertificates(!getRegionSslCertificates().isEmpty()
-            ? getRegionSslCertificates().stream()
-            .map(AbstractSslCertificateResource::getSelfLink)
-            .collect(Collectors.toList())
-            : null);
+            Operation operation = client.insertCallable().call(InsertRegionTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpsProxyResource(builder)
+                .build());
 
-        Operation operation = client.regionTargetHttpsProxies()
-            .insert(getProjectId(), getRegion(), targetHttpsProxy)
-            .execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
@@ -184,8 +203,31 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.regionTargetHttpsProxies().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, response);
+        try (RegionTargetHttpsProxiesClient client = createClient(RegionTargetHttpsProxiesClient.class)) {
+            Operation response = client.deleteCallable().call(DeleteRegionTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpsProxy(getName())
+                .build());
+
+            waitForCompletion(response);
+        }
+    }
+
+    private TargetHttpsProxy getRegionTargetHttpsProxy(RegionTargetHttpsProxiesClient client) {
+        TargetHttpsProxy proxies = null;
+
+        try {
+            proxies = client.get(GetRegionTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetHttpsProxy(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return proxies;
     }
 }

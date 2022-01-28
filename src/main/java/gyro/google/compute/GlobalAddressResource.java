@@ -16,8 +16,13 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Address;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.Address;
+import com.google.cloud.compute.v1.DeleteGlobalAddressRequest;
+import com.google.cloud.compute.v1.GetGlobalAddressRequest;
+import com.google.cloud.compute.v1.GlobalAddressesClient;
+import com.google.cloud.compute.v1.InsertGlobalAddressRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
@@ -45,7 +50,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
     /**
      * IP version that will be used by this address. Defaults to ``IPV4``.
      */
-    @ValidStrings({"IPV4", "IPV6"})
+    @ValidStrings({ "IPV4", "IPV6" })
     public String getIpVersion() {
         return ipVersion;
     }
@@ -56,36 +61,66 @@ public class GlobalAddressResource extends AbstractAddressResource {
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute compute = createClient(Compute.class);
-        Address address = compute.globalAddresses().get(getProjectId(), getName()).execute();
+        try (GlobalAddressesClient client = createClient(GlobalAddressesClient.class)) {
+            Address address = getAddress(client);
 
-        if (address == null) {
-            return false;
+            if (address == null) {
+                return false;
+            }
+
+            copyFrom(address);
+
+            return true;
         }
-
-        copyFrom(address);
-
-        return true;
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute compute = createClient(Compute.class);
-        Address address = copyTo().setIpVersion(getIpVersion());
-        waitForCompletion(compute, compute.globalAddresses().insert(getProjectId(), address).execute());
+        try (GlobalAddressesClient client = createClient(GlobalAddressesClient.class)) {
+            Address.Builder builder = copyTo().toBuilder();
+
+            if (getIpVersion() != null) {
+                builder.setIpVersion(getIpVersion());
+            }
+
+            waitForCompletion(client.insertCallable().call(InsertGlobalAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setAddressResource(builder)
+                .build()));
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createClient(Compute.class);
-        waitForCompletion(compute, compute.globalAddresses().delete(getProjectId(), getName()).execute());
+        try (GlobalAddressesClient client = createClient(GlobalAddressesClient.class)) {
+            waitForCompletion(client.deleteCallable().call(DeleteGlobalAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setAddress(getName())
+                .build()));
+        }
     }
 
     @Override
     public void copyFrom(Address model) {
         super.copyFrom(model);
         setIpVersion(model.getIpVersion());
+    }
+
+    private Address getAddress(GlobalAddressesClient client) {
+        Address address = null;
+
+        try {
+            address = client.get(GetGlobalAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setAddress(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return address;
     }
 }

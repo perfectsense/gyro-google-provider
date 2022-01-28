@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.DnsCacheConfig;
+import com.google.container.v1beta1.DnsCacheConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;

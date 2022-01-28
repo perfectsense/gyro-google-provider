@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.services.compute.model.FixedOrPercent;
+import com.google.cloud.compute.v1.FixedOrPercent;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.ConflictsWith;
@@ -81,11 +81,11 @@ public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrP
     }
 
     public FixedOrPercent copyTo() {
-        FixedOrPercent fixedOrPercent = new FixedOrPercent();
-        fixedOrPercent.setFixed(getFixed());
-        fixedOrPercent.setPercent(getPercent());
-        fixedOrPercent.setCalculated(getCalculated());
-        return fixedOrPercent;
+        FixedOrPercent.Builder builder = FixedOrPercent.newBuilder();
+        builder.setFixed(getFixed());
+        builder.setPercent(getPercent());
+        builder.setCalculated(getCalculated());
+        return builder.build();
     }
 
     @Override

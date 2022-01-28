@@ -20,10 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.UrlMap;
-import com.google.cloud.compute.v1.ProjectGlobalUrlMapName;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteUrlMapRequest;
+import com.google.cloud.compute.v1.GetUrlMapRequest;
+import com.google.cloud.compute.v1.InsertUrlMapRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchUrlMapRequest;
+import com.google.cloud.compute.v1.UrlMap;
+import com.google.cloud.compute.v1.UrlMapsClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -125,56 +130,78 @@ public class UrlMapResource extends AbstractUrlMapResource {
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.urlMaps().get(getProjectId(), getName()).execute());
-        return true;
+        try (UrlMapsClient client = createClient(UrlMapsClient.class)) {
+            UrlMap urlMap = getUrlMap(client);
+
+            if (urlMap == null) {
+                return false;
+            }
+
+            copyFrom(urlMap);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (UrlMapsClient client = createClient(UrlMapsClient.class)) {
+            UrlMap.Builder builder = toUrlMap(null).toBuilder();
+            String defaultService = "";
 
-        UrlMap urlMap = toUrlMap(null);
-        String defaultService = "";
-        if (getDefaultBackendBucket() != null) {
-            defaultService = getDefaultBackendBucket().getSelfLink();
-        } else if (getDefaultBackendService() != null) {
-            defaultService = getDefaultBackendService().getSelfLink();
-        } else if (getDefaultRegionBackendService() != null) {
-            defaultService = getDefaultRegionBackendService().getSelfLink();
+            if (getDefaultBackendBucket() != null) {
+                defaultService = getDefaultBackendBucket().getSelfLink();
+            } else if (getDefaultBackendService() != null) {
+                defaultService = getDefaultBackendService().getSelfLink();
+            } else if (getDefaultRegionBackendService() != null) {
+                defaultService = getDefaultRegionBackendService().getSelfLink();
+            }
+
+            if (getDefaultHttpRedirectAction() == null) {
+                builder.setDefaultService(defaultService);
+            }
+
+            Operation response = client.insertCallable().call(InsertUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setUrlMapResource(builder)
+                .build());
+
+            waitForCompletion(response);
         }
-
-        if (urlMap.getDefaultUrlRedirect() == null) {
-            urlMap.setDefaultService(defaultService);
-        }
-
-        Operation response = client.urlMaps().insert(getProjectId(), urlMap).execute();
-        waitForCompletion(client, response);
 
         refresh();
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (UrlMapsClient client = createClient(UrlMapsClient.class)) {
+            UrlMap urlMap = toUrlMap(changedFieldNames);
+            Operation operation = client.patchCallable().call(PatchUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setUrlMap(getName())
+                .setUrlMapResource(urlMap)
+                .build());
 
-        UrlMap urlMap = toUrlMap(changedFieldNames);
-        Operation operation = client.urlMaps().patch(getProjectId(), getName(), urlMap).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.urlMaps().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, response);
+        try (UrlMapsClient client = createClient(UrlMapsClient.class)) {
+            Operation response = client.deleteCallable().call(DeleteUrlMapRequest.newBuilder()
+                .setProject(getProjectId())
+                .setUrlMap(getName())
+                .build());
+
+            waitForCompletion(response);
+        }
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getDefaultBackendBucket() == null && getDefaultBackendService() == null
@@ -184,10 +211,25 @@ public class UrlMapResource extends AbstractUrlMapResource {
                 null,
                 "Either 'default-backend-bucket', 'default-backend-service', 'default-http-redirect-action' or 'default-region-backend-service' is required!"));
         }
+
         return errors;
     }
 
     static boolean isUrlMap(String selfLink) {
-        return selfLink != null && ProjectGlobalUrlMapName.isParsableFrom(formatResource(null, selfLink));
+        return selfLink != null && selfLink.contains("urlMaps");
+    }
+
+    private UrlMap getUrlMap(UrlMapsClient client) {
+        UrlMap urlMap = null;
+
+        try {
+            urlMap = client.get(GetUrlMapRequest.newBuilder().setProject(getProjectId())
+                .setUrlMap(getName()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return urlMap;
     }
 }

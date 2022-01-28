@@ -18,9 +18,15 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.AutoscalersClient;
+import com.google.cloud.compute.v1.DeleteAutoscalerRequest;
+import com.google.cloud.compute.v1.GetAutoscalerRequest;
+import com.google.cloud.compute.v1.InsertAutoscalerRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchAutoscalerRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.scope.State;
@@ -93,40 +99,74 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.autoscalers().get(getProjectId(), getZone(), getName()).execute());
-        return true;
+        try (AutoscalersClient client = createClient(AutoscalersClient.class)) {
+            Autoscaler autoscaler = getAutoscaler(client);
+
+            if (autoscaler == null) {
+                return false;
+            }
+
+            copyFrom(autoscaler);
+
+            return true;
+        }
     }
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.autoscalers()
-            .delete(getProjectId(), getZone(), getName())
-            .execute();
-        waitForCompletion(client, operation);
+        try (AutoscalersClient client = createClient(AutoscalersClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setAutoscaler(getName())
+                .build());
+
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void insert(Autoscaler autoscaler) throws Exception {
+    void insert(Autoscaler autoscaler) {
+        Autoscaler.Builder builder = autoscaler.toBuilder();
         Optional.ofNullable(getInstanceGroupManager())
             .map(InstanceGroupManagerResource::getSelfLink)
-            .ifPresent(autoscaler::setTarget);
+            .ifPresent(builder::setTarget);
 
-        Compute client = createComputeClient();
-        Operation operation = client.autoscalers()
-            .insert(getProjectId(), getZone(), autoscaler)
-            .execute();
-        waitForCompletion(client, operation);
+        try (AutoscalersClient client = createClient(AutoscalersClient.class)) {
+            Operation operation = client.insertCallable().call(InsertAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setAutoscalerResource(builder)
+                .build());
+
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    void patch(Autoscaler autoscaler) throws Exception {
-        Compute client = createComputeClient();
-        Operation operation = client.autoscalers()
-            .patch(getProjectId(), getZone(), autoscaler)
-            .setAutoscaler(getName())
-            .execute();
-        waitForCompletion(client, operation);
+    void patch(Autoscaler autoscaler) {
+        try (AutoscalersClient client = createClient(AutoscalersClient.class)) {
+            Operation operation = client.patchCallable().call(PatchAutoscalerRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setAutoscalerResource(autoscaler)
+                .build());
+
+            waitForCompletion(operation);
+        }
+    }
+
+    private Autoscaler getAutoscaler(AutoscalersClient client) {
+        Autoscaler autoscaler = null;
+
+        try {
+            autoscaler = client.get(GetAutoscalerRequest.newBuilder().setProject(getProjectId())
+                .setAutoscaler(getName()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return autoscaler;
     }
 }

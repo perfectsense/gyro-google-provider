@@ -17,15 +17,21 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.InstanceList;
-import com.google.api.services.compute.model.Zone;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListInstancesRequest;
+import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstanceAggregatedList;
+import com.google.cloud.compute.v1.InstanceList;
+import com.google.cloud.compute.v1.InstancesClient;
+import com.google.cloud.compute.v1.InstancesScopedList;
+import com.google.cloud.compute.v1.ListInstancesRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -40,7 +46,7 @@ import gyro.google.GoogleFinder;
  *    instance: $(external-query google::compute-instance {zone: 'us-west1-a', filter: 'name = gyro-development'})
  */
 @Type("compute-instance")
-public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceResource> {
+public class InstanceFinder extends GoogleFinder<InstancesClient, Instance, InstanceResource> {
 
     private String zone;
     private String filter;
@@ -68,47 +74,77 @@ public class InstanceFinder extends GoogleFinder<Compute, Instance, InstanceReso
     }
 
     @Override
-    protected List<Instance> findAllGoogle(Compute client) throws Exception {
+    protected List<Instance> findAllGoogle(InstancesClient client) throws Exception {
+        try {
+            return getInstances(client, null);
+        } finally {
+            client.close();
+        }
+    }
+
+    @Override
+    protected List<Instance> findGoogle(InstancesClient client, Map<String, String> filters) throws Exception {
         List<Instance> instances = new ArrayList<>();
-        String pageToken;
-        List<Zone> zoneList = Optional.ofNullable(client.zones().list(getProjectId()).execute().getItems())
-            .orElse(new ArrayList<>());
-        List<String> zones = zoneList.stream()
-            .map(Zone::getName)
-            .collect(Collectors.toList());
+        String pageToken = null;
+        try {
+            if (filters.containsKey("zone")) {
 
-        for (String zone : zones) {
-            do {
-                InstanceList results = client.instances().list(getProjectId(), zone).execute();
-                pageToken = results.getNextPageToken();
+                do {
+                    ListInstancesRequest.Builder builder = ListInstancesRequest.newBuilder().setProject(getProjectId())
+                        .setZone(filters.get("zone")).setFilter(filters.getOrDefault("filter", ""));
 
-                if (results.getItems() != null) {
-                    instances.addAll(results.getItems());
-                }
-            } while (pageToken != null);
+                    if (pageToken != null) {
+                        builder.setPageToken(pageToken);
+                    }
+
+                    InstanceList addressList = client.list(builder.build()).getPage().getResponse();
+                    pageToken = addressList.getNextPageToken();
+
+                    if (addressList.getItemsList() != null) {
+                        instances.addAll(addressList.getItemsList());
+                    }
+
+                } while (!StringUtils.isEmpty(pageToken));
+            } else {
+                return getInstances(client, filters.get("filter"));
+            }
+
+        } finally {
+            client.close();
         }
 
         return instances;
     }
 
-    @Override
-    protected List<Instance> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+    private List<Instance> getInstances(InstancesClient client, String filter) {
         List<Instance> instances = new ArrayList<>();
+        String pageToken = null;
 
-        if (filters.containsKey("zone")) {
-            String pageToken;
+        do {
+            UnaryCallable<AggregatedListInstancesRequest, InstanceAggregatedList> callable = client
+                .aggregatedListCallable();
+            AggregatedListInstancesRequest.Builder builder = AggregatedListInstancesRequest.newBuilder();
 
-            do {
-                InstanceList results = client.instances().list(getProjectId(), filters.get("zone"))
-                    .setFilter(filters.get("filter"))
-                    .execute();
-                pageToken = results.getNextPageToken();
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
 
-                if (results.getItems() != null) {
-                    instances.addAll(results.getItems());
-                }
-            } while (pageToken != null);
-        }
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            InstanceAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            pageToken = aggregatedList.getNextPageToken();
+
+            if (aggregatedList.getItemsMap() != null) {
+                instances.addAll(aggregatedList.getItemsMap().values().stream()
+                    .map(InstancesScopedList::getInstancesList)
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
 
         return instances;
     }

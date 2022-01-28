@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.ShieldedInstanceConfig;
+import com.google.container.v1beta1.ShieldedInstanceConfig;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 

@@ -17,13 +17,17 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HttpHealthCheck;
-import com.google.api.services.compute.model.HttpHealthCheckList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.HealthCheckList;
+import com.google.cloud.compute.v1.HealthChecksClient;
+import com.google.cloud.compute.v1.ListHealthChecksRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +42,7 @@ import gyro.google.GoogleFinder;
  *     compute-http-health-check: $(external-query google::compute-http-health-check { name: "http-health-check-example" })
  */
 @Type("compute-http-health-check")
-public class HttpHealthCheckFinder extends GoogleFinder<Compute, HttpHealthCheck, HttpHealthCheckResource> {
+public class HttpHealthCheckFinder extends GoogleFinder<HealthChecksClient, HealthCheck, HttpHealthCheckResource> {
 
     private String name;
 
@@ -54,24 +58,51 @@ public class HttpHealthCheckFinder extends GoogleFinder<Compute, HttpHealthCheck
     }
 
     @Override
-    protected List<HttpHealthCheck> findAllGoogle(Compute client) throws Exception {
-        List<HttpHealthCheck> healthChecks = new ArrayList<>();
-        HttpHealthCheckList healthCheckList;
+    protected List<HealthCheck> findAllGoogle(HealthChecksClient client) throws Exception {
+        List<HealthCheck> healthChecks = new ArrayList<>();
+        HealthCheckList healthCheckList;
         String nextPageToken = null;
-        do {
-            healthCheckList = client.httpHealthChecks().list(getProjectId()).setPageToken(nextPageToken).execute();
-            nextPageToken = healthCheckList.getNextPageToken();
 
-            if (healthCheckList.getItems() != null) {
-                healthChecks.addAll(healthCheckList.getItems());
-            }
-        } while (nextPageToken != null);
+        try {
+            do {
+                UnaryCallable<ListHealthChecksRequest, HealthChecksClient.ListPagedResponse> callable = client
+                    .listPagedCallable();
+                ListHealthChecksRequest.Builder builder = ListHealthChecksRequest.newBuilder();
+
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                HealthChecksClient.ListPagedResponse listPagedResponse = callable.call(builder
+                    .setProject(getProjectId()).build());
+                healthCheckList = listPagedResponse.getPage().getResponse();
+                nextPageToken = listPagedResponse.getNextPageToken();
+
+                if (healthCheckList.getItemsList() != null) {
+                    healthChecks.addAll(healthCheckList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+        } finally {
+            client.close();
+        }
 
         return healthChecks;
     }
 
     @Override
-    protected List<HttpHealthCheck> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.httpHealthChecks().get(getProjectId(), filters.get("name")).execute());
+    protected List<HealthCheck> findGoogle(HealthChecksClient client, Map<String, String> filters) throws Exception {
+        ArrayList<HealthCheck> healthChecks = new ArrayList<>();
+
+        try {
+            healthChecks.add(client.get(getProjectId(), filters.get("name")));
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return healthChecks;
     }
 }

@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.Scheduling;
-import com.google.api.services.compute.model.SchedulingNodeAffinity;
+import com.google.cloud.compute.v1.Scheduling;
+import com.google.cloud.compute.v1.SchedulingNodeAffinity;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 
@@ -94,7 +94,7 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
         setAutomaticRestart(model.getAutomaticRestart());
 
         List<ComputeSchedulingNodeAffinity> diffableNodeAffinities = null;
-        List<SchedulingNodeAffinity> nodeAffinities = model.getNodeAffinities();
+        List<SchedulingNodeAffinity> nodeAffinities = model.getNodeAffinitiesList();
 
         if (nodeAffinities != null && !nodeAffinities.isEmpty()) {
             diffableNodeAffinities = nodeAffinities
@@ -108,25 +108,28 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
         }
         setNodeAffinity(diffableNodeAffinities);
 
-        setOnHostMaintenance(model.getOnHostMaintenance());
+        setOnHostMaintenance(model.getOnHostMaintenance().toString().toUpperCase());
         setPreemptible(model.getPreemptible());
     }
 
     public Scheduling toScheduling() {
-        Scheduling scheduling = new Scheduling();
-        scheduling.setAutomaticRestart(getAutomaticRestart());
+        Scheduling.Builder builder = Scheduling.newBuilder();
+        builder.setAutomaticRestart(getAutomaticRestart());
+        builder.setPreemptible(getPreemptible());
 
         List<ComputeSchedulingNodeAffinity> nodeAffinity = getNodeAffinity();
 
         if (!nodeAffinity.isEmpty()) {
-            scheduling.setNodeAffinities(nodeAffinity
-                .stream()
+            builder.addAllNodeAffinities(nodeAffinity.stream()
                 .map(ComputeSchedulingNodeAffinity::toSchedulingNodeAffinity)
                 .collect(Collectors.toList()));
         }
-        scheduling.setOnHostMaintenance(getOnHostMaintenance());
-        scheduling.setPreemptible(getPreemptible());
-        return scheduling;
+
+        if (getOnHostMaintenance() != null) {
+            builder.setOnHostMaintenance(getOnHostMaintenance());
+        }
+
+        return builder.build();
     }
 
     @Override

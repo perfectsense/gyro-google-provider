@@ -2,9 +2,15 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HealthCheck;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteRegionHealthCheckRequest;
+import com.google.cloud.compute.v1.GetRegionHealthCheckRequest;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.InsertRegionHealthCheckRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRegionHealthCheckRequest;
+import com.google.cloud.compute.v1.RegionHealthChecksClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -124,51 +130,86 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
-        copyFrom(healthCheck);
+        try (RegionHealthChecksClient client = createClient(RegionHealthChecksClient.class)) {
+            HealthCheck healthCheck = getRegionHealthCheck(client);
 
-        return true;
+            if (healthCheck == null) {
+                return false;
+            }
+
+            copyFrom(healthCheck);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = getHealthCheck(null);
-        healthCheck.setRegion(getRegion());
+        try (RegionHealthChecksClient client = createClient(RegionHealthChecksClient.class)) {
+            HealthCheck.Builder builder = getHealthCheck(null).toBuilder();
+            builder.setRegion(getRegion());
 
-        Compute.RegionHealthChecks.Insert insert = client.regionHealthChecks()
-            .insert(getProjectId(), healthCheck.getRegion(), healthCheck);
-        Operation operation = insert.execute();
-        waitForCompletion(client, operation);
+            Operation operation = client.insertCallable().call(InsertRegionHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setHealthCheckResource(builder)
+                .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = getHealthCheck(changedFieldNames);
+        try (RegionHealthChecksClient client = createClient(RegionHealthChecksClient.class)) {
+            HealthCheck.Builder builder = getHealthCheck(changedFieldNames).toBuilder();
 
-        if (changedFieldNames.contains("region")) {
-            healthCheck.setRegion(getRegion());
+            if (changedFieldNames.contains("region")) {
+                builder.setRegion(getRegion());
+            }
+
+            Operation operation = client.patchCallable().call(PatchRegionHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setHealthCheck(getName())
+                .setHealthCheckResource(builder)
+                .build());
+
+            waitForCompletion(operation);
         }
-
-        Operation operation = client.regionHealthChecks()
-            .patch(getProjectId(), getRegion(), getName(), healthCheck)
-            .execute();
-        waitForCompletion(client, operation);
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = client.regionHealthChecks().get(getProjectId(), getRegion(), getName()).execute();
-        Operation operation = client.regionHealthChecks()
-            .delete(getProjectId(), region, healthCheck.getName())
-            .execute();
-        waitForCompletion(client, operation);
+        try (RegionHealthChecksClient client = createClient(RegionHealthChecksClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteRegionHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setHealthCheck(getName())
+                .build());
+
+            waitForCompletion(operation);
+        }
+    }
+
+    private HealthCheck getRegionHealthCheck(RegionHealthChecksClient client) {
+        HealthCheck autoscaler = null;
+
+        try {
+            autoscaler = client.get(GetRegionHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setHealthCheck(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return autoscaler;
     }
 }

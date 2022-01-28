@@ -18,7 +18,7 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.services.compute.model.InstanceGroupManagerStatus;
+import com.google.cloud.compute.v1.InstanceGroupManagerStatus;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.google.Copyable;
@@ -60,12 +60,12 @@ public class ComputeInstanceGroupManagerStatus extends Diffable implements Copya
     public void copyFrom(InstanceGroupManagerStatus model) {
         setIsStable(model.getIsStable());
         setVersionTarget(
-            // versionTarget is not available from Google SDK yet.
-            Optional.ofNullable(model.get("versionTarget"))
+            Optional.ofNullable(model.getVersionTarget())
                 .map(e -> {
                     ComputeInstanceGroupManagerStatusVersionTarget versionTarget = newSubresource(
                         ComputeInstanceGroupManagerStatusVersionTarget.class);
                     versionTarget.copyFrom(e);
+
                     return versionTarget;
                 })
                 .orElse(null));

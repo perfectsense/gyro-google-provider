@@ -18,10 +18,13 @@ package gyro.google.compute;
 
 import java.util.concurrent.TimeUnit;
 
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Address;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.Address;
+import com.google.cloud.compute.v1.AddressesClient;
+import com.google.cloud.compute.v1.DeleteAddressRequest;
+import com.google.cloud.compute.v1.GetAddressRequest;
+import com.google.cloud.compute.v1.InsertAddressRequest;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -77,45 +80,56 @@ public class AddressResource extends AbstractAddressResource {
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute compute = createClient(Compute.class);
-        Address address = compute.addresses().get(getProjectId(), getRegion(), getName()).execute();
+        try (AddressesClient client = createClient(AddressesClient.class)) {
+            Address address = getAddress(client);
 
-        copyFrom(address);
+            if (address == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(address);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute compute = createClient(Compute.class);
-        Address address = copyTo()
-            .setRegion(getRegion())
-            .setNetworkTier(getNetworkTier());
+        try (AddressesClient client = createClient(AddressesClient.class)) {
+            Address.Builder builder = copyTo().toBuilder().setRegion(getRegion());
 
-        // When Network/Subnetwork have just been created they may still be unavailable, so wait until ready.
-        boolean success = Wait.atMost(30, TimeUnit.SECONDS)
-             .prompt(false)
-             .checkEvery(10, TimeUnit.SECONDS)
-             .until(() -> createAddress(compute, address));
-         if (!success) {
-             throw new GyroException(String.format("The resource '%s' is not ready", getSubnetwork().getSelfLink()));
-         }
+            if (getNetworkTier() != null) {
+                builder.setNetworkTier(getNetworkTier());
+            }
 
+            // When Network/Subnetwork have just been created they may still be unavailable, so wait until ready.
+            boolean success = Wait.atMost(30, TimeUnit.SECONDS)
+                .prompt(false)
+                .checkEvery(10, TimeUnit.SECONDS)
+                .until(() -> createAddress(client, builder.build()));
+
+            if (!success) {
+                throw new GyroException(String.format("The resource '%s' is not ready", getSubnetwork().getSelfLink()));
+            }
+        }
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute compute = createClient(Compute.class);
-        waitForCompletion(
-            compute,
-            compute.addresses().delete(getProjectId(), getRegion(), getName()).execute());
+        try (AddressesClient client = createClient(AddressesClient.class)) {
+            waitForCompletion(client.deleteCallable().call(DeleteAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAddress(getName())
+                .build()));
+        }
     }
 
     @Override
     public void copyFrom(Address model) {
         super.copyFrom(model);
-        setNetworkTier(model.getNetworkTier());
+        setNetworkTier(model.getNetworkTier() == null ? null : model.getNetworkTier().toString().toUpperCase());
 
         // API only accepts region name, but model returns the region selfLink so strip name from the end of URL.
         if ((model.getRegion() != null) && model.getRegion().startsWith("http")) {
@@ -123,21 +137,33 @@ public class AddressResource extends AbstractAddressResource {
         }
     }
 
-    private boolean createAddress(Compute compute, Address address) throws Exception {
+    private boolean createAddress(AddressesClient client, Address address) throws Exception {
         try {
-            waitForCompletion(
-                compute,
-                compute.addresses().insert(getProjectId(), getRegion(), address).execute());
-        } catch (GoogleJsonResponseException e) {
-            if (e.getDetails()
-                .getErrors()
-                .stream()
-                .map(GoogleJsonError.ErrorInfo::getReason)
-                .anyMatch("resourceNotReady"::equals)) {
+            waitForCompletion(client.insertCallable().call(InsertAddressRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setAddressResource(address)
+                .build()));
+        } catch (InvalidArgumentException ex) {
+            if (ex.getCause().getMessage().contains("resourceNotReady")) {
                 return false;
             }
-            throw e;
         }
+
         return true;
+    }
+
+    private Address getAddress(AddressesClient client) {
+        Address address = null;
+
+        try {
+            address = client.get(GetAddressRequest.newBuilder().setProject(getProjectId()).setAddress(getName())
+                .setRegion(getRegion()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return address;
     }
 }

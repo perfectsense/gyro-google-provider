@@ -21,9 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.BackendBucket;
-import com.google.api.services.compute.model.BackendBucketList;
+import com.google.cloud.compute.v1.BackendBucket;
+import com.google.cloud.compute.v1.BackendBucketList;
+import com.google.cloud.compute.v1.BackendBucketsClient;
+import com.google.cloud.compute.v1.ListBackendBucketsRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    compute-backend-bucket: $(external-query google::compute-backend-bucket { name: 'compute-backend-bucket-example'})
  */
 @Type("compute-backend-bucket")
-public class BackendBucketFinder extends GoogleFinder<Compute, BackendBucket, BackendBucketResource> {
+public class BackendBucketFinder extends GoogleFinder<BackendBucketsClient, BackendBucket, BackendBucketResource> {
 
     private String name;
 
@@ -54,24 +56,39 @@ public class BackendBucketFinder extends GoogleFinder<Compute, BackendBucket, Ba
     }
 
     @Override
-    protected List<BackendBucket> findAllGoogle(Compute client) throws Exception {
+    protected List<BackendBucket> findAllGoogle(BackendBucketsClient client) throws Exception {
         List<BackendBucket> backendBuckets = new ArrayList<>();
         BackendBucketList backendBucketList;
         String nextPageToken = null;
 
-        do {
-            backendBucketList = client.backendBuckets().list(getProjectId()).setPageToken(nextPageToken).execute();
-            if (backendBucketList.getItems() != null) {
-                backendBuckets.addAll(backendBucketList.getItems());
-            }
-            nextPageToken = backendBucketList.getNextPageToken();
-        } while (nextPageToken != null);
+        try {
+            do {
+                ListBackendBucketsRequest.Builder builder = ListBackendBucketsRequest.newBuilder()
+                    .setProject(getProjectId());
 
-        return backendBuckets;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                backendBucketList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = backendBucketList.getNextPageToken();
+
+                if (backendBucketList.getItemsList() != null) {
+                    backendBuckets.addAll(backendBucketList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return backendBuckets;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<BackendBucket> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.backendBuckets().get(getProjectId(), filters.get("name")).execute());
+    protected List<BackendBucket> findGoogle(BackendBucketsClient client, Map<String, String> filters)
+        throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }

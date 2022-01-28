@@ -16,7 +16,8 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.HTTPSHealthCheck;
+import com.google.cloud.compute.v1.HTTPSHealthCheck;
+import com.google.cloud.compute.v1.HealthCheck;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
@@ -42,8 +43,8 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck implements 
     }
 
     @Override
-    protected String getType() {
-        return "HTTPS";
+    protected HealthCheck.Type getType() {
+        return HealthCheck.Type.HTTPS;
     }
 
     @Override
@@ -52,21 +53,44 @@ public class HealthCheckHttpsHealthCheck extends AbstractHealthCheck implements 
             setHost(model.getHost());
             setPort(model.getPort());
             setPortName(model.getPortName());
-            setPortSpecification(model.getPortSpecification());
-            setProxyHeader(model.getProxyHeader());
+            setPortSpecification(model.getPortSpecification() != null ? model.getPortSpecification().toString() : null);
+            setProxyHeader(model.getProxyHeader() != null ? model.getProxyHeader().toString() : null);
             setResponse(model.getResponse());
             setRequestPath(model.getRequestPath());
         }
     }
 
     public HTTPSHealthCheck toHttpsHealthCheck() {
-        return new HTTPSHealthCheck()
-            .setHost(getHost())
-            .setPort(getPort())
-            .setPortName(getPortName())
-            .setPortSpecification(getPortSpecification())
-            .setProxyHeader(getProxyHeader())
-            .setResponse(getResponse())
-            .setRequestPath(getRequestPath());
+        HTTPSHealthCheck.Builder builder = HTTPSHealthCheck.newBuilder();
+
+        if (getHost() != null) {
+            builder.setHost(getHost());
+        }
+
+        if (getPort() != null) {
+            builder.setPort(getPort());
+        }
+
+        if (getPortName() != null) {
+            builder.setPortName(getPortName());
+        }
+
+        if (getPortSpecification() != null) {
+            builder.setPortSpecification(getPortSpecification());
+        }
+
+        if (getProxyHeader() != null) {
+            builder.setProxyHeader(getProxyHeader());
+        }
+
+        if (getResponse() != null) {
+            builder.setResponse(getResponse());
+        }
+
+        if (getRequestPath() != null) {
+            builder.setRequestPath(getRequestPath());
+        }
+
+        return builder.build();
     }
 }

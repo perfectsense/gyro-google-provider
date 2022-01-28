@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.SignedUrlKey;
+import com.google.cloud.compute.v1.SignedUrlKey;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
@@ -57,10 +57,6 @@ public class BackendSignedUrlKey extends Diffable {
     }
 
     SignedUrlKey toSignedUrlKey() {
-        SignedUrlKey key = new SignedUrlKey();
-        key.setKeyName(getKey());
-        key.setKeyValue(getValue());
-
-        return key;
+        return SignedUrlKey.newBuilder().setKeyName(getKey()).setKeyValue(getValue()).build();
     }
 }

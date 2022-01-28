@@ -16,10 +16,12 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.NetworkConfig;
+import com.google.container.v1beta1.DatapathProvider;
+import com.google.container.v1beta1.NetworkConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 import gyro.google.compute.NetworkResource;
 import gyro.google.compute.SubnetworkResource;
@@ -28,6 +30,7 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
 
     private Boolean enableIntraNodeVisibility;
     private GkeDefaultSnatStatus defaultSnatStatus;
+    private DatapathProvider datapathProvider;
 
     // Read-only
     private NetworkResource network;
@@ -57,6 +60,19 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
 
     public void setDefaultSnatStatus(GkeDefaultSnatStatus defaultSnatStatus) {
         this.defaultSnatStatus = defaultSnatStatus;
+    }
+
+    /**
+     * The datapath provider.
+     */
+    @Updatable
+    @ValidStrings({"LEGACY_DATAPATH", "ADVANCED_DATAPATH"})
+    public DatapathProvider getDatapathProvider() {
+        return datapathProvider;
+    }
+
+    public void setDatapathProvider(DatapathProvider datapathProvider) {
+        this.datapathProvider = datapathProvider;
     }
 
     /**
@@ -93,6 +109,7 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
         setEnableIntraNodeVisibility(model.getEnableIntraNodeVisibility());
         setNetwork(findById(NetworkResource.class, model.getNetwork()));
         setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
+        setDatapathProvider(model.getDatapathProvider());
 
         setDefaultSnatStatus(null);
         if (model.hasDefaultSnatStatus()) {
@@ -111,6 +128,10 @@ public class GkeNetworkConfig extends Diffable implements Copyable<NetworkConfig
 
         if (getDefaultSnatStatus() != null) {
             builder.setDefaultSnatStatus(getDefaultSnatStatus().toDefaultSnatStatus());
+        }
+
+        if (getDatapathProvider() != null) {
+            builder.setDatapathProvider(getDatapathProvider());
         }
 
         return builder.build();

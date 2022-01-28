@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
+import com.google.cloud.compute.v1.DistributionPolicyZoneConfiguration;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Immutable;
 import gyro.core.validation.Required;
@@ -42,9 +42,12 @@ public class ComputeDistributionPolicyZoneConfiguration extends Diffable
     }
 
     public DistributionPolicyZoneConfiguration copyTo() {
-        DistributionPolicyZoneConfiguration distributionPolicyZoneConfiguration = new DistributionPolicyZoneConfiguration();
-        distributionPolicyZoneConfiguration.setZone(getZoneLink());
-        return distributionPolicyZoneConfiguration;
+        DistributionPolicyZoneConfiguration.Builder builder = DistributionPolicyZoneConfiguration.newBuilder();
+        if (getZoneLink() != null) {
+            builder.setZone(getZoneLink());
+        }
+
+        return builder.build();
     }
 
     @Override

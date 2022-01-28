@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Snapshot;
-import com.google.api.services.compute.model.SnapshotList;
+import com.google.cloud.compute.v1.ListSnapshotsRequest;
+import com.google.cloud.compute.v1.Snapshot;
+import com.google.cloud.compute.v1.SnapshotList;
+import com.google.cloud.compute.v1.SnapshotsClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -40,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    compute-snapshot: $(external-query google::compute-snapshot { name: 'snapshot-example' })
  */
 @Type("compute-snapshot")
-public class SnapshotFinder extends GoogleFinder<Compute, Snapshot, SnapshotResource> {
+public class SnapshotFinder extends GoogleFinder<SnapshotsClient, Snapshot, SnapshotResource> {
 
     private String name;
 
@@ -56,26 +56,38 @@ public class SnapshotFinder extends GoogleFinder<Compute, Snapshot, SnapshotReso
     }
 
     @Override
-    protected List<Snapshot> findAllGoogle(Compute client) throws Exception {
-        String projectId = getProjectId();
+    protected List<Snapshot> findAllGoogle(SnapshotsClient client) throws Exception {
         List<Snapshot> snapshots = new ArrayList<>();
-        SnapshotList snapshotAggregatedList;
+        SnapshotList snapshotList;
         String nextPageToken = null;
 
-        do {
-            snapshotAggregatedList = client.snapshots().list(projectId).setPageToken(nextPageToken).execute();
-            snapshots.addAll(snapshotAggregatedList.getItems()
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
-            nextPageToken = snapshotAggregatedList.getNextPageToken();
-        } while (nextPageToken != null);
+        try {
+            do {
+                ListSnapshotsRequest.Builder builder = ListSnapshotsRequest.newBuilder()
+                    .setProject(getProjectId());
 
-        return snapshots;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                snapshotList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = snapshotList.getNextPageToken();
+
+                if (snapshotList.getItemsList() != null) {
+                    snapshots.addAll(snapshotList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return snapshots;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<Snapshot> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.snapshots().get(getProjectId(), filters.get("name")).execute());
+    protected List<Snapshot> findGoogle(SnapshotsClient client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }

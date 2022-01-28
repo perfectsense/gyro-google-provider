@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.DatabaseEncryption;
+import com.google.container.v1beta1.DatabaseEncryption;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
@@ -34,6 +34,10 @@ public class GkeDatabaseEncryption extends Diffable implements Copyable<Database
     @Updatable
     @ValidStrings({ "ENCRYPTED", "DECRYPTED" })
     public DatabaseEncryption.State getState() {
+        if (state == null) {
+            state = DatabaseEncryption.State.DECRYPTED;
+        }
+
         return state;
     }
 

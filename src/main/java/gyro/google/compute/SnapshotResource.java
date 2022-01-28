@@ -22,16 +22,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.client.util.Data;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.CustomerEncryptionKey;
-import com.google.api.services.compute.model.GlobalSetLabelsRequest;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.Snapshot;
-import com.google.cloud.compute.v1.ProjectGlobalSnapshotName;
-import com.google.cloud.compute.v1.ProjectRegionDiskName;
-import com.google.cloud.compute.v1.ProjectZoneDiskName;
-import gyro.core.GyroException;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.CreateSnapshotDiskRequest;
+import com.google.cloud.compute.v1.DeleteSnapshotRequest;
+import com.google.cloud.compute.v1.DisksClient;
+import com.google.cloud.compute.v1.GetSnapshotRequest;
+import com.google.cloud.compute.v1.GlobalSetLabelsRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetLabelsSnapshotRequest;
+import com.google.cloud.compute.v1.Snapshot;
+import com.google.cloud.compute.v1.SnapshotsClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -188,6 +189,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         if (labels == null) {
             labels = new HashMap<>();
         }
+
         return labels;
     }
 
@@ -267,7 +269,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     }
 
     public void setSelfLink(String selfLink) {
-        this.selfLink = selfLink != null ? toSnapshotUrl(getProjectId(), selfLink) : null;
+        this.selfLink = selfLink;
     }
 
     /**
@@ -286,79 +288,78 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     public void copyFrom(Snapshot snapshot) {
         setName(snapshot.getName());
         setDescription(snapshot.getDescription());
-        setLabels(snapshot.getLabels());
-        setStorageLocations(snapshot.getStorageLocations());
-        setStatus(snapshot.getStatus());
+        setLabels(snapshot.getLabelsMap());
+        setStorageLocations(snapshot.getStorageLocationsList());
+        setStatus(snapshot.getStatus().toString());
         setSourceDiskId(snapshot.getSourceDiskId());
         setDiskSizeGb(snapshot.getDiskSizeGb());
         setStorageBytes(snapshot.getStorageBytes());
         setSelfLink(snapshot.getSelfLink());
         setLabelFingerprint(snapshot.getLabelFingerprint());
-
-        setSourceDisk(null);
-        if (DiskResource.parseDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
-            setSourceDisk(findById(DiskResource.class, snapshot.getSourceDisk()));
-        }
-
-        setSourceRegionDisk(null);
-        if (RegionDiskResource.parseRegionDisk(getProjectId(), snapshot.getSourceDisk()) != null) {
-            setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
-        }
+        setSourceDisk(findById(DiskResource.class, snapshot.getSourceDisk()));
+        setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
     }
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (SnapshotsClient client = createClient(SnapshotsClient.class)) {
+            Snapshot snapshot = getSnapshot(client);
 
-        Snapshot snapshot = client.snapshots().get(getProjectId(), getName()).execute();
-        copyFrom(snapshot);
+            if (snapshot == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(snapshot);
+
+            return true;
+        }
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (DisksClient client = createClient(DisksClient.class)) {
 
-        Snapshot snapshot = new Snapshot();
-        snapshot.setName(getName());
-        snapshot.setDescription(getDescription());
-        snapshot.setLabels(getLabels());
-        snapshot.setStorageLocations(getStorageLocations());
-        snapshot.setSourceDiskEncryptionKey(getSourceDiskEncryptionKey() != null
-            ? getSourceDiskEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
-        snapshot.setSnapshotEncryptionKey(getSnapshotEncryptionKey() != null
-            ? getSnapshotEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
+            Snapshot.Builder builder = Snapshot.newBuilder().setName(getName());
+            builder.putAllLabels(getLabels());
+            builder.addAllStorageLocations(getStorageLocations());
 
-        if (getSourceDisk() != null) {
-            ProjectZoneDiskName zoneDisk = DiskResource.parseDisk(getProjectId(), getSourceDisk().getSelfLink());
-            if (zoneDisk == null) {
-                throw new GyroException("Invalid 'source-disk'.");
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
             }
 
-            snapshot.setSourceDisk(getSourceDisk().getSelfLink());
-
-            Compute.Disks.CreateSnapshot insert =
-                client.disks().createSnapshot(getProjectId(), zoneDisk.getZone(), zoneDisk.getDisk(), snapshot);
-            Operation operation = insert.execute();
-            waitForCompletion(client, operation);
-
-            refresh();
-        } else if (getSourceRegionDisk() != null) {
-            ProjectRegionDiskName regionDisk =
-                RegionDiskResource.parseRegionDisk(getProjectId(), getSourceRegionDisk().getSelfLink());
-            if (regionDisk == null) {
-                throw new GyroException("Invalid 'source-region-disk'.");
+            if (getSourceDiskEncryptionKey() != null) {
+                builder.setSourceDiskEncryptionKey(getSourceDiskEncryptionKey().toCustomerEncryptionKey());
             }
 
-            snapshot.setSourceDisk(getSourceRegionDisk().getSelfLink());
+            if (getSnapshotEncryptionKey() != null) {
+                builder.setSnapshotEncryptionKey(getSnapshotEncryptionKey().toCustomerEncryptionKey());
+            }
 
-            Compute.RegionDisks.CreateSnapshot insert = client.regionDisks()
-                .createSnapshot(getProjectId(), regionDisk.getRegion(), regionDisk.getDisk(), snapshot);
-            Operation operation = insert.execute();
-            waitForCompletion(client, operation);
+            if (getSourceDisk() != null) {
+                builder.setSourceDisk(getSourceDisk().getSelfLink());
+
+                Operation operation = client.createSnapshotCallable().call(
+                    CreateSnapshotDiskRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setDisk(getSourceDisk().getName())
+                        .setSnapshotResource(builder)
+                        .build());
+
+                waitForCompletion(operation);
+
+            } else if (getSourceRegionDisk() != null) {
+                builder.setSourceDisk(getSourceRegionDisk().getSelfLink());
+
+                Operation operation = client.createSnapshotCallable()
+                    .call(
+                        CreateSnapshotDiskRequest.newBuilder()
+                            .setProject(getProjectId())
+                            .setDisk(getSourceRegionDisk().getName())
+                            .setSnapshotResource(builder)
+                            .build());
+
+                waitForCompletion(operation);
+            }
 
             refresh();
         }
@@ -366,27 +367,41 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+        try (SnapshotsClient client = createClient(SnapshotsClient.class)) {
 
-        GlobalSetLabelsRequest labelsRequest = new GlobalSetLabelsRequest();
-        labelsRequest.setLabels(getLabels());
-        labelsRequest.setLabelFingerprint(getLabelFingerprint());
-        Operation operation = client.snapshots().setLabels(getProjectId(), getName(), labelsRequest).execute();
-        waitForCompletion(client, operation);
+            GlobalSetLabelsRequest.Builder builder = GlobalSetLabelsRequest.newBuilder();
+            builder.putAllLabels(getLabels());
+
+            if (getLabelFingerprint() != null) {
+                builder.setLabelFingerprint(getLabelFingerprint());
+            }
+
+            Operation operation = client.setLabelsCallable().call(SetLabelsSnapshotRequest.newBuilder()
+                .setProject(getProjectId())
+                .setResource(getName())
+                .setGlobalSetLabelsRequestResource(builder)
+                .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (SnapshotsClient client = createClient(SnapshotsClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteSnapshotRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSnapshot(getName())
+                .build());
 
-        Operation operation = client.snapshots().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         if (getSourceDisk() == null && getSourceRegionDisk() == null) {
@@ -413,23 +428,17 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         return errors;
     }
 
-    static String toSnapshotUrl(String projectId, String snapshot) {
-        String parseSnapshot = formatResource(projectId, snapshot);
-        if (ProjectGlobalSnapshotName.isParsableFrom(parseSnapshot)) {
-            return ProjectGlobalSnapshotName.parse(parseSnapshot).toString();
+    private Snapshot getSnapshot(SnapshotsClient client) {
+        Snapshot snapshot = null;
+
+        try {
+            snapshot = client.get(GetSnapshotRequest.newBuilder().setProject(getProjectId())
+                .setSnapshot(getName()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
         }
+
         return snapshot;
-    }
-
-    static ProjectGlobalSnapshotName parseSnapshot(String projectId, String selfLink) {
-        if (selfLink == null) {
-            return null;
-        }
-
-        String parseSnapshot = formatResource(projectId, selfLink);
-        if (ProjectGlobalSnapshotName.isParsableFrom(parseSnapshot)) {
-            return ProjectGlobalSnapshotName.parse(parseSnapshot);
-        }
-        return null;
     }
 }

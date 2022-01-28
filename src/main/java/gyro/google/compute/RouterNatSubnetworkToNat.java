@@ -28,7 +28,7 @@ import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class RouterNatSubnetworkToNat extends Diffable
-    implements Copyable<com.google.api.services.compute.model.RouterNatSubnetworkToNat> {
+    implements Copyable<com.google.cloud.compute.v1.RouterNatSubnetworkToNat> {
 
     private SubnetworkResource subnet;
     private List<String> sourceIpRangesToNat;
@@ -90,22 +90,27 @@ public class RouterNatSubnetworkToNat extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.RouterNatSubnetworkToNat model) {
+    public void copyFrom(com.google.cloud.compute.v1.RouterNatSubnetworkToNat model) {
         setSubnet(findById(SubnetworkResource.class, model.getName()));
-        setSourceIpRangesToNat(model.getSourceIpRangesToNat());
-        setSecondaryIpRangeNames(model.getSecondaryIpRangeNames());
+        setSourceIpRangesToNat(model.getSourceIpRangesToNatList());
+        setSecondaryIpRangeNames(model.getSecondaryIpRangeNamesList());
     }
 
-    com.google.api.services.compute.model.RouterNatSubnetworkToNat toRouterNatSubnetworkToNat() {
-        com.google.api.services.compute.model.RouterNatSubnetworkToNat routerNatSubnetworkToNat = new com.google.api.services.compute.model.RouterNatSubnetworkToNat();
-        routerNatSubnetworkToNat.setName(subnet.getSelfLink());
-        routerNatSubnetworkToNat.setSecondaryIpRangeNames(getSecondaryIpRangeNames());
+    com.google.cloud.compute.v1.RouterNatSubnetworkToNat toRouterNatSubnetworkToNat() {
+        com.google.cloud.compute.v1.RouterNatSubnetworkToNat.Builder builder = com.google.cloud.compute.v1.RouterNatSubnetworkToNat
+            .newBuilder();
 
-        if (!getSourceIpRangesToNat().isEmpty()) {
-            routerNatSubnetworkToNat.setSourceIpRangesToNat(getSourceIpRangesToNat());
+        builder.setName(subnet.getSelfLink());
+
+        if (getSecondaryIpRangeNames().isEmpty()) {
+            builder.addAllSecondaryIpRangeNames(getSecondaryIpRangeNames());
         }
 
-        return routerNatSubnetworkToNat;
+        if (!getSourceIpRangesToNat().isEmpty()) {
+            builder.addAllSourceIpRangesToNat(getSourceIpRangesToNat());
+        }
+
+        return builder.build();
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary;
+import com.google.cloud.compute.v1.InstanceGroupManagerActionsSummary;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.google.Copyable;

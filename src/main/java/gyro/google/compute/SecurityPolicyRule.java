@@ -18,9 +18,11 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.Compute.SecurityPolicies.RemoveRule;
-import com.google.api.services.compute.model.Operation;
+import com.google.cloud.compute.v1.AddRuleSecurityPolicyRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRuleSecurityPolicyRequest;
+import com.google.cloud.compute.v1.RemoveRuleSecurityPolicyRequest;
+import com.google.cloud.compute.v1.SecurityPoliciesClient;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
@@ -30,7 +32,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class SecurityPolicyRule extends ComputeResource
-    implements Copyable<com.google.api.services.compute.model.SecurityPolicyRule> {
+    implements Copyable<com.google.cloud.compute.v1.SecurityPolicyRule> {
 
     private String description;
     private Integer priority;
@@ -108,19 +110,25 @@ public class SecurityPolicyRule extends ComputeResource
         return "with priority " + getPriority();
     }
 
-    com.google.api.services.compute.model.SecurityPolicyRule toSecurityPolicyRule() {
-        com.google.api.services.compute.model.SecurityPolicyRule policyRule = new com.google.api.services.compute.model.SecurityPolicyRule();
-        policyRule.setAction(getAction());
-        policyRule.setDescription(getDescription());
-        policyRule.setPriority(getPriority());
-        policyRule.setPreview(getPreview());
-        policyRule.setMatch(getMatch().toSecurityPolicyRuleMatcher());
+    com.google.cloud.compute.v1.SecurityPolicyRule toSecurityPolicyRule() {
+        com.google.cloud.compute.v1.SecurityPolicyRule.Builder builder = com.google.cloud.compute.v1.SecurityPolicyRule.newBuilder();
+        builder.setAction(getAction());
+        builder.setPriority(getPriority());
+        builder.setMatch(getMatch().toSecurityPolicyRuleMatcher());
 
-        return policyRule;
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getPreview() != null) {
+            builder.setPreview(getPreview());
+        }
+
+        return builder.build();
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRule securityPolicyRule) {
+    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRule securityPolicyRule) {
         setPriority(securityPolicyRule.getPriority());
         setDescription(securityPolicyRule.getDescription());
         setAction(securityPolicyRule.getAction());
@@ -138,57 +146,67 @@ public class SecurityPolicyRule extends ComputeResource
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
+            SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
+            Operation operation = client.addRuleCallable().call(AddRuleSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicy(securityPolicyResource.getName())
+                .setSecurityPolicyRuleResource(toSecurityPolicyRule())
+                .build());
 
-        SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
-        Operation operation = client.securityPolicies()
-            .addRule(getProjectId(), securityPolicyResource.getName(), toSecurityPolicyRule())
-            .execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
     }
 
     @Override
     public void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+        try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
+            com.google.cloud.compute.v1.SecurityPolicyRule.Builder builder = com.google.cloud.compute.v1.SecurityPolicyRule
+                .newBuilder();
 
-        com.google.api.services.compute.model.SecurityPolicyRule rule = new com.google.api.services.compute.model.SecurityPolicyRule();
+            if (changedFieldNames.contains("description")) {
+                builder.setDescription(getDescription());
+            }
 
-        if (changedFieldNames.contains("description")) {
-            rule.setDescription(getDescription());
+            if (changedFieldNames.contains("action")) {
+                builder.setAction(getAction());
+            }
+
+            if (changedFieldNames.contains("preview")) {
+                builder.setPreview(getPreview());
+            }
+
+            if (changedFieldNames.contains("match")) {
+                builder.setMatch(getMatch().toSecurityPolicyRuleMatcher());
+            }
+
+            SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
+            Operation operation = client.patchRuleCallable().call(
+                PatchRuleSecurityPolicyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setSecurityPolicy(securityPolicyResource.getName())
+                    .setSecurityPolicyRuleResource(toSecurityPolicyRule())
+                    .build());
+
+            waitForCompletion(operation);
         }
-
-        if (changedFieldNames.contains("action")) {
-            rule.setAction(getAction());
-        }
-
-        if (changedFieldNames.contains("preview")) {
-            rule.setPreview(getPreview());
-        }
-
-        if (changedFieldNames.contains("match")) {
-            rule.setMatch(getMatch().toSecurityPolicyRuleMatcher());
-        }
-
-        SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
-        Operation operation = client.securityPolicies()
-            .patchRule(getProjectId(), securityPolicyResource.getName(), rule).set("priority", getPriority())
-            .execute();
-        waitForCompletion(client, operation);
-
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
+            SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
+            if (getPriority() != 2147483647) {
+                Operation operation = client.removeRuleCallable().call(RemoveRuleSecurityPolicyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setSecurityPolicy(securityPolicyResource.getName())
+                    .setPriority(getPriority())
+                    .build());
 
-        SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
-        if (getPriority() != 2147483647) {
-            RemoveRule removeOperation = client.securityPolicies()
-                .removeRule(getProjectId(), securityPolicyResource.getName());
-            removeOperation.setPriority(getPriority());
-            waitForCompletion(client, removeOperation.execute());
+                waitForCompletion(operation);
+            }
         }
     }
 }

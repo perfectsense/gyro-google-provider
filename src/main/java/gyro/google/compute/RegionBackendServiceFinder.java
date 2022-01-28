@@ -17,19 +17,25 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.BackendService;
-import com.google.api.services.compute.model.BackendServiceAggregatedList;
-import com.google.api.services.compute.model.BackendServicesScopedList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.BackendServiceList;
+import com.google.cloud.compute.v1.ListRegionBackendServicesRequest;
+import com.google.cloud.compute.v1.ListRegionsRequest;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionBackendServicesClient;
+import com.google.cloud.compute.v1.RegionsClient;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
+import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
 
 /**
@@ -43,7 +49,8 @@ import gyro.google.GoogleFinder;
  *    compute-region-backend-service: $(external-query google::compute-region-backend-service { name: 'compute-region-backend-service-example'})
  */
 @Type("compute-region-backend-service")
-public class RegionBackendServiceFinder extends GoogleFinder<Compute, BackendService, RegionBackendServiceResource> {
+public class RegionBackendServiceFinder
+    extends GoogleFinder<RegionBackendServicesClient, BackendService, RegionBackendServiceResource> {
 
     private String region;
     private String name;
@@ -71,39 +78,91 @@ public class RegionBackendServiceFinder extends GoogleFinder<Compute, BackendSer
     }
 
     @Override
-    protected List<BackendService> findAllGoogle(Compute client) throws Exception {
-        List<BackendService> backendServices = new ArrayList<>();
-        BackendServiceAggregatedList backendServiceList;
-        String nextPageToken = null;
+    protected List<BackendService> findAllGoogle(RegionBackendServicesClient client) throws Exception {
+        try {
+            return getBackendServices(client, getRegions());
+        } finally {
+            client.close();
+        }
+    }
 
-        do {
-            backendServiceList = client.backendServices().aggregatedList(getProjectId()).execute();
-            backendServices.addAll(backendServiceList
-                .getItems().values().stream()
-                .map(BackendServicesScopedList::getBackendServices)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(backendService -> backendService.getRegion() != null)
-                .collect(Collectors.toList()));
-            nextPageToken = backendServiceList.getNextPageToken();
-        } while (nextPageToken != null);
+    @Override
+    protected List<BackendService> findGoogle(RegionBackendServicesClient client, Map<String, String> filters)
+        throws Exception {
+        List<BackendService> backendServices = new ArrayList<>();
+
+        try {
+            if (filters.containsKey("name") && filters.containsKey("region")) {
+                backendServices.add(client.get(getProjectId(), filters.get("region"), filters.get("name")));
+            } else if (filters.containsKey("region")) {
+                backendServices.addAll(getBackendServices(client, Collections.singletonList(filters.get("region"))));
+            } else {
+                backendServices.addAll(getBackendServices(client, getRegions()));
+                backendServices.removeIf(d -> !d.getName().equals(filters.get("name")));
+            }
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
 
         return backendServices;
     }
 
-    @Override
-    protected List<BackendService> findGoogle(
-        Compute client, Map<String, String> filters) throws Exception {
-        if (filters.containsKey("name")) {
-            return Collections.singletonList(client.regionBackendServices()
-                .get(getProjectId(), filters.get("region"), filters.get("name"))
-                .execute());
-        } else {
-            return Optional.ofNullable(client.regionBackendServices()
-                .list(getProjectId(), filters.get("region"))
-                .execute()
-                .getItems())
-                .orElse(new ArrayList<>());
+    private List<BackendService> getBackendServices(RegionBackendServicesClient client, List<String> regions) {
+        List<BackendService> backendServices = new ArrayList<>();
+
+        BackendServiceList backendServiceList;
+
+        for (String region : regions) {
+            String nextPageToken = null;
+            do {
+                UnaryCallable<ListRegionBackendServicesRequest, RegionBackendServicesClient.ListPagedResponse> callable = client
+                    .listPagedCallable();
+
+                ListRegionBackendServicesRequest.Builder builder = ListRegionBackendServicesRequest.newBuilder()
+                    .setRegion(region);
+
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                RegionBackendServicesClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                    getProjectId()).build());
+                backendServiceList = pagedResponse.getPage().getResponse();
+                nextPageToken = pagedResponse.getNextPageToken();
+
+                if (backendServiceList.getItemsList() != null) {
+                    backendServices.addAll(backendServiceList.getItemsList().stream().filter(Objects::nonNull)
+                        .filter(backendService -> backendService.getRegion() != null).collect(Collectors.toList()));
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
         }
+        return backendServices;
+    }
+
+    private List<String> getRegions() {
+        String pageToken = null;
+        List<String> regionList = new ArrayList<>();
+
+        try (RegionsClient regionsClient = credentials(GoogleCredentials.class).createClient(RegionsClient.class)) {
+            do {
+                ListRegionsRequest.Builder builder = ListRegionsRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                RegionsClient.ListPagedResponse list = regionsClient.list(builder.build());
+                pageToken = list.getNextPageToken();
+                regionList.addAll(list.getPage().getResponse().getItemsList()
+                    .stream().map(Region::getName).collect(Collectors.toList()));
+
+            } while (!StringUtils.isEmpty(pageToken));
+        }
+
+        return regionList;
     }
 }

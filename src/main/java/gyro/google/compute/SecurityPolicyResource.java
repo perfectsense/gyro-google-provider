@@ -20,9 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.SecurityPolicy;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteSecurityPolicyRequest;
+import com.google.cloud.compute.v1.GetSecurityPolicyRequest;
+import com.google.cloud.compute.v1.InsertSecurityPolicyRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchSecurityPolicyRequest;
+import com.google.cloud.compute.v1.SecurityPoliciesClient;
+import com.google.cloud.compute.v1.SecurityPolicy;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -157,41 +163,56 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
 
-        SecurityPolicy securityPolicy = client.securityPolicies().get(getProjectId(), getName()).execute();
-        copyFrom(securityPolicy);
+            SecurityPolicy securityPolicy = getSecurityPolicy(client);
 
-        return true;
+            if (securityPolicy == null) {
+                return false;
+            }
+
+            copyFrom(securityPolicy);
+
+            return true;
+        }
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.securityPolicies().patch(getProjectId(), getName(), toSecurityPolicy()).execute();
-        waitForCompletion(client, operation);
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
+            Operation operation = client.patchCallable().call(PatchSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicy(getName())
+                .setSecurityPolicyResource(toSecurityPolicy())
+                .build());
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.securityPolicies().insert(getProjectId(), toSecurityPolicy()).execute();
-        waitForCompletion(client, operation);
+        try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
+            Operation operation = client.insertCallable().call(InsertSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicyResource(toSecurityPolicy())
+                .build());
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-
-        Operation operation = client.securityPolicies().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+        try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteSecurityPolicyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSecurityPolicy(getName())
+                .build());
+            waitForCompletion(operation);
+        }
     }
 
     @Override
@@ -201,7 +222,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         setSelfLink(securityPolicy.getSelfLink());
         setFingerprint(securityPolicy.getFingerprint());
         getRule().clear();
-        securityPolicy.getRules().forEach(rule -> {
+        securityPolicy.getRulesList().forEach(rule -> {
             SecurityPolicyRule securityPolicyRule = newSubresource(SecurityPolicyRule.class);
             securityPolicyRule.copyFrom(rule);
 
@@ -214,12 +235,35 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     }
 
     private SecurityPolicy toSecurityPolicy() {
-        SecurityPolicy securityPolicy = new SecurityPolicy();
-        securityPolicy.setName(getName());
-        securityPolicy.setDescription(getDescription());
-        securityPolicy.setSelfLink(getSelfLink());
-        securityPolicy.setFingerprint(getFingerprint());
+        SecurityPolicy.Builder builder = SecurityPolicy.newBuilder();
+        builder.setName(getName());
 
-        return securityPolicy;
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getSelfLink() != null) {
+            builder.setSelfLink(getSelfLink());
+        }
+
+        if (getFingerprint() != null) {
+            builder.setFingerprint(getFingerprint());
+        }
+
+        return builder.build();
+    }
+
+    private SecurityPolicy getSecurityPolicy(SecurityPoliciesClient client) {
+        SecurityPolicy route = null;
+
+        try {
+            route = client.get(GetSecurityPolicyRequest.newBuilder().setProject(getProjectId())
+                .setSecurityPolicy(getName()).build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return route;
     }
 }

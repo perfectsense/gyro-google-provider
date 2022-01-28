@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.ClientCertificateConfig;
+import com.google.container.v1beta1.ClientCertificateConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;

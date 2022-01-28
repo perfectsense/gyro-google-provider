@@ -21,9 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.SslPoliciesList;
-import com.google.api.services.compute.model.SslPolicy;
+import com.google.cloud.compute.v1.ListSslPoliciesRequest;
+import com.google.cloud.compute.v1.SslPoliciesClient;
+import com.google.cloud.compute.v1.SslPoliciesList;
+import com.google.cloud.compute.v1.SslPolicy;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    ssl-policy: $(external-query google::compute-ssl-policy { name: 'ssl-policy-example' })
  */
 @Type("compute-ssl-policy")
-public class SslPolicyFinder extends GoogleFinder<Compute, SslPolicy, SslPolicyResource> {
+public class SslPolicyFinder extends GoogleFinder<SslPoliciesClient, SslPolicy, SslPolicyResource> {
 
     private String name;
 
@@ -54,24 +56,38 @@ public class SslPolicyFinder extends GoogleFinder<Compute, SslPolicy, SslPolicyR
     }
 
     @Override
-    protected List<SslPolicy> findAllGoogle(Compute client) throws Exception {
+    protected List<SslPolicy> findAllGoogle(SslPoliciesClient client) throws Exception {
         List<SslPolicy> sslPolicies = new ArrayList<>();
         SslPoliciesList sslPolicyList;
         String nextPageToken = null;
 
-        do {
-            sslPolicyList = client.sslPolicies().list(getProjectId()).setPageToken(nextPageToken).execute();
-            if (sslPolicyList.getItems() != null) {
-                sslPolicies.addAll(sslPolicyList.getItems());
-            }
-            nextPageToken = sslPolicyList.getNextPageToken();
-        } while (nextPageToken != null);
+        try {
+            do {
+                ListSslPoliciesRequest.Builder builder = ListSslPoliciesRequest.newBuilder()
+                    .setProject(getProjectId());
 
-        return sslPolicies;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                sslPolicyList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = sslPolicyList.getNextPageToken();
+
+                if (sslPolicyList.getItemsList() != null) {
+                    sslPolicies.addAll(sslPolicyList.getItemsList());
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+            return sslPolicies;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<SslPolicy> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.sslPolicies().get(getProjectId(), filters.get("name")).execute());
+    protected List<SslPolicy> findGoogle(SslPoliciesClient client, Map<String, String> filters) throws Exception {
+        return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
     }
 }

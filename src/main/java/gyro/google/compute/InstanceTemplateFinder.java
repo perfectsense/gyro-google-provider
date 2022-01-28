@@ -21,9 +21,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.InstanceTemplate;
-import com.google.api.services.compute.model.InstanceTemplateList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.InstanceTemplate;
+import com.google.cloud.compute.v1.InstanceTemplateList;
+import com.google.cloud.compute.v1.InstanceTemplatesClient;
+import com.google.cloud.compute.v1.ListInstanceTemplatesRequest;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +41,8 @@ import gyro.google.GoogleFinder;
  *    instance-template: $(external-query google::compute-instance-template { name: 'instance-template-example' })
  */
 @Type("compute-instance-template")
-public class InstanceTemplateFinder extends GoogleFinder<Compute, InstanceTemplate, InstanceTemplateResource> {
+public class InstanceTemplateFinder
+    extends GoogleFinder<InstanceTemplatesClient, InstanceTemplate, InstanceTemplateResource> {
 
     private String name;
 
@@ -54,27 +58,60 @@ public class InstanceTemplateFinder extends GoogleFinder<Compute, InstanceTempla
     }
 
     @Override
-    protected List<InstanceTemplate> findAllGoogle(Compute client) throws Exception {
-        List<InstanceTemplate> allInstanceTemplates = new ArrayList<>();
-        Compute.InstanceTemplates.List request = client.instanceTemplates().list(getProjectId());
+    protected List<InstanceTemplate> findAllGoogle(InstanceTemplatesClient client) throws Exception {
+        //        List<InstanceTemplate> allInstanceTemplates = new ArrayList<>();
+        //        InstanceTemplatesClient.InstanceTemplates.List request = client.instanceTemplates().list(getProjectId());
+        //        String nextPageToken = null;
+        //
+        //        do {
+        //            InstanceTemplateList response = request.execute();
+        //            List<InstanceTemplate> items = response.getItems();
+        //
+        //            if (items == null) {
+        //                break;
+        //            }
+        //            allInstanceTemplates.addAll(items);
+        //            nextPageToken = response.getNextPageToken();
+        //            request.setPageToken(nextPageToken);
+        //        } while (nextPageToken != null);
+        //        return allInstanceTemplates;
+        List<InstanceTemplate> instanceTemplates = new ArrayList<>();
+        InstanceTemplateList instanceTemplateList;
         String nextPageToken = null;
 
-        do {
-            InstanceTemplateList response = request.execute();
-            List<InstanceTemplate> items = response.getItems();
+        try {
+            do {
+                ListInstanceTemplatesRequest.Builder builder = ListInstanceTemplatesRequest.newBuilder()
+                    .setProject(getProjectId());
 
-            if (items == null) {
-                break;
-            }
-            allInstanceTemplates.addAll(items);
-            nextPageToken = response.getNextPageToken();
-            request.setPageToken(nextPageToken);
-        } while (nextPageToken != null);
-        return allInstanceTemplates;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                instanceTemplateList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = instanceTemplateList.getNextPageToken();
+
+                if (instanceTemplateList.getItemsList() != null) {
+                    instanceTemplates.addAll(instanceTemplateList.getItemsList());
+                }
+            } while (nextPageToken != null);
+
+            return instanceTemplates;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<InstanceTemplate> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(client.instanceTemplates().get(getProjectId(), filters.get("name")).execute());
+    protected List<InstanceTemplate> findGoogle(InstanceTemplatesClient client, Map<String, String> filters)
+        throws Exception {
+        try {
+            return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
+        } catch (InvalidArgumentException | NotFoundException ex) {
+            return Collections.emptyList();
+        } finally {
+            client.close();
+        }
     }
 }

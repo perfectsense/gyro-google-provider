@@ -20,8 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.cloud.container.v1.ClusterManagerClient;
-import com.google.container.v1.Cluster;
+import com.google.cloud.container.v1beta1.ClusterManagerClient;
+import com.google.container.v1beta1.Cluster;
+import com.google.container.v1beta1.ListClustersRequest;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -76,12 +77,14 @@ public class ClusterFinder extends GoogleFinder<ClusterManagerClient, Cluster, C
         if (filters.containsKey("location")) {
             try {
                 if (filters.containsKey("name")) {
-                    clusters.add(client.getCluster(String.format("projects/%s/locations/%s/clusters/%s",
-                        getProjectId(), filters.get("location"), filters.get("name"))));
+                    clusters.add(client.getCluster(getProjectId(), filters.get("location"), filters.get("name")));
 
                 } else {
-                    clusters.addAll(client.listClusters(String.format("projects/%s/locations/%s",
-                        getProjectId(), filters.get("location"))).getClustersList());
+                    String resourceName = String.format("projects/%s/locations/%s",
+                        getProjectId(), filters.get("location"));
+
+                    clusters.addAll(client.listClusters(ListClustersRequest.newBuilder()
+                            .setParent(resourceName).build()).getClustersList());
                 }
             } finally {
                 client.close();

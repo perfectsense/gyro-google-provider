@@ -18,16 +18,22 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Subnetwork;
-import com.google.api.services.compute.model.SubnetworkAggregatedList;
-import com.google.api.services.compute.model.SubnetworksScopedList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListSubnetworksRequest;
+import com.google.cloud.compute.v1.ListSubnetworksRequest;
+import com.google.cloud.compute.v1.Subnetwork;
+import com.google.cloud.compute.v1.SubnetworkAggregatedList;
+import com.google.cloud.compute.v1.SubnetworkList;
+import com.google.cloud.compute.v1.SubnetworksClient;
+import com.google.cloud.compute.v1.SubnetworksScopedList;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -42,7 +48,7 @@ import gyro.google.GoogleFinder;
  *    subnet: $(external-query google::compute-subnet { name: 'subnet-example', region: 'us-east1'})
  */
 @Type("compute-subnet")
-public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, SubnetworkResource> {
+public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork, SubnetworkResource> {
 
     private String name;
     private String region;
@@ -70,27 +76,76 @@ public class SubnetworkFinder extends GoogleFinder<Compute, Subnetwork, Subnetwo
     }
 
     @Override
-    protected List<Subnetwork> findAllGoogle(Compute client) throws Exception {
+    protected List<Subnetwork> findAllGoogle(SubnetworksClient client) throws Exception {
         List<Subnetwork> subnetworks = new ArrayList<>();
-        SubnetworkAggregatedList subnetworkList;
         String nextPageToken = null;
 
-        do {
-            subnetworkList = client.subnetworks().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
-            subnetworks.addAll(subnetworkList.getItems().values().stream()
-                .map(SubnetworksScopedList::getSubnetworks)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList()));
-            nextPageToken = subnetworkList.getNextPageToken();
-        } while (nextPageToken != null);
+        try {
+            do {
+                UnaryCallable<AggregatedListSubnetworksRequest, SubnetworkAggregatedList> callable = client
+                    .aggregatedListCallable();
+                AggregatedListSubnetworksRequest.Builder builder = AggregatedListSubnetworksRequest.newBuilder();
+
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                SubnetworkAggregatedList aggregatedList = callable.call(builder
+                    .setProject(getProjectId()).build());
+                nextPageToken = aggregatedList.getNextPageToken();
+
+                if (aggregatedList.getItemsMap() != null) {
+                    subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
+                        .map(SubnetworksScopedList::getSubnetworksList)
+                        .filter(Objects::nonNull)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()));
+                }
+
+            } while (!StringUtils.isEmpty(nextPageToken));
+
+        } finally {
+            client.close();
+        }
 
         return subnetworks;
     }
 
     @Override
-    protected List<Subnetwork> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        return Collections.singletonList(
-            client.subnetworks().get(getProjectId(), filters.get("region"), filters.get("name")).execute());
+    protected List<Subnetwork> findGoogle(SubnetworksClient client, Map<String, String> filters) throws Exception {
+        List<Subnetwork> subnetworks = new ArrayList<>();
+
+        try {
+            if (filters.containsKey("region")) {
+                if (filters.containsKey("name")) {
+                    subnetworks.add(client.get(getProjectId(), filters.get("region"), filters.get("name")));
+
+                } else {
+                    SubnetworkList subnetworkList;
+                    String nextPageToken;
+
+                    do {
+                        UnaryCallable<ListSubnetworksRequest, SubnetworksClient.ListPagedResponse> callable = client
+                            .listPagedCallable();
+                        SubnetworksClient.ListPagedResponse listPagedResponse = callable.call(ListSubnetworksRequest.newBuilder()
+                            .setProject(getProjectId()).setRegion(filters.get("region")).build());
+                        subnetworkList = listPagedResponse.getPage().getResponse();
+                        nextPageToken = listPagedResponse.getNextPageToken();
+
+                        if (subnetworkList.getItemsList() != null) {
+                            subnetworks.addAll(subnetworkList.getItemsList());
+                        }
+
+                    } while (!StringUtils.isEmpty(nextPageToken));
+                }
+            }
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return subnetworks;
     }
 }

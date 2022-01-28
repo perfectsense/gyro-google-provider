@@ -28,7 +28,7 @@ import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class RouterInterface extends Diffable
-    implements Copyable<com.google.api.services.compute.model.RouterInterface> {
+    implements Copyable<com.google.cloud.compute.v1.RouterInterface> {
 
     private String name;
     private String linkedVpnTunnel;
@@ -89,21 +89,30 @@ public class RouterInterface extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.RouterInterface model) throws Exception {
+    public void copyFrom(com.google.cloud.compute.v1.RouterInterface model) throws Exception {
         setName(model.getName());
         setIpRange(model.getIpRange());
         setLinkedInterconnectAttachment(model.getLinkedInterconnectAttachment());
         setLinkedVpnTunnel(model.getLinkedVpnTunnel());
     }
 
-    com.google.api.services.compute.model.RouterInterface toRouterInterface() {
-        com.google.api.services.compute.model.RouterInterface routerInterface = new com.google.api.services.compute.model.RouterInterface();
-        routerInterface.setName(getName());
-        routerInterface.setIpRange(getIpRange());
-        routerInterface.setLinkedInterconnectAttachment(getLinkedInterconnectAttachment());
-        routerInterface.setLinkedVpnTunnel(getLinkedVpnTunnel());
+    com.google.cloud.compute.v1.RouterInterface toRouterInterface() {
+        com.google.cloud.compute.v1.RouterInterface.Builder builder = com.google.cloud.compute.v1.RouterInterface.newBuilder();
+        builder.setName(getName());
 
-        return routerInterface;
+        if (getIpRange() != null) {
+            builder.setIpRange(getIpRange());
+        }
+
+        if (getLinkedInterconnectAttachment() != null) {
+            builder.setLinkedInterconnectAttachment(getLinkedInterconnectAttachment());
+        }
+
+        if (getLinkedVpnTunnel() != null) {
+            builder.setLinkedVpnTunnel(getLinkedVpnTunnel());
+        }
+
+        return builder.build();
     }
 
     @Override

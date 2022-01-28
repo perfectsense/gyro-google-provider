@@ -20,9 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HealthCheck;
-import com.google.api.services.compute.model.HealthCheckList;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.HealthCheckList;
+import com.google.cloud.compute.v1.HealthChecksClient;
+import com.google.cloud.compute.v1.ListHealthChecksRequest;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -38,7 +39,7 @@ import gyro.google.GoogleFinder;
  *
  */
 @Type("compute-health-check")
-public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, HealthCheckResource> {
+public class HealthCheckFinder extends GoogleFinder<HealthChecksClient, HealthCheck, HealthCheckResource> {
 
     private String name;
 
@@ -54,31 +55,48 @@ public class HealthCheckFinder extends GoogleFinder<Compute, HealthCheck, Health
     }
 
     @Override
-    protected List<HealthCheck> findAllGoogle(Compute client) throws Exception {
+    protected List<HealthCheck> findAllGoogle(HealthChecksClient client) throws Exception {
         List<HealthCheck> healthChecks = new ArrayList<>();
         HealthCheckList healthCheckList;
         String nextPageToken = null;
-        do {
-            healthCheckList = client.healthChecks().list(getProjectId()).setPageToken(nextPageToken).execute();
-            nextPageToken = healthCheckList.getNextPageToken();
 
-            if (healthCheckList.getItems() != null) {
-                healthChecks.addAll(healthCheckList.getItems());
-            }
-        } while (nextPageToken != null);
+        try {
+            do {
+                ListHealthChecksRequest.Builder builder = ListHealthChecksRequest.newBuilder()
+                    .setProject(getProjectId());
 
-        return healthChecks;
+                if (nextPageToken != null) {
+                    builder.setPageToken(nextPageToken);
+                }
+
+                healthCheckList = client.list(builder.build()).getPage().getResponse();
+                nextPageToken = healthCheckList.getNextPageToken();
+
+                if (healthCheckList.getItemsList() != null) {
+                    healthChecks.addAll(healthCheckList.getItemsList());
+                }
+            } while (nextPageToken != null);
+
+            return healthChecks;
+
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<HealthCheck> findGoogle(Compute client, Map<String, String> filters) throws Exception {
+    protected List<HealthCheck> findGoogle(HealthChecksClient client, Map<String, String> filters) throws Exception {
         List<HealthCheck> healthChecks = new ArrayList<>();
-        if (filters.containsKey("name")) {
-            healthChecks.add(client.healthChecks()
-                .get(getProjectId(), filters.get("name"))
-                .execute());
-        }
 
-        return healthChecks;
+        try {
+            if (filters.containsKey("name")) {
+                healthChecks.add(client.get(getProjectId(), filters.get("name")));
+            }
+
+            return healthChecks;
+
+        } finally {
+            client.close();
+        }
     }
 }

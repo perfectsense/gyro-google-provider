@@ -16,7 +16,7 @@
 
 package gyro.google.gke;
 
-import com.google.container.v1.DailyMaintenanceWindow;
+import com.google.container.v1beta1.DailyMaintenanceWindow;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;

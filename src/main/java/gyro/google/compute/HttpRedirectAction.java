@@ -19,7 +19,7 @@ package gyro.google.compute;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 
-public class HttpRedirectAction extends Diffable implements Copyable<com.google.api.services.compute.model.HttpRedirectAction> {
+public class HttpRedirectAction extends Diffable implements Copyable<com.google.cloud.compute.v1.HttpRedirectAction> {
 
     private String hostRedirect;
     private String pathRedirect;
@@ -95,11 +95,11 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.HttpRedirectAction model) {
+    public void copyFrom(com.google.cloud.compute.v1.HttpRedirectAction model) {
         setHostRedirect(model.getHostRedirect());
         setPathRedirect(model.getPathRedirect());
         setPrefixRedirect(model.getPrefixRedirect());
-        setRedirectResponseCode(model.getRedirectResponseCode());
+        setRedirectResponseCode(model.getRedirectResponseCode().toString());
         setStripQuery(model.getStripQuery());
         setHttpsRedirect(model.getHttpsRedirect());
 
@@ -110,16 +110,29 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
         return "";
     }
 
-    protected com.google.api.services.compute.model.HttpRedirectAction toHttpRedirectAction() {
-        com.google.api.services.compute.model.HttpRedirectAction httpRedirectAction = new com.google.api.services.compute.model.HttpRedirectAction();
+    protected com.google.cloud.compute.v1.HttpRedirectAction toHttpRedirectAction() {
+        com.google.cloud.compute.v1.HttpRedirectAction.Builder httpRedirectAction =
+            com.google.cloud.compute.v1.HttpRedirectAction.newBuilder();
 
-        httpRedirectAction.setHostRedirect(getHostRedirect());
-        httpRedirectAction.setPathRedirect(getPathRedirect());
-        httpRedirectAction.setPrefixRedirect(getPrefixRedirect());
-        httpRedirectAction.setRedirectResponseCode(getRedirectResponseCode());
+        if (getHostRedirect() != null) {
+            httpRedirectAction.setHostRedirect(getHostRedirect());
+        }
+
+        if (getPathRedirect() != null) {
+            httpRedirectAction.setPathRedirect(getPathRedirect());
+        }
+
+        if (getPrefixRedirect() != null) {
+            httpRedirectAction.setPrefixRedirect(getPrefixRedirect());
+        }
+
+        if (getRedirectResponseCode() != null) {
+            httpRedirectAction.setRedirectResponseCode(getRedirectResponseCode());
+        }
+
         httpRedirectAction.setStripQuery(getStripQuery());
         httpRedirectAction.setHttpsRedirect(getHttpsRedirect());
 
-        return httpRedirectAction;
+        return httpRedirectAction.build();
     }
 }

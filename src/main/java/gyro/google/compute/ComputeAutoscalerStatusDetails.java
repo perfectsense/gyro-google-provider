@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.AutoscalerStatusDetails;
+import com.google.cloud.compute.v1.AutoscalerStatusDetails;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.google.Copyable;
@@ -72,7 +72,7 @@ public class ComputeAutoscalerStatusDetails extends Diffable implements Copyable
     @Override
     public void copyFrom(AutoscalerStatusDetails model) {
         setMessage(model.getMessage());
-        setType(model.getType());
+        setType(model.getType() == null ? null : model.getType().toString().toUpperCase());
     }
 
     @Override

@@ -25,7 +25,7 @@ import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class SecurityPolicyRuleMatcherConfig extends Diffable
-    implements Copyable<com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig> {
+    implements Copyable<com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig> {
 
     private List<String> srcIpRanges;
 
@@ -51,13 +51,15 @@ public class SecurityPolicyRuleMatcherConfig extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig config) {
-        setSrcIpRanges(config.getSrcIpRanges());
+    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig config) {
+        setSrcIpRanges(config.getSrcIpRangesList());
     }
 
-    public com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig toSecurityPolicyRuleMatcherConfig() {
-        com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig matcherConfig = new com.google.api.services.compute.model.SecurityPolicyRuleMatcherConfig();
-        matcherConfig.setSrcIpRanges(getSrcIpRanges());
-        return matcherConfig;
+    public com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig toSecurityPolicyRuleMatcherConfig() {
+        com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig.Builder matcherConfig = com.google.cloud.compute.v1.SecurityPolicyRuleMatcherConfig
+            .newBuilder();
+        matcherConfig.addAllSrcIpRanges(getSrcIpRanges());
+
+        return matcherConfig.build();
     }
 }

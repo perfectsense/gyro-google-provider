@@ -22,13 +22,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.ForwardingRule;
-import com.google.api.services.compute.model.ForwardingRuleAggregatedList;
-import com.google.api.services.compute.model.ForwardingRulesScopedList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListForwardingRulesRequest;
+import com.google.cloud.compute.v1.ForwardingRule;
+import com.google.cloud.compute.v1.ForwardingRuleAggregatedList;
+import com.google.cloud.compute.v1.ForwardingRuleList;
+import com.google.cloud.compute.v1.ForwardingRulesClient;
+import com.google.cloud.compute.v1.ForwardingRulesScopedList;
+import com.google.cloud.compute.v1.ListForwardingRulesRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -43,7 +49,7 @@ import gyro.google.GoogleFinder;
  *    compute-forwarding-rule: $(external-query google::compute-forwarding-rule { name: 'forwarding-rule-example', region: 'us-central1' })
  */
 @Type("compute-forwarding-rule")
-public class ForwardingRuleFinder extends GoogleFinder<Compute, ForwardingRule, ForwardingRuleResource> {
+public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, ForwardingRule, ForwardingRuleResource> {
 
     private String name;
     private String region;
@@ -71,41 +77,92 @@ public class ForwardingRuleFinder extends GoogleFinder<Compute, ForwardingRule, 
     }
 
     @Override
-    protected List<ForwardingRule> findAllGoogle(Compute client) throws Exception {
+    protected List<ForwardingRule> findAllGoogle(ForwardingRulesClient client) throws Exception {
+        try {
+            return getForwardingRules(client);
+        } finally {
+            client.close();
+        }
+    }
+
+    @Override
+    protected List<ForwardingRule> findGoogle(ForwardingRulesClient client, Map<String, String> filters)
+        throws Exception {
+        List<ForwardingRule> forwardingRules = new ArrayList<>();
+
+        try {
+            if (filters.containsKey("name") && filters.containsKey("region")) {
+                forwardingRules = Collections.singletonList(client.get(getProjectId(), filters.get("region"),
+                    filters.get("name")));
+
+            } else if (filters.containsKey("region")) {
+                ForwardingRuleList forwardingRuleList;
+                String nextPageToken = null;
+
+                do {
+                    UnaryCallable<ListForwardingRulesRequest, ForwardingRulesClient.ListPagedResponse> callable = client
+                        .listPagedCallable();
+
+                    ListForwardingRulesRequest.Builder builder = ListForwardingRulesRequest.newBuilder()
+                        .setRegion(filters.get("region"));
+
+                    if (nextPageToken != null) {
+                        builder.setPageToken(nextPageToken);
+                    }
+
+                    ForwardingRulesClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                        getProjectId())
+                        .build());
+                    forwardingRuleList = pagedResponse.getPage().getResponse();
+                    nextPageToken = pagedResponse.getNextPageToken();
+
+                    if (forwardingRuleList.getItemsList() != null) {
+                        forwardingRules.addAll(forwardingRuleList.getItemsList().stream().filter(Objects::nonNull)
+                            .filter(forwardingRule -> forwardingRule.getRegion() != null).collect(Collectors.toList()));
+                    }
+
+                } while (!StringUtils.isEmpty(nextPageToken));
+
+                return forwardingRules;
+
+            } else {
+                getForwardingRules(client).removeIf(d -> !d.getName().equals(filters.get("name")));
+            }
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return forwardingRules;
+    }
+
+    private List<ForwardingRule> getForwardingRules(ForwardingRulesClient client) {
         List<ForwardingRule> forwardingRules = new ArrayList<>();
         ForwardingRuleAggregatedList forwardingRuleList;
         String nextPageToken = null;
 
         do {
-            forwardingRuleList = client.forwardingRules()
-                .aggregatedList(getProjectId())
-                .setPageToken(nextPageToken)
-                .execute();
-            forwardingRules.addAll(forwardingRuleList
-                .getItems().values().stream()
-                .map(ForwardingRulesScopedList::getForwardingRules)
+            AggregatedListForwardingRulesRequest.Builder builder = AggregatedListForwardingRulesRequest.newBuilder()
+                .setProject(getProjectId());
+
+            if (nextPageToken != null) {
+                builder.setPageToken(nextPageToken);
+            }
+
+            ForwardingRulesClient.AggregatedListPagedResponse aggregatedListPagedResponse = client.aggregatedList(
+                builder.build());
+            forwardingRuleList = aggregatedListPagedResponse.getPage().getResponse();
+            nextPageToken = aggregatedListPagedResponse.getNextPageToken();
+
+            forwardingRules.addAll(forwardingRuleList.getItemsMap().values().stream()
+                .map(ForwardingRulesScopedList::getForwardingRulesList)
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .filter(forwardingRule -> forwardingRule.getRegion() != null)
                 .collect(Collectors.toList()));
-            nextPageToken = forwardingRuleList.getNextPageToken();
+
         } while (nextPageToken != null);
-
-        return forwardingRules;
-    }
-
-    @Override
-    protected List<ForwardingRule> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<ForwardingRule> forwardingRules;
-        if (filters.containsKey("name")) {
-            forwardingRules = Collections.singletonList(client.forwardingRules()
-                .get(getProjectId(), filters.get("region"), filters.get("name"))
-                .execute());
-        } else {
-            forwardingRules = Optional.ofNullable(
-                client.forwardingRules().list(getProjectId(), filters.get("region")).execute().getItems())
-                .orElse(new ArrayList<>());
-        }
 
         return forwardingRules;
     }

@@ -18,7 +18,7 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.cloud.compute.v1.InstanceGroupManagerAutoHealingPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Range;
 import gyro.core.validation.Required;
@@ -59,12 +59,16 @@ public class ComputeInstanceGroupManagerAutoHealingPolicy extends Diffable
     }
 
     public InstanceGroupManagerAutoHealingPolicy copyTo() {
-        InstanceGroupManagerAutoHealingPolicy instanceGroupManagerAutoHealingPolicy = new InstanceGroupManagerAutoHealingPolicy();
+        InstanceGroupManagerAutoHealingPolicy.Builder builder = InstanceGroupManagerAutoHealingPolicy.newBuilder();
         Optional.ofNullable(getHealthCheck())
             .map(HealthCheckResource::getSelfLink)
-            .ifPresent(instanceGroupManagerAutoHealingPolicy::setHealthCheck);
-        instanceGroupManagerAutoHealingPolicy.setInitialDelaySec(getInitialDelaySec());
-        return instanceGroupManagerAutoHealingPolicy;
+            .ifPresent(builder::setHealthCheck);
+
+        if (getInitialDelaySec() != null) {
+            builder.setInitialDelaySec(getInitialDelaySec());
+        }
+
+        return builder.build();
     }
 
     @Override

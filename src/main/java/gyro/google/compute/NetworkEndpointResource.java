@@ -20,9 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.HealthStatusForNetworkEndpoint;
-import com.google.api.services.compute.model.NetworkEndpoint;
-import com.google.api.services.compute.model.NetworkEndpointWithHealthStatus;
+import com.google.cloud.compute.v1.NetworkEndpoint;
+import com.google.cloud.compute.v1.NetworkEndpointWithHealthStatus;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.validation.Required;
@@ -110,20 +109,23 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
         setPort(networkEndpoint.getPort());
 
         getHealthStatus().clear();
-        if (endpoint.getHealths() != null && !endpoint.getHealths().isEmpty()) {
-            setHealthStatus(endpoint.getHealths()
+        if (endpoint.getHealthsList() != null && !endpoint.getHealthsList().isEmpty()) {
+            setHealthStatus(endpoint.getHealthsList()
                 .stream()
-                .map(HealthStatusForNetworkEndpoint::getHealthState)
+                .map(s -> s.getHealthState().toString())
                 .collect(Collectors.toList()));
         }
     }
 
     NetworkEndpoint toNetworkEndpoint() {
-        NetworkEndpoint networkEndpoint = new NetworkEndpoint();
-        networkEndpoint.setInstance(getInstance().getName());
-        networkEndpoint.setPort(getPort());
-        networkEndpoint.setIpAddress(getIpAddress());
+        NetworkEndpoint.Builder builder = NetworkEndpoint.newBuilder();
+        builder.setInstance(getInstance().getName());
+        builder.setPort(getPort());
 
-        return networkEndpoint;
+        if (getIpAddress() != null) {
+            builder.setIpAddress(getIpAddress());
+        }
+
+        return builder.build();
     }
 }

@@ -26,7 +26,7 @@ import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class BackendBucketCdnPolicy extends Diffable
-    implements Copyable<com.google.api.services.compute.model.BackendBucketCdnPolicy> {
+    implements Copyable<com.google.cloud.compute.v1.BackendBucketCdnPolicy> {
 
     private Long signedUrlMaxAge;
     private List<String> signedUrlKeyNames;
@@ -66,14 +66,13 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.BackendBucketCdnPolicy backendBucketCdnPolicy) {
-        setSignedUrlKeyNames(backendBucketCdnPolicy.getSignedUrlKeyNames());
+    public void copyFrom(com.google.cloud.compute.v1.BackendBucketCdnPolicy backendBucketCdnPolicy) {
+        setSignedUrlKeyNames(backendBucketCdnPolicy.getSignedUrlKeyNamesList());
         setSignedUrlMaxAge(backendBucketCdnPolicy.getSignedUrlCacheMaxAgeSec());
     }
 
-    com.google.api.services.compute.model.BackendBucketCdnPolicy toBackendBucketCdnPolicy() {
-        com.google.api.services.compute.model.BackendBucketCdnPolicy backendBucketCdnPolicy = new com.google.api.services.compute.model.BackendBucketCdnPolicy();
-        backendBucketCdnPolicy.setSignedUrlCacheMaxAgeSec(getSignedUrlMaxAge());
-        return backendBucketCdnPolicy;
+    com.google.cloud.compute.v1.BackendBucketCdnPolicy toBackendBucketCdnPolicy() {
+        return com.google.cloud.compute.v1.BackendBucketCdnPolicy.newBuilder()
+            .setSignedUrlCacheMaxAgeSec(getSignedUrlMaxAge()).build();
     }
 }

@@ -17,20 +17,25 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.TargetHttpProxiesScopedList;
-import com.google.api.services.compute.model.TargetHttpProxy;
-import com.google.api.services.compute.model.TargetHttpProxyAggregatedList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.GetRegionTargetHttpProxyRequest;
+import com.google.cloud.compute.v1.ListRegionTargetHttpProxiesRequest;
+import com.google.cloud.compute.v1.ListRegionsRequest;
+import com.google.cloud.compute.v1.Region;
+import com.google.cloud.compute.v1.RegionTargetHttpProxiesClient;
+import com.google.cloud.compute.v1.RegionsClient;
+import com.google.cloud.compute.v1.TargetHttpProxy;
+import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.Type;
+import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
+import gyro.google.util.Utils;
 
 /**
  * Query for a region target http proxy.
@@ -43,7 +48,8 @@ import gyro.google.GoogleFinder;
  *    compute-region-target-http-proxy: $(external-query google::compute-region-target-http-proxy { name: 'region-target-http-proxy-example', region: 'us-east1' })
  */
 @Type("compute-region-target-http-proxy")
-public class RegionTargetHttpProxyFinder extends GoogleFinder<Compute, TargetHttpProxy, RegionTargetHttpProxyResource> {
+public class RegionTargetHttpProxyFinder
+    extends GoogleFinder<RegionTargetHttpProxiesClient, TargetHttpProxy, RegionTargetHttpProxyResource> {
 
     private String name;
     private String region;
@@ -71,45 +77,130 @@ public class RegionTargetHttpProxyFinder extends GoogleFinder<Compute, TargetHtt
     }
 
     @Override
-    protected List<TargetHttpProxy> findAllGoogle(Compute client) throws Exception {
-        List<TargetHttpProxy> targetHttpProxies = new ArrayList<>();
-        TargetHttpProxyAggregatedList targetHttpProxyList;
-        String nextPageToken = null;
-
-        do {
-            targetHttpProxyList = client.targetHttpProxies()
-                .aggregatedList(getProjectId())
-                .setPageToken(nextPageToken)
-                .execute();
-            targetHttpProxies.addAll(targetHttpProxyList
-                .getItems().values().stream()
-                .map(TargetHttpProxiesScopedList::getTargetHttpProxies)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(targetHttpProxy -> targetHttpProxy.getRegion() != null)
-                .collect(Collectors.toList()));
-            nextPageToken = targetHttpProxyList.getNextPageToken();
-        } while (nextPageToken != null);
-
-        return targetHttpProxies;
+    protected List<TargetHttpProxy> findAllGoogle(RegionTargetHttpProxiesClient client) throws Exception {
+        return getRegionTargetHttpProxies(client, null);
     }
 
     @Override
-    protected List<TargetHttpProxy> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<TargetHttpProxy> targetHttpProxies = new ArrayList<>();
+    protected List<TargetHttpProxy> findGoogle(RegionTargetHttpProxiesClient client, Map<String, String> filters)
+        throws Exception {
+        List<TargetHttpProxy> proxies = new ArrayList<>();
+        String region = filters.remove("region");
+        String name = filters.remove("name");
+        String filter = Utils.convertToFilters(filters);
 
-        if (filters.containsKey("name")) {
-            targetHttpProxies = Collections.singletonList(client.regionTargetHttpProxies()
-                .get(getProjectId(), filters.get("region"), filters.get("name"))
-                .execute());
-        } else {
-            targetHttpProxies = Optional.ofNullable(client.regionTargetHttpProxies()
-                .list(getProjectId(), filters.get("region"))
-                .execute()
-                .getItems())
-                .orElse(new ArrayList<>());
+        try {
+            if (filters.containsKey("zone")) {
+                throw new GyroException("For zonal autoscaler, use 'compute-autoscaler' instead.");
+            }
+
+            if (region != null && name != null) {
+                proxies.add(client.get(GetRegionTargetHttpProxyRequest.newBuilder().setTargetHttpProxy(name)
+                    .setProject(getProjectId()).setRegion(region).build()));
+
+            } else {
+                if (region != null) {
+                    proxies.addAll(getTargetHttpProxies(client, filter, region));
+
+                } else if (name != null) {
+                    List<String> regions = getRegions();
+
+                    for (String r : regions) {
+                        try {
+                            proxies.add(client.get(GetRegionTargetHttpProxyRequest.newBuilder()
+                                .setTargetHttpProxy(name)
+                                .setProject(getProjectId())
+                                .setRegion(r)
+                                .build()));
+
+                        } catch (NotFoundException | InvalidArgumentException ex) {
+                            // ignore
+                        }
+                    }
+                } else {
+                    getRegionTargetHttpProxies(client, filter);
+                }
+            }
+        } finally {
+            client.close();
         }
 
-        return targetHttpProxies;
+        return proxies;
+    }
+
+    private List<TargetHttpProxy> getRegionTargetHttpProxies(RegionTargetHttpProxiesClient client, String filter) {
+        List<String> regionList = getRegions();
+
+        List<TargetHttpProxy> proxies = new ArrayList<>();
+
+        try {
+            for (String region : regionList) {
+                proxies.addAll(getTargetHttpProxies(client, filter, region));
+            }
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+
+        } finally {
+            client.close();
+        }
+
+        return proxies;
+    }
+
+    private List<TargetHttpProxy> getTargetHttpProxies(
+        RegionTargetHttpProxiesClient client,
+        String filter,
+        String region) {
+        String pageToken = null;
+
+        List<TargetHttpProxy> proxies = new ArrayList<>();
+
+        do {
+            ListRegionTargetHttpProxiesRequest.Builder builder = ListRegionTargetHttpProxiesRequest.newBuilder()
+                .setProject(getProjectId()).setRegion(region);
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
+            }
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            RegionTargetHttpProxiesClient.ListPagedResponse response = client.list(builder.build());
+            pageToken = response.getNextPageToken();
+
+            if (response.getPage() != null && response.getPage().getResponse() != null) {
+                proxies.addAll(response.getPage().getResponse().getItemsList());
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
+
+        return proxies;
+    }
+
+    private List<String> getRegions() {
+        String pageToken = null;
+        List<String> regionList = new ArrayList<>();
+
+        try (RegionsClient regionsClient = credentials(GoogleCredentials.class).createClient(RegionsClient.class)) {
+            do {
+                ListRegionsRequest.Builder builder = ListRegionsRequest.newBuilder()
+                    .setProject(getProjectId());
+
+                if (pageToken != null) {
+                    builder.setPageToken(pageToken);
+                }
+
+                RegionsClient.ListPagedResponse list = regionsClient.list(builder.build());
+                pageToken = list.getNextPageToken();
+                regionList.addAll(list.getPage().getResponse().getItemsList()
+                    .stream().map(Region::getName).collect(Collectors.toList()));
+
+            } while (!StringUtils.isEmpty(pageToken));
+        }
+
+        return regionList;
     }
 }

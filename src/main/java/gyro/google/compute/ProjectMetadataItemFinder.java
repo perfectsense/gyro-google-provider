@@ -17,14 +17,15 @@
 package gyro.google.compute;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Metadata;
-import com.google.api.services.compute.model.Project;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.Items;
+import com.google.cloud.compute.v1.Project;
+import com.google.cloud.compute.v1.ProjectsClient;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -39,7 +40,7 @@ import gyro.google.GoogleFinder;
  *    project-metadata-item: $(external-query google::compute-project-metadata-item { key: 'example-key'})
  */
 @Type("compute-project-metadata-item")
-public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.Items, ProjectMetadataItemResource> {
+public class ProjectMetadataItemFinder extends GoogleFinder<ProjectsClient, Items, ProjectMetadataItemResource> {
 
     private String key;
 
@@ -55,36 +56,46 @@ public class ProjectMetadataItemFinder extends GoogleFinder<Compute, Metadata.It
     }
 
     @Override
-    protected List<Metadata.Items> findAllGoogle(Compute client) throws Exception {
-        return Optional.ofNullable(client.projects()
-            .get(getProjectId())
-            .execute()
-            .getCommonInstanceMetadata()
-            .getItems()).orElse(new ArrayList<>());
+    protected List<Items> findAllGoogle(ProjectsClient client) throws Exception {
+        List<Items> items = new ArrayList<>();
+
+        try {
+            items.addAll(Optional.ofNullable(client.get(getProjectId())
+                .getCommonInstanceMetadata().getItemsList()).orElse(new ArrayList<>()));
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return items;
     }
 
     @Override
-    protected List<Metadata.Items> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        Project project = client.projects()
-            .get(getProjectId())
-            .execute();
+    protected List<Items> findGoogle(ProjectsClient client, Map<String, String> filters) throws Exception {
+        List<Items> items = new ArrayList<>();
 
-        Metadata.Items item = null;
+        try {
+            Project project = client.get(getProjectId());
 
-        if (project.getCommonInstanceMetadata() != null && project.getCommonInstanceMetadata().getItems() != null) {
-            item = project
-                .getCommonInstanceMetadata()
-                .getItems()
-                .stream()
-                .filter(r -> filters.get("key").equals(r.getKey()))
-                .findFirst()
-                .orElse(null);
+            Items item = null;
+
+            if (project.getCommonInstanceMetadata() != null
+                && project.getCommonInstanceMetadata().getItemsList() != null) {
+                item = project.getCommonInstanceMetadata().getItemsList().stream()
+                    .filter(r -> filters.get("key").equals(r.getKey())).findFirst().orElse(null);
+            }
+
+            if (item != null) {
+                items.add(item);
+            }
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
         }
 
-        if (item != null) {
-            return Collections.singletonList(item);
-        } else {
-            return Collections.emptyList();
-        }
+        return items;
     }
 }

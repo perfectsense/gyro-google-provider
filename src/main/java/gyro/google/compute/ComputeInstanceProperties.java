@@ -25,16 +25,17 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.AcceleratorConfig;
-import com.google.api.services.compute.model.AttachedDisk;
-import com.google.api.services.compute.model.InstanceProperties;
-import com.google.api.services.compute.model.Metadata;
-import com.google.api.services.compute.model.NetworkInterface;
-import com.google.api.services.compute.model.ReservationAffinity;
-import com.google.api.services.compute.model.Scheduling;
-import com.google.api.services.compute.model.ServiceAccount;
-import com.google.api.services.compute.model.ShieldedInstanceConfig;
-import com.google.api.services.compute.model.Tags;
+import com.google.cloud.compute.v1.AcceleratorConfig;
+import com.google.cloud.compute.v1.AttachedDisk;
+import com.google.cloud.compute.v1.InstanceProperties;
+import com.google.cloud.compute.v1.Items;
+import com.google.cloud.compute.v1.Metadata;
+import com.google.cloud.compute.v1.NetworkInterface;
+import com.google.cloud.compute.v1.ReservationAffinity;
+import com.google.cloud.compute.v1.Scheduling;
+import com.google.cloud.compute.v1.ServiceAccount;
+import com.google.cloud.compute.v1.ShieldedInstanceConfig;
+import com.google.cloud.compute.v1.Tags;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.CollectionMax;
 import gyro.core.validation.Regex;
@@ -285,7 +286,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         setCanIpForward(model.getCanIpForward());
         setDescription(model.getDescription());
         List<InstanceAttachedDisk> diffableAttachedDisks = null;
-        List<AttachedDisk> disks = model.getDisks();
+        List<AttachedDisk> disks = model.getDisksList();
 
         if (disks != null && !disks.isEmpty()) {
             diffableAttachedDisks = disks
@@ -300,7 +301,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         setDisk(diffableAttachedDisks);
 
         List<ComputeAcceleratorConfig> diffableGuestAccelerators = null;
-        List<AcceleratorConfig> guestAccelerators = model.getGuestAccelerators();
+        List<AcceleratorConfig> guestAccelerators = model.getGuestAcceleratorsList();
 
         if (guestAccelerators != null && !guestAccelerators.isEmpty()) {
             diffableGuestAccelerators = guestAccelerators
@@ -319,8 +320,8 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         Metadata metadata = model.getMetadata();
 
         Map<String, String> copiedMetadata =
-            metadata != null && metadata.getItems() != null
-                ? metadata.getItems().stream().collect(Collectors.toMap(Metadata.Items::getKey, Metadata.Items::getValue))
+            metadata != null && metadata.getItemsList() != null
+                ? metadata.getItemsList().stream().collect(Collectors.toMap(Items::getKey, Items::getValue))
                 : new HashMap<>();
 
         setMetadata(copiedMetadata);
@@ -328,7 +329,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         setMinCpuPlatform(model.getMinCpuPlatform());
 
         List<InstanceNetworkInterface> diffableNetworkInterfaces = null;
-        List<NetworkInterface> networkInterfaces = model.getNetworkInterfaces();
+        List<NetworkInterface> networkInterfaces = model.getNetworkInterfacesList();
 
         if (networkInterfaces != null && !networkInterfaces.isEmpty()) {
             diffableNetworkInterfaces = networkInterfaces
@@ -363,7 +364,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         setScheduling(diffableScheduling);
 
         List<ComputeServiceAccount> diffableServiceAccounts = null;
-        List<ServiceAccount> serviceAccounts = model.getServiceAccounts();
+        List<ServiceAccount> serviceAccounts = model.getServiceAccountsList();
 
         if (serviceAccounts != null && !serviceAccounts.isEmpty()) {
             diffableServiceAccounts = serviceAccounts
@@ -390,64 +391,72 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         Tags tags = model.getTags();
 
         List<String> copiedTags = tags != null
-            ? tags.getItems()
+            ? tags.getItemsList()
             : new ArrayList<>();
 
         setTags(copiedTags);
     }
 
     public InstanceProperties toInstanceProperties() {
-        InstanceProperties instanceProperties = new InstanceProperties();
-        instanceProperties.setCanIpForward(getCanIpForward());
-        instanceProperties.setDescription(getDescription());
+        InstanceProperties.Builder builder = InstanceProperties.newBuilder();
+        builder.setCanIpForward(getCanIpForward());
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getLabels() != null) {
+            builder.putAllLabels(getLabels());
+        }
+
+        if (getMachineType() != null) {
+            builder.setMachineType(getMachineType());
+        }
+
+        if (getMetadata() != null) {
+            builder.setMetadata(buildMetadata());
+        }
+
+        if (getMinCpuPlatform() != null) {
+            builder.setMinCpuPlatform(getMinCpuPlatform());
+        }
 
         List<InstanceAttachedDisk> disk = getDisk();
 
         if (!disk.isEmpty()) {
-            instanceProperties.setDisks(disk
-                .stream()
-                .map(InstanceAttachedDisk::copyTo)
-                .collect(Collectors.toList()));
+            builder.addAllDisks(disk.stream().map(InstanceAttachedDisk::copyTo).collect(Collectors.toList()));
         }
 
         List<ComputeAcceleratorConfig> guestAccelerator = getGuestAccelerator();
 
         if (!guestAccelerator.isEmpty()) {
-            instanceProperties.setGuestAccelerators(guestAccelerator
-                .stream()
-                .map(ComputeAcceleratorConfig::toAcceleratorConfig)
+            builder.addAllGuestAccelerators(guestAccelerator.stream().map(ComputeAcceleratorConfig::toAcceleratorConfig)
                 .collect(Collectors.toList()));
         }
-        instanceProperties.setLabels(getLabels());
-        instanceProperties.setMachineType(getMachineType());
-        instanceProperties.setMetadata(buildMetadata());
-        instanceProperties.setMinCpuPlatform(getMinCpuPlatform());
 
         List<InstanceNetworkInterface> networkInterface = getNetworkInterface();
 
         if (!networkInterface.isEmpty()) {
-            instanceProperties.setNetworkInterfaces(networkInterface
-                .stream()
-                .map(InstanceNetworkInterface::copyTo)
+            builder.addAllNetworkInterfaces(networkInterface.stream().map(InstanceNetworkInterface::copyTo)
                 .collect(Collectors.toList()));
         }
 
         ComputeReservationAffinity reservationAffinity = getReservationAffinity();
 
         if (reservationAffinity != null) {
-            instanceProperties.setReservationAffinity(reservationAffinity.toReservationAffinity());
+            builder.setReservationAffinity(reservationAffinity.toReservationAffinity());
         }
 
         ComputeScheduling scheduling = getScheduling();
 
         if (scheduling != null) {
-            instanceProperties.setScheduling(scheduling.toScheduling());
+            builder.setScheduling(scheduling.toScheduling());
         }
 
         List<ComputeServiceAccount> serviceAccount = getServiceAccount();
 
         if (!serviceAccount.isEmpty()) {
-            instanceProperties.setServiceAccounts(serviceAccount
+            builder.addAllServiceAccounts(serviceAccount
                 .stream()
                 .map(ComputeServiceAccount::toServiceAccount)
                 .collect(Collectors.toList()));
@@ -456,35 +465,32 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         ComputeShieldedInstanceConfig shieldedInstanceConfig = getShieldedInstanceConfig();
 
         if (shieldedInstanceConfig != null) {
-            instanceProperties.setShieldedInstanceConfig(shieldedInstanceConfig.toShieldedInstanceConfig());
+            builder.setShieldedInstanceConfig(shieldedInstanceConfig.toShieldedInstanceConfig());
         }
 
-        if (tags != null) {
-            instanceProperties.setTags(buildTags());
+        if (getTags() != null) {
+            builder.setTags(buildTags());
         }
-        return instanceProperties;
+
+        return builder.build();
     }
 
     private Tags buildTags() {
-        Tags tags = new Tags();
-        tags.setItems(getTags());
-        return tags;
+        return Tags.newBuilder().addAllItems(getTags()).build();
     }
 
     private Metadata buildMetadata() {
-        Metadata metadata = new Metadata();
-        metadata.setItems(
+        Metadata.Builder builder = Metadata.newBuilder();
+        builder.addAllItems(
             getMetadata().entrySet().stream()
                 .map(e -> {
-                    Metadata.Items item = new Metadata.Items();
-                    item.setKey(e.getKey());
-                    item.setValue(e.getValue());
-                    return item;
+                    Items.Builder item = Items.newBuilder().setKey(e.getKey()).setValue(e.getValue());
+                    return item.build();
                 })
                 .collect(Collectors.toList())
         );
 
-        return metadata;
+        return builder.build();
     }
 
     @Override

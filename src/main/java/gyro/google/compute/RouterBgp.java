@@ -29,7 +29,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
-public class RouterBgp extends Diffable implements Copyable<com.google.api.services.compute.model.RouterBgp> {
+public class RouterBgp extends Diffable implements Copyable<com.google.cloud.compute.v1.RouterBgp> {
 
     private Long asn;
     private String advertiseMode;
@@ -107,13 +107,13 @@ public class RouterBgp extends Diffable implements Copyable<com.google.api.servi
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.RouterBgp model) {
-        setAsn(model.getAsn());
-        setAdvertiseMode(model.getAdvertiseMode());
-        setAdvertisedGroups(model.getAdvertisedGroups());
+    public void copyFrom(com.google.cloud.compute.v1.RouterBgp model) {
+        setAsn((long) model.getAsn());
+        setAdvertiseMode(model.getAdvertiseMode().toString());
+        setAdvertisedGroups(model.getAdvertisedGroupsList());
 
-        if (model.getAdvertisedIpRanges() != null) {
-            setIpRange(model.getAdvertisedIpRanges().stream().map(i -> {
+        if (model.getAdvertisedIpRangesList() != null) {
+            setIpRange(model.getAdvertisedIpRangesList().stream().map(i -> {
                 RouterIpRange routerIpRange = newSubresource(RouterIpRange.class);
                 routerIpRange.copyFrom(i);
                 return routerIpRange;
@@ -121,23 +121,32 @@ public class RouterBgp extends Diffable implements Copyable<com.google.api.servi
         }
     }
 
-    com.google.api.services.compute.model.RouterBgp toRouterBgp() {
-        com.google.api.services.compute.model.RouterBgp routerBgp = new com.google.api.services.compute.model.RouterBgp();
-        routerBgp.setAsn(getAsn());
-        routerBgp.setAdvertiseMode(getAdvertiseMode());
-        routerBgp.setAdvertisedGroups(getAdvertisedGroups());
-        routerBgp.setAdvertisedIpRanges(getIpRange().stream()
-            .map(RouterIpRange::toRouterAdvertisedIpRange)
-            .collect(Collectors.toList()));
+    com.google.cloud.compute.v1.RouterBgp toRouterBgp() {
+        com.google.cloud.compute.v1.RouterBgp.Builder builder = com.google.cloud.compute.v1.RouterBgp.newBuilder();
+        builder.setAsn(getAsn().intValue());
 
-        return routerBgp;
+        if (getAdvertiseMode() != null) {
+            builder.setAdvertiseMode(getAdvertiseMode());
+        }
+
+        if (getAdvertisedGroups() != null) {
+            builder.addAllAdvertisedGroups(getAdvertisedGroups());
+        }
+
+        if (getIpRange() != null) {
+            builder.addAllAdvertisedIpRanges(getIpRange().stream()
+                .map(RouterIpRange::toRouterAdvertisedIpRange).collect(Collectors.toList()));
+        }
+
+        return builder.build();
     }
 
     @Override
     public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
-        if (getAdvertiseMode() != null && !getAdvertiseMode().equals("CUSTOM") && (!getIpRange().isEmpty() || !getAdvertisedGroups().isEmpty())) {
+        if (getAdvertiseMode() != null && !getAdvertiseMode().equals("CUSTOM") && (!getIpRange().isEmpty()
+            || !getAdvertisedGroups().isEmpty())) {
             errors.add(new ValidationError(
                 this,
                 null,

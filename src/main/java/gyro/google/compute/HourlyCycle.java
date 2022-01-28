@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ResourcePolicyHourlyCycle;
+import com.google.cloud.compute.v1.ResourcePolicyHourlyCycle;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Range;
 import gyro.core.validation.Required;
@@ -64,8 +64,7 @@ public class HourlyCycle extends Diffable implements Copyable<ResourcePolicyHour
     }
 
     public ResourcePolicyHourlyCycle copyTo() {
-        return new ResourcePolicyHourlyCycle()
-            .setHoursInCycle(getHoursInCycle())
-            .setStartTime(getStartTime());
+        return ResourcePolicyHourlyCycle.newBuilder().setHoursInCycle(getHoursInCycle()).setStartTime(getStartTime())
+            .build();
     }
 }

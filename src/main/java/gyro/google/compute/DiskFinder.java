@@ -22,13 +22,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Disk;
-import com.google.api.services.compute.model.DiskAggregatedList;
-import com.google.api.services.compute.model.DisksScopedList;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListDisksRequest;
+import com.google.cloud.compute.v1.Disk;
+import com.google.cloud.compute.v1.DiskAggregatedList;
+import com.google.cloud.compute.v1.DiskList;
+import com.google.cloud.compute.v1.DisksClient;
+import com.google.cloud.compute.v1.DisksScopedList;
+import com.google.cloud.compute.v1.ListDisksRequest;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -43,7 +49,7 @@ import gyro.google.GoogleFinder;
  *    compute-disk: $(external-query google::compute-disk { name: 'disk-example', zone: 'us-east1-b' })
  */
 @Type("compute-disk")
-public class DiskFinder extends GoogleFinder<Compute, Disk, DiskResource> {
+public class DiskFinder extends GoogleFinder<DisksClient, Disk, DiskResource> {
 
     private String name;
     private String zone;
@@ -71,38 +77,84 @@ public class DiskFinder extends GoogleFinder<Compute, Disk, DiskResource> {
     }
 
     @Override
-    protected List<Disk> findAllGoogle(Compute client) throws Exception {
+    protected List<Disk> findAllGoogle(DisksClient client) throws Exception {
+        try {
+            return getDisks(client);
+        } finally {
+            client.close();
+        }
+    }
+
+    @Override
+    protected List<Disk> findGoogle(DisksClient client, Map<String, String> filters) throws Exception {
+        List<Disk> disks = new ArrayList<>();
+
+        try {
+            if (filters.containsKey("name") && filters.containsKey("zone")) {
+                disks = Collections.singletonList(client.get(getProjectId(), filters.get("zone"), filters.get("name")));
+            } else if (filters.containsKey("zone")) {
+                DiskList diskList;
+                String nextPageToken = null;
+
+                do {
+                    UnaryCallable<ListDisksRequest, DisksClient.ListPagedResponse> callable = client.listPagedCallable();
+
+                    ListDisksRequest.Builder builder = ListDisksRequest.newBuilder().setZone(filters.get("zone"));
+
+                    if (nextPageToken != null) {
+                        builder.setPageToken(nextPageToken);
+                    }
+
+                    DisksClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(getProjectId())
+                        .build());
+                    diskList = pagedResponse.getPage().getResponse();
+                    nextPageToken = pagedResponse.getNextPageToken();
+
+                    if (diskList.getItemsList() != null) {
+                        disks.addAll(diskList.getItemsList().stream().filter(Objects::nonNull)
+                            .filter(disk -> disk.getZone() != null).collect(Collectors.toList()));
+                    }
+
+                } while (!StringUtils.isEmpty(nextPageToken));
+
+            } else {
+                disks.addAll(getDisks(client));
+                disks.removeIf(d -> !d.getName().equals(filters.get("name")));
+            }
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        } finally {
+            client.close();
+        }
+
+        return disks;
+    }
+
+    private List<Disk> getDisks(DisksClient client) {
         List<Disk> disks = new ArrayList<>();
         DiskAggregatedList diskAggregatedList;
         String nextPageToken = null;
 
         do {
-            diskAggregatedList = client.disks().aggregatedList(getProjectId()).setPageToken(nextPageToken).execute();
-            disks.addAll(diskAggregatedList
-                .getItems().values().stream()
-                .map(DisksScopedList::getDisks)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(disk -> disk.getZone() != null)
-                .collect(Collectors.toList()));
-            nextPageToken = diskAggregatedList.getNextPageToken();
-        } while (nextPageToken != null);
+            AggregatedListDisksRequest.Builder builder = AggregatedListDisksRequest.newBuilder()
+                .setProject(getProjectId());
 
-        return disks;
-    }
+            if (nextPageToken != null) {
+                builder.setPageToken(nextPageToken);
+            }
 
-    @Override
-    protected List<Disk> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        List<Disk> disks;
+            DisksClient.AggregatedListPagedResponse listPagedResponse = client.aggregatedList(builder.build());
 
-        if (filters.containsKey("name")) {
-            disks = Collections.singletonList(client.disks()
-                .get(getProjectId(), filters.get("zone"), filters.get("name"))
-                .execute());
-        } else {
-            disks = Optional.ofNullable(client.disks().list(getProjectId(), filters.get("zone")).execute().getItems())
-                .orElse(new ArrayList<>());
-        }
+            diskAggregatedList = listPagedResponse.getPage().getResponse();
+
+            nextPageToken = listPagedResponse.getNextPageToken();
+
+            if (diskAggregatedList.getItemsMap() != null) {
+                disks.addAll(diskAggregatedList.getItemsMap().values().stream().map(DisksScopedList::getDisksList)
+                    .flatMap(Collection::stream).collect(Collectors.toList()));
+            }
+
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return disks;
     }

@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.TargetHttpsProxy;
+import com.google.cloud.compute.v1.TargetHttpsProxy;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.validation.Regex;
@@ -76,10 +76,12 @@ public abstract class AbstractTargetHttpsProxyResource extends ComputeResource i
     }
 
     TargetHttpsProxy toTargetHttpsProxy() {
-        TargetHttpsProxy targetHttpsProxy = new TargetHttpsProxy();
-        targetHttpsProxy.setDescription(getDescription());
-        targetHttpsProxy.setName(getName());
+        TargetHttpsProxy.Builder builder = TargetHttpsProxy.newBuilder().setName(getName());
 
-        return targetHttpsProxy;
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        return builder.build();
     }
 }

@@ -22,7 +22,7 @@ import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 public class RouterNatLogConfig extends Diffable
-    implements Copyable<com.google.api.services.compute.model.RouterNatLogConfig> {
+    implements Copyable<com.google.cloud.compute.v1.RouterNatLogConfig> {
 
     private Boolean enable;
     private String filter;
@@ -58,16 +58,22 @@ public class RouterNatLogConfig extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.api.services.compute.model.RouterNatLogConfig model) throws Exception {
+    public void copyFrom(com.google.cloud.compute.v1.RouterNatLogConfig model) throws Exception {
         setFilter(model.getFilter());
         setEnable(model.getEnable());
     }
 
-    com.google.api.services.compute.model.RouterNatLogConfig toRouterNatLogConfig() {
-        com.google.api.services.compute.model.RouterNatLogConfig routerNatLogConfig = new com.google.api.services.compute.model.RouterNatLogConfig();
-        routerNatLogConfig.setEnable(getEnable());
-        routerNatLogConfig.setFilter(getFilter());
+    com.google.cloud.compute.v1.RouterNatLogConfig toRouterNatLogConfig() {
+        com.google.cloud.compute.v1.RouterNatLogConfig.Builder builder = com.google.cloud.compute.v1.RouterNatLogConfig.newBuilder();
 
-        return routerNatLogConfig;
+        if (getEnable() != null) {
+            builder.setEnable(getEnable());
+        }
+
+        if (getFilter() != null) {
+            builder.setFilter(getFilter());
+        }
+
+        return builder.build();
     }
 }

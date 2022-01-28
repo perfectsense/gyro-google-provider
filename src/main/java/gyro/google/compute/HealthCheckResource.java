@@ -18,9 +18,14 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.HealthCheck;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteHealthCheckRequest;
+import com.google.cloud.compute.v1.HealthCheck;
+import com.google.cloud.compute.v1.HealthChecksClient;
+import com.google.cloud.compute.v1.InsertHealthCheckRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchHealthCheckRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -116,39 +121,70 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
 
     @Override
     public boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = client.healthChecks().get(getProjectId(), getName()).execute();
-        copyFrom(healthCheck);
+        HealthChecksClient client = createClient(HealthChecksClient.class);
+        HealthCheck healthCheck = getHealthCheckResource(client);
 
+        if (healthCheck == null) {
+            return false;
+        }
+
+        copyFrom(healthCheck);
+        client.close();
         return true;
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = getHealthCheck(null);
-        Compute.HealthChecks.Insert insert = client.healthChecks().insert(getProjectId(), healthCheck);
-        Operation operation = insert.execute();
-        waitForCompletion(client, operation);
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            HealthCheck healthCheck = getHealthCheck(null);
+            Operation operation = client.insertCallable().call(InsertHealthCheckRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setHealthCheckResource(healthCheck)
+                .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = getHealthCheck(changedFieldNames);
-        Operation operation = client.healthChecks().patch(getProjectId(), getName(), healthCheck).execute();
-        waitForCompletion(client, operation);
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            HealthCheck healthCheck = getHealthCheck(changedFieldNames);
+            Operation operation = client.patchCallable().call(PatchHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheck(getName())
+                .setHealthCheckResource(healthCheck)
+                .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        HealthCheck healthCheck = client.healthChecks().get(getProjectId(), getName()).execute();
-        Operation operation = client.healthChecks().delete(getProjectId(), healthCheck.getName()).execute();
-        waitForCompletion(client, operation);
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteHealthCheckRequest.newBuilder()
+                .setProject(getProjectId())
+                .setHealthCheck(getName())
+                .build());
+
+            waitForCompletion(operation);
+        }
+    }
+
+    private HealthCheck getHealthCheckResource(HealthChecksClient client) {
+        HealthCheck healthCheck = null;
+
+        try {
+            healthCheck = client.get(getProjectId(), getName());
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return healthCheck;
     }
 }

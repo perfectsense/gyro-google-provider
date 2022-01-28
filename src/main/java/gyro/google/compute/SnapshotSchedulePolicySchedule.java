@@ -16,12 +16,13 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.ResourcePolicySnapshotSchedulePolicySchedule;
+import com.google.cloud.compute.v1.ResourcePolicySnapshotSchedulePolicySchedule;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ConflictsWith;
 import gyro.google.Copyable;
 
-public class SnapshotSchedulePolicySchedule extends Diffable implements Copyable<ResourcePolicySnapshotSchedulePolicySchedule> {
+public class SnapshotSchedulePolicySchedule extends Diffable
+    implements Copyable<ResourcePolicySnapshotSchedulePolicySchedule> {
 
     private DailyCycle dailySchedule;
     private HourlyCycle hourlySchedule;
@@ -99,9 +100,20 @@ public class SnapshotSchedulePolicySchedule extends Diffable implements Copyable
     }
 
     public ResourcePolicySnapshotSchedulePolicySchedule copyTo() {
-        return new ResourcePolicySnapshotSchedulePolicySchedule()
-            .setDailySchedule(getDailySchedule() != null ? getDailySchedule().copyTo() : null)
-            .setHourlySchedule(getHourlySchedule() != null ? getHourlySchedule().copyTo() : null)
-            .setWeeklySchedule(getWeeklySchedule() != null ? getWeeklySchedule().copyTo() : null);
+        ResourcePolicySnapshotSchedulePolicySchedule.Builder builder = ResourcePolicySnapshotSchedulePolicySchedule.newBuilder();
+
+        if (getDailySchedule() != null) {
+            builder.setDailySchedule(getDailySchedule().copyTo());
+        }
+
+        if (getHourlySchedule() != null) {
+            builder.setHourlySchedule(getHourlySchedule().copyTo());
+        }
+
+        if (getWeeklySchedule() != null) {
+            builder.setWeeklySchedule(getWeeklySchedule().copyTo());
+        }
+
+        return builder.build();
     }
 }

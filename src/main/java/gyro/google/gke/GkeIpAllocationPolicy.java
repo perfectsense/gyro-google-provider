@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.container.v1.IPAllocationPolicy;
+import com.google.container.v1beta1.IPAllocationPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;

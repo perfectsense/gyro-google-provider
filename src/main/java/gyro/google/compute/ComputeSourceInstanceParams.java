@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.model.DiskInstantiationConfig;
-import com.google.api.services.compute.model.SourceInstanceParams;
+import com.google.cloud.compute.v1.DiskInstantiationConfig;
+import com.google.cloud.compute.v1.SourceInstanceParams;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -53,7 +53,7 @@ public class ComputeSourceInstanceParams extends Diffable implements Copyable<So
     @Override
     public void copyFrom(SourceInstanceParams model) {
         List<ComputeDiskInstantiationConfig> diffableDiskConfigs = null;
-        List<DiskInstantiationConfig> diskConfigs = model.getDiskConfigs();
+        List<DiskInstantiationConfig> diskConfigs = model.getDiskConfigsList();
 
         if (diskConfigs != null && !diskConfigs.isEmpty()) {
             diffableDiskConfigs = diskConfigs
@@ -70,16 +70,14 @@ public class ComputeSourceInstanceParams extends Diffable implements Copyable<So
     }
 
     public SourceInstanceParams toSourceInstanceParams() {
-        SourceInstanceParams sourceInstanceParams = new SourceInstanceParams();
+        SourceInstanceParams.Builder builder = SourceInstanceParams.newBuilder();
         List<ComputeDiskInstantiationConfig> diskConfig = getDiskConfig();
 
         if (!diskConfig.isEmpty()) {
-            sourceInstanceParams.setDiskConfigs(diskConfig
-                .stream()
-                .map(ComputeDiskInstantiationConfig::toDiskInstantiationConfig)
+            builder.addAllDiskConfigs(diskConfig.stream().map(ComputeDiskInstantiationConfig::toDiskInstantiationConfig)
                 .collect(Collectors.toList()));
         }
-        return sourceInstanceParams;
+        return builder.build();
     }
 
     @Override

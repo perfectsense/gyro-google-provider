@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,12 +23,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.BackendService;
-import com.google.api.services.compute.model.HealthStatus;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.ResourceGroupReference;
-import com.google.cloud.compute.v1.ProjectRegionBackendServiceName;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.BackendService;
+import com.google.cloud.compute.v1.DeleteRegionBackendServiceRequest;
+import com.google.cloud.compute.v1.GetRegionBackendServiceRequest;
+import com.google.cloud.compute.v1.HealthStatus;
+import com.google.cloud.compute.v1.InsertRegionBackendServiceRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.PatchRegionBackendServiceRequest;
+import com.google.cloud.compute.v1.RegionBackendServicesClient;
+import com.google.cloud.compute.v1.ResourceGroupReference;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -89,41 +93,57 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        BackendService response = client.regionBackendServices().get(getProjectId(), getRegion(), getName()).execute();
-        copyFrom(response);
-        return true;
+        try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
+            BackendService response = fetchBackendService(client);
+
+            if (response == null) {
+                return false;
+            }
+
+            copyFrom(response);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-
-        BackendService backendService = getBackendService(null);
-
-        Operation operation = client.regionBackendServices().insert(getProjectId(), getRegion(), backendService).execute();
-        waitForCompletion(client, operation);
+        try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
+            BackendService backendService = getBackendService(null);
+            Operation operation = client.insertCallable().call(InsertRegionBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setRegion(getRegion())
+                .setBackendServiceResource(backendService)
+                .build());
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
 
     @Override
-    public void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-
-        Compute client = createComputeClient();
-
-        BackendService backendService = getBackendService(changedFieldNames);
-
-        Operation operation = client.regionBackendServices().patch(getProjectId(), getRegion(), getName(), backendService).execute();
-        waitForCompletion(client, operation);
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+        try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
+            BackendService backendService = getBackendService(changedFieldNames);
+            Operation operation = client.patchCallable().call(PatchRegionBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setRegion(getRegion())
+                .setBackendServiceResource(backendService)
+                .build());
+            waitForCompletion(operation);
+        }
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.regionBackendServices().delete(getProjectId(), getRegion(), getName()).execute();
-        waitForCompletion(client, response);
+        try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteRegionBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setRegion(getRegion())
+                .setBackendService(getName())
+                .build());
+            waitForCompletion(operation);
+        }
     }
 
     public Map<String, Map<String, Integer>> instanceHealth() {
@@ -132,44 +152,60 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
         healthMap.put("all", allHealthMap);
         int allTotal = 0;
 
-        Compute client = createComputeClient();
+        try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
+            for (ComputeBackend backend : getBackend()) {
+                int backendTotal = 0;
+                ResourceGroupReference.Builder builder = ResourceGroupReference.newBuilder();
+                builder.setGroup(backend.getGroup().referenceLink());
+                List<HealthStatus> healthStatuses;
+                Map<String, Integer> backendHealthMap = new HashMap<>();
+                healthMap.put(backend.getGroup().primaryKey(), backendHealthMap);
 
-        for (ComputeBackend backend : getBackend()) {
-            int backendTotal = 0;
-            ResourceGroupReference resourceGroupReference = new ResourceGroupReference();
-            resourceGroupReference.setGroup(backend.getGroup().referenceLink());
-            List<HealthStatus> healthStatuses;
-            Map<String, Integer> backendHealthMap = new HashMap<>();
-            healthMap.put(backend.getGroup().primaryKey(), backendHealthMap);
-
-            try {
-                healthStatuses = Optional.ofNullable(client.regionBackendServices()
-                    .getHealth(getProjectId(), getRegion(), getName(), resourceGroupReference)
-                    .execute()
-                    .getHealthStatus())
+                healthStatuses = Optional.ofNullable(client
+                    .getHealth(getProjectId(), getRegion(), getName(), builder.build())
+                    .getHealthStatusList())
                     .orElse(Collections.emptyList());
-            } catch (IOException ex) {
-                throw new GyroException("Failed getting backend statuses!", ex);
+
+                for (HealthStatus healthStatus : healthStatuses) {
+                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState().toString(), 0);
+                    backendHealthMap.put(healthStatus.getHealthState().toString(), backendCount + 1);
+                    backendTotal++;
+
+                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState().toString(), 0);
+                    allHealthMap.put(healthStatus.getHealthState().toString(), allCount + 1);
+                    allTotal++;
+                }
+
+                backendHealthMap.put("Total", backendTotal);
             }
 
-            for (HealthStatus healthStatus : healthStatuses) {
-                int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
-                backendHealthMap.put(healthStatus.getHealthState(), backendCount + 1);
-                backendTotal++;
+            allHealthMap.put("Total", allTotal);
 
-                int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
-                allHealthMap.put(healthStatus.getHealthState(), allCount + 1);
-                allTotal++;
-            }
-
-            backendHealthMap.put("Total", backendTotal);
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            throw new GyroException("Failed getting backend statuses!", ex);
         }
 
-        allHealthMap.put("Total", allTotal);
         return healthMap;
     }
 
     static boolean isRegionBackendService(String selfLink) {
-        return selfLink != null && (ProjectRegionBackendServiceName.isParsableFrom(formatResource(null, selfLink)));
+        return selfLink != null && selfLink.contains("regions") && selfLink.contains("backendServices");
+    }
+
+    private BackendService fetchBackendService(RegionBackendServicesClient client) {
+        BackendService backendService = null;
+
+        try {
+            backendService = client.get(GetRegionBackendServiceRequest.newBuilder()
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setBackendService(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return backendService;
     }
 }

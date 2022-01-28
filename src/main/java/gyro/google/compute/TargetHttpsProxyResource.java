@@ -21,14 +21,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.SslPolicyReference;
-import com.google.api.services.compute.model.TargetHttpsProxiesSetQuicOverrideRequest;
-import com.google.api.services.compute.model.TargetHttpsProxiesSetSslCertificatesRequest;
-import com.google.api.services.compute.model.TargetHttpsProxy;
-import com.google.api.services.compute.model.UrlMapReference;
-import com.google.cloud.compute.v1.ProjectGlobalTargetHttpsProxyName;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.GetTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.InsertTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SetQuicOverrideTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.SetSslCertificatesTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.SetSslPolicyTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.SetUrlMapTargetHttpsProxyRequest;
+import com.google.cloud.compute.v1.SslPolicyReference;
+import com.google.cloud.compute.v1.TargetHttpsProxiesClient;
+import com.google.cloud.compute.v1.TargetHttpsProxiesSetQuicOverrideRequest;
+import com.google.cloud.compute.v1.TargetHttpsProxiesSetSslCertificatesRequest;
+import com.google.cloud.compute.v1.TargetHttpsProxy;
+import com.google.cloud.compute.v1.UrlMapReference;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -86,6 +94,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
         if (sslCertificates == null) {
             sslCertificates = new ArrayList<>();
         }
+
         return sslCertificates;
     }
 
@@ -122,7 +131,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     public void copyFrom(TargetHttpsProxy model) {
         super.copyFrom(model);
 
-        setQuicOverride(model.getQuicOverride());
+        setQuicOverride(model.getQuicOverride().toString());
 
         setUrlMap(null);
         if (model.getUrlMap() != null) {
@@ -130,8 +139,8 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
         }
 
         getSslCertificates().clear();
-        if (model.getSslCertificates() != null) {
-            setSslCertificates(model.getSslCertificates().stream()
+        if (model.getSslCertificatesList() != null) {
+            setSslCertificates(model.getSslCertificatesList().stream()
                 .map(cert -> findById(SslCertificateResource.class, cert))
                 .collect(Collectors.toList()));
         }
@@ -144,28 +153,43 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
-        copyFrom(client.targetHttpsProxies().get(getProjectId(), getName()).execute());
+        try (TargetHttpsProxiesClient client = createClient(TargetHttpsProxiesClient.class)) {
+            TargetHttpsProxy targetHttpProxy = getTargetHttpsProxy(client);
 
-        return true;
+            if (targetHttpProxy == null) {
+                return false;
+            }
+
+            copyFrom(targetHttpProxy);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (TargetHttpsProxiesClient client = createClient(TargetHttpsProxiesClient.class)) {
+            TargetHttpsProxy.Builder targetHttpsProxy = toTargetHttpsProxy().toBuilder();
+            targetHttpsProxy.setUrlMap(getUrlMap().getSelfLink());
 
-        TargetHttpsProxy targetHttpsProxy = toTargetHttpsProxy();
-        targetHttpsProxy.setUrlMap(getUrlMap().getSelfLink());
-        targetHttpsProxy.setQuicOverride(getQuicOverride());
-        targetHttpsProxy.setSslPolicy(getSslPolicy() != null ? getSslPolicy().getSelfLink() : null);
-        targetHttpsProxy.setSslCertificates(!getSslCertificates().isEmpty()
-            ? getSslCertificates().stream()
-            .map(AbstractSslCertificateResource::getSelfLink)
-            .collect(Collectors.toList())
-            : null);
+            if (getQuicOverride() != null) {
+                targetHttpsProxy.setQuicOverride(getQuicOverride());
+            }
 
-        Operation operation = client.targetHttpsProxies().insert(getProjectId(), targetHttpsProxy).execute();
-        waitForCompletion(client, operation);
+            if (getSslCertificates() != null) {
+                targetHttpsProxy.setSslPolicy(getSslPolicy().getSelfLink());
+            }
+
+            targetHttpsProxy.addAllSslCertificates(getSslCertificates().stream()
+                .map(AbstractSslCertificateResource::getSelfLink).collect(Collectors.toList()));
+
+            Operation operation = client.insertCallable().call(InsertTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpsProxyResource(targetHttpsProxy)
+                .build());
+
+            waitForCompletion(operation);
+        }
 
         refresh();
     }
@@ -173,42 +197,61 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     @Override
     protected void doUpdate(
         GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        Compute client = createComputeClient();
+        try (TargetHttpsProxiesClient client = createClient(TargetHttpsProxiesClient.class)) {
 
-        if (changedFieldNames.contains("quic-override")) {
-            TargetHttpsProxiesSetQuicOverrideRequest quicOverride = new TargetHttpsProxiesSetQuicOverrideRequest();
-            quicOverride.setQuicOverride(getQuicOverride() != null ? getQuicOverride() : "NONE");
-            Operation response =
-                client.targetHttpsProxies().setQuicOverride(getProjectId(), getName(), quicOverride).execute();
-            waitForCompletion(client, response);
-        }
+            if (changedFieldNames.contains("quic-override")) {
+                TargetHttpsProxiesSetQuicOverrideRequest.Builder builder = TargetHttpsProxiesSetQuicOverrideRequest.newBuilder();
+                builder.setQuicOverride(getQuicOverride());
 
-        if (changedFieldNames.contains("ssl-certificates")) {
-            TargetHttpsProxiesSetSslCertificatesRequest sslCertificates =
-                new TargetHttpsProxiesSetSslCertificatesRequest();
-            sslCertificates.setSslCertificates(getSslCertificates().stream()
-                .map(AbstractSslCertificateResource::getSelfLink)
-                .collect(Collectors.toList()));
-            Operation response =
-                client.targetHttpsProxies().setSslCertificates(getProjectId(), getName(), sslCertificates).execute();
-            waitForCompletion(client, response);
-        }
+                Operation response = client.setQuicOverrideCallable().call(SetQuicOverrideTargetHttpsProxyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setTargetHttpsProxy(getName())
+                        .setTargetHttpsProxiesSetQuicOverrideRequestResource(builder)
+                    .build());
 
-        if (changedFieldNames.contains("ssl-policy")) {
-            SslPolicyReference sslPolicy =
-                new SslPolicyReference();
-            sslPolicy.setSslPolicy(getSslPolicy() != null ? getSslPolicy().getSelfLink() : null);
-            Operation response =
-                client.targetHttpsProxies().setSslPolicy(getProjectId(), getName(), sslPolicy).execute();
-            waitForCompletion(client, response);
-        }
+                waitForCompletion(response);
+            }
 
-        if (changedFieldNames.contains("url-map")) {
-            UrlMapReference urlMapReference = new UrlMapReference();
-            urlMapReference.setUrlMap(getUrlMap().getSelfLink());
-            Operation operation =
-                client.targetHttpsProxies().setUrlMap(getProjectId(), getName(), urlMapReference).execute();
-            waitForCompletion(client, operation);
+            if (changedFieldNames.contains("ssl-certificates")) {
+                TargetHttpsProxiesSetSslCertificatesRequest.Builder sslCertificates = TargetHttpsProxiesSetSslCertificatesRequest
+                    .newBuilder();
+                sslCertificates.addAllSslCertificates(getSslCertificates().stream()
+                    .map(AbstractSslCertificateResource::getSelfLink)
+                    .collect(Collectors.toList()));
+                Operation response = client.setSslCertificatesCallable()
+                    .call(SetSslCertificatesTargetHttpsProxyRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setTargetHttpsProxy(getName())
+                        .setTargetHttpsProxiesSetSslCertificatesRequestResource(sslCertificates)
+                        .build());
+
+                waitForCompletion(response);
+            }
+
+            if (changedFieldNames.contains("ssl-policy")) {
+                SslPolicyReference.Builder sslPolicy = SslPolicyReference.newBuilder();
+                sslPolicy.setSslPolicy(getSslPolicy().getSelfLink());
+                Operation response = client.setSslPolicyCallable().call(SetSslPolicyTargetHttpsProxyRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setTargetHttpsProxy(getName())
+                    .setSslPolicyReferenceResource(sslPolicy)
+                    .build());
+
+                waitForCompletion(response);
+            }
+
+            if (changedFieldNames.contains("url-map")) {
+                UrlMapReference.Builder urlMapReference = UrlMapReference.newBuilder();
+                urlMapReference.setUrlMap(getUrlMap().getSelfLink());
+                Operation operation = client.setUrlMapCallable()
+                    .call(SetUrlMapTargetHttpsProxyRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setTargetHttpsProxy(getName())
+                        .setUrlMapReferenceResource(urlMapReference)
+                        .build());
+
+                waitForCompletion(operation);
+            }
         }
 
         refresh();
@@ -216,12 +259,33 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
-        Operation response = client.targetHttpsProxies().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, response);
+        try (TargetHttpsProxiesClient client = createClient(TargetHttpsProxiesClient.class)) {
+            Operation response = client.deleteCallable().call(DeleteTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpsProxy(getName())
+                .build());
+
+            waitForCompletion(response);
+        }
     }
 
     static boolean isTargetHttpsProxy(String selfLink) {
-        return selfLink != null && ProjectGlobalTargetHttpsProxyName.isParsableFrom(formatResource(null, selfLink));
+        return selfLink != null && selfLink.contains("targetHttpsProxies");
+    }
+
+    private TargetHttpsProxy getTargetHttpsProxy(TargetHttpsProxiesClient client) {
+        TargetHttpsProxy targetHttpsProxy = null;
+
+        try {
+            targetHttpsProxy = client.get(GetTargetHttpsProxyRequest.newBuilder()
+                .setProject(getProjectId())
+                .setTargetHttpsProxy(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return targetHttpsProxy;
     }
 }

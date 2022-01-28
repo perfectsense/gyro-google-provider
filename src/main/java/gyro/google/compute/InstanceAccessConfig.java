@@ -16,7 +16,7 @@
 
 package gyro.google.compute;
 
-import com.google.api.services.compute.model.AccessConfig;
+import com.google.cloud.compute.v1.AccessConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -55,7 +55,7 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     /**
      * Signifies the networking tier used for configuring this access configuration. If specified without a valid external IP address, an ephemeral IP will be created with this networkTier. If a valid external IP address is specified, it must match that of the networkTier associated with the Address resource owning that IP.
      */
-    @ValidStrings({"PREMIUM", "STANDARD"})
+    @ValidStrings({ "PREMIUM", "STANDARD" })
     public String getNetworkTier() {
         return networkTier;
     }
@@ -107,19 +107,39 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     public void copyFrom(AccessConfig model) {
         setName(model.getName());
         setNatIp(model.getNatIP());
-        setNetworkTier(model.getNetworkTier());
+        setNetworkTier(model.getNetworkTier().toString());
         setPublicPtrDomainName(model.getPublicPtrDomainName());
         setSetPublicPtr(model.getSetPublicPtr());
-        setType(model.getType());
+        setType(model.getType().toString());
     }
 
     public AccessConfig copyTo() {
-        return new AccessConfig()
-            .setName(getName())
-            .setNatIP(getNatIp())
-            .setNetworkTier(getNetworkTier())
-            .setPublicPtrDomainName(getPublicPtrDomainName())
-            .setSetPublicPtr(getSetPublicPtr())
-            .setType(getType());
+        AccessConfig.Builder builder = AccessConfig.newBuilder();
+
+        if (getName() != null) {
+            builder.setName(getName());
+        }
+
+        if (getNatIp() != null) {
+            builder.setNatIP(getNatIp());
+        }
+
+        if (getNetworkTier() != null) {
+            builder.setNetworkTier(getNetworkTier());
+        }
+
+        if (getPublicPtrDomainName() != null) {
+            builder.setPublicPtrDomainName(getPublicPtrDomainName());
+        }
+
+        if (getSetPublicPtr() != null) {
+            builder.setSetPublicPtr(getSetPublicPtr());
+        }
+
+        if (getType() != null) {
+            builder.setType(getType()).build();
+        }
+
+        return builder.build();
     }
 }

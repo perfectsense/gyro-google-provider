@@ -18,9 +18,14 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.SslCertificate;
+import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.cloud.compute.v1.DeleteSslCertificateRequest;
+import com.google.cloud.compute.v1.GetSslCertificateRequest;
+import com.google.cloud.compute.v1.InsertSslCertificateRequest;
+import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.SslCertificate;
+import com.google.cloud.compute.v1.SslCertificatesClient;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -46,27 +51,38 @@ public class SslCertificateResource extends AbstractSslCertificateResource {
 
     @Override
     protected boolean doRefresh() throws Exception {
-        Compute client = createComputeClient();
+        try (SslCertificatesClient client = createClient(SslCertificatesClient.class)) {
+            SslCertificate sslCertificate = getSslCertificate(client);
 
-        SslCertificate sslCertificate = client.sslCertificates().get(getProjectId(), getName()).execute();
-        copyFrom(sslCertificate);
+            if (sslCertificate == null) {
+                return false;
+            }
 
-        return true;
+            copyFrom(sslCertificate);
+
+            return true;
+        }
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (SslCertificatesClient client = createClient(SslCertificatesClient.class)) {
+            SslCertificate.Builder builder = SslCertificate.newBuilder();
+            builder.setName(getName());
+            builder.setCertificate(readCertificateFile());
+            builder.setPrivateKey(readPrivateKeyFile());
 
-        SslCertificate certificate = new SslCertificate();
-        certificate.setName(getName());
-        certificate.setDescription(getDescription());
-        certificate.setCertificate(readCertificateFile());
-        certificate.setPrivateKey(readPrivateKeyFile());
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
 
-        Operation operation = client.sslCertificates().insert(getProjectId(), certificate).execute();
-        waitForCompletion(client, operation);
+            Operation operation = client.insertCallable().call(InsertSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslCertificateResource(builder)
+                .build());
 
+            waitForCompletion(operation);
+        }
         refresh();
     }
 
@@ -78,9 +94,29 @@ public class SslCertificateResource extends AbstractSslCertificateResource {
 
     @Override
     protected void doDelete(GyroUI ui, State state) throws Exception {
-        Compute client = createComputeClient();
+        try (SslCertificatesClient client = createClient(SslCertificatesClient.class)) {
+            Operation operation = client.deleteCallable().call(DeleteSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslCertificate(getName())
+                .build());
 
-        Operation operation = client.sslCertificates().delete(getProjectId(), getName()).execute();
-        waitForCompletion(client, operation);
+            waitForCompletion(operation);
+        }
+    }
+
+    private SslCertificate getSslCertificate(SslCertificatesClient client) {
+        SslCertificate sslCertificate = null;
+
+        try {
+            sslCertificate = client.get(GetSslCertificateRequest.newBuilder()
+                .setProject(getProjectId())
+                .setSslCertificate(getName())
+                .build());
+
+        } catch (NotFoundException | InvalidArgumentException ex) {
+            // ignore
+        }
+
+        return sslCertificate;
     }
 }

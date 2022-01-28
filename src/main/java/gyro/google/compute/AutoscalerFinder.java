@@ -24,14 +24,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.AutoscalerAggregatedList;
-import com.google.api.services.compute.model.AutoscalerList;
-import com.google.api.services.compute.model.AutoscalersScopedList;
-import com.psddev.dari.util.ObjectUtils;
+import com.google.api.gax.rpc.UnaryCallable;
+import com.google.cloud.compute.v1.AggregatedListAutoscalersRequest;
+import com.google.cloud.compute.v1.Autoscaler;
+import com.google.cloud.compute.v1.AutoscalerAggregatedList;
+import com.google.cloud.compute.v1.AutoscalerList;
+import com.google.cloud.compute.v1.AutoscalersClient;
+import com.google.cloud.compute.v1.AutoscalersScopedList;
+import com.google.cloud.compute.v1.ListAutoscalersRequest;
 import com.psddev.dari.util.StringUtils;
-import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
@@ -51,77 +52,94 @@ import gyro.google.util.Utils;
  *    autoscaler: $(external-query google::compute-autoscaler { name: 'compute-autoscaler-example', zone: 'us-central1-a' })
  */
 @Type("compute-autoscaler")
-public class AutoscalerFinder extends GoogleFinder<Compute, Autoscaler, AutoscalerResource> {
+public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler, AutoscalerResource> {
 
     @Override
-    protected List<Autoscaler> findAllGoogle(Compute client) throws Exception {
-        return findAllAutoscalers(client, getProjectId(), ResourceScope.ZONE, null);
+    protected List<Autoscaler> findAllGoogle(AutoscalersClient client) throws Exception {
+        try {
+            return getAutoscalers(client, ResourceScope.ZONE, null);
+        } finally {
+            client.close();
+        }
     }
 
     @Override
-    protected List<Autoscaler> findGoogle(Compute client, Map<String, String> filters) throws Exception {
-        if (filters.containsKey("region")) {
-            throw new GyroException("For regional autoscaler, use 'compute-region-autoscaler' instead.");
-        }
+    protected List<Autoscaler> findGoogle(
+        AutoscalersClient client, Map<String, String> filters) throws Exception {
 
-        String zone = filters.remove("zone");
+        List<Autoscaler> instances = new ArrayList<>();
+        String pageToken = null;
 
-        if (zone == null && !ObjectUtils.isBlank(filters)) {
-            return findAllAutoscalers(client, getProjectId(), ResourceScope.ZONE, filters);
-        }
-        Compute.Autoscalers instanceGroupManagers = client.autoscalers();
-        List<Autoscaler> allAutoscalers = new ArrayList<>();
+        try {
+            if (filters.containsKey("zone")) {
 
-        Compute.Autoscalers.List request = instanceGroupManagers.list(getProjectId(), zone);
-        request.setFilter(Utils.convertToFilters(filters));
-        String nextPageToken = null;
+                do {
+                    ListAutoscalersRequest.Builder builder = ListAutoscalersRequest.newBuilder()
+                        .setProject(getProjectId()).setZone(filters.get("zone"))
+                        .setFilter(filters.getOrDefault("filter", ""));
 
-        do {
-            AutoscalerList response = request.execute();
-            List<Autoscaler> items = response.getItems();
+                    if (pageToken != null) {
+                        builder.setPageToken(pageToken);
+                    }
 
-            if (items == null) {
-                break;
+                    AutoscalerList addressList = client.list(builder.build()).getPage().getResponse();
+                    pageToken = addressList.getNextPageToken();
+
+                    if (addressList.getItemsList() != null) {
+                        instances.addAll(addressList.getItemsList());
+                    }
+
+                } while (!StringUtils.isEmpty(pageToken));
+            } else {
+                return getAutoscalers(client, ResourceScope.ZONE, filters);
             }
-            allAutoscalers.addAll(items);
-            nextPageToken = response.getNextPageToken();
-            request.setPageToken(nextPageToken);
-        } while (nextPageToken != null);
-        return allAutoscalers;
+
+        } finally {
+            client.close();
+        }
+
+        return instances;
     }
 
-    protected static List<Autoscaler> findAllAutoscalers(
-        Compute client,
-        String projectId,
-        ResourceScope scope,
-        Map<String, String> filterMap)
-        throws Exception {
-        String filters = Utils.convertToFilters(filterMap);
+    private List<Autoscaler> getAutoscalers(
+        AutoscalersClient client, ResourceScope scope, Map<String, String> filterMap) {
+        String filter = Utils.convertToFilters(filterMap);
 
         if (scope != null) {
-            filters = StringUtils.join(Arrays.asList(scope.toFilterString(), filters), " ");
+            filter = StringUtils.join(Arrays.asList(scope.toFilterString(), filter), " ");
         }
-        Compute.Autoscalers.AggregatedList request = client.autoscalers()
-            .aggregatedList(projectId);
-        request.setFilter(filters);
-        String nextPageToken = null;
-        List<Autoscaler> allAutoscalers = new ArrayList<>();
+
+        List<Autoscaler> autoscalers = new ArrayList<>();
+        String pageToken = null;
 
         do {
-            AutoscalerAggregatedList response = request.execute();
-            Map<String, AutoscalersScopedList> items = response.getItems();
+            UnaryCallable<AggregatedListAutoscalersRequest, AutoscalerAggregatedList> callable = client
+                .aggregatedListCallable();
 
-            if (items == null) {
-                break;
+            AggregatedListAutoscalersRequest.Builder builder = AggregatedListAutoscalersRequest.newBuilder();
+
+            if (pageToken != null) {
+                builder.setPageToken(pageToken);
             }
-            items.values().stream()
-                .map(AutoscalersScopedList::getAutoscalers)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toCollection(() -> allAutoscalers));
-            nextPageToken = response.getNextPageToken();
-            request.setPageToken(nextPageToken);
-        } while (nextPageToken != null);
-        return allAutoscalers;
+
+            if (filter != null) {
+                builder.setFilter(filter);
+            }
+
+            AutoscalerAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId())
+                .build());
+            pageToken = aggregatedList.getNextPageToken();
+
+            if (aggregatedList.getItemsMap() != null) {
+                autoscalers.addAll(aggregatedList.getItemsMap().values().stream()
+                    .map(AutoscalersScopedList::getAutoscalersList)
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+            }
+
+        } while (!StringUtils.isEmpty(pageToken));
+
+        return autoscalers;
     }
 }

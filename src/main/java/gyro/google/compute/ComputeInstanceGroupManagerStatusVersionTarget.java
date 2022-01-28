@@ -16,13 +16,13 @@
 
 package gyro.google.compute;
 
-import java.util.Map;
-import java.util.Optional;
-
+import com.google.cloud.compute.v1.InstanceGroupManagerStatusVersionTarget;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
+import gyro.google.Copyable;
 
-public class ComputeInstanceGroupManagerStatusVersionTarget extends Diffable {
+public class ComputeInstanceGroupManagerStatusVersionTarget extends Diffable
+    implements Copyable<InstanceGroupManagerStatusVersionTarget> {
 
     private Boolean isReached;
 
@@ -39,14 +39,9 @@ public class ComputeInstanceGroupManagerStatusVersionTarget extends Diffable {
         this.isReached = isReached;
     }
 
-    public void copyFrom(Object model) {
-        setIsReached(Optional.ofNullable(model)
-            .filter(Map.class::isInstance)
-            .map(Map.class::cast)
-            .map(e -> e.get("isReached"))
-            .filter(Boolean.class::isInstance)
-            .map(Boolean.class::cast)
-            .orElse(null));
+    @Override
+    public void copyFrom(InstanceGroupManagerStatusVersionTarget model) {
+        setIsReached(model.getIsReached());
     }
 
     @Override
