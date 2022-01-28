@@ -282,6 +282,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     private String masterVersion;
     private GkeIdentityServiceConfig identityServiceConfig;
     private GkeAutopilot autopilot;
+    private GkeLoggingConfig loggingConfig;
 
     // Read-only
     private String tpuIpv4CidrBlock;
@@ -870,6 +871,20 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.autopilot = autopilot;
     }
 
+    /**
+     * The logging configuration.
+     *
+     * @subresource gyro.google.gke.GkeLoggingConfig
+     */
+    @Updatable
+    public GkeLoggingConfig getLoggingConfig() {
+        return loggingConfig;
+    }
+
+    public void setLoggingConfig(GkeLoggingConfig loggingConfig) {
+        this.loggingConfig = loggingConfig;
+    }
+
     @Override
     public void copyFrom(Cluster model) throws Exception {
         setMasterAuthConfig(null);
@@ -1021,6 +1036,10 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         GkeAutopilot gkeAutopilot = newSubresource(GkeAutopilot.class);
         gkeAutopilot.copyFrom(model.getAutopilot());
         setAutopilot(gkeAutopilot);
+
+        GkeLoggingConfig gkeLoggingConfig = newSubresource(GkeLoggingConfig.class);
+        gkeLoggingConfig.copyFrom(model.getLoggingConfig());
+        setLoggingConfig(gkeLoggingConfig);
 
         setNodePool(model.getNodePoolsList().stream().map(n -> {
             GkeNodePool gkeNodePool = newSubresource(GkeNodePool.class);
@@ -1212,6 +1231,10 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             builder.setAutopilot(getAutopilot().toAutopilot());
         }
 
+        if (getLoggingConfig() != null) {
+            builder.setLoggingConfig(getLoggingConfig().toLoggingConfig());
+        }
+
         try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
             client.createCluster(CreateClusterRequest.newBuilder()
                 .setParent(getParent())
@@ -1348,6 +1371,12 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
             if (changedFieldNames.contains("identity-service-config")) {
                 builder.setDesiredIdentityServiceConfig(getIdentityServiceConfig().toIdentityServiceConfig());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("logging-config")) {
+                builder.setDesiredLoggingConfig(getLoggingConfig().toLoggingConfig());
                 updateCluster(client, builder);
                 builder.clear();
             }
