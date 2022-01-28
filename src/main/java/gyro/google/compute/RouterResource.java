@@ -261,37 +261,26 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
         setRegion(Utils.extractName(model.getRegion()));
         setNetwork(findById(NetworkResource.class, model.getNetwork()));
 
-        if (model.getBgp() != null) {
-            RouterBgp bgp = newSubresource(RouterBgp.class);
-            bgp.copyFrom(model.getBgp());
-            setRouterBgp(bgp);
+        RouterBgp bgp = newSubresource(RouterBgp.class);
+        bgp.copyFrom(model.getBgp());
+        setRouterBgp(bgp);
+
+        for (com.google.cloud.compute.v1.RouterNat n : model.getNatsList()) {
+            RouterNat nat = newSubresource(RouterNat.class);
+            nat.copyFrom(n);
+            getRouterNat().add(nat);
         }
 
-        if (model.getNatsList() != null) {
-            getRouterNat().clear();
-            for (com.google.cloud.compute.v1.RouterNat n : model.getNatsList()) {
-                RouterNat nat = newSubresource(RouterNat.class);
-                nat.copyFrom(n);
-                getRouterNat().add(nat);
-            }
+        for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfacesList()) {
+            RouterInterface routerInterface = newSubresource(RouterInterface.class);
+            routerInterface.copyFrom(i);
+            getRouterInterface().add(routerInterface);
         }
 
-        if (model.getInterfacesList() != null) {
-            getRouterInterface().clear();
-            for (com.google.cloud.compute.v1.RouterInterface i : model.getInterfacesList()) {
-                RouterInterface routerInterface = newSubresource(RouterInterface.class);
-                routerInterface.copyFrom(i);
-                getRouterInterface().add(routerInterface);
-            }
-        }
-
-        if (model.getBgpPeersList() != null) {
-            getRouterBgpPeer().clear();
-            for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeersList()) {
-                RouterBgpPeer bgpPeer = newSubresource(RouterBgpPeer.class);
-                bgpPeer.copyFrom(p);
-                getRouterBgpPeer().add(bgpPeer);
-            }
+        for (com.google.cloud.compute.v1.RouterBgpPeer p : model.getBgpPeersList()) {
+            RouterBgpPeer bgpPeer = newSubresource(RouterBgpPeer.class);
+            bgpPeer.copyFrom(p);
+            getRouterBgpPeer().add(bgpPeer);
         }
     }
 
