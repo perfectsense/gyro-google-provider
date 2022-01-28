@@ -28,7 +28,7 @@
  * .. code:: shell
  *
  *     {@literal @}repository: 'https://artifactory.psdops.com/gyro-releases'
- *     {@literal @}plugin: 'gyro:gyro-google-provider:0.99.2'
+ *     {@literal @}plugin: 'gyro:gyro-google-provider:0.99.3'
  *
  * This lets Gyro load the Google provider plugin and lets you start managing Google Cloud Platform resources using Gyro.
  *

@@ -1,3 +1,24 @@
+## 0.99.3 (January 28th, 2022)
+
+ENHANCEMENTS:
+
+* [205](https://github.com/perfectsense/gyro-google-provider/issues/205): Add support for Pubsub.
+* [206](https://github.com/perfectsense/gyro-google-provider/issues/206): Add support for Google Kubernetes Engine.
+* [213](https://github.com/perfectsense/gyro-google-provider/issues/213): Add support for Http redirect on Compute path rule.
+* [216](https://github.com/perfectsense/gyro-google-provider/issues/216): Add support for Artifact registry.
+* [220](https://github.com/perfectsense/gyro-google-provider/pull/220): Add support for secondary range in Subnetwork.
+
+MISC:
+
+* [200](https://github.com/perfectsense/gyro-google-provider/issues/200): Use @uses-credentials to set custom credentials for file backend.
+* [202](https://github.com/perfectsense/gyro-google-provider/issues/202): Update doc generation.
+
+ISSUES FIXED:
+
+* [207](https://github.com/perfectsense/gyro-google-provider/issues/207): Fix service account role refresh error on custom role.
+* [226](https://github.com/perfectsense/gyro-google-provider/pull/226): Allow uniform bucket level access to be updated.
+
+
 ## 0.99.2 (August 25th, 2020)
 
 ENHANCEMENTS:

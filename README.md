@@ -1,7 +1,7 @@
 <img src="https://github.com/perfectsense/gyro/blob/master/etc/gyro.png" height="200"/>
 
 [![Gitter](https://img.shields.io/gitter/room/perfectsense/gyro)](https://gitter.im/perfectsense/gyro)
-[![TravisCI](https://api.travis-ci.org/perfectsense/gyro-google-provider.svg?branch=master)](https://travis-ci.org/perfectsense/gyro-google-provider)
+[![TravisCI](https://api.travis-ci.com/perfectsense/gyro-google-provider.svg?branch=master)](https://travis-ci.com/perfectsense/gyro-google-provider)
 [![Apache License 2.0](https://img.shields.io/github/license/perfectsense/gyro-google-provider)](https://github.com/perfectsense/gyro-google-provider/blob/master/LICENSE)
 
 
@@ -42,7 +42,7 @@ Load the Google provider in your project by consuming it as a `plugin` directive
 
 ```shell
 @repository: 'https://artifactory.psdops.com/gyro-releases'
-@plugin: 'gyro:gyro-google-provider:0.99.2'
+@plugin: 'gyro:gyro-google-provider:0.99.3'
 ```
 
 #### Authentication ####
@@ -60,11 +60,14 @@ See [Google authentication for Gyro](https://gyro.dev/providers/google/index.htm
 
 ## Supported Services
 
+* [Artifact Registry](https://gyro.dev/providers/google/artifactregistry/index.html)
 * [Compute](https://gyro.dev/providers/google/compute/index.html)
 * [DNS](https://gyro.dev/providers/google/dns/index.html)
-* [Storage](https://gyro.dev/providers/google/bucket/index.html)
-* [KMS](https://gyro.dev/providers/google/kms/index.html)
+* [GKE](https://gyro.dev/providers/google/gke/index.html)
 * [IAM](https://gyro.dev/providers/google/iam/index.html)
+* [KMS](https://gyro.dev/providers/google/kms/index.html)
+* [PubSub](https://gyro.dev/providers/google/pubsub/index.html)
+* [Storage](https://gyro.dev/providers/google/bucket/index.html)
 
 ## Developing the Google Provider
 
