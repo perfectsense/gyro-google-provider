@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.container.v1beta1.ClusterManagerClient;
+import com.google.container.v1.ClusterAutoscaling;
+import com.google.container.v1.SetNetworkPolicyRequest;
 import com.google.container.v1beta1.Cluster;
 import com.google.container.v1beta1.ClusterUpdate;
 import com.google.container.v1beta1.CreateClusterRequest;
@@ -460,6 +462,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
      *
      * @subresource gyro.google.gke.GkeNetworkPolicy
      */
+    @Updatable
     @ConflictsWith("autopilot")
     public GkeNetworkPolicy getNetworkPolicyConfig() {
         return networkPolicyConfig;
@@ -1060,14 +1063,16 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         setEndpoint(model.getEndpoint());
         setSelfLink(model.getSelfLink());
         setInitialClusterVersion(model.getInitialClusterVersion());
-        setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         setNodeLocations(model.getLocationsList());
         setEnableKubernetesAlpha(model.getEnableKubernetesAlpha());
         setLoggingService(model.getLoggingService());
         setMonitoringService(model.getMonitoringService());
-        setNetwork(findById(NetworkResource.class, model.getNetwork()));
         setClusterIpv4Cidr(model.getClusterIpv4Cidr());
         setLabelFingerPrint(model.getLabelFingerprint());
+        setNetwork(findById(NetworkResource.class,
+            NetworkResource.selfLinkForName(getProjectId(), model.getNetwork())));
+        setSubnetwork(findById(SubnetworkResource.class,
+            SubnetworkResource.selfLinkForName(getProjectId(), model.getLocation(), model.getSubnetwork())));
     }
 
     @Override
@@ -1276,7 +1281,11 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }
 
             if (changedFieldNames.contains("cluster-autoscaling-config")) {
-                builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
+                ClusterAutoscaling autoscaling = getClusterAutoscalingConfig() != null
+                    ? getClusterAutoscalingConfig().toClusterAutoscaling()
+                    : ClusterAutoscaling.newBuilder().setEnableNodeAutoprovisioning(false).build();
+
+                builder.setDesiredClusterAutoscaling(autoscaling);
                 updateCluster(client, builder);
                 builder.clear();
             }
@@ -1362,6 +1371,14 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
                 builder.setDesiredMonitoringService(getMonitoringService());
                 updateCluster(client, builder);
                 builder.clear();
+            }
+
+            if (changedFieldNames.contains("network-policy-config")) {
+                client.setNetworkPolicy(SetNetworkPolicyRequest.newBuilder()
+                    .setName(getClusterId())
+                    .setNetworkPolicy(getNetworkPolicyConfig().toNetworkPolicy()).build());
+
+                waitForActiveStatus(client);
             }
 
             if (changedFieldNames.contains("labels")) {
