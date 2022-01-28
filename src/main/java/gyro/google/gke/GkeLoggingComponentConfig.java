@@ -1,6 +1,5 @@
 package gyro.google.gke;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.container.v1beta1.LoggingComponentConfig;
@@ -14,11 +13,6 @@ public class GkeLoggingComponentConfig extends Diffable implements Copyable<Logg
 
     @Updatable
     public List<LoggingComponentConfig.Component> getComponent() {
-        if (component == null) {
-            component = new ArrayList<>();
-            component.add(LoggingComponentConfig.Component.COMPONENT_UNSPECIFIED);
-        }
-
         return component;
     }
 

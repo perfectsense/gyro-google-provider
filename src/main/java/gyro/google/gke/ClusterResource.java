@@ -34,6 +34,8 @@ import com.google.container.v1beta1.CreateClusterRequest;
 import com.google.container.v1beta1.DeleteClusterRequest;
 import com.google.container.v1beta1.GetClusterRequest;
 import com.google.container.v1beta1.IntraNodeVisibilityConfig;
+import com.google.container.v1beta1.LoggingComponentConfig;
+import com.google.container.v1beta1.LoggingConfig;
 import com.google.container.v1beta1.SetLabelsRequest;
 import com.google.container.v1beta1.SetNetworkPolicyRequest;
 import com.google.container.v1beta1.UpdateClusterRequest;
@@ -1402,7 +1404,15 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }
 
             if (changedFieldNames.contains("logging-config")) {
-                builder.setDesiredLoggingConfig(getLoggingConfig().toLoggingConfig());
+                if (getLoggingConfig() == null) {
+                    builder.setDesiredLoggingConfig(LoggingConfig.newBuilder()
+                        .setComponentConfig(LoggingComponentConfig.newBuilder()
+                            .clear()
+                            .build())
+                        .build());
+                } else {
+                    builder.setDesiredLoggingConfig(getLoggingConfig().toLoggingConfig());
+                }
                 updateCluster(client, builder);
                 builder.clear();
             }
