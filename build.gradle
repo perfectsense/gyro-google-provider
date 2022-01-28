@@ -20,7 +20,7 @@ plugins {
     id 'maven-publish'
 }
 
-def releaseVersion = '0.99.3'
+def releaseVersion = '0.99.4'
 def releaseBuild = false;
 
 if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'false') {
@@ -62,7 +62,7 @@ configurations {
 }
 
 dependencies {
-    api 'gyro:gyro-core:1.0.0' + (releaseBuild ? '' : '-SNAPSHOT')
+    api 'gyro:gyro-core:1.1.2'
 
     implementation enforcedPlatform('com.google.cloud:libraries-bom:20.4.0')
     // XXX: com.google.apis:google-api-services-iam:v1-rev316-1.25.0 uses older version of com.google.api-client:google-api-client
