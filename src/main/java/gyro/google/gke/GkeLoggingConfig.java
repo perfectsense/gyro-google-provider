@@ -2,12 +2,16 @@ package gyro.google.gke;
 
 import com.google.container.v1beta1.LoggingConfig;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class GkeLoggingConfig extends Diffable implements Copyable<LoggingConfig> {
 
     private GkeLoggingComponentConfig loggingComponentConfig;
 
+    @Required
+    @Updatable
     public GkeLoggingComponentConfig getLoggingComponentConfig() {
         return loggingComponentConfig;
     }

@@ -1414,7 +1414,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     private void updateCluster(ClusterManagerClient client, ClusterUpdate.Builder builder) {
-        client.updateCluster(UpdateClusterRequest.newBuilder().setUpdate(builder.build()).build());
+        client.updateCluster(UpdateClusterRequest.newBuilder()
+            .setUpdate(builder.build())
+            .build());
 
         waitForActiveStatus(client);
     }
