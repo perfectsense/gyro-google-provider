@@ -354,4 +354,9 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
         return subnetwork;
     }
+
+    public static String selfLinkForName(String projectId, String region, String name) {
+        return String.format("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/subnetworks/%s",
+            projectId, region, name);
+    }
 }

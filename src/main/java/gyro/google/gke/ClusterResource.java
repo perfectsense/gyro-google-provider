@@ -28,12 +28,16 @@ import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.container.v1beta1.ClusterManagerClient;
 import com.google.container.v1beta1.Cluster;
+import com.google.container.v1beta1.ClusterAutoscaling;
 import com.google.container.v1beta1.ClusterUpdate;
 import com.google.container.v1beta1.CreateClusterRequest;
 import com.google.container.v1beta1.DeleteClusterRequest;
 import com.google.container.v1beta1.GetClusterRequest;
 import com.google.container.v1beta1.IntraNodeVisibilityConfig;
+import com.google.container.v1beta1.LoggingComponentConfig;
+import com.google.container.v1beta1.LoggingConfig;
 import com.google.container.v1beta1.SetLabelsRequest;
+import com.google.container.v1beta1.SetNetworkPolicyRequest;
 import com.google.container.v1beta1.UpdateClusterRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -43,6 +47,7 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -279,6 +284,9 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     private Map<String, String> labels;
     private List<GkeNodePool> nodePool;
     private String masterVersion;
+    private GkeIdentityServiceConfig identityServiceConfig;
+    private GkeAutopilot autopilot;
+    private GkeLoggingConfig loggingConfig;
 
     // Read-only
     private String tpuIpv4CidrBlock;
@@ -456,6 +464,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
      *
      * @subresource gyro.google.gke.GkeNetworkPolicy
      */
+    @Updatable
+    @ConflictsWith("autopilot")
     public GkeNetworkPolicy getNetworkPolicyConfig() {
         return networkPolicyConfig;
     }
@@ -838,6 +848,48 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         this.labelFingerPrint = labelFingerPrint;
     }
 
+    /**
+     * The identity service configuration.
+     *
+     * @subresource gyro.google.gke.GkeIdentityServiceConfig
+     */
+    @Updatable
+    public GkeIdentityServiceConfig getIdentityServiceConfig() {
+        return identityServiceConfig;
+    }
+
+    public void setIdentityServiceConfig(GkeIdentityServiceConfig identityServiceConfig) {
+        this.identityServiceConfig = identityServiceConfig;
+    }
+
+    /**
+     * The autopilot configuration.
+     *
+     * @subresource gyro.google.gke.GkeAutopilot
+     */
+    @ConflictsWith("network-policy-config")
+    public GkeAutopilot getAutopilot() {
+        return autopilot;
+    }
+
+    public void setAutopilot(GkeAutopilot autopilot) {
+        this.autopilot = autopilot;
+    }
+
+    /**
+     * The logging configuration.
+     *
+     * @subresource gyro.google.gke.GkeLoggingConfig
+     */
+    @Updatable
+    public GkeLoggingConfig getLoggingConfig() {
+        return loggingConfig;
+    }
+
+    public void setLoggingConfig(GkeLoggingConfig loggingConfig) {
+        this.loggingConfig = loggingConfig;
+    }
+
     @Override
     public void copyFrom(Cluster model) throws Exception {
         setMasterAuthConfig(null);
@@ -982,6 +1034,27 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }).collect(Collectors.toList()));
         }
 
+        setIdentityServiceConfig(null);
+        if (model.hasIdentityServiceConfig()) {
+            GkeIdentityServiceConfig gkeIdentityServiceConfig = newSubresource(GkeIdentityServiceConfig.class);
+            gkeIdentityServiceConfig.copyFrom(model.getIdentityServiceConfig());
+            setIdentityServiceConfig(gkeIdentityServiceConfig);
+        }
+
+        setAutopilot(null);
+        if (model.hasAutopilot()) {
+            GkeAutopilot gkeAutopilot = newSubresource(GkeAutopilot.class);
+            gkeAutopilot.copyFrom(model.getAutopilot());
+            setAutopilot(gkeAutopilot);
+        }
+
+        setLoggingConfig(null);
+        if (model.hasLoggingConfig()) {
+            GkeLoggingConfig gkeLoggingConfig = newSubresource(GkeLoggingConfig.class);
+            gkeLoggingConfig.copyFrom(model.getLoggingConfig());
+            setLoggingConfig(gkeLoggingConfig);
+        }
+
         setNodePool(model.getNodePoolsList().stream().map(n -> {
             GkeNodePool gkeNodePool = newSubresource(GkeNodePool.class);
             gkeNodePool.copyFrom(n);
@@ -1001,14 +1074,16 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         setEndpoint(model.getEndpoint());
         setSelfLink(model.getSelfLink());
         setInitialClusterVersion(model.getInitialClusterVersion());
-        setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         setNodeLocations(model.getLocationsList());
         setEnableKubernetesAlpha(model.getEnableKubernetesAlpha());
         setLoggingService(model.getLoggingService());
         setMonitoringService(model.getMonitoringService());
-        setNetwork(findById(NetworkResource.class, model.getNetwork()));
         setClusterIpv4Cidr(model.getClusterIpv4Cidr());
         setLabelFingerPrint(model.getLabelFingerprint());
+        setNetwork(findById(NetworkResource.class,
+            NetworkResource.selfLinkForName(getProjectId(), model.getNetwork())));
+        setSubnetwork(findById(SubnetworkResource.class,
+            SubnetworkResource.selfLinkForName(getProjectId(), model.getLocation(), model.getSubnetwork())));
     }
 
     @Override
@@ -1164,6 +1239,18 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             builder.setDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
         }
 
+        if (getIdentityServiceConfig() != null) {
+            builder.setIdentityServiceConfig(getIdentityServiceConfig().toIdentityServiceConfig());
+        }
+
+        if (getAutopilot() != null) {
+            builder.setAutopilot(getAutopilot().toAutopilot());
+        }
+
+        if (getLoggingConfig() != null) {
+            builder.setLoggingConfig(getLoggingConfig().toLoggingConfig());
+        }
+
         try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
             client.createCluster(CreateClusterRequest.newBuilder()
                 .setParent(getParent())
@@ -1205,7 +1292,11 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
             }
 
             if (changedFieldNames.contains("cluster-autoscaling-config")) {
-                builder.setDesiredClusterAutoscaling(getClusterAutoscalingConfig().toClusterAutoscaling());
+                ClusterAutoscaling autoscaling = getClusterAutoscalingConfig() != null
+                    ? getClusterAutoscalingConfig().toClusterAutoscaling()
+                    : ClusterAutoscaling.newBuilder().setEnableNodeAutoprovisioning(false).build();
+
+                builder.setDesiredClusterAutoscaling(autoscaling);
                 updateCluster(client, builder);
                 builder.clear();
             }
@@ -1293,9 +1384,37 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
                 builder.clear();
             }
 
+            if (changedFieldNames.contains("network-policy-config")) {
+                client.setNetworkPolicy(SetNetworkPolicyRequest.newBuilder()
+                    .setName(getClusterId())
+                    .setNetworkPolicy(getNetworkPolicyConfig().toNetworkPolicy()).build());
+
+                waitForActiveStatus(client);
+            }
+
             if (changedFieldNames.contains("labels")) {
                 client.setLabels(SetLabelsRequest.newBuilder().setLabelFingerprint(getLabelFingerPrint())
                     .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
+            }
+
+            if (changedFieldNames.contains("identity-service-config")) {
+                builder.setDesiredIdentityServiceConfig(getIdentityServiceConfig().toIdentityServiceConfig());
+                updateCluster(client, builder);
+                builder.clear();
+            }
+
+            if (changedFieldNames.contains("logging-config")) {
+                if (getLoggingConfig() == null) {
+                    builder.setDesiredLoggingConfig(LoggingConfig.newBuilder()
+                        .setComponentConfig(LoggingComponentConfig.newBuilder()
+                            .clear()
+                            .build())
+                        .build());
+                } else {
+                    builder.setDesiredLoggingConfig(getLoggingConfig().toLoggingConfig());
+                }
+                updateCluster(client, builder);
+                builder.clear();
             }
         }
 
@@ -1314,7 +1433,10 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     private void updateCluster(ClusterManagerClient client, ClusterUpdate.Builder builder) {
-        client.updateCluster(UpdateClusterRequest.newBuilder().setUpdate(builder.build()).build());
+        client.updateCluster(UpdateClusterRequest.newBuilder()
+            .setName(getClusterId())
+            .setUpdate(builder.build())
+            .build());
 
         waitForActiveStatus(client);
     }
