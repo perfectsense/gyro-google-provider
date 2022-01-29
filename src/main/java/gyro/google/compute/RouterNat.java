@@ -209,9 +209,9 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
         setTcpTransitoryIdleTimeoutSec(model.getTcpTransitoryIdleTimeoutSec());
         setUdpIdleTimeoutSec(model.getUdpIdleTimeoutSec());
 
-        RouterNatLogConfig logConfig = newSubresource(RouterNatLogConfig.class);
-        logConfig.copyFrom(model.getLogConfig());
-        setLogConfig(logConfig);
+        RouterNatLogConfig natLogConfig = newSubresource(RouterNatLogConfig.class);
+        natLogConfig.copyFrom(model.getLogConfig());
+        setLogConfig(natLogConfig);
 
         setNatIp(model.getNatIpsList()
             .stream()
