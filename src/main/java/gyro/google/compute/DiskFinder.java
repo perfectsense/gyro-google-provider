@@ -110,11 +110,9 @@ public class DiskFinder extends GoogleFinder<DisksClient, Disk, DiskResource> {
                     diskList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
-                    if (diskList.getItemsList() != null) {
-                        disks.addAll(diskList.getItemsList().stream().filter(Objects::nonNull)
-                            .filter(disk -> disk.getZone() != null).collect(Collectors.toList()));
-                    }
-
+                    disks.addAll(diskList.getItemsList().stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
                 } while (!StringUtils.isEmpty(nextPageToken));
 
             } else {

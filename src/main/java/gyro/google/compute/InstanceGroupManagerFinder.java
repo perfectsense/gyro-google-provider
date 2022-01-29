@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.UnaryCallable;
@@ -131,14 +130,12 @@ public class InstanceGroupManagerFinder
                 .build());
             pageToken = aggregatedList.getNextPageToken();
 
-            if (aggregatedList.getItemsMap() != null) {
+            if (!aggregatedList.getItemsMap().isEmpty()) {
                 instanceGroupManagers.addAll(aggregatedList.getItemsMap().values().stream()
                     .map(InstanceGroupManagersScopedList::getInstanceGroupManagersList)
-                    .filter(Objects::nonNull)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList()));
             }
-
         } while (!StringUtils.isEmpty(pageToken));
 
         return instanceGroupManagers;

@@ -128,12 +128,24 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     }
 
     @Override
-    public void copyFrom(Network network) {
-        setId(String.valueOf(network.getId()));
-        setSelfLink(network.getSelfLink());
-        setRoutingMode(network.getRoutingConfig().getRoutingMode().toString());
-        setDescription(network.getDescription());
-        setName(network.getName());
+    public void copyFrom(Network model) {
+        setName(model.getName());
+
+        if (model.hasId()) {
+            setId(String.valueOf(model.getId()));
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasRoutingConfig()) {
+            setRoutingMode(model.getRoutingConfig().getRoutingMode());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
     }
 
     @Override

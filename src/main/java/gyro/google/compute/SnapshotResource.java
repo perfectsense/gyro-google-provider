@@ -25,11 +25,13 @@ import java.util.Set;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.CreateSnapshotDiskRequest;
+import com.google.cloud.compute.v1.CreateSnapshotRegionDiskRequest;
 import com.google.cloud.compute.v1.DeleteSnapshotRequest;
 import com.google.cloud.compute.v1.DisksClient;
 import com.google.cloud.compute.v1.GetSnapshotRequest;
 import com.google.cloud.compute.v1.GlobalSetLabelsRequest;
 import com.google.cloud.compute.v1.Operation;
+import com.google.cloud.compute.v1.RegionDisksClient;
 import com.google.cloud.compute.v1.SetLabelsSnapshotRequest;
 import com.google.cloud.compute.v1.Snapshot;
 import com.google.cloud.compute.v1.SnapshotsClient;
@@ -287,17 +289,42 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     @Override
     public void copyFrom(Snapshot snapshot) {
         setName(snapshot.getName());
-        setDescription(snapshot.getDescription());
+
+        if (snapshot.hasSelfLink()) {
+            setSelfLink(snapshot.getSelfLink());
+        }
+
+        if (snapshot.hasDescription()) {
+            setDescription(snapshot.getDescription());
+        }
+
+        if (snapshot.hasStatus()) {
+            setStatus(snapshot.getStatus());
+        }
+
+        if (snapshot.hasSourceDiskId()) {
+            setSourceDiskId(snapshot.getSourceDiskId());
+        }
+
+        if (snapshot.hasDiskSizeGb()) {
+            setDiskSizeGb(snapshot.getDiskSizeGb());
+        }
+
+        if (snapshot.hasStorageBytes()) {
+            setStorageBytes(snapshot.getStorageBytes());
+        }
+
+        if (snapshot.hasLabelFingerprint()) {
+            setLabelFingerprint(snapshot.getLabelFingerprint());
+        }
+
+        if (snapshot.hasSourceDisk()) {
+            setSourceDisk(findById(DiskResource.class, snapshot.getSourceDisk()));
+            setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
+        }
+
         setLabels(snapshot.getLabelsMap());
         setStorageLocations(snapshot.getStorageLocationsList());
-        setStatus(snapshot.getStatus().toString());
-        setSourceDiskId(snapshot.getSourceDiskId());
-        setDiskSizeGb(snapshot.getDiskSizeGb());
-        setStorageBytes(snapshot.getStorageBytes());
-        setSelfLink(snapshot.getSelfLink());
-        setLabelFingerprint(snapshot.getLabelFingerprint());
-        setSourceDisk(findById(DiskResource.class, snapshot.getSourceDisk()));
-        setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
     }
 
     @Override
@@ -315,10 +342,8 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         }
     }
 
-    @Override
-    public void doCreate(GyroUI ui, State state) throws Exception {
+    public void doCreateZoneSnapshot(GyroUI ui, State state) throws Exception {
         try (DisksClient client = createClient(DisksClient.class)) {
-
             Snapshot.Builder builder = Snapshot.newBuilder().setName(getName());
             builder.putAllLabels(getLabels());
             builder.addAllStorageLocations(getStorageLocations());
@@ -335,34 +360,60 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
                 builder.setSnapshotEncryptionKey(getSnapshotEncryptionKey().toCustomerEncryptionKey());
             }
 
-            if (getSourceDisk() != null) {
-                builder.setSourceDisk(getSourceDisk().getSelfLink());
+            builder.setSourceDisk(getSourceDisk().getSelfLink());
 
-                Operation operation = client.createSnapshotCallable().call(
-                    CreateSnapshotDiskRequest.newBuilder()
-                        .setProject(getProjectId())
-                        .setDisk(getSourceDisk().getName())
-                        .setSnapshotResource(builder)
-                        .build());
+            Operation operation = client.createSnapshotCallable().call(
+                CreateSnapshotDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setDisk(getSourceDisk().getName())
+                    .setSnapshotResource(builder)
+                    .build());
 
-                waitForCompletion(operation);
+            waitForCompletion(operation);
+        }
+    }
 
-            } else if (getSourceRegionDisk() != null) {
-                builder.setSourceDisk(getSourceRegionDisk().getSelfLink());
+    public void doCreateRegionSnapshot(GyroUI ui, State state) throws Exception {
+        try (RegionDisksClient client = createClient(RegionDisksClient.class)) {
+            Snapshot.Builder builder = Snapshot.newBuilder().setName(getName());
+            builder.putAllLabels(getLabels());
+            builder.addAllStorageLocations(getStorageLocations());
 
-                Operation operation = client.createSnapshotCallable()
-                    .call(
-                        CreateSnapshotDiskRequest.newBuilder()
-                            .setProject(getProjectId())
-                            .setDisk(getSourceRegionDisk().getName())
-                            .setSnapshotResource(builder)
-                            .build());
-
-                waitForCompletion(operation);
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
             }
 
-            refresh();
+            if (getSourceDiskEncryptionKey() != null) {
+                builder.setSourceDiskEncryptionKey(getSourceDiskEncryptionKey().toCustomerEncryptionKey());
+            }
+
+            if (getSnapshotEncryptionKey() != null) {
+                builder.setSnapshotEncryptionKey(getSnapshotEncryptionKey().toCustomerEncryptionKey());
+            }
+
+            builder.setSourceDisk(getSourceRegionDisk().getSelfLink());
+
+            Operation operation = client.createSnapshotCallable().call(
+                    CreateSnapshotRegionDiskRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setDisk(getSourceRegionDisk().getName())
+                        .setSnapshotResource(builder)
+                        .setRegion(getSourceRegionDisk().getRegion())
+                        .build());
+
+            waitForCompletion(operation);
         }
+    }
+
+    @Override
+    public void doCreate(GyroUI ui, State state) throws Exception {
+        if (getSourceDisk() != null) {
+            doCreateZoneSnapshot(ui, state);
+        } else {
+            doCreateRegionSnapshot(ui, state);
+        }
+
+        refresh();
     }
 
     @Override

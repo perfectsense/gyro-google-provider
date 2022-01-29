@@ -255,15 +255,30 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
     @Override
     public void copyFrom(Router model) throws Exception {
-        setSelfLink(model.getSelfLink());
         setName(model.getName());
-        setDescription(model.getDescription());
-        setRegion(Utils.extractName(model.getRegion()));
-        setNetwork(findById(NetworkResource.class, model.getNetwork()));
 
-        RouterBgp bgp = newSubresource(RouterBgp.class);
-        bgp.copyFrom(model.getBgp());
-        setRouterBgp(bgp);
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
+
+        if (model.hasNetwork()) {
+            setNetwork(findById(NetworkResource.class, model.getNetwork()));
+        }
+
+        setRouterBgp(null);
+        if (model.hasBgp()) {
+            RouterBgp bgp = newSubresource(RouterBgp.class);
+            bgp.copyFrom(model.getBgp());
+            setRouterBgp(bgp);
+        }
 
         getRouterNat().clear();
         for (com.google.cloud.compute.v1.RouterNat n : model.getNatsList()) {
@@ -308,7 +323,10 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
 
             Router.Builder builder = Router.newBuilder();
             builder.setName(getName());
-            builder.setRegion(getRegion());
+
+            if (getRegion() != null) {
+                builder.setRegion(getRegion());
+            }
 
             if (getDescription() != null) {
                 builder.setDescription(getDescription());
@@ -419,7 +437,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
         }
     }
 
-    private Router getRouter(RoutersClient client) throws java.io.IOException {
+    private Router getRouter(RoutersClient client) {
         return client
             .list(ListRoutersRequest.newBuilder().setProject(getProjectId()).setRegion(getRegion())
                 .setFilter(String.format("selfLink = \"%s\"", getSelfLink())).build())

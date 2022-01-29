@@ -83,15 +83,19 @@ public class BackendServiceCdnPolicy extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.cloud.compute.v1.BackendServiceCdnPolicy backendServiceCdnPolicy) {
-        setSignedUrlKeyNames(backendServiceCdnPolicy.getSignedUrlKeyNamesList());
-        setSignedUrlMaxAge(backendServiceCdnPolicy.getSignedUrlCacheMaxAgeSec());
+    public void copyFrom(com.google.cloud.compute.v1.BackendServiceCdnPolicy model) {
+        if (model.hasSignedUrlCacheMaxAgeSec()) {
+            setSignedUrlMaxAge(model.getSignedUrlCacheMaxAgeSec());
+        }
+
         setCacheKeyPolicy(null);
-        if (backendServiceCdnPolicy.getCacheKeyPolicy() != null) {
+        if (model.hasCacheKeyPolicy()) {
             BackendServiceCdnCacheKeyPolicy cacheKeyPolicy = newSubresource(BackendServiceCdnCacheKeyPolicy.class);
-            cacheKeyPolicy.copyFrom(backendServiceCdnPolicy.getCacheKeyPolicy());
+            cacheKeyPolicy.copyFrom(model.getCacheKeyPolicy());
             setCacheKeyPolicy(cacheKeyPolicy);
         }
+
+        setSignedUrlKeyNames(model.getSignedUrlKeyNamesList());
     }
 
     com.google.cloud.compute.v1.BackendServiceCdnPolicy toBackendServiceCdnPolicy() {

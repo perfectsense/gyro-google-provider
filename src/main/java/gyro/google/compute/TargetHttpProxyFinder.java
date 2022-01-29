@@ -74,10 +74,7 @@ public class TargetHttpProxyFinder
                 targetHttpProxyList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = targetHttpProxyList.getNextPageToken();
 
-                if (targetHttpProxyList.getItemsList() != null) {
-                    targetHttpProxies.addAll(targetHttpProxyList.getItemsList());
-                }
-
+                targetHttpProxies.addAll(targetHttpProxyList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return targetHttpProxies;

@@ -168,11 +168,34 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     @Override
     public void copyFrom(Address model) {
         setName(model.getName());
-        setDescription(model.getDescription());
-        setAddress(model.getAddress());
-        setPrefixLength(model.getPrefixLength());
-        setAddressType(Address.AddressType.valueOf(model.getAddressType()));
-        setPurpose(Address.Purpose.valueOf(model.getPurpose()));
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasStatus()) {
+            setStatus(Address.Status.valueOf(model.getStatus()));
+        }
+
+        if (model.hasAddress()) {
+            setAddress(model.getAddress());
+        }
+
+        if (model.hasAddressType()) {
+            setAddressType(Address.AddressType.valueOf(model.getAddressType()));
+        }
+
+        if (model.hasPrefixLength()) {
+            setPrefixLength(model.getPrefixLength());
+        }
+
+        if (model.hasPurpose()) {
+            setPurpose(Address.Purpose.valueOf(model.getPurpose()));
+        }
 
         setSubnetwork(null);
         if (!model.getSubnetwork().endsWith("default")) {
@@ -183,9 +206,6 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         if (!model.getNetwork().endsWith("default")) {
             setNetwork(findById(NetworkResource.class, model.getNetwork()));
         }
-
-        setStatus(Address.Status.valueOf(model.getStatus()));
-        setSelfLink(model.getSelfLink());
     }
 
     public Address copyTo() {

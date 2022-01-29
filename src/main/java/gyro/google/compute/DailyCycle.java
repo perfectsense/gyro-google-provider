@@ -58,12 +58,24 @@ public class DailyCycle extends Diffable implements Copyable<ResourcePolicyDaily
 
     @Override
     public void copyFrom(ResourcePolicyDailyCycle model) {
-        setDaysInCycle(model.getDaysInCycle());
-        setStartTime(model.getStartTime());
+        if (model.hasDaysInCycle()) {
+            setDaysInCycle(model.getDaysInCycle());
+        }
+
+        if (model.hasStartTime()) {
+            setStartTime(model.getStartTime());
+        }
     }
 
     public ResourcePolicyDailyCycle copyTo() {
-        return ResourcePolicyDailyCycle.newBuilder().setDaysInCycle(getDaysInCycle())
-            .setStartTime(getStartTime()).build();
+        ResourcePolicyDailyCycle.Builder builder = ResourcePolicyDailyCycle.newBuilder();
+
+        builder.setDaysInCycle(getDaysInCycle());
+
+        if (getStartTime() != null) {
+            builder.setStartTime(getStartTime());
+        }
+
+        return builder.build();
     }
 }

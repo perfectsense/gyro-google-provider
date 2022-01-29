@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.google.cloud.compute.v1.Scheduling;
-import com.google.cloud.compute.v1.SchedulingNodeAffinity;
 import gyro.core.resource.Diffable;
 import gyro.google.Copyable;
 
@@ -91,31 +90,45 @@ public class ComputeScheduling extends Diffable implements Copyable<Scheduling> 
 
     @Override
     public void copyFrom(Scheduling model) {
-        setAutomaticRestart(model.getAutomaticRestart());
+        if (model.hasAutomaticRestart()) {
+            setAutomaticRestart(model.getAutomaticRestart());
+        }
 
-        List<ComputeSchedulingNodeAffinity> diffableNodeAffinities = null;
-        List<SchedulingNodeAffinity> nodeAffinities = model.getNodeAffinitiesList();
+        if (model.hasOnHostMaintenance()) {
+            setOnHostMaintenance(model.getOnHostMaintenance());
+        }
 
-        if (nodeAffinities != null && !nodeAffinities.isEmpty()) {
-            diffableNodeAffinities = nodeAffinities
+        if (model.hasPreemptible()) {
+            setPreemptible(model.getPreemptible());
+        }
+
+        setNodeAffinity(null);
+        if (!model.getNodeAffinitiesList().isEmpty()) {
+            List<ComputeSchedulingNodeAffinity> diffableNodeAffinities = model.getNodeAffinitiesList()
                 .stream()
                 .map(nodeAffinity -> {
-                    ComputeSchedulingNodeAffinity diffableNodeAffinity = newSubresource(ComputeSchedulingNodeAffinity.class);
+                    ComputeSchedulingNodeAffinity diffableNodeAffinity =
+                        newSubresource(ComputeSchedulingNodeAffinity.class);
                     diffableNodeAffinity.copyFrom(nodeAffinity);
+
                     return diffableNodeAffinity;
                 })
                 .collect(Collectors.toList());
-        }
-        setNodeAffinity(diffableNodeAffinities);
 
-        setOnHostMaintenance(model.getOnHostMaintenance().toString().toUpperCase());
-        setPreemptible(model.getPreemptible());
+            setNodeAffinity(diffableNodeAffinities);
+        }
     }
 
     public Scheduling toScheduling() {
         Scheduling.Builder builder = Scheduling.newBuilder();
-        builder.setAutomaticRestart(getAutomaticRestart());
-        builder.setPreemptible(getPreemptible());
+
+        if (getAutomaticRestart() != null) {
+            builder.setAutomaticRestart(getAutomaticRestart());
+        }
+
+        if (getPreemptible() != null) {
+            builder.setPreemptible(getPreemptible());
+        }
 
         List<ComputeSchedulingNodeAffinity> nodeAffinity = getNodeAffinity();
 

@@ -45,13 +45,19 @@ public class ComputeAutoscalingPolicyLoadBalancingUtilization extends Diffable
 
     public AutoscalingPolicyLoadBalancingUtilization copyTo() {
         AutoscalingPolicyLoadBalancingUtilization.Builder builder = AutoscalingPolicyLoadBalancingUtilization.newBuilder();
-        builder.setUtilizationTarget(getUtilizationTarget());
+
+        if (getUtilizationTarget() != null) {
+            builder.setUtilizationTarget(getUtilizationTarget());
+        }
+
         return builder.build();
     }
 
     @Override
     public void copyFrom(AutoscalingPolicyLoadBalancingUtilization model) {
-        setUtilizationTarget(model.getUtilizationTarget());
+        if (model.hasUtilizationTarget()) {
+            setUtilizationTarget(model.getUtilizationTarget());
+        }
     }
 
     @Override

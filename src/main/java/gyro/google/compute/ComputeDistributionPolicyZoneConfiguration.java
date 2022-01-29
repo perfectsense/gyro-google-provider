@@ -52,7 +52,9 @@ public class ComputeDistributionPolicyZoneConfiguration extends Diffable
 
     @Override
     public void copyFrom(DistributionPolicyZoneConfiguration model) {
-        setZoneLink(model.getZone());
+        if (model.hasZone()) {
+            setZoneLink(model.getZone());
+        }
     }
 
     @Override

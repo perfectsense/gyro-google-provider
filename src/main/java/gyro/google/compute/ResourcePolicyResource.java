@@ -34,6 +34,7 @@ import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
+import gyro.google.util.Utils;
 
 /**
  * Creates a resource policy.
@@ -208,15 +209,25 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
 
     @Override
     public void copyFrom(ResourcePolicy model) {
-        setRegion(model.getRegion().substring(model.getRegion().lastIndexOf("/") + 1));
         setName(model.getName());
-        setDescription(model.getDescription());
-        setSelfLink(model.getSelfLink());
+
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
 
         setSnapshotSchedulePolicy(null);
-        if (model.getSnapshotSchedulePolicy() != null) {
+        if (model.hasSnapshotSchedulePolicy()) {
             SnapshotSchedulePolicy currentSnapshotSchedulePolicy = newSubresource(SnapshotSchedulePolicy.class);
             currentSnapshotSchedulePolicy.copyFrom(model.getSnapshotSchedulePolicy());
+
             setSnapshotSchedulePolicy(currentSnapshotSchedulePolicy);
         }
     }

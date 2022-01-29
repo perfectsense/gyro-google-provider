@@ -16,8 +16,6 @@
 
 package gyro.google.compute;
 
-import java.util.Optional;
-
 import com.google.cloud.compute.v1.InstanceGroupManagerVersion;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
@@ -81,29 +79,32 @@ public class ComputeInstanceGroupManagerVersion extends Diffable implements Copy
     public InstanceGroupManagerVersion copyTo() {
         InstanceGroupManagerVersion.Builder builder = InstanceGroupManagerVersion.newBuilder().setName(getName());
 
-        Optional.ofNullable(getInstanceTemplate())
-            .map(InstanceTemplateResource::getSelfLink)
-            .ifPresent(builder::setInstanceTemplate);
+        if (getInstanceTemplate() != null) {
+            builder.setInstanceTemplate(getInstanceTemplate().getSelfLink());
+        }
 
-        Optional.ofNullable(getTargetSize())
-            .map(ComputeFixedOrPercent::copyTo)
-            .ifPresent(builder::setTargetSize);
+        if (getTargetSize() != null) {
+            builder.setTargetSize(getTargetSize().copyTo());
+        }
 
         return builder.build();
     }
 
     @Override
     public void copyFrom(InstanceGroupManagerVersion model) {
-        setInstanceTemplate(findById(InstanceTemplateResource.class, model.getInstanceTemplate()));
         setName(model.getName());
 
-        setTargetSize(Optional.ofNullable(model.getTargetSize())
-            .map(e -> {
-                ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
-                computeFixedOrPercent.copyFrom(e);
+        if (model.hasInstanceTemplate()) {
+            setInstanceTemplate(findById(InstanceTemplateResource.class, model.getInstanceTemplate()));
+        }
 
-                return computeFixedOrPercent;
-            }).orElse(null));
+        setTargetSize(null);
+        if (model.hasTargetSize()) {
+            ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
+            computeFixedOrPercent.copyFrom(model.getTargetSize());
+
+            setTargetSize(computeFixedOrPercent);
+        }
     }
 
     @Override

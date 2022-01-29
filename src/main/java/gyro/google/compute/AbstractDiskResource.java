@@ -21,8 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.client.util.Data;
-import com.google.cloud.compute.v1.CustomerEncryptionKey;
 import com.google.cloud.compute.v1.Disk;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -243,31 +241,69 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
     @Override
     public void copyFrom(Disk disk) {
         setName(disk.getName());
-        setDescription(disk.getDescription());
-        setSizeGb(disk.getSizeGb());
-        setSourceSnapshot(findById(SnapshotResource.class, disk.getSourceSnapshot()));
-        setLabels(disk.getLabels());
-        setPhysicalBlockSizeBytes(disk.getPhysicalBlockSizeBytes());
-        setStatus(Disk.Status.valueOf(disk.getStatus()));
-        setSourceSnapshotId(disk.getSourceSnapshotId());
-        setSelfLink(disk.getSelfLink());
+        setLabels(disk.getLabelsMap());
         setUsers(disk.getUsersList());
-        setLabelFingerprint(disk.getLabelFingerprint());
+
+        if (disk.hasSelfLink()) {
+            setSelfLink(disk.getSelfLink());
+        }
+
+        if (disk.hasDescription()) {
+            setDescription(disk.getDescription());
+        }
+
+        if (disk.hasSizeGb()) {
+            setSizeGb(disk.getSizeGb());
+        }
+
+        if (disk.hasSourceSnapshot()) {
+            setSourceSnapshot(findById(SnapshotResource.class, disk.getSourceSnapshot()));
+        }
+
+        if (disk.hasPhysicalBlockSizeBytes()) {
+            setPhysicalBlockSizeBytes(disk.getPhysicalBlockSizeBytes());
+        }
+
+        if (disk.hasStatus()) {
+            setStatus(Disk.Status.valueOf(disk.getStatus()));
+        }
+
+        if (disk.hasSourceSnapshotId()) {
+            setSourceSnapshotId(disk.getSourceSnapshotId());
+        }
+
+        if (disk.hasLabelFingerprint()) {
+            setLabelFingerprint(disk.getLabelFingerprint());
+        }
     }
 
     protected Disk toDisk() {
-        Disk.Builder disk = Disk.newBuilder();
-        disk.setName(getName());
-        disk.setDescription(getDescription());
-        disk.setSizeGb(getSizeGb());
-        disk.setPhysicalBlockSizeBytes(getPhysicalBlockSizeBytes());
-        disk.putAllLabels(getLabels());
-        disk.setDiskEncryptionKey(getDiskEncryptionKey() != null
-            ? getDiskEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
-        disk.setSourceSnapshotEncryptionKey(getSourceSnapshotEncryptionKey() != null
-            ? getSourceSnapshotEncryptionKey().toCustomerEncryptionKey()
-            : Data.nullOf(CustomerEncryptionKey.class));
+        Disk.Builder disk = Disk.newBuilder()
+            .setName(getName());
+
+        if (getDescription() != null) {
+            disk.setDescription(getDescription());
+        }
+
+        if (getLabels() != null) {
+            disk.putAllLabels(getLabels());
+        }
+
+        if (getSizeGb() != null) {
+            disk.setSizeGb(getSizeGb());
+        }
+
+        if (getPhysicalBlockSizeBytes() != null) {
+            disk.setPhysicalBlockSizeBytes(getPhysicalBlockSizeBytes());
+        }
+
+        if (getDiskEncryptionKey() != null) {
+            disk.setDiskEncryptionKey(getDiskEncryptionKey().toCustomerEncryptionKey());
+        }
+
+        if (getSourceSnapshotEncryptionKey() != null) {
+            disk.setSourceSnapshotEncryptionKey(getSourceSnapshotEncryptionKey().toCustomerEncryptionKey());
+        }
 
         if (getSourceSnapshot() != null) {
             disk.setSourceSnapshot(getSourceSnapshot().getSelfLink());

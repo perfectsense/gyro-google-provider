@@ -58,12 +58,20 @@ public class InstanceGroupNamedPort extends Diffable implements Copyable<NamedPo
     }
 
     @Override
-    public void copyFrom(NamedPort namedPort) {
-        setName(namedPort.getName());
-        setPort(namedPort.getPort());
+    public void copyFrom(NamedPort model) {
+        if (model.hasName()) {
+            setName(model.getName());
+        }
+
+        if (model.hasPort()) {
+            setPort(model.getPort());
+        }
     }
 
     NamedPort toNamedPort() {
-        return NamedPort.newBuilder().setName(getName()).setPort(getPort()).build();
+        return NamedPort.newBuilder()
+            .setName(getName())
+            .setPort(getPort())
+            .build();
     }
 }

@@ -85,10 +85,7 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
                     AutoscalerList addressList = client.list(builder.build()).getPage().getResponse();
                     pageToken = addressList.getNextPageToken();
 
-                    if (addressList.getItemsList() != null) {
-                        instances.addAll(addressList.getItemsList());
-                    }
-
+                    instances.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
                 return getAutoscalers(client, ResourceScope.ZONE, filters);

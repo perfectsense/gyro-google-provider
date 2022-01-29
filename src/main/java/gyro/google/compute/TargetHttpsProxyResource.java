@@ -134,19 +134,19 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
         setQuicOverride(model.getQuicOverride().toString());
 
         setUrlMap(null);
-        if (model.getUrlMap() != null) {
+        if (model.hasUrlMap()) {
             setUrlMap(findById(UrlMapResource.class, model.getUrlMap()));
         }
 
         getSslCertificates().clear();
-        if (model.getSslCertificatesList() != null) {
+        if (!model.getSslCertificatesList().isEmpty()) {
             setSslCertificates(model.getSslCertificatesList().stream()
                 .map(cert -> findById(SslCertificateResource.class, cert))
                 .collect(Collectors.toList()));
         }
 
         setSslPolicy(null);
-        if (model.getSslPolicy() != null) {
+        if (model.hasSslPolicy()) {
             setSslPolicy(findById(SslPolicyResource.class, model.getSslPolicy()));
         }
     }
@@ -213,11 +213,12 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
             }
 
             if (changedFieldNames.contains("ssl-certificates")) {
-                TargetHttpsProxiesSetSslCertificatesRequest.Builder sslCertificates = TargetHttpsProxiesSetSslCertificatesRequest
-                    .newBuilder();
+                TargetHttpsProxiesSetSslCertificatesRequest.Builder sslCertificates =
+                    TargetHttpsProxiesSetSslCertificatesRequest.newBuilder();
                 sslCertificates.addAllSslCertificates(getSslCertificates().stream()
                     .map(AbstractSslCertificateResource::getSelfLink)
                     .collect(Collectors.toList()));
+
                 Operation response = client.setSslCertificatesCallable()
                     .call(SetSslCertificatesTargetHttpsProxyRequest.newBuilder()
                         .setProject(getProjectId())

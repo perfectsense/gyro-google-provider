@@ -41,7 +41,9 @@ public class ComputeInstanceGroupManagerStatusVersionTarget extends Diffable
 
     @Override
     public void copyFrom(InstanceGroupManagerStatusVersionTarget model) {
-        setIsReached(model.getIsReached());
+        if (model.hasIsReached()) {
+            setIsReached(model.getIsReached());
+        }
     }
 
     @Override

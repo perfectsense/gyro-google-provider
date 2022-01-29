@@ -104,16 +104,20 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
     }
 
     @Override
-    public void copyFrom(TargetHttpProxy targetHttpProxy) {
-        setName(targetHttpProxy.getName());
-        setDescription(targetHttpProxy.getDescription());
-        setSelfLink(targetHttpProxy.getSelfLink());
-        setRegionUrlMap(findById(RegionUrlMapResource.class, urlMap));
+    public void copyFrom(TargetHttpProxy model) {
+        setName(model.getName());
 
-        String urlMap = targetHttpProxy.getUrlMap();
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
         setUrlMap(null);
-        if (UrlMapResource.isUrlMap(urlMap)) {
-            setUrlMap(findById(UrlMapResource.class, urlMap));
+        if (model.hasUrlMap() && UrlMapResource.isUrlMap(model.getUrlMap())) {
+            setUrlMap(findById(UrlMapResource.class, model.getUrlMap()));
         }
     }
 

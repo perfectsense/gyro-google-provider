@@ -19,7 +19,6 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -174,43 +173,60 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
     @Override
     public void copyFrom(Autoscaler model) {
         setName(model.getName());
-        setAutoscalingPolicy(Optional.ofNullable(model.getAutoscalingPolicy())
-            .map(e -> {
-                ComputeAutoscalingPolicy computeAutoscalingPolicy = newSubresource(ComputeAutoscalingPolicy.class);
-                computeAutoscalingPolicy.copyFrom(e);
-                return computeAutoscalingPolicy;
-            })
-            .orElse(null));
-        setDescription(model.getDescription());
-        setRecommendedSize(model.getRecommendedSize());
-        setSelfLink(model.getSelfLink());
-        setStatus(Autoscaler.Status.valueOf(model.getStatus()));
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasRecommendedSize()) {
+            setRecommendedSize(model.getRecommendedSize());
+        }
+
+        if (model.hasStatus()) {
+            setStatus(Autoscaler.Status.valueOf(model.getStatus()));
+        }
+
+        if (model.hasAutoscalingPolicy()) {
+            ComputeAutoscalingPolicy computeAutoscalingPolicy = newSubresource(ComputeAutoscalingPolicy.class);
+            computeAutoscalingPolicy.copyFrom(model.getAutoscalingPolicy());
+
+            setAutoscalingPolicy(computeAutoscalingPolicy);
+        }
 
         List<ComputeAutoscalerStatusDetails> diffableAutoscalerStatusDetails = null;
         List<AutoscalerStatusDetails> statusDetails = model.getStatusDetailsList();
-
-        if (statusDetails != null && !statusDetails.isEmpty()) {
+        if (!statusDetails.isEmpty()) {
             diffableAutoscalerStatusDetails = statusDetails
                 .stream()
                 .map(e -> {
-                    ComputeAutoscalerStatusDetails computeVersion = newSubresource(
-                        ComputeAutoscalerStatusDetails.class);
+                    ComputeAutoscalerStatusDetails computeVersion =
+                        newSubresource(ComputeAutoscalerStatusDetails.class);
+
                     computeVersion.copyFrom(e);
                     return computeVersion;
                 })
                 .collect(Collectors.toList());
         }
+
         setStatusDetail(diffableAutoscalerStatusDetails);
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
-        Autoscaler.Builder builder = Autoscaler.newBuilder().setName(getName()).setDescription(getDescription());
-        Optional.ofNullable(getAutoscalingPolicy())
-            .map(ComputeAutoscalingPolicy::copyTo)
-            .ifPresent(builder::setAutoscalingPolicy);
+        Autoscaler.Builder builder = Autoscaler.newBuilder()
+            .setName(getName())
+            .setDescription(getDescription());
+
+        if (getAutoscalingPolicy() != null) {
+            builder.setAutoscalingPolicy(getAutoscalingPolicy().copyTo());
+        }
 
         insert(builder.build());
+
         refresh();
     }
 
@@ -228,7 +244,6 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
     private Autoscaler constructPatchRequest(Set<String> changedFieldNames) {
         Autoscaler.Builder builder = Autoscaler.newBuilder();
         Set<String> changedFields = new HashSet<>(changedFieldNames);
-        int count = changedFields.size();
         boolean shouldPatch = false;
 
         if (changedFields.remove("description")) {

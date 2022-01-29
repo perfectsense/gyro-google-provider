@@ -132,11 +132,9 @@ public class RegionBackendServiceFinder
                 backendServiceList = pagedResponse.getPage().getResponse();
                 nextPageToken = pagedResponse.getNextPageToken();
 
-                if (backendServiceList.getItemsList() != null) {
-                    backendServices.addAll(backendServiceList.getItemsList().stream().filter(Objects::nonNull)
-                        .filter(backendService -> backendService.getRegion() != null).collect(Collectors.toList()));
-                }
-
+                backendServices.addAll(backendServiceList.getItemsList().stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()));
             } while (!StringUtils.isEmpty(nextPageToken));
         }
         return backendServices;

@@ -131,12 +131,9 @@ public class ImageFinder extends GoogleFinder<ImagesClient, Image, ImageResource
             imageList = listPagedResponse.getPage().getResponse();
             nextPageToken = listPagedResponse.getNextPageToken();
 
-            if (imageList.getItemsList() != null) {
-                images.addAll(imageList.getItemsList().stream()
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList()));
-            }
-
+            images.addAll(imageList.getItemsList().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
         } while (!StringUtils.isEmpty(nextPageToken));
 
         return images;

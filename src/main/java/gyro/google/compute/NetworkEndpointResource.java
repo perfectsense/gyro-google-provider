@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.cloud.compute.v1.HealthStatusForNetworkEndpoint;
 import com.google.cloud.compute.v1.NetworkEndpoint;
 import com.google.cloud.compute.v1.NetworkEndpointWithHealthStatus;
 import gyro.core.resource.Diffable;
@@ -102,17 +103,20 @@ public class NetworkEndpointResource extends Diffable implements Copyable<Networ
     }
 
     @Override
-    public void copyFrom(NetworkEndpointWithHealthStatus endpoint) {
-        NetworkEndpoint networkEndpoint = endpoint.getNetworkEndpoint();
-        setInstance(findById(InstanceResource.class, networkEndpoint.getInstance()));
-        setIpAddress(networkEndpoint.getIpAddress());
-        setPort(networkEndpoint.getPort());
+    public void copyFrom(NetworkEndpointWithHealthStatus model) {
+        if (model.hasNetworkEndpoint()) {
+            NetworkEndpoint networkEndpoint = model.getNetworkEndpoint();
+
+            setPort(networkEndpoint.getPort());
+            setIpAddress(networkEndpoint.getIpAddress());
+            setInstance(findById(InstanceResource.class, networkEndpoint.getInstance()));
+        }
 
         getHealthStatus().clear();
-        if (endpoint.getHealthsList() != null && !endpoint.getHealthsList().isEmpty()) {
-            setHealthStatus(endpoint.getHealthsList()
+        if (!model.getHealthsList().isEmpty()) {
+            setHealthStatus(model.getHealthsList()
                 .stream()
-                .map(s -> s.getHealthState().toString())
+                .map(HealthStatusForNetworkEndpoint::getHealthState)
                 .collect(Collectors.toList()));
         }
     }

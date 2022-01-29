@@ -67,10 +67,12 @@ public class RegionTargetHttpProxyResource extends AbstractTargetHttpProxyResour
     }
 
     @Override
-    public void copyFrom(TargetHttpProxy targetHttpProxy) {
-        super.copyFrom(targetHttpProxy);
+    public void copyFrom(TargetHttpProxy model) {
+        super.copyFrom(model);
 
-        setRegion(targetHttpProxy.getRegion());
+        if (model.hasRegion()) {
+            setRegion(model.getRegion());
+        }
     }
 
     @Override

@@ -63,11 +63,18 @@ public class SecurityPolicyRuleMatcher extends Diffable
     }
 
     @Override
-    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRuleMatcher matcher) {
-        setVersionedExpr(matcher.getVersionedExpr().toString());
-        SecurityPolicyRuleMatcherConfig config = newSubresource(SecurityPolicyRuleMatcherConfig.class);
-        config.copyFrom(matcher.getConfig());
-        setConfig(config);
+    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRuleMatcher model) {
+        if (model.hasVersionedExpr()) {
+            setVersionedExpr(model.getVersionedExpr());
+        }
+
+        setConfig(null);
+        if (model.hasConfig()) {
+            SecurityPolicyRuleMatcherConfig config = newSubresource(SecurityPolicyRuleMatcherConfig.class);
+            config.copyFrom(model.getConfig());
+
+            setConfig(config);
+        }
     }
 
     public com.google.cloud.compute.v1.SecurityPolicyRuleMatcher toSecurityPolicyRuleMatcher() {

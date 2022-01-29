@@ -200,29 +200,60 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
 
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterNat model) throws Exception {
-        setIcmpIdleTimeoutSec(model.getIcmpIdleTimeoutSec());
-        setMinPortsPerVm(model.getMinPortsPerVm());
         setName(model.getName());
-        setIpAllocationOption(model.getNatIpAllocateOption());
-        setSourceSubnetworkIpRangesToNat(model.getSourceSubnetworkIpRangesToNat());
-        setTcpEstablishedIdleTimeoutSec(model.getTcpEstablishedIdleTimeoutSec());
-        setTcpTransitoryIdleTimeoutSec(model.getTcpTransitoryIdleTimeoutSec());
-        setUdpIdleTimeoutSec(model.getUdpIdleTimeoutSec());
 
-        RouterNatLogConfig natLogConfig = newSubresource(RouterNatLogConfig.class);
-        natLogConfig.copyFrom(model.getLogConfig());
-        setLogConfig(natLogConfig);
+        if (model.hasIcmpIdleTimeoutSec()) {
+            setIcmpIdleTimeoutSec(model.getIcmpIdleTimeoutSec());
+        }
 
-        setNatIp(model.getNatIpsList()
-            .stream()
-            .map(ip -> findById(AddressResource.class, ip))
-            .collect(Collectors.toList()));
+        if (model.hasMinPortsPerVm()) {
+            setMinPortsPerVm(model.getMinPortsPerVm());
+        }
 
-        setSubnet(model.getSubnetworksList().stream().map(s -> {
-            RouterNatSubnetworkToNat routerNatSubnetworkToNat = newSubresource(RouterNatSubnetworkToNat.class);
-            routerNatSubnetworkToNat.copyFrom(s);
-            return routerNatSubnetworkToNat;
-        }).collect(Collectors.toList()));
+        if (model.hasNatIpAllocateOption()) {
+            setIpAllocationOption(model.getNatIpAllocateOption());
+        }
+
+        if (model.hasSourceSubnetworkIpRangesToNat()) {
+            setSourceSubnetworkIpRangesToNat(model.getSourceSubnetworkIpRangesToNat());
+        }
+
+        if (model.hasTcpEstablishedIdleTimeoutSec()) {
+            setTcpEstablishedIdleTimeoutSec(model.getTcpEstablishedIdleTimeoutSec());
+        }
+
+        if (model.hasTcpTransitoryIdleTimeoutSec()) {
+            setTcpTransitoryIdleTimeoutSec(model.getTcpTransitoryIdleTimeoutSec());
+        }
+
+        if (model.hasUdpIdleTimeoutSec()) {
+            setUdpIdleTimeoutSec(model.getUdpIdleTimeoutSec());
+        }
+
+        setLogConfig(null);
+        if (model.hasLogConfig()) {
+            RouterNatLogConfig natLogConfig = newSubresource(RouterNatLogConfig.class);
+            natLogConfig.copyFrom(model.getLogConfig());
+
+            setLogConfig(natLogConfig);
+        }
+
+        setNatIp(null);
+        if (!model.getNatIpsList().isEmpty()) {
+            setNatIp(model.getNatIpsList()
+                .stream()
+                .map(ip -> findById(AddressResource.class, ip))
+                .collect(Collectors.toList()));
+        }
+
+        setSubnet(null);
+        if (!model.getSubnetworksList().isEmpty()) {
+            setSubnet(model.getSubnetworksList().stream().map(s -> {
+                RouterNatSubnetworkToNat routerNatSubnetworkToNat = newSubresource(RouterNatSubnetworkToNat.class);
+                routerNatSubnetworkToNat.copyFrom(s);
+                return routerNatSubnetworkToNat;
+            }).collect(Collectors.toList()));
+        }
     }
 
     com.google.cloud.compute.v1.RouterNat toRouterNat() {
@@ -250,8 +281,10 @@ public class RouterNat extends Diffable implements Copyable<com.google.cloud.com
             builder.setSourceSubnetworkIpRangesToNat(getSourceSubnetworkIpRangesToNat());
         }
 
-        builder.addAllSubnetworks(getSubnet().stream().map(RouterNatSubnetworkToNat::toRouterNatSubnetworkToNat)
-            .collect(Collectors.toList()));
+        if (getSubnet() != null && !getSubnet().isEmpty()) {
+            builder.addAllSubnetworks(getSubnet().stream().map(RouterNatSubnetworkToNat::toRouterNatSubnetworkToNat)
+                .collect(Collectors.toList()));
+        }
 
         if (getTcpEstablishedIdleTimeoutSec() != null) {
             builder.setTcpEstablishedIdleTimeoutSec(getTcpEstablishedIdleTimeoutSec());

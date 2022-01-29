@@ -203,35 +203,93 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     }
 
     @Override
-    public void copyFrom(ForwardingRule forwardingRule) {
-        setIpAddress(forwardingRule.getIPAddress());
-        setIpProtocol(ForwardingRule.IPProtocolEnum.valueOf(forwardingRule.getIPProtocol()));
-        setAllPorts(forwardingRule.getAllPorts());
-        setDescription(forwardingRule.getDescription());
-        setIpVersion(ForwardingRule.IpVersion.valueOf(forwardingRule.getIpVersion()));
-        setLoadBalancingScheme(ForwardingRule.LoadBalancingScheme.valueOf(forwardingRule.getLoadBalancingScheme()));
-        setName(forwardingRule.getName());
-        setNetworkTier(ForwardingRule.NetworkTier.valueOf(forwardingRule.getNetworkTier()));
-        setPortRange(forwardingRule.getPortRange());
-        setPorts(forwardingRule.getPortsList());
-        setServiceLabel(forwardingRule.getServiceLabel());
-        setSelfLink(forwardingRule.getSelfLink());
-        setServiceName(forwardingRule.getServiceName());
+    public void copyFrom(ForwardingRule model) {
+        setName(model.getName());
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasIPAddress()) {
+            setIpAddress(model.getIPAddress());
+        }
+
+        if (model.hasAllPorts()) {
+            setAllPorts(model.getAllPorts());
+        }
+
+        if (model.hasPortRange()) {
+            setPortRange(model.getPortRange());
+        }
+
+        if (model.hasServiceLabel()) {
+            setServiceLabel(model.getServiceLabel());
+        }
+
+        if (model.hasServiceName()) {
+            setServiceName(model.getServiceName());
+        }
+
+        if (model.hasIPProtocol()) {
+            setIpProtocol(ForwardingRule.IPProtocolEnum.valueOf(model.getIPProtocol()));
+        }
+
+        if (model.hasIpVersion()) {
+            setIpVersion(ForwardingRule.IpVersion.valueOf(model.getIpVersion()));
+        }
+
+        if (model.hasLoadBalancingScheme()) {
+            setLoadBalancingScheme(ForwardingRule.LoadBalancingScheme.valueOf(model.getLoadBalancingScheme()));
+        }
+
+        if (model.hasNetworkTier()) {
+            setNetworkTier(ForwardingRule.NetworkTier.valueOf(model.getNetworkTier()));
+        }
+
+        setPorts(model.getPortsList());
     }
 
     ForwardingRule toForwardingRule() {
         ForwardingRule.Builder forwardingRule = ForwardingRule.newBuilder();
-        forwardingRule.setIPAddress(getIpAddress());
-        forwardingRule.setIPProtocol(getIpProtocol().name());
-        forwardingRule.setAllPorts(getAllPorts());
-        forwardingRule.setDescription(getDescription());
-        forwardingRule.setIpVersion(getIpVersion().name());
-        forwardingRule.setLoadBalancingScheme(getLoadBalancingScheme().name());
         forwardingRule.setName(getName());
-        forwardingRule.setNetworkTier(getNetworkTier().name());
-        forwardingRule.setServiceLabel(getServiceLabel());
+        forwardingRule.setAllPorts(Boolean.TRUE.equals(getAllPorts()));
+
+        if (getDescription() != null) {
+            forwardingRule.setDescription(getDescription());
+        }
+
         // This should be used even though the docs says it's deprecated as setting port is not working.
-        forwardingRule.setPortRange(getPortRange());
+        if (getPortRange() != null) {
+            forwardingRule.setPortRange(getPortRange());
+        }
+
+        if (getIpVersion() != null) {
+            forwardingRule.setIPProtocol(getIpProtocol().name());
+        }
+
+        if (getIpVersion() != null) {
+            forwardingRule.setIpVersion(getIpVersion().name());
+        }
+
+        if (getNetworkTier() != null) {
+            forwardingRule.setNetworkTier(getNetworkTier().name());
+        }
+
+        if (getLoadBalancingScheme() != null) {
+            forwardingRule.setLoadBalancingScheme(getLoadBalancingScheme().name());
+        }
+
+        if (getIpAddress() != null) {
+            forwardingRule.setIPAddress(getIpAddress());
+        }
+
+        if (getServiceLabel() != null) {
+            forwardingRule.setServiceLabel(getServiceLabel());
+        }
 
         List<String> ports = getPorts();
         if (!ports.isEmpty()) {

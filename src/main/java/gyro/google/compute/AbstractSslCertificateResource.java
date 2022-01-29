@@ -31,13 +31,27 @@ import static java.nio.charset.StandardCharsets.*;
 
 public abstract class AbstractSslCertificateResource extends ComputeResource implements Copyable<SslCertificate> {
 
-    private String certificatePath;
-    private String description;
     private String name;
+    private String description;
     private String privateKeyPath;
+    private String certificatePath;
 
     // Read-only
     private String selfLink;
+    private String certificate;
+
+    /**
+     * The name of the SSL certificate.
+     */
+    @Required
+    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     /**
      * The full path to the file containing the certificate(s) (in PEM format). The certificate chain must be no greater than 5 certs long. The chain must include at least one intermediate cert.
@@ -63,19 +77,6 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
     }
 
     /**
-     * The name of the SSL certificate.
-     */
-    @Required
-    @Regex(value = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?", message = "1-63 characters long and the first character must be a lowercase letter, and all following characters must be a dash, lowercase letter, or digit, except the last character, which cannot be a dash")
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
      * The full path to the file containing the private key (in PEM format).
      */
     @Required
@@ -85,6 +86,17 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
 
     public void setPrivateKeyPath(String privateKeyPath) {
         this.privateKeyPath = privateKeyPath;
+    }
+
+    /**
+     * The certificate in PEM format.
+     */
+    public String getCertificate() {
+        return certificate;
+    }
+
+    public void setCertificate(String certificate) {
+        this.certificate = certificate;
     }
 
     /**
@@ -102,9 +114,19 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
 
     @Override
     public void copyFrom(SslCertificate model) throws Exception {
-        setDescription(model.getDescription());
         setName(model.getName());
-        setSelfLink(model.getSelfLink());
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasCertificate()) {
+            setCertificate(model.getCertificate());
+        }
     }
 
     protected String readCertificateFile() {

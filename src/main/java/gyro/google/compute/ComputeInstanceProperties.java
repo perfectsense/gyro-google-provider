@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -30,10 +29,6 @@ import com.google.cloud.compute.v1.AttachedDisk;
 import com.google.cloud.compute.v1.InstanceProperties;
 import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Metadata;
-import com.google.cloud.compute.v1.NetworkInterface;
-import com.google.cloud.compute.v1.ReservationAffinity;
-import com.google.cloud.compute.v1.Scheduling;
-import com.google.cloud.compute.v1.ServiceAccount;
 import com.google.cloud.compute.v1.ShieldedInstanceConfig;
 import com.google.cloud.compute.v1.Tags;
 import gyro.core.resource.Diffable;
@@ -283,12 +278,31 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
 
     @Override
     public void copyFrom(InstanceProperties model) {
-        setCanIpForward(model.getCanIpForward());
-        setDescription(model.getDescription());
+        if (model.hasCanIpForward()) {
+            setCanIpForward(model.getCanIpForward());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasMachineType()) {
+            setMachineType(model.getMachineType());
+        }
+
+        if (model.hasMinCpuPlatform()) {
+            setMinCpuPlatform(model.getMinCpuPlatform());
+        }
+
+        if (model.hasTags()) {
+            setTags(model.getTags().getItemsList());
+        }
+
+        setLabels(model.getLabels());
+
         List<InstanceAttachedDisk> diffableAttachedDisks = null;
         List<AttachedDisk> disks = model.getDisksList();
-
-        if (disks != null && !disks.isEmpty()) {
+        if (!disks.isEmpty()) {
             diffableAttachedDisks = disks
                 .stream()
                 .map(attachedDisk -> {
@@ -302,8 +316,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
 
         List<ComputeAcceleratorConfig> diffableGuestAccelerators = null;
         List<AcceleratorConfig> guestAccelerators = model.getGuestAcceleratorsList();
-
-        if (guestAccelerators != null && !guestAccelerators.isEmpty()) {
+        if (!guestAccelerators.isEmpty()) {
             diffableGuestAccelerators = guestAccelerators
                 .stream()
                 .map(acceleratorConfig -> {
@@ -314,60 +327,44 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
                 .collect(Collectors.toList());
         }
         setGuestAccelerator(diffableGuestAccelerators);
-        setLabels(model.getLabels());
-        setMachineType(model.getMachineType());
 
-        Metadata metadata = model.getMetadata();
-
-        Map<String, String> copiedMetadata =
-            metadata != null && metadata.getItemsList() != null
-                ? metadata.getItemsList().stream().collect(Collectors.toMap(Items::getKey, Items::getValue))
-                : new HashMap<>();
-
+        Map<String, String> copiedMetadata = model.getMetadata().getItemsList().stream()
+            .collect(Collectors.toMap(Items::getKey, Items::getValue));
         setMetadata(copiedMetadata);
 
-        setMinCpuPlatform(model.getMinCpuPlatform());
-
         List<InstanceNetworkInterface> diffableNetworkInterfaces = null;
-        List<NetworkInterface> networkInterfaces = model.getNetworkInterfacesList();
-
-        if (networkInterfaces != null && !networkInterfaces.isEmpty()) {
-            diffableNetworkInterfaces = networkInterfaces
+        if (!model.getNetworkInterfacesList().isEmpty()) {
+            diffableNetworkInterfaces = model.getNetworkInterfacesList()
                 .stream()
-                .map(networkInterface -> {
+                .map(ni -> {
                     InstanceNetworkInterface diffableNetworkInterface = newSubresource(InstanceNetworkInterface.class);
-                    diffableNetworkInterface.copyFrom(networkInterface);
+                    diffableNetworkInterface.copyFrom(ni);
+
                     return diffableNetworkInterface;
                 })
                 .collect(Collectors.toList());
         }
         setNetworkInterface(diffableNetworkInterfaces);
 
-        ComputeReservationAffinity diffableReservationAffinity = null;
-        ReservationAffinity reservationAffinity = model.getReservationAffinity();
+        setReservationAffinity(null);
+        if (model.hasReservationAffinity()) {
+            ComputeReservationAffinity diffableReservationAffinity = newSubresource(ComputeReservationAffinity.class);
+            diffableReservationAffinity.copyFrom(model.getReservationAffinity());
 
-        if (reservationAffinity != null) {
-            diffableReservationAffinity = Optional.ofNullable(getReservationAffinity())
-                .orElse(newSubresource(ComputeReservationAffinity.class));
-            diffableReservationAffinity.copyFrom(reservationAffinity);
+            setReservationAffinity(diffableReservationAffinity);
         }
-        setReservationAffinity(diffableReservationAffinity);
 
-        ComputeScheduling diffableScheduling = null;
-        Scheduling scheduling = model.getScheduling();
+        setScheduling(null);
+        if (model.hasScheduling()) {
+            ComputeScheduling diffableScheduling = newSubresource(ComputeScheduling.class);
+            diffableScheduling.copyFrom(model.getScheduling());
 
-        if (scheduling != null) {
-            diffableScheduling = Optional.ofNullable(getScheduling())
-                .orElse(newSubresource(ComputeScheduling.class));
-            diffableScheduling.copyFrom(scheduling);
+            setScheduling(diffableScheduling);
         }
-        setScheduling(diffableScheduling);
 
-        List<ComputeServiceAccount> diffableServiceAccounts = null;
-        List<ServiceAccount> serviceAccounts = model.getServiceAccountsList();
-
-        if (serviceAccounts != null && !serviceAccounts.isEmpty()) {
-            diffableServiceAccounts = serviceAccounts
+        setServiceAccount(null);
+        if (!model.getServiceAccountsList().isEmpty()) {
+            List<ComputeServiceAccount> diffableServiceAccounts = model.getServiceAccountsList()
                 .stream()
                 .map(serviceAccount -> {
                     ComputeServiceAccount diffableServiceAccount = newSubresource(ComputeServiceAccount.class);
@@ -375,31 +372,27 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
                     return diffableServiceAccount;
                 })
                 .collect(Collectors.toList());
-        }
-        setServiceAccount(diffableServiceAccounts);
 
-        ComputeShieldedInstanceConfig diffableShieldedInstanceConfig = null;
+            setServiceAccount(diffableServiceAccounts);
+        }
+
+        setShieldedInstanceConfig(null);
         ShieldedInstanceConfig shieldedInstanceConfig = model.getShieldedInstanceConfig();
+        if (model.hasShieldedInstanceConfig()) {
+            ComputeShieldedInstanceConfig diffableShieldedInstanceConfig =
+                newSubresource(ComputeShieldedInstanceConfig.class);
+            diffableShieldedInstanceConfig.copyFrom(model.getShieldedInstanceConfig());
 
-        if (shieldedInstanceConfig != null) {
-            diffableShieldedInstanceConfig = Optional.ofNullable(getShieldedInstanceConfig())
-                .orElse(newSubresource(ComputeShieldedInstanceConfig.class));
-            diffableShieldedInstanceConfig.copyFrom(shieldedInstanceConfig);
+            setShieldedInstanceConfig(diffableShieldedInstanceConfig);
         }
-        setShieldedInstanceConfig(diffableShieldedInstanceConfig);
-
-        Tags tags = model.getTags();
-
-        List<String> copiedTags = tags != null
-            ? tags.getItemsList()
-            : new ArrayList<>();
-
-        setTags(copiedTags);
     }
 
     public InstanceProperties toInstanceProperties() {
         InstanceProperties.Builder builder = InstanceProperties.newBuilder();
-        builder.setCanIpForward(getCanIpForward());
+
+        if (getCanIpForward() != null) {
+            builder.setCanIpForward(getCanIpForward());
+        }
 
         if (getDescription() != null) {
             builder.setDescription(getDescription());

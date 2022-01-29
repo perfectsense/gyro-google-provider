@@ -79,24 +79,6 @@ public class NetworkEndpointGroupFinder
 
     @Override
     protected List<NetworkEndpointGroup> findAllGoogle(NetworkEndpointGroupsClient client) throws Exception {
-        //        List<NetworkEndpointGroup> networkEndpointGroups = new ArrayList<>();
-        //        NetworkEndpointGroupAggregatedList networkEndpointGroupList;
-        //        String nextPageToken = null;
-        //
-        //        do {
-        //            networkEndpointGroupList = client.networkEndpointGroups()
-        //                .aggregatedList(getProjectId())
-        //                .setPageToken(nextPageToken)
-        //                .execute();
-        //            networkEndpointGroups.addAll(networkEndpointGroupList.getItems().values().stream()
-        //                .map(NetworkEndpointGroupsScopedList::getNetworkEndpointGroups)
-        //                .filter(Objects::nonNull)
-        //                .flatMap(Collection::stream)
-        //                .collect(Collectors.toList()));
-        //            nextPageToken = networkEndpointGroupList.getNextPageToken();
-        //        } while (nextPageToken != null);
-        //
-        //        return networkEndpointGroups;
         try {
             return getNetworkEndpointGroups(client);
         } finally {
@@ -107,9 +89,6 @@ public class NetworkEndpointGroupFinder
     @Override
     protected List<NetworkEndpointGroup> findGoogle(NetworkEndpointGroupsClient client, Map<String, String> filters)
         throws Exception {
-        //        return Collections.singletonList(client.networkEndpointGroups()
-        //            .get(getProjectId(), filters.get("zone"), filters.get("name"))
-        //            .execute());
         List<NetworkEndpointGroup> networkEndpointGroups = new ArrayList<>();
 
         try {
@@ -139,14 +118,10 @@ public class NetworkEndpointGroupFinder
                     networkEndpointGroupList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
-                    if (networkEndpointGroupList.getItemsList() != null) {
-                        networkEndpointGroups.addAll(networkEndpointGroupList.getItemsList()
-                            .stream()
-                            .filter(Objects::nonNull)
-                            .filter(networkEndpointGroup -> networkEndpointGroup.getZone() != null)
-                            .collect(Collectors.toList()));
-                    }
-
+                    networkEndpointGroups.addAll(networkEndpointGroupList.getItemsList()
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
                 } while (!StringUtils.isEmpty(nextPageToken));
 
                 return networkEndpointGroups;
@@ -177,20 +152,15 @@ public class NetworkEndpointGroupFinder
             }
 
             NetworkEndpointGroupsClient.AggregatedListPagedResponse listPagedResponse = client.aggregatedList(builder.build());
-
             networkEndpointGroupAggregatedList = listPagedResponse.getPage().getResponse();
-
             nextPageToken = listPagedResponse.getNextPageToken();
 
-            if (networkEndpointGroupAggregatedList.getItemsMap() != null) {
-                networkEndpointGroups.addAll(networkEndpointGroupAggregatedList.getItemsMap()
-                    .values()
-                    .stream()
-                    .map(NetworkEndpointGroupsScopedList::getNetworkEndpointGroupsList)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-            }
-
+            networkEndpointGroups.addAll(networkEndpointGroupAggregatedList.getItemsMap()
+                .values()
+                .stream()
+                .map(NetworkEndpointGroupsScopedList::getNetworkEndpointGroupsList)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
         } while (!StringUtils.isEmpty(nextPageToken));
 
         return networkEndpointGroups;

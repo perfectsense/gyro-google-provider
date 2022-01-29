@@ -44,6 +44,7 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
+import gyro.google.util.Utils;
 
 /**
  * Creates a regional disk.
@@ -117,6 +118,7 @@ public class RegionDiskResource extends AbstractDiskResource {
         if (replicaZones == null) {
             replicaZones = new ArrayList<>();
         }
+
         return replicaZones;
     }
 
@@ -129,6 +131,10 @@ public class RegionDiskResource extends AbstractDiskResource {
      * The disk type used to create the disk.
      */
     public String getType() {
+        if (type == null) {
+            type = "pd-standard";
+        }
+
         return type;
     }
 
@@ -142,9 +148,18 @@ public class RegionDiskResource extends AbstractDiskResource {
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
-        setRegion(disk.getRegion());
-        setReplicaZones(disk.getReplicaZonesList());
-        setType(disk.getType());
+        if (disk.hasRegion()) {
+            setRegion(disk.getRegion());
+        }
+
+        if (disk.hasType()) {
+            setType(Utils.extractName(disk.getType()));
+        }
+
+        List<String> zones = disk.getReplicaZonesList().stream()
+            .map(Utils::extractName)
+            .collect(Collectors.toList());
+        setReplicaZones(zones);
     }
 
     @Override
@@ -167,9 +182,15 @@ public class RegionDiskResource extends AbstractDiskResource {
         try (RegionDisksClient client = createClient(RegionDisksClient.class)) {
             Disk.Builder builder = toDisk().toBuilder();
             builder.setRegion(getRegion());
-            builder.addAllReplicaZones(getReplicaZones());
-            builder.setType(getType());
-            builder.addAllResourcePolicies(getResourcePolicy().stream().map(ResourcePolicyResource::getSelfLink)
+
+            builder.setType(Utils.computeRegionDiskTypeUrl(getProjectId(), getRegion(), getType()));
+
+            builder.addAllResourcePolicies(getResourcePolicy().stream()
+                .map(ResourcePolicyResource::getSelfLink)
+                .collect(Collectors.toList()));
+
+            builder.addAllReplicaZones(getReplicaZones().stream()
+                .map(z -> Utils.computeZoneUrl(getProjectId(), z))
                 .collect(Collectors.toList()));
 
             Operation operation = client.insertCallable().call(InsertRegionDiskRequest.newBuilder()

@@ -184,23 +184,33 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
     @Override
     public void copyFrom(BackendBucket model) {
         BucketResource bucketResource = null;
-        String bucketName = model.getBucketName();
 
-        if (bucketName != null) {
-            bucketResource = findById(BucketResource.class, bucketName);
-        }
-        setBucket(bucketResource);
-        setDescription(model.getDescription());
-        setEnableCdn(model.getEnableCdn());
         setName(model.getName());
-        setSelfLink(model.getSelfLink());
 
-        if (model.getCdnPolicy() != null) {
-            BackendBucketCdnPolicy cdnPolicy = newSubresource(BackendBucketCdnPolicy.class);
-            cdnPolicy.copyFrom(model.getCdnPolicy());
-            setCdnPolicy(cdnPolicy);
-        } else {
-            setCdnPolicy(null);
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasEnableCdn()) {
+            setEnableCdn(model.getEnableCdn());
+        }
+
+        setCdnPolicy(null);
+        if (model.hasCdnPolicy()) {
+            BackendBucketCdnPolicy cp = newSubresource(BackendBucketCdnPolicy.class);
+            cp.copyFrom(model.getCdnPolicy());
+
+            setCdnPolicy(cp);
+        }
+
+        setBucket(null);
+        if (model.hasBucketName()) {
+            bucketResource = findById(BucketResource.class, model.getBucketName());
+            setBucket(bucketResource);
         }
 
         if (getCdnPolicy() != null) {

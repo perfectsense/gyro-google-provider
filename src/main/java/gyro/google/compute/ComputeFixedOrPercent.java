@@ -90,9 +90,17 @@ public class ComputeFixedOrPercent extends Diffable implements Copyable<FixedOrP
 
     @Override
     public void copyFrom(FixedOrPercent model) {
-        setFixed(model.getFixed());
-        setPercent(model.getPercent());
-        setCalculated(model.getCalculated());
+        if (model.hasFixed()) {
+            setFixed(model.getFixed());
+        }
+
+        if (model.hasPercent()) {
+            setPercent(model.getPercent());
+        }
+
+        if (model.hasCalculated()) {
+            setCalculated(model.getCalculated());
+        }
     }
 
     @Override

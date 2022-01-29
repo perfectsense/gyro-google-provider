@@ -372,47 +372,64 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     }
 
     @Override
-    public void copyFrom(Firewall firewall) {
-        setName(firewall.getName());
-        setNetwork(findById(
-            NetworkResource.class,
-            firewall.getNetwork()));
-        setDescription(firewall.getDescription());
+    public void copyFrom(Firewall model) {
+        setId(String.valueOf(model.getId()));
+        setName(model.getName());
 
-        setDestinationRanges(
-            firewall.getDestinationRangesList() != null ? new HashSet<>(firewall.getDestinationRangesList()) : null);
-        setDirection(firewall.getDirection().toString());
-        setDisabled(firewall.getDisabled());
-        setPriority(firewall.getPriority());
-        setSourceRanges(firewall.getSourceRangesList() != null ? new HashSet<>(firewall.getSourceRangesList()) : null);
-        setSourceServiceAccounts(firewall.getSourceServiceAccountsList() != null
-            ? new HashSet<>(firewall.getSourceServiceAccountsList()) : null);
-        setSourceTags(firewall.getSourceTagsList() != null ? new HashSet<>(firewall.getSourceTagsList()) : null);
-        setLogConfig(firewall.getLogConfig().getEnable());
-        setTargetServiceAccounts(firewall.getTargetServiceAccountsList() != null
-            ? new HashSet<>(firewall.getTargetServiceAccountsList()) : null);
-        setTargetTags(firewall.getTargetTagsList() != null ? new HashSet<>(firewall.getTargetTagsList()) : null);
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasDirection()) {
+            setDirection(model.getDirection());
+        }
+
+        if (model.hasDisabled()) {
+            setDisabled(model.getDisabled());
+        }
+
+        if (model.hasPriority()) {
+            setPriority(model.getPriority());
+        }
+
+        if (model.hasLogConfig()) {
+            setLogConfig(model.getLogConfig().getEnable());
+        }
+
+        if (model.hasNetwork()) {
+            setNetwork(findById(NetworkResource.class, model.getNetwork()));
+        }
+
+        setDestinationRanges(new HashSet<>(model.getDestinationRangesList()));
+        setSourceRanges(new HashSet<>(model.getSourceRangesList()));
+        setSourceServiceAccounts(new HashSet<>(model.getSourceServiceAccountsList()));
+        setSourceTags(new HashSet<>(model.getSourceTagsList()));
+        setTargetServiceAccounts(new HashSet<>(model.getTargetServiceAccountsList()));
+        setTargetTags(new HashSet<>(model.getTargetTagsList()));
 
         getAllowed().clear();
-        if (firewall.getAllowedList() != null && !firewall.getAllowedList().isEmpty()) {
-            setAllowed(firewall.getAllowedList().stream().map(rule -> {
+        if (!model.getAllowedList().isEmpty()) {
+            setAllowed(model.getAllowedList().stream().map(rule -> {
                 FirewallAllowed allowed = newSubresource(FirewallAllowed.class);
                 allowed.copyFrom(rule);
+
                 return allowed;
             }).collect(Collectors.toList()));
         }
 
         getDenied().clear();
-        if (firewall.getDeniedList() != null && !firewall.getDeniedList().isEmpty()) {
-            setDenied(firewall.getDeniedList().stream().map(rule -> {
+        if (!model.getDeniedList().isEmpty()) {
+            setDenied(model.getDeniedList().stream().map(rule -> {
                 FirewallDenied denied = newSubresource(FirewallDenied.class);
                 denied.copyFrom(rule);
+
                 return denied;
             }).collect(Collectors.toList()));
         }
-
-        setId(String.valueOf(firewall.getId()));
-        setSelfLink(firewall.getSelfLink());
     }
 
     @Override

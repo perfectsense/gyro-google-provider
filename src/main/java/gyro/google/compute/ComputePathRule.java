@@ -119,9 +119,10 @@ public class ComputePathRule extends Diffable implements Copyable<PathRule> {
         }
 
         setUrlRedirect(null);
-        if (model.getUrlRedirect() != null) {
+        if (model.hasUrlRedirect()) {
             HttpRedirectAction redirectAction = newSubresource(HttpRedirectAction.class);
             redirectAction.copyFrom(model.getUrlRedirect());
+
             setUrlRedirect(redirectAction);
         }
     }

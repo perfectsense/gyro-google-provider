@@ -147,12 +147,15 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     public void copyFrom(BackendService model) {
         super.copyFrom(model);
 
-        setPortName(model.getPortName());
-        setSecurityPolicy(model.getSecurityPolicy() != null
-            ? findById(SecurityPolicyResource.class, model.getSecurityPolicy())
-            : null);
+        if (model.hasPortName()) {
+            setPortName(model.getPortName());
+        }
 
-        if (getCdnPolicy() != null) {
+        if (model.hasSecurityPolicy()) {
+            setSecurityPolicy(findById(SecurityPolicyResource.class, model.getSecurityPolicy()));
+        }
+
+        if (model.hasCdnPolicy()) {
             // add any new keys not configured through gyro
             Set<String> keys = getSignedUrlKey().stream()
                 .map(BackendSignedUrlKey::getKey)
@@ -222,7 +225,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (BackendServicesClient client = createClient(BackendServicesClient.class)) {
 
-            BackendService.Builder backendService = getBackendService(null).toBuilder();
+            BackendService.Builder backendService = getBackendService(null);
 
             if (getPortName() != null) {
                 backendService.setPortName(getPortName());
@@ -232,6 +235,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setProject(getProject())
                 .setBackendServiceResource(backendService)
                 .build());
+
             waitForCompletion(operation);
 
             if (getSecurityPolicy() != null) {
@@ -266,13 +270,13 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
 
             boolean securityPolicyUpdated = false;
 
-            if (changedFieldNames.contains("enable-cdn") && getEnableCdn()
+            if (changedFieldNames.contains("enable-cdn") && Boolean.TRUE.equals(getEnableCdn())
                 && currentBackendResource.getSecurityPolicy() != null) {
                 saveSecurityPolicy(client);
                 securityPolicyUpdated = true;
             }
 
-            BackendService.Builder backendService = getBackendService(changedFieldNames).toBuilder();
+            BackendService.Builder backendService = getBackendService(changedFieldNames);
             Operation operation = client.patchCallable().call(PatchBackendServiceRequest.newBuilder()
                 .setProject(getProject())
                 .setBackendService(getName())

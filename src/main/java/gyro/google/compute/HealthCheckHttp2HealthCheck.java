@@ -18,12 +18,14 @@ package gyro.google.compute;
 
 import com.google.cloud.compute.v1.HTTP2HealthCheck;
 import com.google.cloud.compute.v1.HealthCheck;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
 public class HealthCheckHttp2HealthCheck extends AbstractHealthCheck implements Copyable<HTTP2HealthCheck> {
 
     private String host;
+    private String requestPath;
 
     /**
      * The value of the host header in the health check request.
@@ -35,6 +37,22 @@ public class HealthCheckHttp2HealthCheck extends AbstractHealthCheck implements 
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    /**
+     * The request path of the health check request. Prefixes the path with a ``/`` if missing.
+     */
+    @Updatable
+    public String getRequestPath() {
+        if (requestPath != null) {
+            requestPath = StringUtils.ensureStart(requestPath, "/");
+        }
+
+        return requestPath;
+    }
+
+    public void setRequestPath(String requestPath) {
+        this.requestPath = requestPath;
     }
 
     @Override
@@ -49,13 +67,31 @@ public class HealthCheckHttp2HealthCheck extends AbstractHealthCheck implements 
 
     @Override
     public void copyFrom(HTTP2HealthCheck model) {
-        if (model != null) {
+        if (model.hasHost()) {
             setHost(model.getHost());
+        }
+
+        if (model.hasPort()) {
             setPort(model.getPort());
+        }
+
+        if (model.hasPortName()) {
             setPortName(model.getPortName());
-            setPortSpecification(model.getPortSpecification() != null ? model.getPortSpecification().toString() : null);
-            setProxyHeader(model.getProxyHeader() != null ? model.getProxyHeader().toString() : null);
+        }
+
+        if (model.hasPortSpecification()) {
+            setPortSpecification(model.getPortSpecification());
+        }
+
+        if (model.hasProxyHeader()) {
+            setProxyHeader(model.getProxyHeader());
+        }
+
+        if (model.hasResponse()) {
             setResponse(model.getResponse());
+        }
+
+        if (model.hasRequestPath()) {
             setRequestPath(model.getRequestPath());
         }
     }

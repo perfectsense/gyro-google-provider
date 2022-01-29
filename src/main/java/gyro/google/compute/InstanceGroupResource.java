@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -289,6 +288,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
             Operation operation = client.deleteCallable().call(DeleteInstanceGroupRequest.newBuilder()
                 .setProject(getProjectId())
                 .setZone(getZone())
+                .setInstanceGroup(getName())
                 .build());
 
             waitForCompletion(operation);
@@ -296,31 +296,45 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
     }
 
     @Override
-    public void copyFrom(InstanceGroup instanceGroup) throws Exception {
-        setName(instanceGroup.getName());
-        setDescription(instanceGroup.getDescription());
-        setZone(instanceGroup.getZone());
-        setRegion(instanceGroup.getRegion());
-        setSelfLink(instanceGroup.getSelfLink());
-        setSubnetwork(instanceGroup.getSubnetwork());
+    public void copyFrom(InstanceGroup model) throws Exception {
+        setName(model.getName());
         setInstances(listInstances());
 
-        if (instanceGroup.getNetwork() != null) {
+        if (model.hasZone()) {
+            setZone(model.getZone());
+        }
+
+        if (model.hasRegion()) {
+            setRegion(model.getRegion());
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasSubnetwork()) {
+            setSubnetwork(model.getSubnetwork());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasNetwork()) {
             setNetwork(findById(
                 NetworkResource.class,
-                instanceGroup.getNetwork()));
+                model.getNetwork()));
         }
 
-        if (instanceGroup.getNamedPortsList() != null) {
-            setNamedPort(instanceGroup.getNamedPortsList().stream().map(rule -> {
-                InstanceGroupNamedPort namedPort = newSubresource(InstanceGroupNamedPort.class);
-                namedPort.copyFrom(rule);
-                return namedPort;
-            }).collect(Collectors.toList()));
-        }
+        setNamedPort(model.getNamedPortsList().stream().map(rule -> {
+            InstanceGroupNamedPort np = newSubresource(InstanceGroupNamedPort.class);
+            np.copyFrom(rule);
+
+            return np;
+        }).collect(Collectors.toList()));
     }
 
-    private void addInstances(InstanceGroupsClient client, List<String> instances) throws Exception {
+    private void addInstances(InstanceGroupsClient client, List<String> instances) {
         InstanceGroupsAddInstancesRequest.Builder builder = InstanceGroupsAddInstancesRequest.newBuilder()
             .addAllInstances(instances.stream()
                 .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
@@ -328,6 +342,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
 
         Operation operation = client.addInstancesCallable().call(AddInstancesInstanceGroupRequest.newBuilder()
                 .setProject(getProjectId())
+                .setZone(getZone())
                 .setInstanceGroup(getName())
                 .setInstanceGroupsAddInstancesRequestResource(builder)
             .build());
@@ -335,7 +350,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         waitForCompletion(operation);
     }
 
-    private void removeInstances(InstanceGroupsClient client, List<String> instances) throws Exception {
+    private void removeInstances(InstanceGroupsClient client, List<String> instances) {
         InstanceGroupsRemoveInstancesRequest.Builder builder = InstanceGroupsRemoveInstancesRequest.newBuilder()
             .addAllInstances(instances.stream()
                 .map(instance -> InstanceReference.newBuilder().setInstance(instance).build())
@@ -343,6 +358,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
 
         Operation operation = client.removeInstancesCallable().call(RemoveInstancesInstanceGroupRequest.newBuilder()
             .setProject(getProjectId())
+            .setZone(getZone())
             .setInstanceGroup(getName())
             .setInstanceGroupsRemoveInstancesRequestResource(builder)
             .build());
@@ -350,7 +366,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         waitForCompletion(operation);
     }
 
-    private List<InstanceResource> listInstances() throws IOException {
+    private List<InstanceResource> listInstances() {
         try (InstanceGroupsClient client = createClient(InstanceGroupsClient.class)) {
             List<InstanceResource> current = new ArrayList<>();
             String pageToken;
@@ -366,12 +382,10 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                         .build()).getPage().getResponse();
                 pageToken = results.getNextPageToken();
 
-                if (results.getItemsList() != null) {
-                    current.addAll(results.getItemsList()
-                        .stream()
-                        .map(item -> findById(InstanceResource.class, item.getInstance()))
-                        .collect(Collectors.toList()));
-                }
+                current.addAll(results.getItemsList()
+                    .stream()
+                    .map(item -> findById(InstanceResource.class, item.getInstance()))
+                    .collect(Collectors.toList()));
             } while (!StringUtils.isBlank(pageToken));
 
             return current;
@@ -397,7 +411,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
         return builder.build();
     }
 
-    private void saveNamedPort(InstanceGroupsClient client) throws Exception {
+    private void saveNamedPort(InstanceGroupsClient client) {
         InstanceGroupsSetNamedPortsRequest.Builder builder = InstanceGroupsSetNamedPortsRequest.newBuilder();
         builder.addAllNamedPorts(getNamedPort().stream().map(InstanceGroupNamedPort::toNamedPort)
             .collect(Collectors.toList()));

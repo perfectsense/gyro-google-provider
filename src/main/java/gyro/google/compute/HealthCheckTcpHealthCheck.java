@@ -22,6 +22,19 @@ import gyro.google.Copyable;
 
 public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Copyable<TCPHealthCheck> {
 
+    private String request;
+
+    /**
+     * The data to send once the connection has been established.
+     */
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
     @Override
     public String primaryKey() {
         return "";
@@ -34,14 +47,28 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
 
     @Override
     public void copyFrom(TCPHealthCheck model) {
-        if (model != null) {
+        if (model.hasPort()) {
             setPort(model.getPort());
+        }
+
+        if (model.hasPortName()) {
             setPortName(model.getPortName());
-            setPortSpecification(
-                model.getPortSpecification() != null ? model.getPortSpecification().toString().toUpperCase() : null);
-            setProxyHeader(model.getProxyHeader() != null ? model.getProxyHeader().toString() : null);
+        }
+
+        if (model.hasPortSpecification()) {
+            setPortSpecification(model.getPortSpecification());
+        }
+
+        if (model.hasProxyHeader()) {
+            setProxyHeader(model.getProxyHeader());
+        }
+
+        if (model.hasResponse()) {
             setResponse(model.getResponse());
-            setRequestPath(model.getRequest());
+        }
+
+        if (model.hasRequest()) {
+            setRequest(getRequest());
         }
     }
 
@@ -68,8 +95,8 @@ public class HealthCheckTcpHealthCheck extends AbstractHealthCheck implements Co
             builder.setResponse(getResponse());
         }
 
-        if (getRequestPath() != null) {
-            builder.setRequest(getRequestPath());
+        if (getRequest() != null) {
+            builder.setRequest(getRequest());
         }
 
         return builder.build();

@@ -24,6 +24,8 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
 
+import static java.lang.Boolean.*;
+
 public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyable<CacheKeyPolicy> {
 
     private Boolean includeHost;
@@ -106,19 +108,30 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
     }
 
     @Override
-    public void copyFrom(CacheKeyPolicy policy) {
-        setIncludeHost(policy.getIncludeHost());
-        setIncludeProtocol(policy.getIncludeProtocol());
-        setIncludeQueryString(policy.getIncludeQueryString());
-        setQueryStringBlacklist(policy.getQueryStringBlacklistList());
-        setQueryStringWhitelist(policy.getQueryStringWhitelistList());
+    public void copyFrom(CacheKeyPolicy model) {
+        if (model.hasIncludeHost()) {
+            setIncludeHost(model.getIncludeHost());
+        }
+
+        if (model.hasIncludeProtocol()) {
+            setIncludeProtocol(model.getIncludeProtocol());
+        }
+
+        if (model.hasIncludeQueryString()) {
+            setIncludeQueryString(model.getIncludeQueryString());
+        }
+
+        setQueryStringBlacklist(model.getQueryStringBlacklistList());
+        setQueryStringWhitelist(model.getQueryStringWhitelistList());
     }
 
     CacheKeyPolicy toCacheKeyPolicy() {
-        return CacheKeyPolicy.newBuilder().setIncludeHost(getIncludeHost())
-            .setIncludeProtocol(getIncludeProtocol())
-            .setIncludeQueryString(getIncludeQueryString())
+        return CacheKeyPolicy.newBuilder()
+            .setIncludeHost(TRUE.equals(getIncludeHost()))
+            .setIncludeProtocol(TRUE.equals(getIncludeProtocol()))
+            .setIncludeQueryString(TRUE.equals(getIncludeQueryString()))
             .addAllQueryStringBlacklist(getQueryStringBlacklist())
-            .addAllQueryStringWhitelist(getQueryStringWhitelist()).build();
+            .addAllQueryStringWhitelist(getQueryStringWhitelist())
+            .build();
     }
 }

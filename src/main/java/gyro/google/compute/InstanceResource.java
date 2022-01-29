@@ -422,23 +422,35 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (InstancesClient client = createClient(InstancesClient.class)) {
             Instance.Builder builder = Instance.newBuilder();
+
             builder.setName(getName());
+            builder.setTags(buildTags(null));
+            builder.setCanIpForward(Boolean.TRUE.equals(getCanIpForward()));
+            builder.setMetadata(buildMetadata(null));
+
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
+
+            if (getMachineType() != null) {
+                builder.setMachineType(getMachineType());
+            }
+
+            if (getLabels() != null) {
+                builder.putAllLabels(getLabels());
+            }
+
             builder.addAllNetworkInterfaces(getNetworkInterface().stream()
                 .map(InstanceNetworkInterface::copyTo)
                 .collect(Collectors.toList()));
-            builder.putAllLabels(getLabels());
+
             builder.addAllDisks(getInitializeDisk().stream()
                 .map(InstanceAttachedDisk::copyTo)
                 .collect(Collectors.toList()));
-            builder.setCanIpForward(getCanIpForward());
+
             builder.addAllServiceAccounts(getServiceAccount().stream()
                 .map(ComputeServiceAccount::toServiceAccount)
                 .collect(Collectors.toList()));
-            builder.setTags(buildTags(null));
-            builder.setMetadata(buildMetadata(null));
-
-            builder.setDescription(getDescription());
-            builder.setMachineType(getMachineType());
 
             waitForCompletion(client.insertCallable().call(InsertInstanceRequest.newBuilder()
                 .setProject(getProjectId())
@@ -446,13 +458,16 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                 .setInstanceResource(builder)
                 .build()));
 
-            Wait.atMost(2, TimeUnit.MINUTES)
-                .checkEvery(20, TimeUnit.SECONDS)
+            state.save();
+
+            Wait.atMost(5, TimeUnit.MINUTES)
+                .checkEvery(5, TimeUnit.SECONDS)
                 .prompt(false)
                 .until(() -> {
                     Instance instance = getInstance(client);
-                    return Instance.Status.RUNNING.equals(instance.getStatus()) || Instance.Status.TERMINATED.equals(
-                        instance.getStatus());
+
+                    return Instance.Status.RUNNING.name().equals(instance.getStatus())
+                        || Instance.Status.TERMINATED.name().equals(instance.getStatus());
                 });
         }
 
@@ -465,7 +480,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             InstanceResource currentResource = (InstanceResource) current;
 
             if (changedFieldNames.contains("labels")) {
-                // Always use the currentResoure#labelFingerprint in case updated via console. API will neither error or
+                // Always use the currentResource#labelFingerprint in case updated via console. API will neither error or
                 // update if an older fingerprint is used.
 
                 InstancesSetLabelsRequest.Builder builder = InstancesSetLabelsRequest.newBuilder()
@@ -549,74 +564,84 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     @Override
     public void copyFrom(Instance model) {
+        setId(String.valueOf(model.getId()));
         setName(model.getName());
         setZone(model.getZone().substring(model.getZone().lastIndexOf("/") + 1));
-        setDescription(model.getDescription());
-        setMachineType(model.getMachineType());
         setSelfLink(model.getSelfLink());
-        setLabelFingerprint(model.getLabelFingerprint());
         setLabels(model.getLabelsMap());
-        setCanIpForward(model.getCanIpForward());
 
-        getMetadata().clear();
-        if (model.getMetadata() != null && model.getMetadata().getItemsList() != null) {
-            setMetadata(model.getMetadata().getItemsList().stream()
-                .collect(Collectors.toMap(Items::getKey, Items::getValue)));
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
         }
 
-        getTags().clear();
-        if (model.getTags() != null && model.getTags().getItemsList() != null) {
-            setTags(model.getTags().getItemsList());
+        if (model.hasMachineType()) {
+            setMachineType(model.getMachineType());
         }
 
-        // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
-        if (Instance.Status.RUNNING.equals(model.getStatus()) || Instance.Status.TERMINATED.equals(model.getStatus())) {
-            setStatus(model.hasStatus() ? model.getStatus().toString().toUpperCase() : null);
+        if (model.hasLabelFingerprint()) {
+            setLabelFingerprint(model.getLabelFingerprint());
         }
 
-        getNetworkInterface().clear();
-        if (model.getNetworkInterfacesList() != null) {
-            setNetworkInterface(model.getNetworkInterfacesList().stream()
-                .map(networkInterface -> {
-                    InstanceNetworkInterface newNetworkInterface = newSubresource(InstanceNetworkInterface.class);
-                    newNetworkInterface.copyFrom(networkInterface);
-                    return newNetworkInterface;
-                })
-                .collect(Collectors.toList()));
+        if (model.hasCanIpForward()) {
+            setCanIpForward(model.getCanIpForward());
         }
 
-        getDisk().clear();
-        if (model.getDisksList() != null) {
-            setDisk(model.getDisksList().stream()
-                .map(disk -> {
-                    InstanceAttachedDisk instanceAttachedDisk = newSubresource(InstanceAttachedDisk.class);
-                    instanceAttachedDisk.copyFrom(disk);
-                    return instanceAttachedDisk;
-                })
-                .collect(Collectors.toList()));
+        if (model.hasCreationTimestamp()) {
+            setCreationDate(model.getCreationTimestamp());
         }
 
-        getServiceAccount().clear();
-        if (model.getServiceAccountsList() != null) {
-            setServiceAccount(model.getServiceAccountsList().stream()
-                .map(sa -> {
-                    ComputeServiceAccount serviceAccount = newSubresource(ComputeServiceAccount.class);
-                    serviceAccount.copyFrom(sa);
-                    return serviceAccount;
-                })
-                .collect(Collectors.toList()));
+        if (model.hasHostname()) {
+            setHostName(model.getHostname());
         }
 
-        setCreationDate(model.getCreationTimestamp());
-        setHostName(model.getHostname());
         setPrivateIp(getNetworkInterface().get(0).getNetworkIp());
-        setId(String.valueOf(model.getId()));
         setPublicIp(null);
+
         getNetworkInterface().stream()
             .filter(o -> !o.getAccessConfig().isEmpty())
             .map(o -> o.getAccessConfig().get(0))
             .findFirst().ifPresent(accessConfigPublicIp -> setPublicIp(accessConfigPublicIp.getNatIp()));
 
+        getMetadata().clear();
+        if (model.hasMetadata()) {
+            setMetadata(model.getMetadata().getItemsList().stream()
+                .collect(Collectors.toMap(Items::getKey, Items::getValue)));
+        }
+
+        getTags().clear();
+        if (model.hasTags()) {
+            setTags(model.getTags().getItemsList());
+        }
+
+        // There are other intermediary steps between RUNNING and TERMINATED while moving between states.
+        if (Instance.Status.RUNNING.name().equals(model.getStatus())
+            || Instance.Status.TERMINATED.name().equals(model.getStatus())) {
+            setStatus(model.hasStatus() ? model.getStatus() : null);
+        }
+
+        setNetworkInterface(model.getNetworkInterfacesList().stream()
+            .map(networkInterface -> {
+                InstanceNetworkInterface newNetworkInterface = newSubresource(InstanceNetworkInterface.class);
+                newNetworkInterface.copyFrom(networkInterface);
+                return newNetworkInterface;
+            })
+            .collect(Collectors.toList()));
+
+        setDisk(model.getDisksList().stream()
+            .map(disk -> {
+                InstanceAttachedDisk instanceAttachedDisk = newSubresource(InstanceAttachedDisk.class);
+                instanceAttachedDisk.copyFrom(disk);
+                return instanceAttachedDisk;
+            })
+            .collect(Collectors.toList()));
+
+        setServiceAccount(model.getServiceAccountsList().stream()
+            .map(sa -> {
+                ComputeServiceAccount serviceAccount = newSubresource(ComputeServiceAccount.class);
+                serviceAccount.copyFrom(sa);
+                return serviceAccount;
+            })
+            .collect(Collectors.toList()));
     }
 
     private String getMetadataFingerprint() throws IOException {
@@ -624,7 +649,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             String fingerprint = null;
 
             Instance instance = client.get(getProjectId(), getZone(), getName());
-            if (instance.getMetadata() != null) {
+            if (instance.hasMetadata()) {
                 fingerprint = instance.getMetadata().getFingerprint();
             }
 
@@ -657,7 +682,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             String fingerprint = null;
 
             Instance instance = client.get(getProjectId(), getZone(), getName());
-            if (instance.getTags() != null) {
+            if (instance.hasTags()) {
                 fingerprint = instance.getTags().getFingerprint();
             }
 

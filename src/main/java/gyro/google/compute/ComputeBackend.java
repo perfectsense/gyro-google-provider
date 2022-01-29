@@ -83,7 +83,7 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
      * When ``load-balancing-scheme`` is set to either ``EXTERNAL``, ``INTERNAL_SELF_MANAGED``, or
      * ``INTERNAL_MANAGED``, the group can be a instance group or a NEG. If set to ``INTERNAL``
      * the group needs to be an instance group in the same region as the backend service. When referencing
-     * instance group manager/ region intance group manager, use the attribute ``instance-group-link``
+     * instance group manager/ region instance group manager, use the attribute ``instance-group-link``
      * instead of ``self-link``.
      */
     @Required
@@ -182,22 +182,52 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
 
     @Override
     public void copyFrom(Backend model) {
-        // pending field validation once https://github.com/perfectsense/gyro/issues/201 is fixed
+        if (model.hasBalancingMode()) {
+            setBalancingMode(model.getBalancingMode());
+        }
 
-        setBalancingMode(model.getBalancingMode().toString().toUpperCase());
-        setCapacityScaler(model.getCapacityScaler());
-        setDescription(model.getDescription());
-        setMaxConnections(model.getMaxConnections());
-        setMaxConnectionsPerEndpoint(model.getMaxConnectionsPerEndpoint());
-        setMaxConnectionsPerInstance(model.getMaxConnectionsPerInstance());
-        setMaxRate(model.getMaxRate());
-        setMaxRatePerEndpoint(model.getMaxRatePerEndpoint());
-        setMaxRatePerInstance(model.getMaxRatePerInstance());
-        setMaxUtilization(model.getMaxUtilization());
+        if (model.hasCapacityScaler()) {
+            setCapacityScaler(model.getCapacityScaler());
+        }
 
-        ComputeBackendGroup backendGroup = newSubresource(ComputeBackendGroup.class);
-        backendGroup.copyFrom(model.getGroup());
-        setGroup(backendGroup);
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasMaxConnections()) {
+            setMaxConnections(model.getMaxConnections());
+        }
+
+        if (model.hasMaxConnectionsPerEndpoint()) {
+            setMaxConnectionsPerEndpoint(model.getMaxConnectionsPerEndpoint());
+        }
+
+        if (model.hasMaxConnectionsPerInstance()) {
+            setMaxConnectionsPerInstance(model.getMaxConnectionsPerInstance());
+        }
+
+        if (model.hasMaxRate()) {
+            setMaxRate(model.getMaxRate());
+        }
+
+        if (model.hasMaxConnectionsPerEndpoint()) {
+            setMaxRatePerEndpoint(model.getMaxRatePerEndpoint());
+        }
+
+        if (model.hasMaxConnectionsPerInstance()) {
+            setMaxRatePerInstance(model.getMaxRatePerInstance());
+        }
+
+        if (model.hasMaxUtilization()) {
+            setMaxUtilization(model.getMaxUtilization());
+        }
+
+        setGroup(null);
+        if (model.hasGroup()) {
+            ComputeBackendGroup backendGroup = newSubresource(ComputeBackendGroup.class);
+            backendGroup.copyFrom(model.getGroup());
+            setGroup(backendGroup);
+        }
     }
 
     @Override
@@ -207,7 +237,8 @@ public class ComputeBackend extends Diffable implements Copyable<Backend> {
 
     public Backend toBackend() {
         Backend.Builder builder = Backend.newBuilder()
-            .setBalancingMode(getBalancingMode()).setGroup(getGroup().referenceLink());
+            .setBalancingMode(getBalancingMode())
+            .setGroup(getGroup().referenceLink());
 
         if (getCapacityScaler() != null) {
             builder.setCapacityScaler(getCapacityScaler());

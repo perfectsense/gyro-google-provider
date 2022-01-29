@@ -73,10 +73,7 @@ public class BackendBucketFinder extends GoogleFinder<BackendBucketsClient, Back
                 backendBucketList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = backendBucketList.getNextPageToken();
 
-                if (backendBucketList.getItemsList() != null) {
-                    backendBuckets.addAll(backendBucketList.getItemsList());
-                }
-
+                backendBuckets.addAll(backendBucketList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return backendBuckets;

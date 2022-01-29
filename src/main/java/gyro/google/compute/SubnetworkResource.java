@@ -41,6 +41,7 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
+import gyro.google.util.Utils;
 
 /**
  * Creates a subnet.
@@ -209,28 +210,53 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     @Override
-    public void copyFrom(Subnetwork subnetwork) {
-        setId(String.valueOf(subnetwork.getId()));
-        setName(subnetwork.getName());
-        setSelfLink(subnetwork.getSelfLink());
-        setDescription(subnetwork.getDescription());
-        setIpCidrRange(subnetwork.getIpCidrRange());
-        setEnableFlowLogs(subnetwork.getEnableFlowLogs());
-        setPrivateIpGoogleAccess(subnetwork.getPrivateIpGoogleAccess());
-        setName(subnetwork.getName());
-        setNetwork(findById(
-            NetworkResource.class,
-            subnetwork.getNetwork()));
-        setRegion(subnetwork.getRegion().substring(subnetwork.getRegion().lastIndexOf("/") + 1));
-        setSelfLink(subnetwork.getSelfLink());
+    public void copyFrom(Subnetwork model) {
+        setName(model.getName());
+
+        if (model.hasId()) {
+            setId(String.valueOf(model.getId()));
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasIpCidrRange()) {
+            setIpCidrRange(model.getIpCidrRange());
+        }
+
+        if (model.hasEnableFlowLogs()) {
+            setEnableFlowLogs(model.getEnableFlowLogs());
+        }
+
+        if (model.hasPrivateIpGoogleAccess()) {
+            setPrivateIpGoogleAccess(model.getPrivateIpGoogleAccess());
+        }
+
+        if (model.hasNetwork()) {
+            setNetwork(findById(
+                NetworkResource.class,
+                model.getNetwork()));
+        }
+
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
 
         getSecondaryIpRange().clear();
-        List<com.google.cloud.compute.v1.SubnetworkSecondaryRange> secondaryIpRanges = subnetwork.getSecondaryIpRangesList();
-        secondaryIpRanges.forEach(ipRange -> {
-            SubnetworkSecondaryRange secondaryRange = newSubresource(SubnetworkSecondaryRange.class);
-            secondaryRange.copyFrom(ipRange);
-            getSecondaryIpRange().add(secondaryRange);
-        });
+        if (!model.getSecondaryIpRangesList().isEmpty()) {
+            List<com.google.cloud.compute.v1.SubnetworkSecondaryRange> secondaryIpRanges = model.getSecondaryIpRangesList();
+            secondaryIpRanges.forEach(ipRange -> {
+                SubnetworkSecondaryRange secondaryRange = newSubresource(SubnetworkSecondaryRange.class);
+                secondaryRange.copyFrom(ipRange);
+
+                getSecondaryIpRange().add(secondaryRange);
+            });
+        }
     }
 
     @Override

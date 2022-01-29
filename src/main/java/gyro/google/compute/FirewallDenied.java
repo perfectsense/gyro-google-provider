@@ -27,7 +27,7 @@ public class FirewallDenied extends FirewallRule implements Copyable<Denied> {
     @Override
     public void copyFrom(Denied denied) {
         setProtocol(denied.getIPProtocol());
-        setPorts(denied.getPortsList() != null ? new HashSet<>(denied.getPortsList()) : null);
+        setPorts(new HashSet<>(denied.getPortsList()));
     }
 
     Denied toDenied() {

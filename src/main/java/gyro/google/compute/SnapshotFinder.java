@@ -73,10 +73,7 @@ public class SnapshotFinder extends GoogleFinder<SnapshotsClient, Snapshot, Snap
                 snapshotList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = snapshotList.getNextPageToken();
 
-                if (snapshotList.getItemsList() != null) {
-                    snapshots.addAll(snapshotList.getItemsList());
-                }
-
+                snapshots.addAll(snapshotList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return snapshots;

@@ -80,7 +80,10 @@ public class SnapshotSchedulePolicySnapshotProperties extends Diffable
 
     @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicySnapshotProperties model) {
-        setGuestFlush(model.getGuestFlush());
+        if (model.hasGuestFlush()) {
+            setGuestFlush(model.getGuestFlush());
+        }
+
         setLabels(model.getLabelsMap());
         setStorageLocations(model.getStorageLocationsList());
     }

@@ -70,8 +70,13 @@ public class SnapshotSchedulePolicyRetentionPolicy extends Diffable
 
     @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicyRetentionPolicy model) {
-        setMaxRetentionDays(model.getMaxRetentionDays());
-        setOnSourceDiskDelete(model.getOnSourceDiskDelete());
+        if (model.hasMaxRetentionDays()) {
+            setMaxRetentionDays(model.getMaxRetentionDays());
+        }
+
+        if (model.hasOnSourceDiskDelete()) {
+            setOnSourceDiskDelete(model.getOnSourceDiskDelete());
+        }
     }
 
     public ResourcePolicySnapshotSchedulePolicyRetentionPolicy copyTo() {

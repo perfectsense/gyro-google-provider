@@ -384,27 +384,66 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void copyFrom(Image image) {
-        setName(image.getName());
-        setDescription(image.getDescription());
-        setFamily(image.getFamily());
-        setLabels(image.getLabels());
-        setArchiveSizeBytes(image.getArchiveSizeBytes());
-        setDiskSizeGb(image.getDiskSizeGb());
-        setLabelFingerprint(image.getLabelFingerprint());
-        setSelfLink(image.getSelfLink());
-        setSourceDiskId(image.getSourceDiskId());
-        setSourceImageId(image.getSourceImageId());
-        setSourceSnapshotId(image.getSourceSnapshotId());
-        setStatus(image.getStatus().toString());
-        setSourceDisk(findById(DiskResource.class, image.getSourceDisk()));
-        setSourceImage(findById(ImageResource.class, image.getSourceImage()));
-        setSourceSnapshot(findById(SnapshotResource.class, image.getSourceSnapshot()));
+    public void copyFrom(Image model) {
+        setName(model.getName());
+        setLabels(model.getLabels());
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasFamily()) {
+            setFamily(model.getFamily());
+        }
+
+        if (model.hasArchiveSizeBytes()) {
+            setArchiveSizeBytes(model.getArchiveSizeBytes());
+        }
+
+        if (model.hasDiskSizeGb()) {
+            setDiskSizeGb(model.getDiskSizeGb());
+        }
+
+        if (model.hasLabelFingerprint()) {
+            setLabelFingerprint(model.getLabelFingerprint());
+        }
+
+        if (model.hasSourceDiskId()) {
+            setSourceDiskId(model.getSourceDiskId());
+        }
+
+        if (model.hasSourceImageId()) {
+            setSourceImageId(model.getSourceImageId());
+        }
+
+        if (model.hasSourceSnapshotId()) {
+            setSourceSnapshotId(model.getSourceSnapshotId());
+        }
+
+        if (model.hasStatus()) {
+            setStatus(model.getStatus());
+        }
+
+        if (model.hasSourceDisk()) {
+            setSourceDisk(findById(DiskResource.class, model.getSourceDisk()));
+        }
+
+        if (model.hasSourceImage()) {
+            setSourceImage(findById(ImageResource.class, model.getSourceImage()));
+        }
+
+        if (model.hasSourceSnapshot()) {
+            setSourceSnapshot(findById(SnapshotResource.class, model.getSourceSnapshot()));
+        }
 
         // Image doesn't currently have an API for storageLocations so manually get it
         setStorageLocations(null);
-        if (image.getStorageLocationsList() != null && !(image.getStorageLocationsList().isEmpty())) {
-            setStorageLocations(image.getStorageLocationsList());
+        if (model.getStorageLocationsList() != null && !(model.getStorageLocationsList().isEmpty())) {
+            setStorageLocations(model.getStorageLocationsList());
         }
     }
 

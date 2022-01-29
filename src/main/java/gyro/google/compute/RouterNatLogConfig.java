@@ -59,8 +59,13 @@ public class RouterNatLogConfig extends Diffable
 
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterNatLogConfig model) throws Exception {
-        setFilter(model.getFilter());
-        setEnable(model.getEnable());
+        if (model.hasFilter()) {
+            setFilter(model.getFilter());
+        }
+
+        if (model.hasEnable()) {
+            setEnable(model.getEnable());
+        }
     }
 
     com.google.cloud.compute.v1.RouterNatLogConfig toRouterNatLogConfig() {

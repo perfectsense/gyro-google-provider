@@ -85,10 +85,7 @@ public class GlobalAddressFinder extends GoogleFinder<GlobalAddressesClient, Add
                 AddressList addressList = client.list(builder.build()).getPage().getResponse();
                 pageToken = addressList.getNextPageToken();
 
-                if (addressList.getItemsList() != null) {
-                    addresses.addAll(addressList.getItemsList());
-                }
-
+                addresses.addAll(addressList.getItemsList());
             } while (!StringUtils.isEmpty(pageToken));
 
         } finally {

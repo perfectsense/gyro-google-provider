@@ -175,15 +175,34 @@ public class RouterBgpPeer extends Diffable implements Copyable<com.google.cloud
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterBgpPeer model) throws Exception {
         setName(model.getName());
-        setAdvertisedRoutePriority((long) model.getAdvertisedRoutePriority());
-        setAdvertiseMode(model.getAdvertiseMode().toString());
-        setInterfaceName(model.getInterfaceName());
-        setIpAddress(model.getIpAddress());
-        setPeerAsn((long) model.getPeerAsn());
-        setPeerIpAddress(model.getPeerIpAddress());
         setAdvertisedGroups(model.getAdvertisedGroupsList());
 
-        if (model.getAdvertisedIpRangesList() != null) {
+        if (model.hasAdvertisedRoutePriority()) {
+            setAdvertisedRoutePriority((long) model.getAdvertisedRoutePriority());
+        }
+
+        if (model.hasAdvertiseMode()) {
+            setAdvertiseMode(model.getAdvertiseMode());
+        }
+
+        if (model.hasInterfaceName()) {
+            setInterfaceName(model.getInterfaceName());
+        }
+
+        if (model.hasIpAddress()) {
+            setIpAddress(model.getIpAddress());
+        }
+
+        if (model.hasPeerAsn()) {
+            setPeerAsn((long) model.getPeerAsn());
+        }
+
+        if (model.hasPeerIpAddress()) {
+            setPeerIpAddress(model.getPeerIpAddress());
+        }
+
+        setIpRange(null);
+        if (!model.getAdvertisedIpRangesList().isEmpty()) {
             setIpRange(model.getAdvertisedIpRangesList().stream().map(i -> {
                 RouterIpRange routerIpRange = newSubresource(RouterIpRange.class);
                 routerIpRange.copyFrom(i);

@@ -41,21 +41,21 @@ import gyro.google.Copyable;
 
 public abstract class AbstractBackendServiceResource extends ComputeResource implements Copyable<BackendService> {
 
-    private Integer affinityCookieTtlSec;
-    private List<ComputeBackend> backend;
-    private ComputeConnectionDraining connectionDraining;
-    private Map<String, String> customRequestHeaders;
+    private String name;
     private String description;
+    private String selfLink;
+    private Integer timeoutSec;
+    private Integer affinityCookieTtlSec;
     private Boolean enableCdn;
+    private BackendServiceCdnPolicy cdnPolicy;
+    private ComputeConnectionDraining connectionDraining;
+    private List<ComputeBackend> backend;
+    private Map<String, String> customRequestHeaders;
     private List<HealthCheckResource> healthCheck;
     private BackendService.LoadBalancingScheme loadBalancingScheme;
     private BackendService.LocalityLbPolicy localityLbPolicy;
-    private String name;
     private BackendService.Protocol protocol;
-    private String selfLink;
     private BackendService.SessionAffinity sessionAffinity;
-    private Integer timeoutSec;
-    private BackendServiceCdnPolicy cdnPolicy;
 
     /**
      * If set to ``0``, the cookie is non-persistent and lasts only until the end of the browser session (or equivalent). Defaults to ``0``.
@@ -76,9 +76,6 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     @Updatable
     @Required
     public List<ComputeBackend> getBackend() {
-        if (backend == null) {
-            backend = new ArrayList<>();
-        }
         return backend;
     }
 
@@ -156,7 +153,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     }
 
     /**
-     * Indicates whether the backend service will be used with internal or external load balancing.Valid values are ``INTERNAL``, ``INTERNAL_MANAGED`, ``INTERNAL_SELF_MANAGED`` or ``EXTERNAL``. Defaults to ``EXTERNAL``.
+     * Indicates whether the backend service will be used with internal or external load balancing.Valid values are ``INTERNAL``, ``INTERNAL_MANAGED`, ``INTERNAL_SELF_MANAGED`` or ``EXTERNAL``. Defaults to ``EXTERNAL``. See `Balance Modes <https://cloud.google.com/load-balancing/docs/backend-service#connection_balancing_mode>`_
      *
      * @no-docs ValidStrings
      */
@@ -264,71 +261,91 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
     @Override
     public void copyFrom(BackendService model) {
-        setAffinityCookieTtlSec(model.getAffinityCookieTtlSec());
+        setName(model.getName());
+        setSelfLink(model.getSelfLink());
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasTimeoutSec()) {
+            setTimeoutSec(model.getTimeoutSec());
+        }
+
+        if (model.hasAffinityCookieTtlSec()) {
+            setAffinityCookieTtlSec(model.getAffinityCookieTtlSec());
+        }
+
+        if (model.hasEnableCDN()) {
+            setEnableCdn(model.getEnableCDN());
+        }
+
+        if (model.hasLocalityLbPolicy()) {
+            setLocalityLbPolicy(BackendService.LocalityLbPolicy.valueOf(model.getLocalityLbPolicy()));
+        }
+
+        if (model.hasLoadBalancingScheme()) {
+            setLoadBalancingScheme(BackendService.LoadBalancingScheme.valueOf(model.getLoadBalancingScheme()));
+        }
+
+        if (model.hasProtocol()) {
+            setProtocol(BackendService.Protocol.valueOf(model.getProtocol()));
+        }
+
+        if (model.hasSessionAffinity()) {
+            setSessionAffinity(BackendService.SessionAffinity.valueOf(model.getSessionAffinity()));
+        }
+
         List<ComputeBackend> diffableBackends = null;
         List<Backend> backends = model.getBackendsList();
-
-        if (backends != null && !backends.isEmpty()) {
+        if (!backends.isEmpty()) {
             diffableBackends = backends
                 .stream()
-                .map(backend -> {
+                .map(b -> {
                     ComputeBackend diffableBackend = newSubresource(ComputeBackend.class);
-                    diffableBackend.copyFrom(backend);
+                    diffableBackend.copyFrom(b);
+
                     return diffableBackend;
                 })
                 .collect(Collectors.toList());
         }
         setBackend(diffableBackends);
-        ComputeConnectionDraining diffableConnectionDraining = null;
-        ConnectionDraining connectionDraining = model.getConnectionDraining();
 
-        if (connectionDraining != null) {
-            diffableConnectionDraining = Optional.ofNullable(getConnectionDraining())
+        setConnectionDraining(null);
+        if (model.hasConnectionDraining()) {
+            ComputeConnectionDraining diffableConnectionDraining =
+                Optional.ofNullable(getConnectionDraining())
                 .orElse(newSubresource(ComputeConnectionDraining.class));
+
+            ConnectionDraining connectionDraining = model.getConnectionDraining();
             diffableConnectionDraining.copyFrom(connectionDraining);
+
+            setConnectionDraining(diffableConnectionDraining);
         }
-        setConnectionDraining(diffableConnectionDraining);
+
         Map<String, String> customHeaderMap = null;
         List<String> customRequestHeaders = model.getCustomRequestHeadersList();
-
-        if (customRequestHeaders != null) {
-            customHeaderMap = customRequestHeaders
-                .stream()
-                .map(e -> e.split(":"))
-                .filter(e -> e.length == 2)
-                .collect(Collectors.toMap(e -> e[0], e -> e[1]));
-        }
+        customHeaderMap = customRequestHeaders
+            .stream()
+            .map(e -> e.split(":"))
+            .filter(e -> e.length == 2)
+            .collect(Collectors.toMap(e -> e[0], e -> e[1]));
         setCustomRequestHeaders(customHeaderMap);
-        setDescription(model.getDescription());
-        setEnableCdn(model.getEnableCDN());
+
         List<HealthCheckResource> diffableHealthCheck = null;
         List<String> healthChecks = model.getHealthChecksList();
-
-        if (healthChecks != null) {
             diffableHealthCheck = healthChecks.stream()
                 .map(e -> findById(HealthCheckResource.class, e))
                 .collect(Collectors.toList());
-        }
         setHealthCheck(diffableHealthCheck);
-        setLoadBalancingScheme(BackendService.LoadBalancingScheme.valueOf(model.getLoadBalancingScheme()));
-        setLocalityLbPolicy(BackendService.LocalityLbPolicy.valueOf(model.getLocalityLbPolicy()));
-        setName(model.getName());
-        setProtocol(BackendService.Protocol.valueOf(model.getProtocol()));
-        setSelfLink(model.getSelfLink());
-        setSessionAffinity(BackendService.SessionAffinity.valueOf(model.getSessionAffinity()));
-        setTimeoutSec(model.getTimeoutSec());
 
-        if (model.getCdnPolicy() != null) {
-            BackendServiceCdnPolicy cdnPolicy = newSubresource(BackendServiceCdnPolicy.class);
-            cdnPolicy.copyFrom(model.getCdnPolicy());
-            setCdnPolicy(cdnPolicy);
-        } else {
-            setCdnPolicy(null);
-        }
+        BackendServiceCdnPolicy cdnPolicy = newSubresource(BackendServiceCdnPolicy.class);
+        cdnPolicy.copyFrom(model.getCdnPolicy());
+        setCdnPolicy(cdnPolicy);
     }
 
-    protected BackendService getBackendService(Set<String> changedFieldNames) {
-        boolean isCreate = changedFieldNames == null;
+    protected BackendService.Builder getBackendService(Set<String> changedFieldNames) {
+        boolean isCreate = changedFieldNames == null || changedFieldNames.isEmpty();
 
         BackendService.Builder builder = BackendService.newBuilder();
 
@@ -340,10 +357,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
             builder.setName(getName());
         }
 
-        if (isCreate || changedFieldNames.contains("affinity-cookie-ttl-sec")) {
-            if (getAffinityCookieTtlSec() != null) {
-                builder.setAffinityCookieTtlSec(getAffinityCookieTtlSec());
-            }
+        if ((isCreate || changedFieldNames.contains("affinity-cookie-ttl-sec")) && getAffinityCookieTtlSec() != null) {
+            builder.setAffinityCookieTtlSec(getAffinityCookieTtlSec());
         }
 
         if (isCreate || changedFieldNames.contains("backend")) {
@@ -352,10 +367,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
                 .collect(Collectors.toList()));
         }
 
-        if (isCreate || changedFieldNames.contains("connection-draining")) {
-            if (getConnectionDraining() != null) {
-                builder.setConnectionDraining(getConnectionDraining().toConnectionDraining());
-            }
+        if ((isCreate || changedFieldNames.contains("connection-draining")) && getConnectionDraining() != null) {
+            builder.setConnectionDraining(getConnectionDraining().toConnectionDraining());
         }
 
         if (isCreate || changedFieldNames.contains("custom-request-headers")) {
@@ -367,16 +380,12 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
                     Collectors.toList()) : Data.nullOf(ArrayList.class));
         }
 
-        if (isCreate || changedFieldNames.contains("description")) {
-            if (getDescription() != null) {
-                builder.setDescription(getDescription());
-            }
+        if ((isCreate || changedFieldNames.contains("description")) && getDescription() != null) {
+            builder.setDescription(getDescription());
         }
 
-        if (isCreate || changedFieldNames.contains("enable-cdn")) {
-            if (getEnableCdn() != null) {
-                builder.setEnableCDN(getEnableCdn());
-            }
+        if ((isCreate || changedFieldNames.contains("enable-cdn")) && getEnableCdn() != null) {
+            builder.setEnableCDN(getEnableCdn());
         }
 
         if (isCreate || changedFieldNames.contains("health-check")) {
@@ -386,28 +395,20 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
                 .collect(Collectors.toList()));
         }
 
-        if (isCreate || changedFieldNames.contains("locality-lb-policy")) {
-            if (getLocalityLbPolicy() != null) {
-                builder.setLocalityLbPolicy(getLocalityLbPolicy().name());
-            }
+        if ((isCreate || changedFieldNames.contains("locality-lb-policy")) && getLocalityLbPolicy() != null) {
+            builder.setLocalityLbPolicy(getLocalityLbPolicy().name());
         }
 
-        if (isCreate || changedFieldNames.contains("protocol")) {
-            if (getProtocol() != null) {
-                builder.setProtocol(getProtocol().name());
-            }
+        if ((isCreate || changedFieldNames.contains("protocol")) && getProtocol() != null) {
+            builder.setProtocol(getProtocol().name());
         }
 
-        if (isCreate || changedFieldNames.contains("session-affinity")) {
-            if (getSessionAffinity() != null) {
-                builder.setSessionAffinity(getSessionAffinity().name());
-            }
+        if ((isCreate || changedFieldNames.contains("session-affinity")) && getSessionAffinity() != null) {
+            builder.setSessionAffinity(getSessionAffinity().name());
         }
 
-        if (isCreate || changedFieldNames.contains("timeout-sec")) {
-            if (getTimeoutSec() != null) {
-                builder.setTimeoutSec(getTimeoutSec());
-            }
+        if ((isCreate || changedFieldNames.contains("timeout-sec")) && getTimeoutSec() != null) {
+            builder.setTimeoutSec(getTimeoutSec());
         }
 
         if (isCreate || changedFieldNames.contains("cdn-policy")) {
@@ -425,7 +426,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
         }
 
-        return builder.build();
+        return builder;
     }
 
     InstanceGroupManagersClient createInstanceManagersClient() {

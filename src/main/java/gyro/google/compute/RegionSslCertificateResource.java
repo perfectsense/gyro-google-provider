@@ -70,7 +70,9 @@ public class RegionSslCertificateResource extends AbstractSslCertificateResource
     public void copyFrom(SslCertificate model) throws Exception {
         super.copyFrom(model);
 
-        setRegion(model.getRegion());
+        if (model.hasRegion()) {
+            setRegion(model.getRegion());
+        }
     }
 
     @Override
@@ -93,9 +95,12 @@ public class RegionSslCertificateResource extends AbstractSslCertificateResource
         try (RegionSslCertificatesClient client = createClient(RegionSslCertificatesClient.class)) {
             SslCertificate.Builder builder = SslCertificate.newBuilder();
             builder.setName(getName());
-            builder.setDescription(getDescription());
             builder.setCertificate(readCertificateFile());
             builder.setPrivateKey(readPrivateKeyFile());
+
+            if (getDescription() != null) {
+                builder.setDescription(getDescription());
+            }
 
             Operation operation = client.insertCallable().call(InsertRegionSslCertificateRequest.newBuilder()
                 .setProject(getProjectId())

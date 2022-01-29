@@ -73,10 +73,7 @@ public class SecurityPolicyFinder extends GoogleFinder<SecurityPoliciesClient, S
                 securityPolicyList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = securityPolicyList.getNextPageToken();
 
-                if (securityPolicyList.getItemsList() != null) {
-                    securityPolicies.addAll(securityPolicyList.getItemsList());
-                }
-
+                securityPolicies.addAll(securityPolicyList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return securityPolicies;

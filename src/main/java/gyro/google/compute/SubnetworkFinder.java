@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
@@ -94,14 +93,10 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
                     .setProject(getProjectId()).build());
                 nextPageToken = aggregatedList.getNextPageToken();
 
-                if (aggregatedList.getItemsMap() != null) {
-                    subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
-                        .map(SubnetworksScopedList::getSubnetworksList)
-                        .filter(Objects::nonNull)
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList()));
-                }
-
+                subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
+                    .map(SubnetworksScopedList::getSubnetworksList)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
             } while (!StringUtils.isEmpty(nextPageToken));
 
         } finally {

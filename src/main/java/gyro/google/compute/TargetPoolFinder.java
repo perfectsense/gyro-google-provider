@@ -116,11 +116,9 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                     targetPoolList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
-                    if (targetPoolList.getItemsList() != null) {
-                        targetPools.addAll(targetPoolList.getItemsList().stream().filter(Objects::nonNull)
-                            .filter(targetPool -> targetPool.getRegion() != null).collect(Collectors.toList()));
-                    }
-
+                    targetPools.addAll(targetPoolList.getItemsList().stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
                 } while (!StringUtils.isEmpty(nextPageToken));
 
             } else {

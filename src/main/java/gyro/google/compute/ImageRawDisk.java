@@ -47,10 +47,14 @@ public class ImageRawDisk extends Diffable implements Copyable<RawDisk> {
 
     @Override
     public void copyFrom(RawDisk model) {
-        setSource(model.getSource());
+        if (model.hasSource()) {
+            setSource(model.getSource());
+        }
     }
 
     RawDisk toRawDisk() {
-        return RawDisk.newBuilder().setSource(getSource()).build();
+        return RawDisk.newBuilder()
+            .setSource(getSource())
+            .build();
     }
 }

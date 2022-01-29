@@ -116,11 +116,9 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
                     forwardingRuleList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
-                    if (forwardingRuleList.getItemsList() != null) {
-                        forwardingRules.addAll(forwardingRuleList.getItemsList().stream().filter(Objects::nonNull)
-                            .filter(forwardingRule -> forwardingRule.getZone() != null).collect(Collectors.toList()));
-                    }
-
+                    forwardingRules.addAll(forwardingRuleList.getItemsList().stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
                 } while (!StringUtils.isEmpty(nextPageToken));
 
                 return forwardingRules;

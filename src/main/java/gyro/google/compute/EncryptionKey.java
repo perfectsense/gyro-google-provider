@@ -42,8 +42,13 @@ public class EncryptionKey extends Diffable implements Copyable<CustomerEncrypti
 
     @Override
     public void copyFrom(CustomerEncryptionKey model) {
-        setRawKey(model.getRawKey());
-        setSha256(model.getSha256());
+        if (model.hasRawKey()) {
+            setRawKey(model.getRawKey());
+        }
+
+        if (model.hasSha256()) {
+            setSha256(model.getSha256());
+        }
     }
 
     @Override

@@ -41,7 +41,9 @@ public class ComputeConnectionDraining extends Diffable implements Copyable<Conn
 
     @Override
     public void copyFrom(ConnectionDraining model) {
-        setDrainingTimeoutSec(model.getDrainingTimeoutSec());
+        if (model.hasDrainingTimeoutSec()) {
+            setDrainingTimeoutSec(model.getDrainingTimeoutSec());
+        }
     }
 
     @Override
@@ -50,6 +52,12 @@ public class ComputeConnectionDraining extends Diffable implements Copyable<Conn
     }
 
     public ConnectionDraining toConnectionDraining() {
-        return ConnectionDraining.newBuilder().setDrainingTimeoutSec(getDrainingTimeoutSec()).build();
+        ConnectionDraining.Builder builder = ConnectionDraining.newBuilder();
+
+        if (getDrainingTimeoutSec() != null) {
+            setDrainingTimeoutSec(getDrainingTimeoutSec());
+        }
+
+        return builder.build();
     }
 }

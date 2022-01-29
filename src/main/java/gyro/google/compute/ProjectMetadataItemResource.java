@@ -19,6 +19,7 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
@@ -80,8 +81,13 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
 
     @Override
     public void copyFrom(Items metadataItem) {
-        setKey(metadataItem.getKey());
-        setValue(metadataItem.getValue());
+        if (metadataItem.hasKey()) {
+            setKey(metadataItem.getKey());
+        }
+
+        if (metadataItem.hasValue()) {
+            setValue(metadataItem.getValue());
+        }
     }
 
     @Override
@@ -107,14 +113,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
             builder.setValue(getValue());
 
             Metadata.Builder metadata = getMetadata(client).toBuilder();
-            List<Items> items = metadata.getItemsList();
-
-            if (items == null) {
-                items = new ArrayList<>();
-            }
-
-            items.add(builder.build());
-            metadata.addAllItems(items);
+            metadata.addItems(builder.build());
 
             setMetadata(client, metadata.build());
         }
@@ -127,6 +126,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
             List<Items> itemsList = new ArrayList<>(metadataBuilder.getItemsList());
             itemsList.removeIf(i -> i.getKey().equals(getKey()));
             itemsList.add(Items.newBuilder().setKey(getKey()).setValue(getValue()).build());
+
             setMetadata(client, metadataBuilder.clearItems().addAllItems(itemsList).build());
         }
     }
@@ -134,9 +134,13 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (ProjectsClient client = createClient(ProjectsClient.class)) {
-
             Metadata metadata = getMetadata(client);
-            metadata.getItemsList().removeIf(r -> getKey().equals(r.getKey()));
+            metadata = metadata.toBuilder()
+                .clearItems()
+                .addAllItems(metadata.getItemsList().stream()
+                .filter(r -> !getKey().equals(r.getKey()))
+                .collect(Collectors.toList()))
+                .build();
 
             setMetadata(client, metadata);
         }

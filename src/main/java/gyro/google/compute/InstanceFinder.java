@@ -100,10 +100,7 @@ public class InstanceFinder extends GoogleFinder<InstancesClient, Instance, Inst
                     InstanceList addressList = client.list(builder.build()).getPage().getResponse();
                     pageToken = addressList.getNextPageToken();
 
-                    if (addressList.getItemsList() != null) {
-                        instances.addAll(addressList.getItemsList());
-                    }
-
+                    instances.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
                 return getInstances(client, filters.get("filter"));

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.cloud.compute.v1.DiskInstantiationConfig;
 import com.google.cloud.compute.v1.SourceInstanceParams;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
@@ -52,21 +51,21 @@ public class ComputeSourceInstanceParams extends Diffable implements Copyable<So
 
     @Override
     public void copyFrom(SourceInstanceParams model) {
-        List<ComputeDiskInstantiationConfig> diffableDiskConfigs = null;
-        List<DiskInstantiationConfig> diskConfigs = model.getDiskConfigsList();
-
-        if (diskConfigs != null && !diskConfigs.isEmpty()) {
-            diffableDiskConfigs = diskConfigs
+        setDiskConfig(null);
+        if (!model.getDiskConfigsList().isEmpty()) {
+            List<ComputeDiskInstantiationConfig> diffableDiskConfigs = model.getDiskConfigsList()
                 .stream()
                 .map(attachedDisk -> {
-                    ComputeDiskInstantiationConfig diffableDiskConfig = newSubresource(ComputeDiskInstantiationConfig.class);
+                    ComputeDiskInstantiationConfig diffableDiskConfig =
+                        newSubresource(ComputeDiskInstantiationConfig.class);
                     diffableDiskConfig.copyFrom(attachedDisk);
+
                     return diffableDiskConfig;
                 })
                 .collect(Collectors.toList());
-        }
-        setDiskConfig(diffableDiskConfigs);
 
+            setDiskConfig(diffableDiskConfigs);
+        }
     }
 
     public SourceInstanceParams toSourceInstanceParams() {

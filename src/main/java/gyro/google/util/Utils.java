@@ -39,6 +39,20 @@ public final class Utils {
             .orElse("");
     }
 
+    public static String computeZoneUrl(String projectId, String zone) {
+        return String.format("https://www.googleapis.com/compute/v1/projects/%s/zones/%s", projectId, zone);
+    }
+
+    public static String computeRegionDiskTypeUrl(String projectId, String region, String type) {
+        return String.format("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/diskTypes/%s",
+            projectId, region, type);
+    }
+
+    public static String computeZoneDiskTypeUrl(String projectId, String zone, String type) {
+        return String.format("https://www.googleapis.com/compute/v1/projects/%s/zones/%s/diskTypes/%s",
+            projectId, zone, type);
+    }
+
     /**
      * Convert Gyro filter map to filter string that Google uses.
      * This can be used in APIs that accept `filter` in a `list` request.

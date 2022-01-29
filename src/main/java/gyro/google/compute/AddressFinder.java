@@ -101,10 +101,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
                     AddressList addressList = client.list(builder.build()).getPage().getResponse();
                     pageToken = addressList.getNextPageToken();
 
-                    if (addressList.getItemsList() != null) {
-                        addresses.addAll(addressList.getItemsList());
-                    }
-
+                    addresses.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
                 return getAddresses(client, filters.get("filter"));

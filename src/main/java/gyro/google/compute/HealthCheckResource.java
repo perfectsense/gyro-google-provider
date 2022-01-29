@@ -99,15 +99,15 @@ import gyro.core.scope.State;
  *
  * .. code-block:: gyro
  *
- *      google::compute-health-check health-check-example-ssh
- *          name: "health-check-example-ssh"
+ *      google::compute-health-check health-check-example-ssl
+ *          name: "health-check-example-ssl"
  *          check-interval-sec: 30
  *          description: "health-check-example-description"
  *          healthy-threshold: 8
  *          timeout-sec: 29
  *          unhealthy-threshold: 6
  *
- *          ssh-health-check
+ *          ssl-health-check
  *              port: 501
  *              port-name: "custom-port"
  *              proxy-header: "PROXY_V1"

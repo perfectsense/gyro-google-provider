@@ -70,13 +70,20 @@ public abstract class AbstractTargetHttpsProxyResource extends ComputeResource i
 
     @Override
     public void copyFrom(TargetHttpsProxy model) {
-        setDescription(model.getDescription());
         setName(model.getName());
-        setSelfLink(model.getSelfLink());
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
     }
 
     TargetHttpsProxy toTargetHttpsProxy() {
-        TargetHttpsProxy.Builder builder = TargetHttpsProxy.newBuilder().setName(getName());
+        TargetHttpsProxy.Builder builder = TargetHttpsProxy.newBuilder()
+            .setName(getName());
 
         if (getDescription() != null) {
             builder.setDescription(getDescription());

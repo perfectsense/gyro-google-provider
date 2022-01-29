@@ -157,15 +157,41 @@ public class ComputeInstanceGroupManagerActionsSummary extends Diffable
 
     @Override
     public void copyFrom(InstanceGroupManagerActionsSummary model) {
-        setAbandoning(model.getAbandoning());
-        setCreating(model.getCreating());
-        setCreatingWithoutRetries(model.getCreatingWithoutRetries());
-        setDeleting(model.getDeleting());
-        setNone(model.getNone());
-        setRecreating(model.getRecreating());
-        setRefreshing(model.getRefreshing());
-        setRestarting(model.getRestarting());
-        setVerifying(model.getVerifying());
+        if (model.hasAbandoning()) {
+            setAbandoning(model.getAbandoning());
+        }
+
+        if (model.hasCreating()) {
+            setCreating(model.getCreating());
+        }
+
+        if (model.hasCreatingWithoutRetries()) {
+            setCreatingWithoutRetries(model.getCreatingWithoutRetries());
+        }
+
+        if (model.hasDeleting()) {
+            setDeleting(model.getDeleting());
+        }
+
+        if (model.hasNone()) {
+            setNone(model.getNone());
+        }
+
+        if (model.hasRecreating()) {
+            setRecreating(model.getRecreating());
+        }
+
+        if (model.hasRefreshing()) {
+            setRefreshing(model.getRefreshing());
+        }
+
+        if (model.hasRecreating()) {
+            setRestarting(model.getRestarting());
+        }
+
+        if (model.hasVerifying()) {
+            setVerifying(model.getVerifying());
+        }
     }
 
     @Override

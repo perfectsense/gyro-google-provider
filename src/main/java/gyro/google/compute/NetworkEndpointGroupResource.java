@@ -227,16 +227,46 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
 
     @Override
     public void copyFrom(NetworkEndpointGroup networkEndpointGroup) throws Exception {
-        setDefaultPort(networkEndpointGroup.getDefaultPort());
-        setDescription(networkEndpointGroup.getDescription());
-        setId(String.valueOf(networkEndpointGroup.getId()));
-        setName(networkEndpointGroup.getName());
-        setNetwork(findById(NetworkResource.class, networkEndpointGroup.getNetwork()));
-        setSubnet(findById(SubnetworkResource.class, networkEndpointGroup.getSubnetwork()));
-        setType(networkEndpointGroup.getNetworkEndpointType().toString().toUpperCase());
-        setSelfLink(networkEndpointGroup.getSelfLink());
-        setSize(networkEndpointGroup.getSize());
-        setZone(networkEndpointGroup.getZone().substring(networkEndpointGroup.getZone().lastIndexOf("/") + 1));
+        if (networkEndpointGroup.hasId()) {
+            setId(String.valueOf(networkEndpointGroup.getId()));
+        }
+
+        if (networkEndpointGroup.hasName()) {
+            setName(networkEndpointGroup.getName());
+        }
+
+        if (networkEndpointGroup.hasSelfLink()) {
+            setSelfLink(networkEndpointGroup.getSelfLink());
+        }
+
+        if (networkEndpointGroup.hasNetworkEndpointType()) {
+            setType(networkEndpointGroup.getNetworkEndpointType());
+        }
+
+        if (networkEndpointGroup.hasNetwork()) {
+            setNetwork(findById(NetworkResource.class, networkEndpointGroup.getNetwork()));
+        }
+
+        if (networkEndpointGroup.hasSubnetwork()) {
+            setSubnet(findById(SubnetworkResource.class, networkEndpointGroup.getSubnetwork()));
+        }
+
+        if (networkEndpointGroup.hasDefaultPort()) {
+            setDefaultPort(networkEndpointGroup.getDefaultPort());
+        }
+
+        if (networkEndpointGroup.hasDescription()) {
+            setDescription(networkEndpointGroup.getDescription());
+        }
+
+        if (networkEndpointGroup.hasSelfLink()) {
+            setSize(networkEndpointGroup.getSize());
+        }
+
+        if (networkEndpointGroup.hasZone()) {
+            setZone(networkEndpointGroup.getZone().substring(networkEndpointGroup.getZone().lastIndexOf("/") + 1));
+        }
+
         setEndpoint(getNetworkEndpoint());
     }
 

@@ -16,8 +16,6 @@
 
 package gyro.google.compute;
 
-import java.util.Optional;
-
 import com.google.cloud.compute.v1.InstanceGroupManagerUpdatePolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
@@ -125,47 +123,58 @@ public class ComputeInstanceGroupManagerUpdatePolicy extends Diffable
     public InstanceGroupManagerUpdatePolicy copyTo() {
         InstanceGroupManagerUpdatePolicy.Builder builder = InstanceGroupManagerUpdatePolicy.newBuilder();
 
-        Optional.ofNullable(getInstanceRedistributionType())
-            .ifPresent(builder::setInstanceRedistributionType);
-        Optional.ofNullable(getMaxSurge())
-            .map(ComputeFixedOrPercent::copyTo)
-            .ifPresent(builder::setMaxSurge);
-        Optional.ofNullable(getMaxUnavailable())
-            .map(ComputeFixedOrPercent::copyTo)
-            .ifPresent(builder::setMaxUnavailable);
-        Optional.ofNullable(getMinimalAction())
-            .ifPresent(builder::setMinimalAction);
-        Optional.ofNullable(getType())
-            .ifPresent(builder::setType);
+        if (getInstanceRedistributionType() != null) {
+            builder.setInstanceRedistributionType(getInstanceRedistributionType());
+        }
+
+        if (getMaxSurge() != null) {
+            builder.setMaxSurge(getMaxSurge().copyTo());
+        }
+
+        if (getMaxUnavailable() != null) {
+            builder.setMaxUnavailable(getMaxUnavailable().copyTo());
+        }
+
+        if (getMinimalAction() != null) {
+            builder.setMinimalAction(getMinimalAction());
+        }
+
+        if (getType() != null) {
+            builder.setType(getType());
+        }
 
         return builder.build();
     }
 
     @Override
     public void copyFrom(InstanceGroupManagerUpdatePolicy model) {
-        setInstanceRedistributionType(model.getInstanceRedistributionType());
-        setMinimalAction(model.getMinimalAction());
-        setType(model.getType());
+        if (model.hasInstanceRedistributionType()) {
+            setInstanceRedistributionType(model.getInstanceRedistributionType());
+        }
 
-        setMaxSurge(
-            Optional.ofNullable(model.getMaxSurge())
-                .map(e -> {
-                    ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
-                    computeFixedOrPercent.copyFrom(e);
+        if (model.hasMinimalAction()) {
+            setMinimalAction(model.getMinimalAction());
+        }
 
-                    return computeFixedOrPercent;
-                })
-                .orElse(null));
+        if (model.hasType()) {
+            setType(model.getType());
+        }
 
-        setMaxUnavailable(
-            Optional.ofNullable(model.getMaxUnavailable())
-                .map(e -> {
-                    ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
-                    computeFixedOrPercent.copyFrom(e);
+        setMaxSurge(null);
+        if (model.hasMaxSurge()) {
+            ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
+            computeFixedOrPercent.copyFrom(model.getMaxSurge());
 
-                    return computeFixedOrPercent;
-                })
-                .orElse(null));
+            setMaxSurge(computeFixedOrPercent);
+        }
+
+        setMaxUnavailable(null);
+        if (model.hasMaxUnavailable()) {
+            ComputeFixedOrPercent computeFixedOrPercent = newSubresource(ComputeFixedOrPercent.class);
+            computeFixedOrPercent.copyFrom(model.getMaxUnavailable());
+
+            setMaxUnavailable(computeFixedOrPercent);
+        }
     }
 
     @Override
