@@ -175,12 +175,12 @@ public abstract class AbstractAddressResource extends ComputeResource implements
         setPurpose(Address.Purpose.valueOf(model.getPurpose()));
 
         setSubnetwork(null);
-        if ((model.getSubnetwork() != null) && !model.getSubnetwork().endsWith("default")) {
+        if (!model.getSubnetwork().endsWith("default")) {
             setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         }
 
         setNetwork(null);
-        if ((model.getNetwork() != null) && !model.getNetwork().endsWith("default")) {
+        if (!model.getNetwork().endsWith("default")) {
             setNetwork(findById(NetworkResource.class, model.getNetwork()));
         }
 
