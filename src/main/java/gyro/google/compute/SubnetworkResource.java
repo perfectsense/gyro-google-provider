@@ -211,6 +211,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     @Override
     public void copyFrom(Subnetwork subnetwork) {
         setId(String.valueOf(subnetwork.getId()));
+        setName(subnetwork.getName());
         setSelfLink(subnetwork.getSelfLink());
         setDescription(subnetwork.getDescription());
         setIpCidrRange(subnetwork.getIpCidrRange());
@@ -252,7 +253,9 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         Subnetwork.Builder builder = Subnetwork.newBuilder()
             .setName(getName())
             .setNetwork(getNetwork().getSelfLink())
-            .setDescription(getDescription()).setIpCidrRange(getIpCidrRange()).setEnableFlowLogs(getEnableFlowLogs())
+            .setDescription(getDescription())
+            .setIpCidrRange(getIpCidrRange())
+            .setEnableFlowLogs(getEnableFlowLogs())
             .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
 
         if (!getSecondaryIpRange().isEmpty()) {
@@ -283,6 +286,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
                 Operation operation = client.patchCallable().call(PatchSubnetworkRequest.newBuilder()
                         .setProject(getProjectId())
                         .setRegion(getRegion())
+                        .setSubnetwork(getName())
                         .setSubnetworkResource(builder.build())
                         .build());
 
@@ -316,9 +320,10 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
                 getSecondaryIpRange().forEach(range -> builder.addSecondaryIpRanges(range.toSecondaryIpRange()));
 
                 Operation operation = client.patchCallable().call(PatchSubnetworkRequest.newBuilder()
-                    .setSubnetworkResource(builder)
                     .setProject(getProjectId())
                     .setRegion(getRegion())
+                    .setSubnetwork(getName())
+                    .setSubnetworkResource(builder)
                     .build());
 
                 waitForCompletion(operation);
