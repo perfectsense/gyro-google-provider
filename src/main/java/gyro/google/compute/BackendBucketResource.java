@@ -32,7 +32,6 @@ import com.google.cloud.compute.v1.DeleteSignedUrlKeyBackendBucketRequest;
 import com.google.cloud.compute.v1.InsertBackendBucketRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.PatchBackendBucketRequest;
-import com.google.protobuf.InvalidProtocolBufferException;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -234,18 +233,7 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
     }
 
     static boolean isBackendBucket(String selfLink) {
-        if (selfLink == null) {
-            return false;
-        }
-
-        try {
-            BackendBucket bucket = BackendBucket.parseFrom(formatResource(null, selfLink).getBytes());
-
-            return bucket != null;
-
-        } catch (InvalidProtocolBufferException ex) {
-            return false;
-        }
+        return selfLink != null && selfLink.contains("backendBuckets");
     }
 
     @Override
