@@ -40,7 +40,6 @@ import com.google.cloud.compute.v1.PatchBackendServiceRequest;
 import com.google.cloud.compute.v1.ResourceGroupReference;
 import com.google.cloud.compute.v1.SecurityPolicyReference;
 import com.google.cloud.compute.v1.SetSecurityPolicyBackendServiceRequest;
-import com.google.protobuf.InvalidProtocolBufferException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -176,18 +175,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     }
 
     static boolean isBackendService(String selfLink) {
-        if (selfLink == null) {
-            return false;
-        }
-
-        try {
-            BackendService backendService = BackendService.parseFrom(formatResource(null, selfLink).getBytes());
-
-            return backendService != null;
-
-        } catch (InvalidProtocolBufferException ex) {
-            return false;
-        }
+        return selfLink != null && selfLink.contains("global") && selfLink.contains("backendServices");
     }
 
     @Override

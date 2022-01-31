@@ -315,7 +315,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
         if (model.hasConnectionDraining()) {
             ComputeConnectionDraining diffableConnectionDraining =
                 Optional.ofNullable(getConnectionDraining())
-                .orElse(newSubresource(ComputeConnectionDraining.class));
+                    .orElse(newSubresource(ComputeConnectionDraining.class));
 
             ConnectionDraining connectionDraining = model.getConnectionDraining();
             diffableConnectionDraining.copyFrom(connectionDraining);
@@ -334,9 +334,9 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
         List<HealthCheckResource> diffableHealthCheck = null;
         List<String> healthChecks = model.getHealthChecksList();
-            diffableHealthCheck = healthChecks.stream()
-                .map(e -> findById(HealthCheckResource.class, e))
-                .collect(Collectors.toList());
+        diffableHealthCheck = healthChecks.stream()
+            .map(e -> findById(HealthCheckResource.class, e))
+            .collect(Collectors.toList());
         setHealthCheck(diffableHealthCheck);
 
         BackendServiceCdnPolicy cdnPolicy = newSubresource(BackendServiceCdnPolicy.class);
