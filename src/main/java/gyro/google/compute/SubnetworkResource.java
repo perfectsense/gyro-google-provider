@@ -39,7 +39,9 @@ import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
+import gyro.core.validation.DependsOn;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 import gyro.google.util.Utils;
 
@@ -70,6 +72,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     private Boolean enableFlowLogs;
     private Boolean privateIpGoogleAccess;
     private List<SubnetworkSecondaryRange> secondaryIpRange;
+    private SubnetworkLogConfig logConfig;
 
     // Read-only
     private String id;
@@ -185,6 +188,19 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     /**
+     * The log config for this subnetwork.
+     */
+    @Updatable
+    @DependsOn("enable-flow-logs")
+    public SubnetworkLogConfig getLogConfig() {
+        return logConfig;
+    }
+
+    public void setLogConfig(SubnetworkLogConfig logConfig) {
+        this.logConfig = logConfig;
+    }
+
+    /**
      * The Id of the subnet.
      */
     @Output
@@ -257,6 +273,13 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
                 getSecondaryIpRange().add(secondaryRange);
             });
         }
+
+        setLogConfig(null);
+        if (model.hasLogConfig()) {
+            SubnetworkLogConfig config = newSubresource(SubnetworkLogConfig.class);
+            config.copyFrom(model.getLogConfig());
+            setLogConfig(config);
+        }
     }
 
     @Override
@@ -279,22 +302,32 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         Subnetwork.Builder builder = Subnetwork.newBuilder()
             .setName(getName())
             .setNetwork(getNetwork().getSelfLink())
-            .setDescription(getDescription())
             .setIpCidrRange(getIpCidrRange())
-            .setEnableFlowLogs(getEnableFlowLogs())
-            .setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
+            .setEnableFlowLogs(getEnableFlowLogs());
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getPrivateIpGoogleAccess() != null) {
+            builder.setPrivateIpGoogleAccess(getPrivateIpGoogleAccess());
+        }
 
         if (!getSecondaryIpRange().isEmpty()) {
             getSecondaryIpRange().forEach(range -> builder.addSecondaryIpRanges(range.toSecondaryIpRange()));
         }
 
+        if (getLogConfig() != null) {
+            builder.setLogConfig(getLogConfig().toSubnetworkLogConfig());
+        }
+
         try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
             Subnetwork subnetwork = builder.build();
             Operation operation = client.insertCallable().call(InsertSubnetworkRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setRegion(getRegion())
-                    .setSubnetworkResource(subnetwork)
-                    .build());
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setSubnetworkResource(subnetwork)
+                .build());
 
             waitForCompletion(operation);
         }
@@ -304,17 +337,24 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
-        if (changedFieldNames.contains("enable-flow-logs")) {
+        if (changedFieldNames.contains("enable-flow-logs") || changedFieldNames.contains("log-config")) {
             try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
-                Subnetwork.Builder builder = Subnetwork.newBuilder(getSubnetwork(client));
-                builder.setEnableFlowLogs(getEnableFlowLogs());
+                Subnetwork.Builder builder = Subnetwork.newBuilder(getSubnetwork(client))
+                    .clearLogConfig().clearEnableFlowLogs();
+
+                if (getEnableFlowLogs() && getLogConfig() != null) {
+                    builder.setLogConfig(getLogConfig().toSubnetworkLogConfig());
+                } else {
+                    builder.setLogConfig(com.google.cloud.compute.v1.SubnetworkLogConfig.newBuilder()
+                        .setEnable(getEnableFlowLogs()).build());
+                }
 
                 Operation operation = client.patchCallable().call(PatchSubnetworkRequest.newBuilder()
-                        .setProject(getProjectId())
-                        .setRegion(getRegion())
-                        .setSubnetwork(getName())
-                        .setSubnetworkResource(builder.build())
-                        .build());
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setSubnetwork(getName())
+                    .setSubnetworkResource(builder.build())
+                    .build());
 
                 waitForCompletion(operation);
             } catch (Exception ex) {
@@ -367,6 +407,18 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         } catch (Exception ex) {
             throw new GyroException(ex);
         }
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        ArrayList<ValidationError> errors = new ArrayList<>();
+
+        if (configuredFields.contains("log-config") && Boolean.FALSE.equals(getEnableFlowLogs())) {
+            errors.add(new ValidationError(
+                this, null, "'log-config' cannot be set unless 'enable-flow-logs' is set to 'true'"));
+        }
+
+        return errors;
     }
 
     private Subnetwork getSubnetwork(SubnetworksClient client) {
