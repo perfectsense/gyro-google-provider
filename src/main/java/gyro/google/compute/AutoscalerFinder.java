@@ -67,7 +67,7 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
     protected List<Autoscaler> findGoogle(
         AutoscalersClient client, Map<String, String> filters) throws Exception {
 
-        List<Autoscaler> instances = new ArrayList<>();
+        List<Autoscaler> autoscalers = new ArrayList<>();
         String pageToken = null;
 
         try {
@@ -85,17 +85,17 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
                     AutoscalerList addressList = client.list(builder.build()).getPage().getResponse();
                     pageToken = addressList.getNextPageToken();
 
-                    instances.addAll(addressList.getItemsList());
+                    autoscalers.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
-                return getAutoscalers(client, ResourceScope.ZONE, filters);
+                autoscalers.addAll(getAutoscalers(client, ResourceScope.ZONE, filters));
             }
 
         } finally {
             client.close();
         }
 
-        return instances;
+        return autoscalers;
     }
 
     private List<Autoscaler> getAutoscalers(

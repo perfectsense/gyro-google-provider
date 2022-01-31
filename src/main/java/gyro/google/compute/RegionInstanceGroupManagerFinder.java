@@ -94,7 +94,7 @@ public class RegionInstanceGroupManagerFinder
                         }
                     }
                 } else {
-                    getRegionInstanceGroupManagers(client, filter);
+                    instanceGroupManagers.addAll(getRegionInstanceGroupManagers(client, filter));
                 }
             }
         } finally {

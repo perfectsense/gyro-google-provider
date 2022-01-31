@@ -67,12 +67,11 @@ public class InstanceGroupManagerFinder
     protected List<InstanceGroupManager> findGoogle(
         InstanceGroupManagersClient client, Map<String, String> filters) throws Exception {
 
-        List<InstanceGroupManager> instances = new ArrayList<>();
+        List<InstanceGroupManager> instanceGroupManagers = new ArrayList<>();
         String pageToken = null;
 
         try {
             if (filters.containsKey("zone")) {
-
                 do {
                     ListInstanceGroupManagersRequest.Builder builder = ListInstanceGroupManagersRequest.newBuilder()
                         .setProject(getProjectId()).setZone(filters.get("zone"))
@@ -86,19 +85,19 @@ public class InstanceGroupManagerFinder
                     pageToken = addressList.getNextPageToken();
 
                     if (addressList.getItemsList() != null) {
-                        instances.addAll(addressList.getItemsList());
+                        instanceGroupManagers.addAll(addressList.getItemsList());
                     }
 
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
-                return getInstanceGroupManagers(client, ResourceScope.ZONE, filters);
+                instanceGroupManagers.addAll(getInstanceGroupManagers(client, ResourceScope.ZONE, filters));
             }
 
         } finally {
             client.close();
         }
 
-        return instances;
+        return instanceGroupManagers;
     }
 
     private List<InstanceGroupManager> getInstanceGroupManagers(

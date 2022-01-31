@@ -123,11 +123,9 @@ public class NetworkEndpointGroupFinder
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
                 } while (!StringUtils.isEmpty(nextPageToken));
-
-                return networkEndpointGroups;
-
             } else {
-                getNetworkEndpointGroups(client).removeIf(d -> !d.getName().equals(filters.get("name")));
+                networkEndpointGroups.addAll(getNetworkEndpointGroups(client));
+                networkEndpointGroups.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
         } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore

@@ -104,7 +104,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
                     addresses.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
-                return getAddresses(client, filters.get("filter"));
+                addresses.addAll(getAddresses(client, filters.get("filter")));
             }
 
         } finally {

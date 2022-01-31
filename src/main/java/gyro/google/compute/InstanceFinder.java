@@ -103,7 +103,7 @@ public class InstanceFinder extends GoogleFinder<InstancesClient, Instance, Inst
                     instances.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
-                return getInstances(client, filters.get("filter"));
+                instances.addAll(getInstances(client, filters.get("filter")));
             }
 
         } finally {

@@ -126,7 +126,8 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                 return forwardingRules;
 
             } else {
-                getForwardingRules(client).removeIf(d -> !d.getName().equals(filters.get("name")));
+                forwardingRules.addAll(getForwardingRules(client));
+                forwardingRules.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
         } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore

@@ -118,7 +118,7 @@ public class RegionTargetHttpProxyFinder
                         }
                     }
                 } else {
-                    getRegionTargetHttpProxies(client, filter);
+                    proxies.addAll(getRegionTargetHttpProxies(client, filter));
                 }
             }
         } finally {
