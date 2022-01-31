@@ -184,12 +184,12 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
                     .orElse(Collections.emptyList());
 
                 for (HealthStatus healthStatus : healthStatuses) {
-                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState().toString(), 0);
-                    backendHealthMap.put(healthStatus.getHealthState().toString(), backendCount + 1);
+                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                    backendHealthMap.put(healthStatus.getHealthState(), backendCount + 1);
                     backendTotal++;
 
-                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState().toString(), 0);
-                    allHealthMap.put(healthStatus.getHealthState().toString(), allCount + 1);
+                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                    allHealthMap.put(healthStatus.getHealthState(), allCount + 1);
                     allTotal++;
                 }
 

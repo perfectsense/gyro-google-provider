@@ -131,7 +131,7 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     public void copyFrom(TargetHttpsProxy model) {
         super.copyFrom(model);
 
-        setQuicOverride(model.getQuicOverride().toString());
+        setQuicOverride(model.getQuicOverride());
 
         setUrlMap(null);
         if (model.hasUrlMap()) {
@@ -203,11 +203,12 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
                 TargetHttpsProxiesSetQuicOverrideRequest.Builder builder = TargetHttpsProxiesSetQuicOverrideRequest.newBuilder();
                 builder.setQuicOverride(getQuicOverride());
 
-                Operation response = client.setQuicOverrideCallable().call(SetQuicOverrideTargetHttpsProxyRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setTargetHttpsProxy(getName())
+                Operation response = client.setQuicOverrideCallable()
+                    .call(SetQuicOverrideTargetHttpsProxyRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setTargetHttpsProxy(getName())
                         .setTargetHttpsProxiesSetQuicOverrideRequestResource(builder)
-                    .build());
+                        .build());
 
                 waitForCompletion(response);
             }
