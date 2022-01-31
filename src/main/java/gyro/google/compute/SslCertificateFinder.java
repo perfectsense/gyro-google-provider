@@ -73,10 +73,7 @@ public class SslCertificateFinder extends GoogleFinder<SslCertificatesClient, Ss
                 sslCertificateList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = sslCertificateList.getNextPageToken();
 
-                if (sslCertificateList.getItemsList() != null) {
-                    sslCertificates.addAll(sslCertificateList.getItemsList());
-                }
-
+                sslCertificates.addAll(sslCertificateList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return sslCertificates;

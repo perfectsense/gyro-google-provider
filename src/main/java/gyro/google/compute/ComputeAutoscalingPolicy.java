@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -154,66 +153,89 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
 
     public AutoscalingPolicy copyTo() {
         AutoscalingPolicy.Builder builder = AutoscalingPolicy.newBuilder();
-        builder.setCoolDownPeriodSec(getCoolDownPeriodSec());
-        Optional.ofNullable(getCpuUtilization())
-            .map(ComputeAutoscalingPolicyCpuUtilization::copyTo)
-            .ifPresent(builder::setCpuUtilization);
-        builder.addAllCustomMetricUtilizations(getCustomMetricUtilization()
-            .stream()
-            .map(ComputeAutoscalingPolicyCustomMetricUtilization::copyTo)
-            .collect(Collectors.toList()));
-        Optional.ofNullable(getLoadBalancingUtilization())
-            .map(ComputeAutoscalingPolicyLoadBalancingUtilization::copyTo)
-            .ifPresent(builder::setLoadBalancingUtilization);
-        builder.setMaxNumReplicas(getMaxNumReplicas());
-        builder.setMinNumReplicas(getMinNumReplicas());
+
+        if (getMaxNumReplicas() != null) {
+            builder.setMaxNumReplicas(getMaxNumReplicas());
+        }
+
+        if (getMinNumReplicas() != null) {
+            builder.setMinNumReplicas(getMinNumReplicas());
+        }
+
+        if (getCoolDownPeriodSec() != null) {
+            builder.setCoolDownPeriodSec(getCoolDownPeriodSec());
+        }
 
         if (getMode() != null) {
             builder.setMode(getMode());
         }
+
+        if (getCpuUtilization() != null) {
+            builder.setCpuUtilization(getCpuUtilization().copyTo());
+        }
+
+        if (getLoadBalancingUtilization() != null) {
+            builder.setLoadBalancingUtilization(getLoadBalancingUtilization().copyTo());
+        }
+
+        builder.addAllCustomMetricUtilizations(getCustomMetricUtilization()
+            .stream()
+            .map(ComputeAutoscalingPolicyCustomMetricUtilization::copyTo)
+            .collect(Collectors.toList()));
 
         return builder.build();
     }
 
     @Override
     public void copyFrom(AutoscalingPolicy model) {
-        setCoolDownPeriodSec(model.getCoolDownPeriodSec());
-        setCpuUtilization(Optional.ofNullable(model.getCpuUtilization())
-            .map(e -> {
-                ComputeAutoscalingPolicyCpuUtilization cpuUtilization = newSubresource(
-                    ComputeAutoscalingPolicyCpuUtilization.class);
-                cpuUtilization.copyFrom(e);
-                return cpuUtilization;
-            })
-            .orElse(null));
+        if (model.hasCoolDownPeriodSec()) {
+            setCoolDownPeriodSec(model.getCoolDownPeriodSec());
+        }
+
+        if (model.hasMaxNumReplicas()) {
+            setMaxNumReplicas(model.getMaxNumReplicas());
+        }
+
+        if (model.hasMinNumReplicas()) {
+            setMinNumReplicas(model.getMinNumReplicas());
+        }
+
+        if (model.hasMode()) {
+            setMode(model.getMode());
+        }
+
+        setCpuUtilization(null);
+        if (model.hasLoadBalancingUtilization()) {
+            ComputeAutoscalingPolicyCpuUtilization cpu =
+                newSubresource(ComputeAutoscalingPolicyCpuUtilization.class);
+            cpu.copyFrom(model.getCpuUtilization());
+
+            setCpuUtilization(cpu);
+        }
+
+        setLoadBalancingUtilization(null);
+        if (model.hasLoadBalancingUtilization()) {
+            ComputeAutoscalingPolicyLoadBalancingUtilization lbu =
+                newSubresource(ComputeAutoscalingPolicyLoadBalancingUtilization.class);
+            lbu.copyFrom(model.getLoadBalancingUtilization());
+
+            setLoadBalancingUtilization(lbu);
+        }
 
         List<ComputeAutoscalingPolicyCustomMetricUtilization> diffableCustomMetricUtilization = null;
         List<AutoscalingPolicyCustomMetricUtilization> customMetricUtilizations = model.getCustomMetricUtilizationsList();
-
-        if (customMetricUtilizations != null && !customMetricUtilizations.isEmpty()) {
+        if (!customMetricUtilizations.isEmpty()) {
             diffableCustomMetricUtilization = customMetricUtilizations
                 .stream()
                 .map(e -> {
-                    ComputeAutoscalingPolicyCustomMetricUtilization customMetricUtilization = newSubresource(
-                        ComputeAutoscalingPolicyCustomMetricUtilization.class);
-                    customMetricUtilization.copyFrom(e);
+                    ComputeAutoscalingPolicyCustomMetricUtilization cmu =
+                        newSubresource(ComputeAutoscalingPolicyCustomMetricUtilization.class);
+                    cmu.copyFrom(e);
 
-                    return customMetricUtilization;
+                    return cmu;
                 }).collect(Collectors.toList());
         }
         setCustomMetricUtilization(diffableCustomMetricUtilization);
-
-        setLoadBalancingUtilization(Optional.ofNullable(model.getLoadBalancingUtilization())
-            .map(e -> {
-                ComputeAutoscalingPolicyLoadBalancingUtilization loadBalancingUtilization = newSubresource(
-                    ComputeAutoscalingPolicyLoadBalancingUtilization.class);
-                loadBalancingUtilization.copyFrom(e);
-                return loadBalancingUtilization;
-            })
-            .orElse(null));
-        setMaxNumReplicas(model.getMaxNumReplicas());
-        setMinNumReplicas(model.getMinNumReplicas());
-        setMode(model.getMode() == null ? null : model.getMode().toString().toUpperCase());
     }
 
     @Override
@@ -224,9 +246,8 @@ public class ComputeAutoscalingPolicy extends Diffable implements Copyable<Autos
     @Override
     public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
-        Integer minNumReplicas = getMinNumReplicas();
 
-        if (minNumReplicas != null && getMaxNumReplicas() < minNumReplicas) {
+        if (getMinNumReplicas() != null && getMaxNumReplicas() < getMinNumReplicas()) {
             errors.add(new ValidationError(this, "max-num-replicas",
                 "'max-num-replicas' cannot be smaller than 'min-num-replicas'"));
         }

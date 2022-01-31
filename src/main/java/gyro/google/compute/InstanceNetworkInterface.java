@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.cloud.compute.v1.AccessConfig;
-import com.google.cloud.compute.v1.AliasIpRange;
 import com.google.cloud.compute.v1.NetworkInterface;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
@@ -138,49 +136,55 @@ public class InstanceNetworkInterface extends Diffable implements Copyable<Netwo
 
     @Override
     public void copyFrom(NetworkInterface model) {
+        setName(model.getName());
+
         setNetwork(null);
-        if (model.getNetwork() != null) {
+        if (model.hasName()) {
             setNetwork(findById(NetworkResource.class, model.getNetwork()));
         }
 
         setSubnetwork(null);
-        if (model.getSubnetwork() != null) {
+        if (model.hasSubnetwork()) {
             setSubnetwork(findById(SubnetworkResource.class, model.getSubnetwork()));
         }
-        setNetworkIp(model.getNetworkIP());
 
-        List<InstanceAccessConfig> diffableAccessConfigs = null;
-        List<AccessConfig> accessConfigs = model.getAccessConfigsList();
+        if (model.hasFingerprint()) {
+            setFingerprint(model.getFingerprint());
+        }
 
-        if (accessConfigs != null && !accessConfigs.isEmpty()) {
-            diffableAccessConfigs = accessConfigs
+        if (model.hasNetworkIP()) {
+            setNetworkIp(model.getNetworkIP());
+        }
+
+        setAccessConfig(null);
+        if (!model.getAccessConfigsList().isEmpty()) {
+            List<InstanceAccessConfig> diffableAccessConfigs = model.getAccessConfigsList()
                 .stream()
-                .map(accessConfig -> {
+                .map(ac -> {
                     InstanceAccessConfig instanceAccessConfig = newSubresource(InstanceAccessConfig.class);
-                    instanceAccessConfig.copyFrom(accessConfig);
+                    instanceAccessConfig.copyFrom(ac);
+
                     return instanceAccessConfig;
                 })
                 .collect(Collectors.toList());
+
+            setAccessConfig(diffableAccessConfigs);
         }
-        setAccessConfig(diffableAccessConfigs);
 
-        List<InstanceAliasIpRange> diffableAliasIpRanges = null;
-        List<AliasIpRange> aliasIpRanges = model.getAliasIpRangesList();
-
-        if (aliasIpRanges != null && !aliasIpRanges.isEmpty()) {
-            diffableAliasIpRanges = aliasIpRanges
+        setAliasIpRange(null);
+        if (!model.getAliasIpRangesList().isEmpty()) {
+            List<InstanceAliasIpRange> diffableAliasIpRanges = model.getAliasIpRangesList()
                 .stream()
-                .map(aliasIpRange -> {
+                .map(ap -> {
                     InstanceAliasIpRange instanceAliasIpRange = newSubresource(InstanceAliasIpRange.class);
-                    instanceAliasIpRange.copyFrom(aliasIpRange);
+                    instanceAliasIpRange.copyFrom(ap);
+
                     return instanceAliasIpRange;
                 })
                 .collect(Collectors.toList());
-        }
-        setAliasIpRange(diffableAliasIpRanges);
 
-        setFingerprint(model.getFingerprint());
-        setName(model.getName());
+            setAliasIpRange(diffableAliasIpRanges);
+        }
     }
 
     public NetworkInterface copyTo() {

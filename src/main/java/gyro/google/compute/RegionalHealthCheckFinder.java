@@ -115,7 +115,7 @@ public class RegionalHealthCheckFinder
                         }
                     }
                 } else {
-                    getRegionHealthChecks(client, filter);
+                    healthChecks.addAll(getRegionHealthChecks(client, filter));
                 }
             }
         } finally {

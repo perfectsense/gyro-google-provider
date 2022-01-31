@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -181,16 +180,10 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                     }
                 });
 
-            List<AttachedDisk> disks = instanceResult.get().getDisksList();
-
-            if (disks != null) {
-                return disks.stream()
-                    .filter(disk -> formatResource(getProjectId(), disk.getSource()).equals(attachedDiskSourceSelfLink))
-                    .findFirst()
-                    .orElse(null);
-            }
-
-            return null;
+            return instanceResult.get().getDisksList().stream()
+                .filter(disk -> formatResource(getProjectId(), disk.getSource()).equals(attachedDiskSourceSelfLink))
+                .findFirst()
+                .orElse(null);
         }
     }
 
@@ -201,6 +194,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                     DetachDiskInstanceRequest.newBuilder()
                         .setProject(getProjectId())
                         .setInstance(getInstance().getName())
+                        .setZone(getInstance().getZone())
                         .setDeviceName(resource.getAttachedDisk().getDeviceName())
                         .build());
 
@@ -215,6 +209,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                     AttachDiskInstanceRequest.newBuilder()
                         .setProject(getProjectId())
                         .setInstance(getInstance().getName())
+                        .setZone(getInstance().getZone())
                         .setAttachedDiskResource(getAttachedDisk().copyTo())
                         .build());
 

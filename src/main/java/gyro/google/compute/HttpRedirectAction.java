@@ -96,12 +96,29 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
 
     @Override
     public void copyFrom(com.google.cloud.compute.v1.HttpRedirectAction model) {
-        setHostRedirect(model.getHostRedirect());
-        setPathRedirect(model.getPathRedirect());
-        setPrefixRedirect(model.getPrefixRedirect());
-        setRedirectResponseCode(model.getRedirectResponseCode().toString());
-        setStripQuery(model.getStripQuery());
-        setHttpsRedirect(model.getHttpsRedirect());
+        if (model.hasHostRedirect()) {
+            setHostRedirect(model.getHostRedirect());
+        }
+
+        if (model.hasPathRedirect()) {
+            setPathRedirect(model.getPathRedirect());
+        }
+
+        if (model.hasPrefixRedirect()) {
+            setPrefixRedirect(model.getPrefixRedirect());
+        }
+
+        if (model.hasRedirectResponseCode()) {
+            setRedirectResponseCode(model.getRedirectResponseCode());
+        }
+
+        if (model.getStripQuery()) {
+            setStripQuery(model.getStripQuery());
+        }
+
+        if (model.getHttpsRedirect()) {
+            setHttpsRedirect(model.getHttpsRedirect());
+        }
 
     }
 
@@ -130,8 +147,13 @@ public class HttpRedirectAction extends Diffable implements Copyable<com.google.
             httpRedirectAction.setRedirectResponseCode(getRedirectResponseCode());
         }
 
-        httpRedirectAction.setStripQuery(getStripQuery());
-        httpRedirectAction.setHttpsRedirect(getHttpsRedirect());
+        if (getStripQuery() != null) {
+            httpRedirectAction.setStripQuery(getStripQuery());
+        }
+
+        if (getHttpsRedirect() != null) {
+            httpRedirectAction.setHttpsRedirect(getHttpsRedirect());
+        }
 
         return httpRedirectAction.build();
     }

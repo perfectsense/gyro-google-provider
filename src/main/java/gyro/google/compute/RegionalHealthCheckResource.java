@@ -123,9 +123,12 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     }
 
     @Override
-    public void copyFrom(HealthCheck healthCheck) {
-        super.copyFrom(healthCheck);
-        setRegion(healthCheck.getRegion());
+    public void copyFrom(HealthCheck model) {
+        super.copyFrom(model);
+
+        if (model.hasRegion()) {
+            setRegion(model.getRegion());
+        }
     }
 
     @Override

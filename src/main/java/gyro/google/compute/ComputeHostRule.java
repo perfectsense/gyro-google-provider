@@ -79,15 +79,24 @@ public class ComputeHostRule extends Diffable implements Copyable<HostRule> {
 
     @Override
     public void copyFrom(HostRule model) {
-        setDescription(model.getDescription());
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasPathMatcher()) {
+            setPathMatcher(model.getPathMatcher());
+        }
+
         setHosts(model.getHostsList());
-        setPathMatcher(model.getPathMatcher());
     }
 
     public HostRule copyTo() {
         HostRule.Builder builder = HostRule.newBuilder();
         builder.addAllHosts(getHosts());
-        builder.setPathMatcher(getPathMatcher());
+
+        if (getPathMatcher() != null) {
+            builder.setPathMatcher(getPathMatcher());
+        }
 
         if (getDescription() != null) {
             builder.setDescription(getDescription());

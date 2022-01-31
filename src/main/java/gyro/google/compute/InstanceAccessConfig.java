@@ -106,11 +106,26 @@ public class InstanceAccessConfig extends Diffable implements Copyable<AccessCon
     @Override
     public void copyFrom(AccessConfig model) {
         setName(model.getName());
-        setNatIp(model.getNatIP());
-        setNetworkTier(model.getNetworkTier().toString());
-        setPublicPtrDomainName(model.getPublicPtrDomainName());
-        setSetPublicPtr(model.getSetPublicPtr());
-        setType(model.getType().toString());
+
+        if (model.hasNatIP()) {
+            setNatIp(model.getNatIP());
+        }
+
+        if (model.hasNetworkTier()) {
+            setNetworkTier(model.getNetworkTier());
+        }
+
+        if (model.hasPublicPtrDomainName()) {
+            setPublicPtrDomainName(model.getPublicPtrDomainName());
+        }
+
+        if (model.hasSetPublicPtr()) {
+            setSetPublicPtr(model.getSetPublicPtr());
+        }
+
+        if (model.hasType()) {
+            setType(model.getType());
+        }
     }
 
     public AccessConfig copyTo() {

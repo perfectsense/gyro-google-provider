@@ -21,11 +21,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Data;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AddResourcePoliciesDiskRequest;
-import com.google.cloud.compute.v1.CustomerEncryptionKey;
 import com.google.cloud.compute.v1.DeleteDiskRequest;
 import com.google.cloud.compute.v1.Disk;
 import com.google.cloud.compute.v1.DisksAddResourcePoliciesRequest;
@@ -46,6 +44,7 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.Required;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Creates a zonal disk.
@@ -105,6 +104,10 @@ public class DiskResource extends AbstractDiskResource {
      * The disk type used to create the disk.
      */
     public String getType() {
+        if (type == null) {
+            type = "pd-standard";
+        }
+
         return type;
     }
 
@@ -138,12 +141,20 @@ public class DiskResource extends AbstractDiskResource {
     }
 
     @Override
-    public void copyFrom(Disk disk) {
-        super.copyFrom(disk);
+    public void copyFrom(Disk model) {
+        super.copyFrom(model);
 
-        setZone(disk.getZone());
-        setType(disk.getType());
-        setSourceImage(findById(ImageResource.class, disk.getSourceImage()));
+        if (model.hasZone()) {
+            setZone(model.getZone());
+        }
+
+        if (model.hasType()) {
+            setType(fromDiskType(model.getType()));
+        }
+
+        if (model.hasSourceImage()) {
+            setSourceImage(findById(ImageResource.class, model.getSourceImage()));
+        }
     }
 
     @Override
@@ -166,11 +177,13 @@ public class DiskResource extends AbstractDiskResource {
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (DisksClient client = createClient(DisksClient.class)) {
             Disk.Builder disk = toDisk().toBuilder();
-            disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey() != null
-                ? getSourceImageEncryptionKey().toCustomerEncryptionKey() : Data.nullOf(CustomerEncryptionKey.class));
+
+            if (getSourceImageEncryptionKey() != null) {
+                disk.setSourceImageEncryptionKey(getSourceImageEncryptionKey().toCustomerEncryptionKey());
+            }
 
             if (getType() != null) {
-                disk.setType(getType());
+                disk.setType(toDiskType());
             }
 
             if (getSourceImage() != null) {
@@ -184,7 +197,7 @@ public class DiskResource extends AbstractDiskResource {
                     .setProject(getProjectId())
                     .setZone(getZone())
                     .setDiskResource(disk)
-                .buildPartial());
+                .build());
 
             waitForCompletion(operation, 30, TimeUnit.SECONDS);
         }
@@ -264,6 +277,7 @@ public class DiskResource extends AbstractDiskResource {
             .filter(policy -> !getResourcePolicy().contains(policy))
             .map(ResourcePolicyResource::getSelfLink)
             .collect(Collectors.toList());
+
         List<String> added = getResourcePolicy().stream()
             .filter(policy -> !current.getResourcePolicy().contains(policy))
             .map(ResourcePolicyResource::getSelfLink)
@@ -304,13 +318,31 @@ public class DiskResource extends AbstractDiskResource {
         Disk disk = null;
 
         try {
-            disk = client.get(GetDiskRequest.newBuilder().setProject(getProjectId()).setZone(getZone())
-                .setDisk(getName()).build());
+            disk = client.get(GetDiskRequest.newBuilder()
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setDisk(getName())
+                .build());
 
         } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore
         }
 
         return disk;
+    }
+
+    private String toDiskType() {
+        return String.format("projects/%s/zones/%s/diskTypes/%s",
+            getProjectId(),
+            getZone(),
+            getType());
+    }
+
+    private String fromDiskType(String type) {
+        if (type != null) {
+            return StringUtils.substringAfterLast(type, "/");
+        }
+
+        return null;
     }
 }

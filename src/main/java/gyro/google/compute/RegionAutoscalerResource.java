@@ -91,10 +91,13 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
     public void copyFrom(Autoscaler model) {
         super.copyFrom(model);
 
-        setInstanceGroupManager(Optional.ofNullable(model.getTarget())
-            .map(e -> findById(RegionInstanceGroupManagerResource.class, e))
-            .orElse(null));
-        setRegion(Utils.extractName(model.getRegion()));
+        if (model.hasTarget()) {
+            setInstanceGroupManager(findById(RegionInstanceGroupManagerResource.class, model.getTarget()));
+        }
+
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
     }
 
     @Override

@@ -70,11 +70,9 @@ public class BackendServiceFinder extends GoogleFinder<BackendServicesClient, Ba
                 }
 
                 backendServiceList = client.list(builder.build()).getPage().getResponse();
-                if (backendServiceList.getItemsList() != null) {
-                    backendServices.addAll(backendServiceList.getItemsList());
-                }
-                nextPageToken = backendServiceList.getNextPageToken();
+                backendServices.addAll(backendServiceList.getItemsList());
 
+                nextPageToken = backendServiceList.getNextPageToken();
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return backendServices;

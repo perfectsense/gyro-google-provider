@@ -108,10 +108,10 @@ public class UrlMapResource extends AbstractUrlMapResource {
     }
 
     @Override
-    public void copyFrom(UrlMap urlMap) {
-        super.copyFrom(urlMap);
+    public void copyFrom(UrlMap model) {
+        super.copyFrom(model);
 
-        String defaultService = urlMap.getDefaultService();
+        String defaultService = model.getDefaultService();
         setDefaultBackendBucket(null);
         if (BackendBucketResource.isBackendBucket(defaultService)) {
             setDefaultBackendBucket(findById(BackendBucketResource.class, defaultService));

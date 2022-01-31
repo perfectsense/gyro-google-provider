@@ -17,7 +17,6 @@
 package gyro.google.compute;
 
 import com.google.cloud.compute.v1.HealthCheck;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ValidStrings;
@@ -29,7 +28,6 @@ public abstract class AbstractHealthCheck extends Diffable {
     private String portSpecification;
     private String proxyHeader;
     private String response;
-    private String requestPath;
 
     /**
      * The port for the domain name and/or ip address to monitor for the health check.
@@ -91,22 +89,6 @@ public abstract class AbstractHealthCheck extends Diffable {
 
     public void setResponse(String response) {
         this.response = response;
-    }
-
-    /**
-     * The request path of the health check request. Prefixes the path with a ``/`` if missing.
-     */
-    @Updatable
-    public String getRequestPath() {
-        if (requestPath != null) {
-            requestPath = StringUtils.ensureStart(requestPath, "/");
-        }
-
-        return requestPath;
-    }
-
-    public void setRequestPath(String requestPath) {
-        this.requestPath = requestPath;
     }
 
     protected abstract HealthCheck.Type getType();

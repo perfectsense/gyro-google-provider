@@ -91,9 +91,18 @@ public class RouterInterface extends Diffable
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterInterface model) throws Exception {
         setName(model.getName());
-        setIpRange(model.getIpRange());
-        setLinkedInterconnectAttachment(model.getLinkedInterconnectAttachment());
-        setLinkedVpnTunnel(model.getLinkedVpnTunnel());
+
+        if (model.hasIpRange()) {
+            setIpRange(model.getIpRange());
+        }
+
+        if (model.hasLinkedInterconnectAttachment()) {
+            setLinkedInterconnectAttachment(model.getLinkedInterconnectAttachment());
+        }
+
+        if (model.hasLinkedVpnTunnel()) {
+            setLinkedVpnTunnel(model.getLinkedVpnTunnel());
+        }
     }
 
     com.google.cloud.compute.v1.RouterInterface toRouterInterface() {

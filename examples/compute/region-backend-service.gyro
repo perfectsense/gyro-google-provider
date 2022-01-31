@@ -43,7 +43,7 @@ google::compute-region-backend-service regional-backend-service-example
 
     backend
         group
-            instance-group: $(google::compute-instance-group instance-group-example-backend-service)
+            instance-group: $(google::compute-instance-group instance-group-example-regional-backend-service)
         end
 
         balancing-mode: "UTILIZATION"

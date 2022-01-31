@@ -93,7 +93,7 @@ public class RegionAutoscalerFinder
                         }
                     }
                 } else {
-                    getRegionAutoscalers(client, filter);
+                    autoscalers.addAll(getRegionAutoscalers(client, filter));
                 }
             }
         } finally {

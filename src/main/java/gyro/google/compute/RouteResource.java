@@ -213,18 +213,45 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     }
 
     @Override
-    public void copyFrom(Route route) {
-        setName(route.getName());
-        setId(String.valueOf(route.getId()));
-        setSelfLink(route.getSelfLink());
-        setDescription(route.getDescription());
-        setDestRange(route.getDestRange());
-        setNetwork(findById(NetworkResource.class, route.getNetwork()));
-        setPriority((long) route.getPriority());
-        setTags(route.getTagsList() != null ? new HashSet<>(route.getTagsList()) : null);
-        setNextHopGateway(route.getNextHopGateway());
-        setNextHopVpnTunnel(route.getNextHopVpnTunnel());
-        setNextHopIp(route.getNextHopIp());
+    public void copyFrom(Route model) {
+        setName(model.getName());
+        setTags(new HashSet<>(model.getTagsList()));
+
+        if (model.hasId()) {
+            setId(String.valueOf(model.getId()));
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasDestRange()) {
+            setDestRange(model.getDestRange());
+        }
+
+        if (model.hasNetwork()) {
+            setNetwork(findById(NetworkResource.class, model.getNetwork()));
+        }
+
+        if (model.hasPriority()) {
+            setPriority((long) model.getPriority());
+        }
+
+        if (model.hasNextHopGateway()) {
+            setNextHopGateway(model.getNextHopGateway());
+        }
+
+        if (model.hasNextHopVpnTunnel()) {
+            setNextHopVpnTunnel(model.getNextHopVpnTunnel());
+        }
+
+        if (model.hasNextHopIp()) {
+            setNextHopIp(model.getNextHopIp());
+        }
     }
 
     @Override

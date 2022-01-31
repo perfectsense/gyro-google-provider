@@ -59,22 +59,6 @@ public class InstanceTemplateFinder
 
     @Override
     protected List<InstanceTemplate> findAllGoogle(InstanceTemplatesClient client) throws Exception {
-        //        List<InstanceTemplate> allInstanceTemplates = new ArrayList<>();
-        //        InstanceTemplatesClient.InstanceTemplates.List request = client.instanceTemplates().list(getProjectId());
-        //        String nextPageToken = null;
-        //
-        //        do {
-        //            InstanceTemplateList response = request.execute();
-        //            List<InstanceTemplate> items = response.getItems();
-        //
-        //            if (items == null) {
-        //                break;
-        //            }
-        //            allInstanceTemplates.addAll(items);
-        //            nextPageToken = response.getNextPageToken();
-        //            request.setPageToken(nextPageToken);
-        //        } while (nextPageToken != null);
-        //        return allInstanceTemplates;
         List<InstanceTemplate> instanceTemplates = new ArrayList<>();
         InstanceTemplateList instanceTemplateList;
         String nextPageToken = null;
@@ -91,10 +75,8 @@ public class InstanceTemplateFinder
                 instanceTemplateList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = instanceTemplateList.getNextPageToken();
 
-                if (instanceTemplateList.getItemsList() != null) {
-                    instanceTemplates.addAll(instanceTemplateList.getItemsList());
-                }
-            } while (nextPageToken != null);
+                instanceTemplates.addAll(instanceTemplateList.getItemsList());
+            } while (instanceTemplateList.hasNextPageToken());
 
             return instanceTemplates;
 

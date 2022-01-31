@@ -78,23 +78,26 @@ public class SnapshotSchedulePolicySchedule extends Diffable
     @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicySchedule model) {
         setDailySchedule(null);
-        if (model.getDailySchedule() != null) {
+        if (model.hasDailySchedule()) {
             DailyCycle currentDailySchedule = newSubresource(DailyCycle.class);
             currentDailySchedule.copyFrom(model.getDailySchedule());
+
             setDailySchedule(currentDailySchedule);
         }
 
         setHourlySchedule(null);
-        if (model.getHourlySchedule() != null) {
+        if (model.hasHourlySchedule()) {
             HourlyCycle currentHourlySchedule = newSubresource(HourlyCycle.class);
             currentHourlySchedule.copyFrom(model.getHourlySchedule());
+
             setHourlySchedule(currentHourlySchedule);
         }
 
         setWeeklySchedule(null);
-        if (model.getWeeklySchedule() != null) {
+        if (model.hasWeeklySchedule()) {
             WeeklyCycle currentWeeklySchedule = newSubresource(WeeklyCycle.class);
             currentWeeklySchedule.copyFrom(model.getWeeklySchedule());
+
             setWeeklySchedule(currentWeeklySchedule);
         }
     }

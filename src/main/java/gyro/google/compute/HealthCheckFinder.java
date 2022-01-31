@@ -72,10 +72,8 @@ public class HealthCheckFinder extends GoogleFinder<HealthChecksClient, HealthCh
                 healthCheckList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = healthCheckList.getNextPageToken();
 
-                if (healthCheckList.getItemsList() != null) {
-                    healthChecks.addAll(healthCheckList.getItemsList());
-                }
-            } while (nextPageToken != null);
+                healthChecks.addAll(healthCheckList.getItemsList());
+            } while (healthCheckList.hasNextPageToken());
 
             return healthChecks;
 

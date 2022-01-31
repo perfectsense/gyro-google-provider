@@ -118,7 +118,7 @@ public class RegionSslCertificateFinder
                         }
                     }
                 } else {
-                    getRegionSslCertificates(client, filter);
+                    certificates.addAll(getRegionSslCertificates(client, filter));
                 }
             }
         } finally {

@@ -63,17 +63,33 @@ public class ComputeShieldedInstanceConfig extends Diffable implements Copyable<
 
     @Override
     public void copyFrom(ShieldedInstanceConfig model) {
-        setEnableIntegrityMonitoring(model.getEnableIntegrityMonitoring());
-        setEnableSecureBoot(model.getEnableSecureBoot());
-        setEnableVtpm(model.getEnableVtpm());
+        if (model.getEnableIntegrityMonitoring()) {
+            setEnableIntegrityMonitoring(model.getEnableIntegrityMonitoring());
+        }
+
+        if (model.hasEnableSecureBoot()) {
+            setEnableSecureBoot(model.getEnableSecureBoot());
+        }
+
+        if (model.hasEnableVtpm()) {
+            setEnableVtpm(model.getEnableVtpm());
+        }
     }
 
     public ShieldedInstanceConfig toShieldedInstanceConfig() {
         ShieldedInstanceConfig.Builder builder = ShieldedInstanceConfig.newBuilder();
 
-        builder.setEnableIntegrityMonitoring(getEnableIntegrityMonitoring());
-        builder.setEnableSecureBoot(getEnableSecureBoot());
-        builder.setEnableVtpm(getEnableVtpm());
+        if (getEnableIntegrityMonitoring() != null) {
+            builder.setEnableIntegrityMonitoring(getEnableIntegrityMonitoring());
+        }
+
+        if (getEnableSecureBoot() != null) {
+            builder.setEnableSecureBoot(getEnableSecureBoot());
+        }
+
+        if (getEnableVtpm() != null) {
+            builder.setEnableVtpm(getEnableVtpm());
+        }
 
         return builder.build();
     }

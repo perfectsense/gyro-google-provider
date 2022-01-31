@@ -64,14 +64,14 @@ import gyro.google.Copyable;
 @Type("compute-http-health-check")
 public class HttpHealthCheckResource extends ComputeResource implements Copyable<HealthCheck> {
 
-    private Integer checkIntervalSec;
-    private String description;
-    private Integer healthyThreshold;
-    private String host;
     private String name;
+    private String description;
+    private Integer checkIntervalSec;
+    private String host;
     private Integer port;
     private String requestPath;
     private Integer timeoutSec;
+    private Integer healthyThreshold;
     private Integer unhealthyThreshold;
 
     // Read-only
@@ -200,19 +200,37 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
     }
 
     @Override
-    public void copyFrom(HealthCheck healthCheck) throws Exception {
-        setCheckIntervalSec(healthCheck.getCheckIntervalSec());
-        setDescription(healthCheck.getDescription());
-        setHealthyThreshold(healthCheck.getHealthyThreshold());
-        setName(healthCheck.getName());
-        setTimeoutSec(healthCheck.getTimeoutSec());
-        setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
-        setSelfLink(healthCheck.getSelfLink());
+    public void copyFrom(HealthCheck model) throws Exception {
+        setName(model.getName());
 
-        if (healthCheck.hasHttpHealthCheck()) {
-            setHost(healthCheck.getHttpHealthCheck().getHost());
-            setPort(healthCheck.getHttpHealthCheck().getPort());
-            setRequestPath(healthCheck.getHttpHealthCheck().getRequestPath());
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasCheckIntervalSec()) {
+            setCheckIntervalSec(model.getCheckIntervalSec());
+        }
+
+        if (model.hasTimeoutSec()) {
+            setTimeoutSec(model.getTimeoutSec());
+        }
+
+        if (model.hasHealthyThreshold()) {
+            setHealthyThreshold(model.getHealthyThreshold());
+        }
+
+        if (model.hasUnhealthyThreshold()) {
+            setUnhealthyThreshold(model.getUnhealthyThreshold());
+        }
+
+        if (model.hasHttpHealthCheck()) {
+            setHost(model.getHttpHealthCheck().getHost());
+            setPort(model.getHttpHealthCheck().getPort());
+            setRequestPath(model.getHttpHealthCheck().getRequestPath());
         }
     }
 
@@ -296,7 +314,10 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
 
         if (!isUpdate || changedFieldNames.contains("host")) {
             HTTPHealthCheck.Builder builder = HTTPHealthCheck.newBuilder();
-            builder.setHost(getHost());
+
+            if (getHost() != null) {
+                builder.setHost(getHost());
+            }
 
             if (!isUpdate || changedFieldNames.contains("port")) {
                 builder.setPort(getPort());
@@ -316,6 +337,8 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
         if (!isUpdate || changedFieldNames.contains("unhealthy-threshold")) {
             healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         }
+
+        healthCheck.setType("HTTP");
 
         return healthCheck.build();
     }

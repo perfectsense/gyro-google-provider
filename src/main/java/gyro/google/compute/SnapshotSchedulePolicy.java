@@ -73,25 +73,28 @@ public class SnapshotSchedulePolicy extends Diffable implements Copyable<Resourc
     @Override
     public void copyFrom(ResourcePolicySnapshotSchedulePolicy model) {
         setRetentionPolicy(null);
-        if (model.getRetentionPolicy() != null) {
-            SnapshotSchedulePolicyRetentionPolicy currentRetentionPolicy = newSubresource(
-                SnapshotSchedulePolicyRetentionPolicy.class);
+        if (model.hasRetentionPolicy()) {
+            SnapshotSchedulePolicyRetentionPolicy currentRetentionPolicy =
+                newSubresource(SnapshotSchedulePolicyRetentionPolicy.class);
             currentRetentionPolicy.copyFrom(model.getRetentionPolicy());
+
             setRetentionPolicy(currentRetentionPolicy);
         }
 
         setSchedule(null);
-        if (model.getSchedule() != null) {
+        if (model.hasSchedule()) {
             SnapshotSchedulePolicySchedule currentSchedule = newSubresource(SnapshotSchedulePolicySchedule.class);
             currentSchedule.copyFrom(model.getSchedule());
+
             setSchedule(currentSchedule);
         }
 
         setSnapshotProperties(null);
-        if (model.getSnapshotProperties() != null) {
-            SnapshotSchedulePolicySnapshotProperties currentSnapshotProperties = newSubresource(
-                SnapshotSchedulePolicySnapshotProperties.class);
+        if (model.hasSnapshotProperties()) {
+            SnapshotSchedulePolicySnapshotProperties currentSnapshotProperties =
+                newSubresource(SnapshotSchedulePolicySnapshotProperties.class);
             currentSnapshotProperties.copyFrom(model.getSnapshotProperties());
+
             setSnapshotProperties(currentSnapshotProperties);
         }
     }

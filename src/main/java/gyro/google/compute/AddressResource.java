@@ -129,10 +129,13 @@ public class AddressResource extends AbstractAddressResource {
     @Override
     public void copyFrom(Address model) {
         super.copyFrom(model);
-        setNetworkTier(model.getNetworkTier() == null ? null : model.getNetworkTier().toString().toUpperCase());
+
+        if (model.hasNetworkTier()) {
+            setNetworkTier(model.getNetworkTier());
+        }
 
         // API only accepts region name, but model returns the region selfLink so strip name from the end of URL.
-        if ((model.getRegion() != null) && model.getRegion().startsWith("http")) {
+        if (model.getRegion().startsWith("http")) {
             setRegion(model.getRegion().substring(model.getRegion().lastIndexOf("/") + 1));
         }
     }
@@ -148,6 +151,8 @@ public class AddressResource extends AbstractAddressResource {
             if (ex.getCause().getMessage().contains("resourceNotReady")) {
                 return false;
             }
+
+            throw ex;
         }
 
         return true;

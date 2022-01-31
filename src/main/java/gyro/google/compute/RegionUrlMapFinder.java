@@ -113,7 +113,7 @@ public class RegionUrlMapFinder extends GoogleFinder<RegionUrlMapsClient, UrlMap
                         }
                     }
                 } else {
-                    getRegionUrlMaps(client, filter);
+                    urlMaps.addAll(getRegionUrlMaps(client, filter));
                 }
             }
         } finally {

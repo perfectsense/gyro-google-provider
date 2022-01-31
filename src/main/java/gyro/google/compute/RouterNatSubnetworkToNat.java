@@ -91,7 +91,10 @@ public class RouterNatSubnetworkToNat extends Diffable
 
     @Override
     public void copyFrom(com.google.cloud.compute.v1.RouterNatSubnetworkToNat model) {
-        setSubnet(findById(SubnetworkResource.class, model.getName()));
+        if (model.hasName()) {
+            setSubnet(findById(SubnetworkResource.class, model.getName()));
+        }
+
         setSourceIpRangesToNat(model.getSourceIpRangesToNatList());
         setSecondaryIpRangeNames(model.getSecondaryIpRangeNamesList());
     }
@@ -100,7 +103,7 @@ public class RouterNatSubnetworkToNat extends Diffable
         com.google.cloud.compute.v1.RouterNatSubnetworkToNat.Builder builder = com.google.cloud.compute.v1.RouterNatSubnetworkToNat
             .newBuilder();
 
-        builder.setName(subnet.getSelfLink());
+        builder.setName(getSubnet().getSelfLink());
 
         if (getSecondaryIpRangeNames().isEmpty()) {
             builder.addAllSecondaryIpRangeNames(getSecondaryIpRangeNames());

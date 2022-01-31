@@ -66,7 +66,7 @@ public class ComputeDistributionPolicy extends Diffable implements Copyable<Dist
         List<ComputeDistributionPolicyZoneConfiguration> diffableZone = null;
         List<DistributionPolicyZoneConfiguration> zones = model.getZonesList();
 
-        if (zones != null && !zones.isEmpty()) {
+        if (!zones.isEmpty()) {
             diffableZone = zones
                 .stream()
                 .map(zone -> {

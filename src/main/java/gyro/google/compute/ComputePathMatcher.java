@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.google.cloud.compute.v1.PathMatcher;
-import com.google.cloud.compute.v1.PathRule;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.ConflictsWith;
@@ -132,7 +131,10 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
     @Override
     public void copyFrom(PathMatcher model) {
         setName(model.getName());
-        setDescription(model.getDescription());
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
 
         String defaultService = model.getDefaultService();
         setDefaultBackendBucket(null);
@@ -150,23 +152,23 @@ public class ComputePathMatcher extends Diffable implements Copyable<PathMatcher
             setDefaultRegionBackendService(findById(RegionBackendServiceResource.class, defaultService));
         }
 
-        List<ComputePathRule> computePathRules = null;
-        List<PathRule> pathRules = model.getPathRulesList();
-
-        if (pathRules != null) {
-            computePathRules = pathRules.stream()
+        setPathRule(null);
+        if (!model.getPathRulesList().isEmpty()) {
+            List<ComputePathRule> computePathRules = model.getPathRulesList().stream()
                 .map(pathRule -> {
                     ComputePathRule computePathRule = newSubresource(ComputePathRule.class);
                     computePathRule.copyFrom(pathRule);
                     return computePathRule;
                 }).collect(Collectors.toList());
+
+            setPathRule(computePathRules);
         }
-        setPathRule(computePathRules);
 
         setDefaultUrlRedirect(null);
-        if (model.getDefaultUrlRedirect() != null) {
+        if (model.hasDefaultUrlRedirect()) {
             HttpRedirectAction redirectAction = newSubresource(HttpRedirectAction.class);
             redirectAction.copyFrom(model.getDefaultUrlRedirect());
+
             setDefaultUrlRedirect(redirectAction);
         }
     }

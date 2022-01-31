@@ -130,23 +130,28 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
     public void copyFrom(TargetHttpsProxy model) {
         super.copyFrom(model);
 
-        setRegion(model.getRegion());
-        setQuicOverride(model.getQuicOverride().toString());
+        if (model.hasRegion()) {
+            setRegion(model.getRegion());
+        }
+
+        if (model.hasQuicOverride()) {
+            setQuicOverride(model.getQuicOverride());
+        }
 
         setRegionUrlMap(null);
-        if (model.getUrlMap() != null) {
+        if (model.hasUrlMap()) {
             setRegionUrlMap(findById(RegionUrlMapResource.class, model.getUrlMap()));
         }
 
         getRegionSslCertificates().clear();
-        if (model.getSslCertificatesList() != null) {
+        if (!model.getSslCertificatesList().isEmpty()) {
             setRegionSslCertificates(model.getSslCertificatesList().stream()
                 .map(cert -> findById(RegionSslCertificateResource.class, cert))
                 .collect(Collectors.toList()));
         }
 
         setSslPolicy(null);
-        if (model.getSslPolicy() != null) {
+        if (model.hasSslPolicy()) {
             setSslPolicy(findById(SslPolicyResource.class, model.getSslPolicy()));
         }
     }

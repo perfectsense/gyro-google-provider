@@ -73,8 +73,14 @@ public class ComputeSchedulingNodeAffinity extends Diffable implements Copyable<
 
     @Override
     public void copyFrom(SchedulingNodeAffinity model) {
-        setKey(model.getKey());
-        setOperator(model.getOperator().toString().toUpperCase());
+        if (model.hasKey()) {
+            setKey(model.getKey());
+        }
+
+        if (model.hasOperator()) {
+            setOperator(model.getOperator());
+        }
+
         setValues(model.getValuesList());
     }
 

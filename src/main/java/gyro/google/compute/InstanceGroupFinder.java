@@ -88,11 +88,11 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
     @Override
     protected List<InstanceGroup> findGoogle(InstanceGroupsClient client, Map<String, String> filters)
         throws Exception {
-        List<InstanceGroup> forwardingRules = new ArrayList<>();
+        List<InstanceGroup> instanceGroups = new ArrayList<>();
 
         try {
             if (filters.containsKey("name") && filters.containsKey("zone")) {
-                forwardingRules = Collections.singletonList(client.get(getProjectId(), filters.get("zone"),
+                instanceGroups = Collections.singletonList(client.get(getProjectId(), filters.get("zone"),
                     filters.get("name")));
 
             } else if (filters.containsKey("zone")) {
@@ -116,17 +116,14 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
                     forwardingRuleList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
-                    if (forwardingRuleList.getItemsList() != null) {
-                        forwardingRules.addAll(forwardingRuleList.getItemsList().stream().filter(Objects::nonNull)
-                            .filter(forwardingRule -> forwardingRule.getZone() != null).collect(Collectors.toList()));
-                    }
-
+                    instanceGroups.addAll(forwardingRuleList.getItemsList().stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
                 } while (!StringUtils.isEmpty(nextPageToken));
 
-                return forwardingRules;
-
             } else {
-                getInstanceGroups(client).removeIf(d -> !d.getName().equals(filters.get("name")));
+                instanceGroups.addAll(getInstanceGroups(client));
+                instanceGroups.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
         } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore
@@ -134,7 +131,7 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
             client.close();
         }
 
-        return forwardingRules;
+        return instanceGroups;
     }
 
     private List<InstanceGroup> getInstanceGroups(InstanceGroupsClient client) {

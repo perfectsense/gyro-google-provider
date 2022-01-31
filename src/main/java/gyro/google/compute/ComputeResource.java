@@ -102,7 +102,7 @@ public abstract class ComputeResource extends GoogleResource {
                 }
             }
 
-            if (response != null && response.getError() != null && response.getError().getErrorsCount() > 0) {
+            if (response != null && response.getError().getErrorsCount() > 0) {
                 throw new GyroException(formatOperationErrorMessage(response.getError()));
             }
 

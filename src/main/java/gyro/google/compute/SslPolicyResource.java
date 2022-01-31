@@ -212,18 +212,37 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
 
     @Override
     public void copyFrom(SslPolicy model) {
-        setCustomFeatures(model.getCustomFeaturesList());
-        setDescription(model.getDescription());
-        setFingerprint(model.getFingerprint());
-        setMinTlsVersion(model.getMinTlsVersion().toString());
         setName(model.getName());
-        setProfile(model.getProfile().toString());
         setEnabledFeatures(model.getEnabledFeaturesList());
-        setSelfLink(model.getSelfLink());
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        setCustomFeatures(null);
+        if (!model.getCustomFeaturesList().isEmpty()) {
+            setCustomFeatures(model.getCustomFeaturesList());
+        }
+
+        if (model.hasFingerprint()) {
+            setFingerprint(model.getFingerprint());
+        }
+
+        if (model.hasMinTlsVersion()) {
+            setMinTlsVersion(model.getMinTlsVersion());
+        }
+
+        if (model.hasProfile()) {
+            setProfile(model.getProfile());
+        }
 
         List<Warnings> warnings = model.getWarningsList();
         getWarning().clear();
-        if (warnings != null && !warnings.isEmpty()) {
+        if (!warnings.isEmpty()) {
             setWarning(warnings
                 .stream()
                 .map(warning -> {

@@ -85,10 +85,10 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
     }
 
     @Override
-    public void copyFrom(ForwardingRule forwardingRule) {
-        super.copyFrom(forwardingRule);
+    public void copyFrom(ForwardingRule model) {
+        super.copyFrom(model);
 
-        String target = forwardingRule.getTarget();
+        String target = model.getTarget();
 
         setTargetHttpProxy(null);
         if (TargetHttpProxyResource.isTargetHttpProxy(target)) {

@@ -78,10 +78,7 @@ public class FirewallFinder extends GoogleFinder<FirewallsClient, Firewall, Fire
                 firewallList = listPagedResponse.getPage().getResponse();
                 nextPageToken = listPagedResponse.getNextPageToken();
 
-                if (firewallList.getItemsList() != null) {
-                    firewalls.addAll(firewallList.getItemsList());
-                }
-
+                firewalls.addAll(firewallList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return firewalls;

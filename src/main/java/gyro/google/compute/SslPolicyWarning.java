@@ -81,12 +81,17 @@ public class SslPolicyWarning extends Diffable implements Copyable<Warnings> {
 
     @Override
     public void copyFrom(Warnings model) {
-        setCode(model.getCode().toString());
-        setMessage(model.getMessage());
+        if (model.hasCode()) {
+            setCode(model.getCode());
+        }
+
+        if (model.hasMessage()) {
+            setMessage(model.getMessage());
+        }
 
         List<Data> data = model.getDataList();
         getData().clear();
-        if (data != null && !data.isEmpty()) {
+        if (!data.isEmpty()) {
             setData(data
                 .stream()
                 .map(d -> {

@@ -73,10 +73,7 @@ public class SslPolicyFinder extends GoogleFinder<SslPoliciesClient, SslPolicy, 
                 sslPolicyList = client.list(builder.build()).getPage().getResponse();
                 nextPageToken = sslPolicyList.getNextPageToken();
 
-                if (sslPolicyList.getItemsList() != null) {
-                    sslPolicies.addAll(sslPolicyList.getItemsList());
-                }
-
+                sslPolicies.addAll(sslPolicyList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
             return sslPolicies;

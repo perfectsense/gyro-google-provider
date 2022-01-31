@@ -57,7 +57,12 @@ public class SslPolicyWarningData extends Diffable implements Copyable<Data> {
 
     @Override
     public void copyFrom(Data model) {
-        setKey(model.getKey());
-        setValue(model.getValue());
+        if (model.hasKey()) {
+            setKey(model.getKey());
+        }
+
+        if (model.hasValue()) {
+            setValue(model.getValue());
+        }
     }
 }

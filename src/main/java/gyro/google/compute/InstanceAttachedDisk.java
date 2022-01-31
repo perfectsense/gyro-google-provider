@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.cloud.compute.v1.AttachedDisk;
-import com.google.cloud.compute.v1.AttachedDiskInitializeParams;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ConflictsWith;
 import gyro.core.validation.ValidStrings;
@@ -189,53 +188,74 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     @Override
     public void copyFrom(AttachedDisk model) {
-        setAutoDelete(model.getAutoDelete());
-        setBoot(model.getBoot());
-        setDeviceName(model.getDeviceName());
-        setDiskInterface(model.getInterface().toString());
-        setMode(model.getMode().toString());
-        DiskResource diskResource = null;
-        String source = model.getSource();
-
-        if (source != null) {
-            diskResource = findById(DiskResource.class, source);
+        if (model.hasAutoDelete()) {
+            setAutoDelete(model.getAutoDelete());
         }
-        setSource(diskResource);
-        setType(model.getType().toString());
+
+        if (model.hasBoot()) {
+            setBoot(model.getBoot());
+        }
+
+        if (model.hasDeviceName()) {
+            setDeviceName(model.getDeviceName());
+        }
+
+        if (model.hasInterface()) {
+            setDiskInterface(model.getInterface());
+        }
+
+        if (model.hasMode()) {
+            setMode(model.getMode());
+        }
+
+        if (model.hasType()) {
+            setType(model.getType());
+        }
+
+        setSource(null);
+        if (model.hasSource()) {
+            DiskResource diskResource = findById(DiskResource.class, model.getSource());
+
+            setSource(diskResource);
+        }
 
         setDiskEncryptionKey(null);
-        if (model.getDiskEncryptionKey() != null) {
+        if (model.hasDiskEncryptionKey()) {
             EncryptionKey newDiskEncryptionKey = newSubresource(EncryptionKey.class);
             newDiskEncryptionKey.copyFrom(model.getDiskEncryptionKey());
+
             setDiskEncryptionKey(newDiskEncryptionKey);
         }
 
-        getGuestOsFeature().clear();
-        if (model.getGuestOsFeaturesList() != null) {
-            setGuestOsFeature(model.getGuestOsFeaturesList().stream()
-                .map(feature -> {
-                    InstanceGuestOsFeature newFeature = newSubresource(InstanceGuestOsFeature.class);
-                    newFeature.copyFrom(feature);
-                    return newFeature;
-                })
-                .collect(Collectors.toList())
-            );
-        }
-        InstanceAttachedDiskInitializeParams diffableInitializeParams = null;
-        AttachedDiskInitializeParams initializeParams = model.getInitializeParams();
+        setGuestOsFeature(model.getGuestOsFeaturesList().stream()
+            .map(feature -> {
+                InstanceGuestOsFeature newFeature = newSubresource(InstanceGuestOsFeature.class);
+                newFeature.copyFrom(feature);
+                return newFeature;
+            })
+            .collect(Collectors.toList())
+        );
 
-        if (initializeParams != null) {
-            diffableInitializeParams = Optional.ofNullable(getInitializeParams())
+        setInitializeParams(null);
+        if (model.hasInitializeParams()) {
+            InstanceAttachedDiskInitializeParams params = Optional.ofNullable(getInitializeParams())
                 .orElse(newSubresource(InstanceAttachedDiskInitializeParams.class));
-            diffableInitializeParams.copyFrom(initializeParams);
+            params.copyFrom(model.getInitializeParams());
+
+            setInitializeParams(params);
         }
-        setInitializeParams(diffableInitializeParams);
     }
 
     public AttachedDisk copyTo() {
         AttachedDisk.Builder builder = AttachedDisk.newBuilder();
-        builder.setAutoDelete(getAutoDelete());
-        builder.setBoot(getBoot());
+
+        if (getAutoDelete() != null) {
+            builder.setAutoDelete(getAutoDelete());
+        }
+
+        if (getBoot() != null) {
+            builder.setBoot(getBoot());
+        }
 
         if (getDeviceName() != null) {
             builder.setDeviceName(getDeviceName());
@@ -250,7 +270,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         }
 
         if (getSource() != null) {
-            builder.setSource(getSource() != null ? getSource().getSelfLink() : null);
+            builder.setSource(getSource().getSelfLink());
         }
 
         if (getType() != null) {
@@ -258,17 +278,17 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
         }
 
         if (getDiskEncryptionKey() != null) {
-            builder.setDiskEncryptionKey(
-                getDiskEncryptionKey() != null ? getDiskEncryptionKey().toCustomerEncryptionKey() : null);
+            builder.setDiskEncryptionKey(getDiskEncryptionKey().toCustomerEncryptionKey());
         }
 
         if (getGuestOsFeature() != null) {
-            builder.addAllGuestOsFeatures(getGuestOsFeature() != null ? getGuestOsFeature().stream()
-                .map(InstanceGuestOsFeature::copyTo).collect(Collectors.toList()) : null);
+            builder.addAllGuestOsFeatures(getGuestOsFeature().stream()
+                .map(InstanceGuestOsFeature::copyTo)
+                .collect(Collectors.toList()));
         }
 
         if (getInitializeParams() != null) {
-            builder.setInitializeParams(getInitializeParams() != null ? getInitializeParams().copyTo() : null);
+            builder.setInitializeParams(getInitializeParams().copyTo());
         }
 
         return builder.build();

@@ -40,6 +40,7 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.google.util.Utils;
 
 /**
  * Creates a regional backend service.
@@ -92,6 +93,15 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
     }
 
     @Override
+    public void copyFrom(BackendService model) {
+        super.copyFrom(model);
+
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
+    }
+
+    @Override
     protected boolean doRefresh() throws Exception {
         try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
             BackendService response = fetchBackendService(client);
@@ -109,12 +119,16 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
-            BackendService backendService = getBackendService(null);
+            BackendService.Builder builder = getBackendService(null);
+
+            builder.setRegion(getRegion());
+
             Operation operation = client.insertCallable().call(InsertRegionBackendServiceRequest.newBuilder()
                 .setProject(getProject())
                 .setRegion(getRegion())
-                .setBackendServiceResource(backendService)
+                .setBackendServiceResource(builder.build())
                 .build());
+
             waitForCompletion(operation);
         }
 
@@ -124,12 +138,15 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (RegionBackendServicesClient client = createClient(RegionBackendServicesClient.class)) {
-            BackendService backendService = getBackendService(changedFieldNames);
+            BackendService.Builder builder = getBackendService(changedFieldNames);
+
             Operation operation = client.patchCallable().call(PatchRegionBackendServiceRequest.newBuilder()
                 .setProject(getProject())
                 .setRegion(getRegion())
-                .setBackendServiceResource(backendService)
+                .setBackendService(getName())
+                .setBackendServiceResource(builder.build())
                 .build());
+
             waitForCompletion(operation);
         }
     }
@@ -167,12 +184,12 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
                     .orElse(Collections.emptyList());
 
                 for (HealthStatus healthStatus : healthStatuses) {
-                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState().toString(), 0);
-                    backendHealthMap.put(healthStatus.getHealthState().toString(), backendCount + 1);
+                    int backendCount = backendHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                    backendHealthMap.put(healthStatus.getHealthState(), backendCount + 1);
                     backendTotal++;
 
-                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState().toString(), 0);
-                    allHealthMap.put(healthStatus.getHealthState().toString(), allCount + 1);
+                    int allCount = allHealthMap.getOrDefault(healthStatus.getHealthState(), 0);
+                    allHealthMap.put(healthStatus.getHealthState(), allCount + 1);
                     allTotal++;
                 }
 

@@ -78,10 +78,7 @@ public class HttpHealthCheckFinder extends GoogleFinder<HealthChecksClient, Heal
                 healthCheckList = listPagedResponse.getPage().getResponse();
                 nextPageToken = listPagedResponse.getNextPageToken();
 
-                if (healthCheckList.getItemsList() != null) {
-                    healthChecks.addAll(healthCheckList.getItemsList());
-                }
-
+                healthChecks.addAll(healthCheckList.getItemsList());
             } while (!StringUtils.isEmpty(nextPageToken));
 
         } finally {

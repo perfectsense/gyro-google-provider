@@ -225,24 +225,42 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
 
     @Override
     public void copyFrom(TargetPool model) throws Exception {
-        setBackupPool(findById(TargetPoolResource.class, model.getBackupPool()));
-        setDescription(model.getDescription());
-        setFailoverRatio(model.getFailoverRatio());
         setName(model.getName());
-        setSessionAffinity(model.getSessionAffinity().toString());
-        setRegion(model.getRegion());
-        setSelfLink(model.getSelfLink());
 
-        List<String> instances = model.getInstancesList();
-        setInstances(null);
-        if (instances != null) {
-            setInstances(instances.stream().map(e -> findById(InstanceResource.class, e)).collect(Collectors.toList()));
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
         }
 
-        List<String> healthChecks = model.getHealthChecksList();
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasBackupPool()) {
+            setBackupPool(findById(TargetPoolResource.class, model.getBackupPool()));
+        }
+
+        if (model.hasFailoverRatio()) {
+            setFailoverRatio(model.getFailoverRatio());
+        }
+
+        if (model.hasSessionAffinity()) {
+            setSessionAffinity(model.getSessionAffinity());
+        }
+
+        if (model.hasRegion()) {
+            setRegion(model.getRegion());
+        }
+
+        setInstances(null);
+        if (!model.getInstancesList().isEmpty()) {
+            setInstances(model.getInstancesList().stream()
+                .map(e -> findById(InstanceResource.class, e))
+                .collect(Collectors.toList()));
+        }
+
         setHealthChecks(null);
-        if (healthChecks != null) {
-            setHealthChecks(healthChecks.stream()
+        if (!model.getHealthChecksList().isEmpty()) {
+            setHealthChecks(model.getHealthChecksList().stream()
                 .map(e -> findById(HttpHealthCheckResource.class, e))
                 .collect(Collectors.toList()));
         }
@@ -426,6 +444,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
             targetHttpProxy = client.get(GetTargetPoolRequest.newBuilder()
                 .setProject(getProjectId())
                 .setTargetPool(getName())
+                .setRegion(getRegion())
                 .build());
 
         } catch (NotFoundException | InvalidArgumentException ex) {

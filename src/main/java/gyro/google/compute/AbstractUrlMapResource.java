@@ -141,16 +141,25 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
     }
 
     @Override
-    public void copyFrom(UrlMap urlMap) {
-        setName(urlMap.getName());
-        setDescription(urlMap.getDescription());
-        setSelfLink(urlMap.getSelfLink());
-        setFingerprint(urlMap.getFingerprint());
+    public void copyFrom(UrlMap model) {
+        setName(model.getName());
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasFingerprint()) {
+            setFingerprint(model.getFingerprint());
+        }
 
         List<ComputeHostRule> computeHostRules = null;
-        List<HostRule> hostRules = urlMap.getHostRulesList();
+        List<HostRule> hostRules = model.getHostRulesList();
 
-        if (hostRules != null && !hostRules.isEmpty()) {
+        if (!hostRules.isEmpty()) {
             computeHostRules = hostRules
                 .stream()
                 .map(hostRule -> {
@@ -163,9 +172,9 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
         setHostRule(computeHostRules);
 
         List<ComputePathMatcher> computePathMatchers = null;
-        List<PathMatcher> pathMatchers = urlMap.getPathMatchersList();
+        List<PathMatcher> pathMatchers = model.getPathMatchersList();
 
-        if (pathMatchers != null && !pathMatchers.isEmpty()) {
+        if (!pathMatchers.isEmpty()) {
             computePathMatchers = pathMatchers
                 .stream()
                 .map(pathMatcher -> {
@@ -178,9 +187,9 @@ public abstract class AbstractUrlMapResource extends ComputeResource implements 
         setPathMatcher(computePathMatchers);
 
         setDefaultHttpRedirectAction(null);
-        if (urlMap.getDefaultUrlRedirect() != null) {
+        if (model.hasDefaultUrlRedirect()) {
             HttpRedirectAction redirectAction = newSubresource(HttpRedirectAction.class);
-            redirectAction.copyFrom(urlMap.getDefaultUrlRedirect());
+            redirectAction.copyFrom(model.getDefaultUrlRedirect());
             setDefaultHttpRedirectAction(redirectAction);
         }
     }

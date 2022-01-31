@@ -19,7 +19,6 @@ package gyro.google.compute;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,9 +28,7 @@ import com.google.api.gax.rpc.StatusCode;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceGroupManager;
 import com.google.cloud.compute.v1.InstanceGroupManagerAutoHealingPolicy;
-import com.google.cloud.compute.v1.InstanceGroupManagerVersion;
 import com.google.cloud.compute.v1.InstancesClient;
-import com.google.cloud.compute.v1.NamedPort;
 import gyro.core.GyroUI;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
@@ -330,71 +327,107 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
 
     @Override
     public void copyFrom(InstanceGroupManager model) {
-        setBaseInstanceName(model.getBaseInstanceName());
         setName(model.getName());
-        setTargetSize(model.getTargetSize());
 
-        List<ComputeInstanceGroupManagerAutoHealingPolicy> diffableAutoHealingPolicies = null;
-        List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicies = model.getAutoHealingPoliciesList();
-
-        if (autoHealingPolicies != null && !autoHealingPolicies.isEmpty()) {
-            diffableAutoHealingPolicies = autoHealingPolicies
-                .stream()
-                .map(e -> {
-                    ComputeInstanceGroupManagerAutoHealingPolicy computeInstanceGroupManagerAutoHealingPolicy = newSubresource(
-                        ComputeInstanceGroupManagerAutoHealingPolicy.class);
-                    computeInstanceGroupManagerAutoHealingPolicy.copyFrom(e);
-                    return computeInstanceGroupManagerAutoHealingPolicy;
-                })
-                .collect(Collectors.toList());
+        if (model.hasInstanceGroup()) {
+            setInstanceGroupLink(model.getInstanceGroup());
         }
-        setAutoHealingPolicy(diffableAutoHealingPolicies);
-        setDescription(model.getDescription());
-        setFingerprint(model.getFingerprint());
-        setInstanceTemplate(Optional.ofNullable(model.getInstanceTemplate())
-            .map(e -> findById(InstanceTemplateResource.class, e))
-            .orElse(null));
 
-        List<ComputeNamedPort> diffableNamedPorts = null;
-        List<NamedPort> namedPorts = model.getNamedPortsList();
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
 
-        if (namedPorts != null && !namedPorts.isEmpty()) {
-            diffableNamedPorts = namedPorts
+        if (model.hasBaseInstanceName()) {
+            setBaseInstanceName(model.getBaseInstanceName());
+        }
+
+        if (model.hasTargetSize()) {
+            setTargetSize(model.getTargetSize());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasFingerprint()) {
+            setFingerprint(model.getFingerprint());
+        }
+
+        if (model.hasInstanceTemplate()) {
+            setInstanceTemplate(findById(InstanceTemplateResource.class, model.getInstanceTemplate()));
+        }
+
+        setStatus(null);
+        if (model.hasStatus()) {
+            ComputeInstanceGroupManagerStatus ms = newSubresource(ComputeInstanceGroupManagerStatus.class);
+            ms.copyFrom(model.getStatus());
+
+            setStatus(ms);
+        }
+
+        setCurrentActions(null);
+        if (model.hasCurrentActions()) {
+            ComputeInstanceGroupManagerActionsSummary ca =
+                newSubresource(ComputeInstanceGroupManagerActionsSummary.class);
+            ca.copyFrom(model.getCurrentActions());
+
+            setCurrentActions(ca);
+        }
+
+        setUpdatePolicy(null);
+        if (model.hasUpdatePolicy()) {
+            ComputeInstanceGroupManagerUpdatePolicy up = newSubresource(ComputeInstanceGroupManagerUpdatePolicy.class);
+            up.copyFrom(model.getUpdatePolicy());
+
+            setUpdatePolicy(up);
+        }
+
+        setAutoHealingPolicy(null);
+        if (!model.getAutoHealingPoliciesList().isEmpty()) {
+            List<ComputeInstanceGroupManagerAutoHealingPolicy> diffableAutoHealingPolicies =
+                model.getAutoHealingPoliciesList().stream()
+                    .map(e -> {
+                        ComputeInstanceGroupManagerAutoHealingPolicy computeInstanceGroupManagerAutoHealingPolicy =
+                            newSubresource(ComputeInstanceGroupManagerAutoHealingPolicy.class);
+                        computeInstanceGroupManagerAutoHealingPolicy.copyFrom(e);
+
+                        return computeInstanceGroupManagerAutoHealingPolicy;
+                    })
+                    .collect(Collectors.toList());
+
+            setAutoHealingPolicy(diffableAutoHealingPolicies);
+        }
+
+        setNamedPort(null);
+        if (!model.getNamedPortsList().isEmpty()) {
+            List<ComputeNamedPort> diffableNamedPorts = null;
+            diffableNamedPorts = model.getNamedPortsList()
                 .stream()
                 .map(e -> {
                     ComputeNamedPort computeNamedPort = newSubresource(ComputeNamedPort.class);
                     computeNamedPort.copyFrom(e);
+
                     return computeNamedPort;
                 })
                 .collect(Collectors.toList());
+
+            setNamedPort(diffableNamedPorts);
         }
-        setNamedPort(diffableNamedPorts);
 
-        List<TargetPoolResource> diffableTargetPools = null;
-        List<String> targetPools = model.getTargetPoolsList();
-
-        if (targetPools != null && !targetPools.isEmpty()) {
-            diffableTargetPools = targetPools
+        setTargetPools(null);
+        if (!model.getTargetPoolsList().isEmpty()) {
+            List<TargetPoolResource> diffableTargetPools = model.getTargetPoolsList()
                 .stream()
                 .map(e -> findById(TargetPoolResource.class, e))
                 .collect(Collectors.toList());
+
+            setTargetPools(diffableTargetPools);
         }
-        setTargetPools(diffableTargetPools);
 
-        setUpdatePolicy(Optional.ofNullable(model.getUpdatePolicy())
-            .map(e -> {
-                ComputeInstanceGroupManagerUpdatePolicy updatePolicy = newSubresource(
-                    ComputeInstanceGroupManagerUpdatePolicy.class);
-                updatePolicy.copyFrom(e);
-                return updatePolicy;
-            })
-            .orElse(null));
-
-        List<ComputeInstanceGroupManagerVersion> diffableInstanceGroupManagerVersion = null;
-        List<InstanceGroupManagerVersion> versions = model.getVersionsList();
-
-        if (versions != null && !versions.isEmpty()) {
-            diffableInstanceGroupManagerVersion = versions
+        setVersion(null);
+        if (!model.getVersionsList().isEmpty()) {
+            List<ComputeInstanceGroupManagerVersion> diffableInstanceGroupManagerVersion =
+                model.getVersionsList()
                 .stream()
                 .map(e -> {
                     ComputeInstanceGroupManagerVersion computeVersion = newSubresource(
@@ -403,59 +436,62 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
                     return computeVersion;
                 })
                 .collect(Collectors.toList());
+
+            setVersion(diffableInstanceGroupManagerVersion);
         }
-        setVersion(diffableInstanceGroupManagerVersion);
-        setCurrentActions(Optional.ofNullable(model.getCurrentActions())
-            .map(e -> {
-                ComputeInstanceGroupManagerActionsSummary instanceGroupManagerActionsSummary = newSubresource(
-                    ComputeInstanceGroupManagerActionsSummary.class);
-                instanceGroupManagerActionsSummary.copyFrom(e);
-                return instanceGroupManagerActionsSummary;
-            })
-            .orElse(null));
-        setInstanceGroupLink(model.getInstanceGroup());
-        setSelfLink(model.getSelfLink());
-        setStatus(Optional.ofNullable(model.getStatus())
-            .map(e -> {
-                ComputeInstanceGroupManagerStatus computeInstanceGroupManagerStatus = newSubresource(
-                    ComputeInstanceGroupManagerStatus.class);
-                computeInstanceGroupManagerStatus.copyFrom(e);
-                return computeInstanceGroupManagerStatus;
-            })
-            .orElse(null));
     }
 
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         InstanceGroupManager.Builder instanceGroupManager = InstanceGroupManager.newBuilder();
-        instanceGroupManager.setBaseInstanceName(getBaseInstanceName());
         instanceGroupManager.setName(getName());
-        instanceGroupManager.setTargetSize(getTargetSize());
+
+        if (getTargetSize() != null) {
+            instanceGroupManager.setTargetSize(getTargetSize());
+        }
+
+        if (getBaseInstanceName() != null) {
+            instanceGroupManager.setBaseInstanceName(getBaseInstanceName());
+        }
+
+        if (getDescription() != null) {
+            instanceGroupManager.setDescription(getDescription());
+        }
+
+        if (getFingerprint() != null) {
+            instanceGroupManager.setFingerprint(getFingerprint());
+        }
+
+        if (getInstanceTemplate() != null) {
+            instanceGroupManager.setInstanceTemplate(getInstanceTemplate().getSelfLink());
+        }
+
+        if (getUpdatePolicy() != null) {
+            instanceGroupManager.setUpdatePolicy(getUpdatePolicy().copyTo());
+        }
+
         instanceGroupManager.addAllAutoHealingPolicies(getAutoHealingPolicy()
             .stream()
             .map(ComputeInstanceGroupManagerAutoHealingPolicy::copyTo)
             .collect(Collectors.toList()));
-        instanceGroupManager.setDescription(getDescription());
-        instanceGroupManager.setFingerprint(getFingerprint());
-        Optional.ofNullable(getInstanceTemplate())
-            .map(InstanceTemplateResource::getSelfLink)
-            .ifPresent(instanceGroupManager::setInstanceTemplate);
-        instanceGroupManager.addAllNamedPorts(getNamedPort().stream()
+
+        instanceGroupManager.addAllNamedPorts(getNamedPort()
+            .stream()
             .map(ComputeNamedPort::copyTo)
             .collect(Collectors.toList()));
+
         instanceGroupManager.addAllTargetPools(getTargetPools()
             .stream()
             .map(TargetPoolResource::getSelfLink)
             .collect(Collectors.toList()));
-        Optional.ofNullable(getUpdatePolicy())
-            .map(ComputeInstanceGroupManagerUpdatePolicy::copyTo)
-            .ifPresent(instanceGroupManager::setUpdatePolicy);
+
         instanceGroupManager.addAllVersions(getVersion()
             .stream()
             .map(ComputeInstanceGroupManagerVersion::copyTo)
             .collect(Collectors.toList()));
 
         insert(instanceGroupManager.build());
+
         refresh();
     }
 

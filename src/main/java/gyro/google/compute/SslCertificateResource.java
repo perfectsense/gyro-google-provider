@@ -87,8 +87,7 @@ public class SslCertificateResource extends AbstractSslCertificateResource {
     }
 
     @Override
-    protected void doUpdate(
-        GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
+    protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
     }
 

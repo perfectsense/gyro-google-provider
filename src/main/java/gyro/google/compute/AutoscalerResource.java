@@ -91,10 +91,13 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
     public void copyFrom(Autoscaler model) {
         super.copyFrom(model);
 
-        setInstanceGroupManager(Optional.ofNullable(model.getTarget())
-            .map(e -> findById(InstanceGroupManagerResource.class, e))
-            .orElse(null));
-        setZone(Utils.extractName(model.getZone()));
+        if (model.hasTarget()) {
+           setInstanceGroupManager(findById(InstanceGroupManagerResource.class, model.getTarget()));
+        }
+
+        if (model.hasZone()) {
+            setZone(Utils.extractName(model.getZone()));
+        }
     }
 
     @Override
@@ -149,6 +152,7 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
             Operation operation = client.patchCallable().call(PatchAutoscalerRequest.newBuilder()
                 .setProject(getProjectId())
                 .setZone(getZone())
+                .setAutoscaler(getName())
                 .setAutoscalerResource(autoscaler)
                 .build());
 

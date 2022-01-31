@@ -30,19 +30,21 @@ import gyro.google.Copyable;
 
 public abstract class AbstractHealthCheckResource extends ComputeResource implements Copyable<HealthCheck> {
 
-    private Integer checkIntervalSec;
+    private String name;
     private String description;
+    private Integer checkIntervalSec;
+    private Integer timeoutSec;
+    private HealthCheck.Type type;
     private HealthCheckHttpHealthCheck httpHealthCheck;
     private HealthCheckHttpsHealthCheck httpsHealthCheck;
     private HealthCheckHttp2HealthCheck http2HealthCheck;
     private HealthCheckSslHealthCheck sslHealthCheck;
     private HealthCheckTcpHealthCheck tcpHealthCheck;
     private Integer healthyThreshold;
-    private String name;
-    private String selfLink;
-    private Integer timeoutSec;
-    private HealthCheck.Type type;
     private Integer unhealthyThreshold;
+
+    // Read-only
+    private String selfLink;
 
     /**
      * The name of the health check.
@@ -218,48 +220,74 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     }
 
     @Override
-    public void copyFrom(HealthCheck healthCheck) {
-        setName(healthCheck.getName());
-        setDescription(healthCheck.getDescription());
-        setCheckIntervalSec(healthCheck.getCheckIntervalSec());
-        setTimeoutSec(healthCheck.getTimeoutSec());
-        setUnhealthyThreshold(healthCheck.getUnhealthyThreshold());
-        setHealthyThreshold(healthCheck.getHealthyThreshold());
-        setSelfLink(healthCheck.getSelfLink());
-        setType(HealthCheck.Type.valueOf(healthCheck.getType()));
+    public void copyFrom(HealthCheck model) {
+        setName(model.getName());
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasType()) {
+            setType(HealthCheck.Type.valueOf(model.getType()));
+        }
+
+        if (model.hasCheckIntervalSec()) {
+            setCheckIntervalSec(model.getCheckIntervalSec());
+        }
+
+        if (model.hasTimeoutSec()) {
+            setTimeoutSec(model.getTimeoutSec());
+        }
+
+        if (model.hasUnhealthyThreshold()) {
+            setUnhealthyThreshold(model.getUnhealthyThreshold());
+        }
+
+        if (model.hasHealthyThreshold()) {
+            setHealthyThreshold(model.getHealthyThreshold());
+        }
 
         setHttpHealthCheck(null);
-        if (healthCheck.hasHttpHealthCheck()) {
+        if (model.hasHttpHealthCheck()) {
             HealthCheckHttpHealthCheck httpHealthCheck = newSubresource(HealthCheckHttpHealthCheck.class);
-            httpHealthCheck.copyFrom(healthCheck.getHttpHealthCheck());
+            httpHealthCheck.copyFrom(model.getHttpHealthCheck());
+
             setHttpHealthCheck(httpHealthCheck);
         }
 
         setHttpsHealthCheck(null);
-        if (healthCheck.hasHttpsHealthCheck()) {
+        if (model.hasHttpsHealthCheck()) {
             HealthCheckHttpsHealthCheck httpsHealthCheck = newSubresource(HealthCheckHttpsHealthCheck.class);
-            httpsHealthCheck.copyFrom(healthCheck.getHttpsHealthCheck());
+            httpsHealthCheck.copyFrom(model.getHttpsHealthCheck());
+
             setHttpsHealthCheck(httpsHealthCheck);
         }
 
         setHttp2HealthCheck(null);
-        if (healthCheck.hasHttp2HealthCheck()) {
+        if (model.hasHttp2HealthCheck()) {
             HealthCheckHttp2HealthCheck http2HealthCheck = newSubresource(HealthCheckHttp2HealthCheck.class);
-            http2HealthCheck.copyFrom(healthCheck.getHttp2HealthCheck());
+            http2HealthCheck.copyFrom(model.getHttp2HealthCheck());
+
             setHttp2HealthCheck(http2HealthCheck);
         }
 
         setSslHealthCheck(null);
-        if (healthCheck.hasSslHealthCheck()) {
+        if (model.hasSslHealthCheck()) {
             HealthCheckSslHealthCheck sslHealthCheck = newSubresource(HealthCheckSslHealthCheck.class);
-            sslHealthCheck.copyFrom(healthCheck.getSslHealthCheck());
+            sslHealthCheck.copyFrom(model.getSslHealthCheck());
+
             setSslHealthCheck(sslHealthCheck);
         }
 
         setTcpHealthCheck(null);
-        if (healthCheck.hasTcpHealthCheck()) {
+        if (model.hasTcpHealthCheck()) {
             HealthCheckTcpHealthCheck tcpHealthCheck = newSubresource(HealthCheckTcpHealthCheck.class);
-            tcpHealthCheck.copyFrom(healthCheck.getTcpHealthCheck());
+            tcpHealthCheck.copyFrom(model.getTcpHealthCheck());
+
             setTcpHealthCheck(tcpHealthCheck);
         }
     }
@@ -273,23 +301,23 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
             healthCheck.setName(getName());
         }
 
-        if (!isUpdate || changedFieldNames.contains("check-interval-sec")) {
+        if ((!isUpdate || changedFieldNames.contains("check-interval-sec")) && getCheckIntervalSec() != null) {
             healthCheck.setCheckIntervalSec(getCheckIntervalSec());
         }
 
-        if (!isUpdate || changedFieldNames.contains("description")) {
+        if ((!isUpdate || changedFieldNames.contains("description")) && getDescription() != null) {
             healthCheck.setDescription(getDescription());
         }
 
-        if (!isUpdate || changedFieldNames.contains("healthy-threshold")) {
+        if ((!isUpdate || changedFieldNames.contains("healthy-threshold")) && getHealthyThreshold() != null) {
             healthCheck.setHealthyThreshold(getHealthyThreshold());
         }
 
-        if (!isUpdate || changedFieldNames.contains("timeout-sec")) {
+        if ((!isUpdate || changedFieldNames.contains("timeout-sec")) && getTimeoutSec() != null) {
             healthCheck.setTimeoutSec(getTimeoutSec());
         }
 
-        if (!isUpdate || changedFieldNames.contains("unhealthy-threshold")) {
+        if ((!isUpdate || changedFieldNames.contains("unhealthy-threshold")) && getUnhealthyThreshold() != null) {
             healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
         }
 

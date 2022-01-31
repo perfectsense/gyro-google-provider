@@ -111,10 +111,20 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     com.google.cloud.compute.v1.SecurityPolicyRule toSecurityPolicyRule() {
-        com.google.cloud.compute.v1.SecurityPolicyRule.Builder builder = com.google.cloud.compute.v1.SecurityPolicyRule.newBuilder();
-        builder.setAction(getAction());
-        builder.setPriority(getPriority());
-        builder.setMatch(getMatch().toSecurityPolicyRuleMatcher());
+        com.google.cloud.compute.v1.SecurityPolicyRule.Builder builder =
+            com.google.cloud.compute.v1.SecurityPolicyRule.newBuilder();
+
+        if (getAction() != null) {
+            builder.setAction(getAction());
+        }
+
+        if (getPriority() != null) {
+            builder.setPriority(getPriority());
+        }
+
+        if (getMatch() != null) {
+            builder.setMatch(getMatch().toSecurityPolicyRuleMatcher());
+        }
 
         if (getDescription() != null) {
             builder.setDescription(getDescription());
@@ -128,15 +138,30 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     @Override
-    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRule securityPolicyRule) {
-        setPriority(securityPolicyRule.getPriority());
-        setDescription(securityPolicyRule.getDescription());
-        setAction(securityPolicyRule.getAction());
-        setPreview(securityPolicyRule.getPreview());
+    public void copyFrom(com.google.cloud.compute.v1.SecurityPolicyRule model) {
+        if (model.hasPriority()) {
+            setPriority(model.getPriority());
+        }
 
-        SecurityPolicyRuleMatcher matcher = newSubresource(SecurityPolicyRuleMatcher.class);
-        matcher.copyFrom(securityPolicyRule.getMatch());
-        setMatch(matcher);
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasAction()) {
+            setAction(model.getAction());
+        }
+
+        if (model.hasPriority()) {
+            setPreview(model.getPreview());
+        }
+
+        setMatch(null);
+        if (model.hasMatch()) {
+            SecurityPolicyRuleMatcher matcher = newSubresource(SecurityPolicyRuleMatcher.class);
+            matcher.copyFrom(model.getMatch());
+
+            setMatch(matcher);
+        }
     }
 
     @Override

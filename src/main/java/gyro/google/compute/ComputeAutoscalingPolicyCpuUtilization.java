@@ -45,13 +45,19 @@ public class ComputeAutoscalingPolicyCpuUtilization extends Diffable
 
     public AutoscalingPolicyCpuUtilization copyTo() {
         AutoscalingPolicyCpuUtilization.Builder builder = AutoscalingPolicyCpuUtilization.newBuilder();
-        builder.setUtilizationTarget(getUtilizationTarget());
+
+        if (getUtilizationTarget() != null) {
+            builder.setUtilizationTarget(getUtilizationTarget());
+        }
+
         return builder.build();
     }
 
     @Override
     public void copyFrom(AutoscalingPolicyCpuUtilization model) {
-        setUtilizationTarget(model.getUtilizationTarget());
+        if (model.hasUtilizationTarget()) {
+            setUtilizationTarget(model.getUtilizationTarget());
+        }
     }
 
     @Override

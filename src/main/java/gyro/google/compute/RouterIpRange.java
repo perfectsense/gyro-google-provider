@@ -58,13 +58,21 @@ public class RouterIpRange extends Diffable implements Copyable<RouterAdvertised
 
     @Override
     public void copyFrom(RouterAdvertisedIpRange model) {
-        setRange(model.getRange());
-        setDescription(model.getDescription());
+        if (model.hasRange()) {
+            setRange(model.getRange());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
     }
 
     RouterAdvertisedIpRange toRouterAdvertisedIpRange() {
         RouterAdvertisedIpRange.Builder builder = RouterAdvertisedIpRange.newBuilder();
-        builder.setRange(getRange());
+
+        if (getRange() != null) {
+            builder.setRange(getRange());
+        }
 
         if (getDescription() != null) {
             builder.setDescription(getDescription());

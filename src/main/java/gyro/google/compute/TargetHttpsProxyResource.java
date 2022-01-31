@@ -131,22 +131,22 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
     public void copyFrom(TargetHttpsProxy model) {
         super.copyFrom(model);
 
-        setQuicOverride(model.getQuicOverride().toString());
+        setQuicOverride(model.getQuicOverride());
 
         setUrlMap(null);
-        if (model.getUrlMap() != null) {
+        if (model.hasUrlMap()) {
             setUrlMap(findById(UrlMapResource.class, model.getUrlMap()));
         }
 
         getSslCertificates().clear();
-        if (model.getSslCertificatesList() != null) {
+        if (!model.getSslCertificatesList().isEmpty()) {
             setSslCertificates(model.getSslCertificatesList().stream()
                 .map(cert -> findById(SslCertificateResource.class, cert))
                 .collect(Collectors.toList()));
         }
 
         setSslPolicy(null);
-        if (model.getSslPolicy() != null) {
+        if (model.hasSslPolicy()) {
             setSslPolicy(findById(SslPolicyResource.class, model.getSslPolicy()));
         }
     }
@@ -203,21 +203,23 @@ public class TargetHttpsProxyResource extends AbstractTargetHttpsProxyResource {
                 TargetHttpsProxiesSetQuicOverrideRequest.Builder builder = TargetHttpsProxiesSetQuicOverrideRequest.newBuilder();
                 builder.setQuicOverride(getQuicOverride());
 
-                Operation response = client.setQuicOverrideCallable().call(SetQuicOverrideTargetHttpsProxyRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setTargetHttpsProxy(getName())
+                Operation response = client.setQuicOverrideCallable()
+                    .call(SetQuicOverrideTargetHttpsProxyRequest.newBuilder()
+                        .setProject(getProjectId())
+                        .setTargetHttpsProxy(getName())
                         .setTargetHttpsProxiesSetQuicOverrideRequestResource(builder)
-                    .build());
+                        .build());
 
                 waitForCompletion(response);
             }
 
             if (changedFieldNames.contains("ssl-certificates")) {
-                TargetHttpsProxiesSetSslCertificatesRequest.Builder sslCertificates = TargetHttpsProxiesSetSslCertificatesRequest
-                    .newBuilder();
+                TargetHttpsProxiesSetSslCertificatesRequest.Builder sslCertificates =
+                    TargetHttpsProxiesSetSslCertificatesRequest.newBuilder();
                 sslCertificates.addAllSslCertificates(getSslCertificates().stream()
                     .map(AbstractSslCertificateResource::getSelfLink)
                     .collect(Collectors.toList()));
+
                 Operation response = client.setSslCertificatesCallable()
                     .call(SetSslCertificatesTargetHttpsProxyRequest.newBuilder()
                         .setProject(getProjectId())

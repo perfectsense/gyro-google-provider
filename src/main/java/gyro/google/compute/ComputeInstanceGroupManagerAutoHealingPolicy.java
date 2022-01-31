@@ -60,9 +60,10 @@ public class ComputeInstanceGroupManagerAutoHealingPolicy extends Diffable
 
     public InstanceGroupManagerAutoHealingPolicy copyTo() {
         InstanceGroupManagerAutoHealingPolicy.Builder builder = InstanceGroupManagerAutoHealingPolicy.newBuilder();
-        Optional.ofNullable(getHealthCheck())
-            .map(HealthCheckResource::getSelfLink)
-            .ifPresent(builder::setHealthCheck);
+
+        if (getHealthCheck() != null) {
+            builder.setHealthCheck(getHealthCheck().getSelfLink());
+        }
 
         if (getInitialDelaySec() != null) {
             builder.setInitialDelaySec(getInitialDelaySec());
@@ -72,12 +73,15 @@ public class ComputeInstanceGroupManagerAutoHealingPolicy extends Diffable
     }
 
     @Override
-    public void copyFrom(
-        InstanceGroupManagerAutoHealingPolicy model) {
-        setHealthCheck(Optional.ofNullable(model.getHealthCheck())
-            .map(e -> findById(HealthCheckResource.class, e))
-            .orElse(null));
-        setInitialDelaySec(model.getInitialDelaySec());
+    public void copyFrom(InstanceGroupManagerAutoHealingPolicy model) {
+        if (model.hasInitialDelaySec()) {
+            setInitialDelaySec(model.getInitialDelaySec());
+        }
+
+        setHealthCheck(null);
+        if (model.hasHealthCheck()) {
+            setHealthCheck(findById(HealthCheckResource.class, model.getHealthCheck()));
+        }
     }
 
     @Override

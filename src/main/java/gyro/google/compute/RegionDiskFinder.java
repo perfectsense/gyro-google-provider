@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Disk;
 import com.google.cloud.compute.v1.DiskList;
 import com.google.cloud.compute.v1.ListRegionDisksRequest;
@@ -112,29 +111,25 @@ public class RegionDiskFinder extends GoogleFinder<RegionDisksClient, Disk, Regi
 
         DiskList regionDiskList;
 
-        for (String region : regions) {
+        for (String requestRegion : regions) {
+            ListRegionDisksRequest.Builder builder = ListRegionDisksRequest.newBuilder()
+                .setRegion(requestRegion);
+
             String nextPageToken = null;
             do {
-                UnaryCallable<ListRegionDisksRequest, RegionDisksClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
-
-                ListRegionDisksRequest.Builder builder = ListRegionDisksRequest.newBuilder()
-                    .setRegion(region);
-
                 if (nextPageToken != null) {
                     builder.setPageToken(nextPageToken);
                 }
 
-                RegionDisksClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
-                    getProjectId()).build());
+                RegionDisksClient.ListPagedResponse pagedResponse = client.listPagedCallable()
+                    .call(builder.setProject(getProjectId()).build());
+
                 regionDiskList = pagedResponse.getPage().getResponse();
                 nextPageToken = pagedResponse.getNextPageToken();
 
-                if (regionDiskList.getItemsList() != null) {
-                    regionDisks.addAll(regionDiskList.getItemsList().stream().filter(Objects::nonNull)
-                        .filter(regionDisk -> regionDisk.getRegion() != null).collect(Collectors.toList()));
-                }
-
+                regionDisks.addAll(regionDiskList.getItemsList().stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()));
             } while (!StringUtils.isEmpty(nextPageToken));
         }
         return regionDisks;

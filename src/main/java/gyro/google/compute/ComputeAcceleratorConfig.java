@@ -55,13 +55,20 @@ public class ComputeAcceleratorConfig extends Diffable implements Copyable<Accel
 
     @Override
     public void copyFrom(AcceleratorConfig model) {
-        setAcceleratorCount(model.getAcceleratorCount());
-        setAcceleratorType(model.getAcceleratorType());
+        if (model.hasAcceleratorCount()) {
+            setAcceleratorCount(model.getAcceleratorCount());
+        }
+
+        if (model.hasAcceleratorType()) {
+            setAcceleratorType(model.getAcceleratorType());
+        }
     }
 
     public AcceleratorConfig toAcceleratorConfig() {
-        return AcceleratorConfig.newBuilder().setAcceleratorCount(getAcceleratorCount())
-            .setAcceleratorType(getAcceleratorType()).build();
+        return AcceleratorConfig.newBuilder()
+            .setAcceleratorCount(getAcceleratorCount())
+            .setAcceleratorType(getAcceleratorType())
+            .build();
     }
 
     @Override

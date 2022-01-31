@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -102,15 +101,17 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
     public void copyFrom(InstanceGroupManager model) {
         super.copyFrom(model);
 
-        setDistributionPolicy(Optional.ofNullable(model.getDistributionPolicy())
-            .map(e -> {
-                ComputeDistributionPolicy computeDistributionPolicy = newSubresource(
-                    ComputeDistributionPolicy.class);
-                computeDistributionPolicy.copyFrom(e);
-                return computeDistributionPolicy;
-            })
-            .orElse(null));
-        setRegion(Utils.extractName(model.getRegion()));
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
+
+        setDistributionPolicy(null);
+        if (model.hasDistributionPolicy()) {
+            ComputeDistributionPolicy computeDistributionPolicy = newSubresource(ComputeDistributionPolicy.class);
+            computeDistributionPolicy.copyFrom(model.getDistributionPolicy());
+
+            setDistributionPolicy(computeDistributionPolicy);
+        }
     }
 
     @Override
@@ -167,6 +168,7 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
             Operation operation = client.patchCallable().call(PatchRegionInstanceGroupManagerRequest.newBuilder()
                 .setProject(getProjectId())
                 .setRegion(getRegion())
+                .setInstanceGroupManager(getName())
                 .setInstanceGroupManagerResource(instanceGroupManager)
                 .build());
 
@@ -228,7 +230,7 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
                 .listManagedInstances(getProjectId(), getRegion(), getName());
 
             List<String> instanceNameList = response.getPage().getResponse().getManagedInstancesList().stream()
-                .filter(o -> o.getCurrentAction().equals(ManagedInstance.CurrentAction.NONE))
+                .filter(o -> o.getCurrentAction().equals(ManagedInstance.CurrentAction.NONE.name()))
                 .map(ManagedInstance::getInstance)
                 .collect(Collectors.toList());
 

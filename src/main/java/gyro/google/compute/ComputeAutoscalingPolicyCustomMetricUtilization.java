@@ -85,8 +85,11 @@ public class ComputeAutoscalingPolicyCustomMetricUtilization extends Diffable
 
     public AutoscalingPolicyCustomMetricUtilization copyTo() {
         AutoscalingPolicyCustomMetricUtilization.Builder builder = AutoscalingPolicyCustomMetricUtilization.newBuilder();
-        builder.setMetric(getMetric());
         builder.setUtilizationTarget(getUtilizationTarget());
+
+        if (getMetric() != null) {
+            builder.setMetric(getMetric());
+        }
 
         if (getUtilizationTargetType() != null) {
             builder.setUtilizationTargetType(getUtilizationTargetType());
@@ -97,9 +100,17 @@ public class ComputeAutoscalingPolicyCustomMetricUtilization extends Diffable
 
     @Override
     public void copyFrom(AutoscalingPolicyCustomMetricUtilization model) {
-        setMetric(model.getMetric());
-        setUtilizationTarget(model.getUtilizationTarget());
-        setUtilizationTargetType(model.getUtilizationTargetType());
+        if (model.hasMetric()) {
+            setMetric(model.getMetric());
+        }
+
+        if (model.hasUtilizationTarget()) {
+            setUtilizationTarget(model.getUtilizationTarget());
+        }
+
+        if (model.hasUtilizationTargetType()) {
+            setUtilizationTargetType(model.getUtilizationTargetType());
+        }
     }
 
     @Override

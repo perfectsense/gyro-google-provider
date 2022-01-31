@@ -54,8 +54,13 @@ public class InstanceAliasIpRange extends Diffable implements Copyable<AliasIpRa
 
     @Override
     public void copyFrom(AliasIpRange model) {
-        setIpCidrRange(model.getIpCidrRange());
-        setSubnetworkRangeName(model.getSubnetworkRangeName());
+        if (model.hasIpCidrRange()) {
+            setIpCidrRange(model.getIpCidrRange());
+        }
+
+        if (model.hasSubnetworkRangeName()) {
+            setSubnetworkRangeName(model.getSubnetworkRangeName());
+        }
     }
 
     public AliasIpRange copyTo() {

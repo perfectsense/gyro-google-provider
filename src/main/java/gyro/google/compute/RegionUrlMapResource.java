@@ -93,12 +93,14 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
     }
 
     @Override
-    public void copyFrom(UrlMap urlMap) {
-        super.copyFrom(urlMap);
+    public void copyFrom(UrlMap model) {
+        super.copyFrom(model);
 
-        setRegion(urlMap.getRegion());
+        if (model.hasRegion()) {
+            setRegion(model.getRegion());
+        }
 
-        String defaultService = urlMap.getDefaultService();
+        String defaultService = model.getDefaultService();
 
         setDefaultRegionBackendService(null);
         if (RegionBackendServiceResource.isRegionBackendService(defaultService)) {
@@ -126,10 +128,7 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
         try (RegionUrlMapsClient client = createClient(RegionUrlMapsClient.class)) {
             UrlMap.Builder urlMap = toUrlMap(null).toBuilder();
             urlMap.setRegion(getRegion());
-
-            if (urlMap.getDefaultUrlRedirect() == null) {
-                urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
-            }
+            urlMap.setDefaultService(getDefaultRegionBackendService().getSelfLink());
 
             Operation response = client.insertCallable().call(InsertRegionUrlMapRequest.newBuilder()
                 .setProject(getProjectId())

@@ -104,10 +104,7 @@ public class ResourcePolicyFinder extends GoogleFinder<ResourcePoliciesClient, R
                     ResourcePolicyList addressList = client.list(builder.build()).getPage().getResponse();
                     pageToken = addressList.getNextPageToken();
 
-                    if (addressList.getItemsList() != null) {
-                        addresses.addAll(addressList.getItemsList());
-                    }
-
+                    addresses.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
             } else {
                 return getResourcePolicies(client, filters.get("filter"));

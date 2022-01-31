@@ -27,7 +27,7 @@ public class FirewallAllowed extends FirewallRule implements Copyable<Allowed> {
     @Override
     public void copyFrom(Allowed allowed) {
         setProtocol(allowed.getIPProtocol());
-        setPorts(allowed.getPortsList() != null ? new HashSet<>(allowed.getPortsList()) : null);
+        setPorts(new HashSet<>(allowed.getPortsList()));
     }
 
     Allowed toAllowed() {

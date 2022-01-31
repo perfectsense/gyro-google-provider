@@ -57,7 +57,10 @@ public class SubnetworkSecondaryRange extends Diffable implements Copyable<com.g
     @Override
     public void copyFrom(com.google.cloud.compute.v1.SubnetworkSecondaryRange model) {
         setName(model.getRangeName());
-        setIpCidrRange(model.getIpCidrRange());
+
+        if (model.hasIpCidrRange()) {
+            setIpCidrRange(model.getIpCidrRange());
+        }
     }
 
     protected com.google.cloud.compute.v1.SubnetworkSecondaryRange toSecondaryIpRange() {

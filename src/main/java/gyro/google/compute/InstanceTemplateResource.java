@@ -26,7 +26,6 @@ import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteInstanceTemplateRequest;
 import com.google.cloud.compute.v1.GetInstanceTemplateRequest;
 import com.google.cloud.compute.v1.InsertInstanceTemplateRequest;
-import com.google.cloud.compute.v1.InstanceProperties;
 import com.google.cloud.compute.v1.InstanceTemplate;
 import com.google.cloud.compute.v1.InstanceTemplatesClient;
 import gyro.core.GyroUI;
@@ -219,22 +218,16 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
             builder.setDescription(getDescription());
         }
 
-        ComputeInstanceProperties property = getProperties();
-
-        if (property != null) {
-            builder.setProperties(property.toInstanceProperties());
+        if (getProperties() != null) {
+            builder.setProperties(getProperties().toInstanceProperties());
         }
 
-        InstanceResource sourceInstance = getSourceInstance();
-
-        if (sourceInstance != null) {
-            builder.setSourceInstance(sourceInstance.getSelfLink());
+        if (getSourceInstance() != null) {
+            builder.setSourceInstance(getSourceInstance().getSelfLink());
         }
 
-        ComputeSourceInstanceParams sourceInstanceParam = getSourceInstanceParams();
-
-        if (sourceInstanceParam != null) {
-            builder.setSourceInstanceParams(sourceInstanceParam.toSourceInstanceParams());
+        if (getSourceInstanceParams() != null) {
+            builder.setSourceInstanceParams(getSourceInstanceParams().toSourceInstanceParams());
         }
 
         try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
@@ -268,29 +261,27 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     }
 
     public void copyFrom(InstanceTemplate model, boolean refreshProperties) {
-        setDescription(model.getDescription());
         setName(model.getName());
 
-        if (refreshProperties) {
-            ComputeInstanceProperties diffableProperties = null;
-            InstanceProperties properties = model.getProperties();
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
 
-            if (properties != null) {
-                diffableProperties = Optional.ofNullable(getProperties())
-                    .orElse(newSubresource(ComputeInstanceProperties.class));
-                diffableProperties.copyFrom(properties);
-            }
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (refreshProperties) {
+            ComputeInstanceProperties diffableProperties = Optional.ofNullable(getProperties())
+                .orElse(newSubresource(ComputeInstanceProperties.class));
+            diffableProperties.copyFrom(model.getProperties());
+
             setProperties(diffableProperties);
         }
 
-        setSelfLink(model.getSelfLink());
-        String sourceInstance = model.getSourceInstance();
-
-        if (sourceInstance != null) {
-            // TODO: is it a full url?
-            setSourceInstance(findById(InstanceResource.class, sourceInstance));
+        if (model.hasSourceInstance()) {
+            setSourceInstance(findById(InstanceResource.class, model.getSourceInstance()));
         }
-        // Do NOT update `sourceInstanceParams` with the value from the server as it's always `null`.
     }
 
     @Override

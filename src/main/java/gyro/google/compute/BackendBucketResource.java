@@ -32,7 +32,6 @@ import com.google.cloud.compute.v1.DeleteSignedUrlKeyBackendBucketRequest;
 import com.google.cloud.compute.v1.InsertBackendBucketRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.PatchBackendBucketRequest;
-import com.google.protobuf.InvalidProtocolBufferException;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -184,23 +183,33 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
     @Override
     public void copyFrom(BackendBucket model) {
         BucketResource bucketResource = null;
-        String bucketName = model.getBucketName();
 
-        if (bucketName != null) {
-            bucketResource = findById(BucketResource.class, bucketName);
-        }
-        setBucket(bucketResource);
-        setDescription(model.getDescription());
-        setEnableCdn(model.getEnableCdn());
         setName(model.getName());
-        setSelfLink(model.getSelfLink());
 
-        if (model.getCdnPolicy() != null) {
-            BackendBucketCdnPolicy cdnPolicy = newSubresource(BackendBucketCdnPolicy.class);
-            cdnPolicy.copyFrom(model.getCdnPolicy());
-            setCdnPolicy(cdnPolicy);
-        } else {
-            setCdnPolicy(null);
+        if (model.hasSelfLink()) {
+            setSelfLink(model.getSelfLink());
+        }
+
+        if (model.hasDescription()) {
+            setDescription(model.getDescription());
+        }
+
+        if (model.hasEnableCdn()) {
+            setEnableCdn(model.getEnableCdn());
+        }
+
+        setCdnPolicy(null);
+        if (model.hasCdnPolicy()) {
+            BackendBucketCdnPolicy cp = newSubresource(BackendBucketCdnPolicy.class);
+            cp.copyFrom(model.getCdnPolicy());
+
+            setCdnPolicy(cp);
+        }
+
+        setBucket(null);
+        if (model.hasBucketName()) {
+            bucketResource = findById(BucketResource.class, model.getBucketName());
+            setBucket(bucketResource);
         }
 
         if (getCdnPolicy() != null) {
@@ -224,18 +233,7 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
     }
 
     static boolean isBackendBucket(String selfLink) {
-        if (selfLink == null) {
-            return false;
-        }
-
-        try {
-            BackendBucket bucket = BackendBucket.parseFrom(formatResource(null, selfLink).getBytes());
-
-            return bucket != null;
-
-        } catch (InvalidProtocolBufferException ex) {
-            return false;
-        }
+        return selfLink != null && selfLink.contains("backendBuckets");
     }
 
     @Override

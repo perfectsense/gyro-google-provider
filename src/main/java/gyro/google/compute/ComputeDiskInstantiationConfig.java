@@ -87,15 +87,26 @@ public class ComputeDiskInstantiationConfig extends Diffable implements Copyable
 
     @Override
     public void copyFrom(DiskInstantiationConfig model) {
-        setAutoDelete(model.getAutoDelete());
-        setCustomImage(model.getCustomImage());
-        setDeviceName(model.getDeviceName());
-        setInstantiateFrom(model.getInstantiateFrom());
+        if (model.hasAutoDelete()) {
+            setAutoDelete(model.getAutoDelete());
+        }
+
+        if (model.hasCustomImage()) {
+            setCustomImage(model.getCustomImage());
+        }
+
+        if (model.hasDeviceName()) {
+            setDeviceName(model.getDeviceName());
+        }
+
+        if (model.hasInstantiateFrom()) {
+            setInstantiateFrom(model.getInstantiateFrom());
+        }
     }
 
     public DiskInstantiationConfig toDiskInstantiationConfig() {
         DiskInstantiationConfig.Builder builder = DiskInstantiationConfig.newBuilder().setDeviceName(getDeviceName());
-        builder.setAutoDelete(getAutoDelete());
+        builder.setAutoDelete(Boolean.TRUE.equals(getAutoDelete()));
 
         if (getInstantiateFrom() != null) {
             builder.setInstantiateFrom(getInstantiateFrom());

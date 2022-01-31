@@ -59,14 +59,21 @@ public class ComputeNamedPort extends Diffable implements Copyable<NamedPort> {
     public NamedPort copyTo() {
         NamedPort.Builder builder = NamedPort.newBuilder();
         builder.setName(getName());
-        builder.setPort(getPort());
+
+        if (getPort() != null) {
+            builder.setPort(getPort());
+        }
+
         return builder.build();
     }
 
     @Override
     public void copyFrom(NamedPort model) {
         setName(model.getName());
-        setPort(model.getPort());
+
+        if (model.hasPort()) {
+            setPort(model.getPort());
+        }
     }
 
     @Override
