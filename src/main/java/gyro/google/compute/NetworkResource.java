@@ -165,16 +165,16 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
-        Network network = Network.newBuilder().setName(getName()).setDescription(getDescription())
-            .setAutoCreateSubnetworks(false)
-            .setRoutingConfig(NetworkRoutingConfig.newBuilder()
-                .setRoutingMode(getRoutingMode())
-                .build())
-            .build();
+        Network.Builder builder = Network.newBuilder().setName(getName()).setAutoCreateSubnetworks(false)
+            .setRoutingConfig(NetworkRoutingConfig.newBuilder().setRoutingMode(getRoutingMode()).build());
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
 
         try (NetworksClient client = createClient(NetworksClient.class)) {
             Operation operation = client.insertCallable().call(InsertNetworkRequest.newBuilder()
-                .setNetworkResource(network)
+                .setNetworkResource(builder.build())
                 .setProject(getProjectId())
                 .build());
 
@@ -186,7 +186,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     }
 
     @Override
-    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+    public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         NetworkRoutingConfig.Builder builder = NetworkRoutingConfig.newBuilder();
         builder.setRoutingMode(getRoutingMode());
 
@@ -204,8 +204,6 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
         } catch (Exception ex) {
             throw new GyroException(ex);
         }
-
-        refresh();
     }
 
     @Override
