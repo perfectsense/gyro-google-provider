@@ -27,6 +27,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.gax.rpc.InvalidArgumentException;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
@@ -87,6 +88,8 @@ public abstract class GoogleResource extends Resource {
             if (cause instanceof HttpResponseException) {
                 HttpResponseException httpResponseException = (HttpResponseException) cause;
                 throw new GyroException(formatHttpExceptionMessage(httpResponseException));
+            } else if (cause instanceof InvalidArgumentException) {
+                throw new GyroException(cause.getMessage());
             }
 
             cause = cause.getCause();
