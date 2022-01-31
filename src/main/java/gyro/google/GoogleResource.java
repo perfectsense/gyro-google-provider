@@ -82,7 +82,7 @@ public abstract class GoogleResource extends Resource {
 
     protected abstract void doCreate(GyroUI ui, State state) throws Exception;
 
-    private void handleApiExceptions(final Throwable throwable) {
+    private boolean handleApiExceptions(final Throwable throwable) {
         Throwable cause = throwable;
         while (cause != null) {
             if (cause instanceof HttpResponseException) {
@@ -90,18 +90,28 @@ public abstract class GoogleResource extends Resource {
                 throw new GyroException(formatHttpExceptionMessage(httpResponseException));
             } else if (cause instanceof InvalidArgumentException) {
                 throw new GyroException(cause.getMessage());
+            } else if (cause instanceof IllegalStateException) {
+                if (cause.getMessage().contains(OAUTH_ERROR)) {
+                    credentials(GoogleCredentials.class).refresh();
+                    return true;
+                }
             }
 
             cause = cause.getCause();
         }
+
+        return false;
     }
 
     @Override
     public final void create(GyroUI ui, State state) {
+        RETRY:
         try {
             doCreate(ui, state);
         } catch (Exception ex) {
-            handleApiExceptions(ex);
+            if (handleApiExceptions(ex)) {
+                break RETRY;
+            }
 
             throw new GyroException(ex);
         }
@@ -112,10 +122,13 @@ public abstract class GoogleResource extends Resource {
 
     @Override
     public final void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
+        RETRY:
         try {
             doUpdate(ui, state, current, changedFieldNames);
         } catch (Exception ex) {
-            handleApiExceptions(ex);
+            if (handleApiExceptions(ex)) {
+                break RETRY;
+            }
 
             throw new GyroException(ex);
         }
@@ -125,10 +138,13 @@ public abstract class GoogleResource extends Resource {
 
     @Override
     public final void delete(GyroUI ui, State state) {
+        RETRY:
         try {
             doDelete(ui, state);
         } catch (Exception ex) {
-            handleApiExceptions(ex);
+            if (handleApiExceptions(ex)) {
+                break RETRY;
+            }
 
             throw new GyroException(ex);
         }
