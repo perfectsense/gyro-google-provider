@@ -31,9 +31,9 @@ import com.google.cloud.compute.v1.AddressesClient;
 import com.google.cloud.compute.v1.AddressesScopedList;
 import com.google.cloud.compute.v1.AggregatedListAddressesRequest;
 import com.google.cloud.compute.v1.ListAddressesRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Query for regional addresses.
@@ -138,6 +138,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
                     .map(AddressesScopedList::getAddressesList)
                     .filter(Objects::nonNull)
                     .flatMap(Collection::stream)
+                    .filter(a -> StringUtils.isNotBlank(a.getRegion()))
                     .collect(Collectors.toList()));
             }
 

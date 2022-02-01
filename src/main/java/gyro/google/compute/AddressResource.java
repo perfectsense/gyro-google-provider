@@ -111,6 +111,8 @@ public class AddressResource extends AbstractAddressResource {
             if (!success) {
                 throw new GyroException(String.format("The resource '%s' is not ready", getSubnetwork().getSelfLink()));
             }
+
+            state.save();
         }
         refresh();
     }
