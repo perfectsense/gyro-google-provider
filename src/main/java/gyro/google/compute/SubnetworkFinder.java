@@ -76,34 +76,11 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
 
     @Override
     protected List<Subnetwork> findAllGoogle(SubnetworksClient client) throws Exception {
-        List<Subnetwork> subnetworks = new ArrayList<>();
-        String nextPageToken = null;
-
         try {
-            do {
-                UnaryCallable<AggregatedListSubnetworksRequest, SubnetworkAggregatedList> callable = client
-                    .aggregatedListCallable();
-                AggregatedListSubnetworksRequest.Builder builder = AggregatedListSubnetworksRequest.newBuilder();
-
-                if (nextPageToken != null) {
-                    builder.setPageToken(nextPageToken);
-                }
-
-                SubnetworkAggregatedList aggregatedList = callable.call(builder
-                    .setProject(getProjectId()).build());
-                nextPageToken = aggregatedList.getNextPageToken();
-
-                subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
-                    .map(SubnetworksScopedList::getSubnetworksList)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-            } while (!StringUtils.isEmpty(nextPageToken));
-
+            return getAllSubnets(client);
         } finally {
             client.close();
         }
-
-        return subnetworks;
     }
 
     @Override
@@ -133,6 +110,9 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
 
                     } while (!StringUtils.isEmpty(nextPageToken));
                 }
+            } else {
+                subnetworks.addAll(getAllSubnets(client).stream().filter(s -> s.getName().equals(filters.get("name")))
+                    .collect(Collectors.toList()));
             }
 
         } catch (NotFoundException | InvalidArgumentException ex) {
@@ -140,6 +120,32 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
         } finally {
             client.close();
         }
+
+        return subnetworks;
+    }
+
+    private List<Subnetwork> getAllSubnets(SubnetworksClient client) {
+        List<Subnetwork> subnetworks = new ArrayList<>();
+        String nextPageToken = null;
+
+        do {
+            UnaryCallable<AggregatedListSubnetworksRequest, SubnetworkAggregatedList> callable = client
+                .aggregatedListCallable();
+            AggregatedListSubnetworksRequest.Builder builder = AggregatedListSubnetworksRequest.newBuilder();
+
+            if (nextPageToken != null) {
+                builder.setPageToken(nextPageToken);
+            }
+
+            SubnetworkAggregatedList aggregatedList = callable.call(builder
+                .setProject(getProjectId()).build());
+            nextPageToken = aggregatedList.getNextPageToken();
+
+            subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
+                .map(SubnetworksScopedList::getSubnetworksList)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return subnetworks;
     }
