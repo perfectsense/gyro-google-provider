@@ -84,20 +84,20 @@ public abstract class GoogleResource extends Resource {
 
     private boolean handleApiExceptions(final Throwable throwable) {
         Throwable cause = throwable;
-        while (cause != null) {
-            if (cause instanceof HttpResponseException) {
-                HttpResponseException httpResponseException = (HttpResponseException) cause;
-                throw new GyroException(formatHttpExceptionMessage(httpResponseException));
-            } else if (cause instanceof InvalidArgumentException) {
-                throw new GyroException(cause.getMessage());
-            } else if (cause instanceof IllegalStateException) {
-                if (cause.getMessage().contains(OAUTH_ERROR)) {
-                    credentials(GoogleCredentials.class).refresh();
-                    return true;
-                }
-            }
-
+        while (cause.getCause() != null) {
             cause = cause.getCause();
+        }
+
+        if (cause instanceof HttpResponseException) {
+            HttpResponseException httpResponseException = (HttpResponseException) cause;
+            throw new GyroException(formatHttpExceptionMessage(httpResponseException));
+        } else if (cause instanceof InvalidArgumentException) {
+            throw new GyroException(cause.getMessage());
+        } else if (cause instanceof IllegalStateException) {
+            if (cause.getMessage().contains(OAUTH_ERROR)) {
+                credentials(GoogleCredentials.class).refresh();
+                return true;
+            }
         }
 
         return false;
