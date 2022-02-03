@@ -31,11 +31,12 @@ import com.google.cloud.compute.v1.AutoscalerAggregatedList;
 import com.google.cloud.compute.v1.AutoscalerList;
 import com.google.cloud.compute.v1.AutoscalersClient;
 import com.google.cloud.compute.v1.AutoscalersScopedList;
+import com.google.cloud.compute.v1.GetAutoscalerRequest;
 import com.google.cloud.compute.v1.ListAutoscalersRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query an autoscaler.
@@ -72,21 +73,25 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
 
         try {
             if (filters.containsKey("zone")) {
+                if (filters.containsKey("name")) {
+                    autoscalers.add(client.get(GetAutoscalerRequest.newBuilder().setZone(filters.get("zone"))
+                        .setAutoscaler(filters.get("name")).setProject(getProjectId()).build()));
+                } else {
+                    do {
+                        ListAutoscalersRequest.Builder builder = ListAutoscalersRequest.newBuilder()
+                            .setProject(getProjectId()).setZone(filters.get("zone"))
+                            .setFilter(filters.getOrDefault("filter", ""));
 
-                do {
-                    ListAutoscalersRequest.Builder builder = ListAutoscalersRequest.newBuilder()
-                        .setProject(getProjectId()).setZone(filters.get("zone"))
-                        .setFilter(filters.getOrDefault("filter", ""));
+                        if (pageToken != null) {
+                            builder.setPageToken(pageToken);
+                        }
 
-                    if (pageToken != null) {
-                        builder.setPageToken(pageToken);
-                    }
+                        AutoscalerList addressList = client.list(builder.build()).getPage().getResponse();
+                        pageToken = addressList.getNextPageToken();
 
-                    AutoscalerList addressList = client.list(builder.build()).getPage().getResponse();
-                    pageToken = addressList.getNextPageToken();
-
-                    autoscalers.addAll(addressList.getItemsList());
-                } while (!StringUtils.isEmpty(pageToken));
+                        autoscalers.addAll(addressList.getItemsList());
+                    } while (!StringUtils.isEmpty(pageToken));
+                }
             } else {
                 autoscalers.addAll(getAutoscalers(client, ResourceScope.ZONE, filters));
             }

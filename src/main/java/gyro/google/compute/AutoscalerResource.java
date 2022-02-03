@@ -92,7 +92,7 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
         super.copyFrom(model);
 
         if (model.hasTarget()) {
-           setInstanceGroupManager(findById(InstanceGroupManagerResource.class, model.getTarget()));
+            setInstanceGroupManager(findById(InstanceGroupManagerResource.class, model.getTarget()));
         }
 
         if (model.hasZone()) {
@@ -165,7 +165,7 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
 
         try {
             autoscaler = client.get(GetAutoscalerRequest.newBuilder().setProject(getProjectId())
-                .setAutoscaler(getName()).build());
+                .setAutoscaler(getName()).setZone(getZone()).build());
 
         } catch (NotFoundException | InvalidArgumentException ex) {
             // ignore
