@@ -135,6 +135,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
                 .setProject(getProjectId())
                 .setZone(getZone())
                 .setInstanceGroupManagerResource(instanceGroupManager)
+                .setInstanceGroupManager(getName())
                 .build());
             waitForCompletion(operation);
         }
