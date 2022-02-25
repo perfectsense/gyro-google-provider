@@ -32,7 +32,7 @@ import com.google.cloud.compute.v1.SubnetworkAggregatedList;
 import com.google.cloud.compute.v1.SubnetworkList;
 import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksScopedList;
-import com.psddev.dari.util.StringUtils;
+import org.apache.commons.lang.StringUtils;;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 
@@ -115,7 +115,7 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
                     .collect(Collectors.toList()));
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
