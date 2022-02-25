@@ -112,7 +112,6 @@ public class AddressResource extends AbstractAddressResource {
                 throw new GyroException(String.format("The resource '%s' is not ready", getSubnetwork().getSelfLink()));
             }
 
-            state.save();
         }
         refresh();
     }
@@ -167,7 +166,7 @@ public class AddressResource extends AbstractAddressResource {
             address = client.get(GetAddressRequest.newBuilder().setProject(getProjectId()).setAddress(getName())
                 .setRegion(getRegion()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 
