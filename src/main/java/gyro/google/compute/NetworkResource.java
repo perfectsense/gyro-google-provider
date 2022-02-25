@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteNetworkRequest;
 import com.google.cloud.compute.v1.GetNetworkRequest;
@@ -28,7 +27,6 @@ import com.google.cloud.compute.v1.NetworkRoutingConfig;
 import com.google.cloud.compute.v1.NetworksClient;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.PatchNetworkRequest;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -130,21 +128,15 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
     @Override
     public void copyFrom(Network model) {
         setName(model.getName());
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
 
         if (model.hasId()) {
             setId(String.valueOf(model.getId()));
         }
 
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
         if (model.hasRoutingConfig()) {
             setRoutingMode(model.getRoutingConfig().getRoutingMode());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
         }
     }
 
@@ -178,7 +170,6 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
                 .setProject(getProjectId())
                 .build());
 
-            state.save();
             waitForCompletion(operation);
         }
 
@@ -199,10 +190,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
                     .setNetwork(getName())
                     .setNetworkResource(network.build()).setProject(getProjectId()).build());
 
-            state.save();
             waitForCompletion(operation);
-        } catch (Exception ex) {
-            throw new GyroException(ex);
         }
     }
 
@@ -215,8 +203,6 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
                 .build());
 
             waitForCompletion(operation);
-        } catch (Exception ex) {
-            throw new GyroException(ex);
         }
     }
 
@@ -229,7 +215,7 @@ public class NetworkResource extends ComputeResource implements Copyable<Network
                 .setNetwork(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

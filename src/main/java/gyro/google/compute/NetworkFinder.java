@@ -27,9 +27,9 @@ import com.google.cloud.compute.v1.ListNetworksRequest;
 import com.google.cloud.compute.v1.Network;
 import com.google.cloud.compute.v1.NetworkList;
 import com.google.cloud.compute.v1.NetworksClient;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query network.
@@ -94,7 +94,7 @@ public class NetworkFinder extends GoogleFinder<NetworksClient, Network, Network
 
         try {
             networks.add(client.get(getProjectId(), filters.get("name")));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
