@@ -31,7 +31,6 @@ import com.google.cloud.compute.v1.SetPrivateIpGoogleAccessSubnetworkRequest;
 import com.google.cloud.compute.v1.Subnetwork;
 import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksSetPrivateIpGoogleAccessRequest;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -238,7 +237,6 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
         if (model.hasId()) {
             setId(String.valueOf(model.getId()));
         }
-
 
         if (model.hasRegion()) {
             setRegion(Utils.extractName(model.getRegion()));

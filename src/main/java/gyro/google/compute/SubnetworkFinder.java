@@ -31,9 +31,9 @@ import com.google.cloud.compute.v1.SubnetworkAggregatedList;
 import com.google.cloud.compute.v1.SubnetworkList;
 import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksScopedList;
-import org.apache.commons.lang.StringUtils;;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Query subnet.
