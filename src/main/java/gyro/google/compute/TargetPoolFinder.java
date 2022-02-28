@@ -158,7 +158,7 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                 .filter(targetPool -> targetPool.getRegion() != null)
                 .collect(Collectors.toList()));
 
-        } while (nextPageToken != null);
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return targetPools;
     }

@@ -162,7 +162,7 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                 .filter(forwardingRule -> forwardingRule.getRegion() != null)
                 .collect(Collectors.toList()));
 
-        } while (nextPageToken != null);
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return forwardingRules;
     }
