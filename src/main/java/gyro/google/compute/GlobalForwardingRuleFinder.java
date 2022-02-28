@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.ForwardingRule;
@@ -76,7 +75,7 @@ public class GlobalForwardingRuleFinder
 
         try {
             forwardingRules.add(client.get(getProjectId(), filters.get("name")));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

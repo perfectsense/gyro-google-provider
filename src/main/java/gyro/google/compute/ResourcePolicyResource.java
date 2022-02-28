@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteResourcePolicyRequest;
 import com.google.cloud.compute.v1.GetResourcePolicyRequest;
@@ -239,7 +238,7 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
             resourcePolicy = client.get(GetResourcePolicyRequest.newBuilder().setProject(getProjectId())
                 .setResourcePolicy(getName()).setRegion(getRegion()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Project;
@@ -62,7 +61,7 @@ public class ProjectMetadataItemFinder extends GoogleFinder<ProjectsClient, Item
         try {
             items.addAll(Optional.ofNullable(client.get(getProjectId())
                 .getCommonInstanceMetadata().getItemsList()).orElse(new ArrayList<>()));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
@@ -90,7 +89,7 @@ public class ProjectMetadataItemFinder extends GoogleFinder<ProjectsClient, Item
                 items.add(item);
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

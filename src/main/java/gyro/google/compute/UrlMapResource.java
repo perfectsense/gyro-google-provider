@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteUrlMapRequest;
 import com.google.cloud.compute.v1.GetUrlMapRequest;
@@ -226,7 +225,7 @@ public class UrlMapResource extends AbstractUrlMapResource {
             urlMap = client.get(GetUrlMapRequest.newBuilder().setProject(getProjectId())
                 .setUrlMap(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteSecurityPolicyRequest;
 import com.google.cloud.compute.v1.GetSecurityPolicyRequest;
@@ -270,7 +269,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
             route = client.get(GetSecurityPolicyRequest.newBuilder().setProject(getProjectId())
                 .setSecurityPolicy(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

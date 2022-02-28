@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Autoscaler;
 import com.google.cloud.compute.v1.GetRegionAutoscalerRequest;
@@ -88,7 +87,7 @@ public class RegionAutoscalerFinder
                             autoscalers.add(client.get(GetRegionAutoscalerRequest.newBuilder().setAutoscaler(name)
                                 .setProject(getProjectId()).setRegion(r).build()));
 
-                        } catch (NotFoundException | InvalidArgumentException ex) {
+                        } catch (NotFoundException ex) {
                             // ignore
                         }
                     }
@@ -113,7 +112,7 @@ public class RegionAutoscalerFinder
                 autoscalers.addAll(getAutoscalers(client, filter, region));
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
 
         } finally {

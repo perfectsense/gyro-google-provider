@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.CreateSnapshotDiskRequest;
 import com.google.cloud.compute.v1.CreateSnapshotRegionDiskRequest;
@@ -486,7 +485,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             snapshot = client.get(GetSnapshotRequest.newBuilder().setProject(getProjectId())
                 .setSnapshot(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

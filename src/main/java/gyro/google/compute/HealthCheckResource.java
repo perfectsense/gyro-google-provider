@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteHealthCheckRequest;
 import com.google.cloud.compute.v1.HealthCheck;
@@ -181,7 +180,7 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
 
         try {
             healthCheck = client.get(getProjectId(), getName());
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AddSignedUrlKeyBackendBucketRequest;
 import com.google.cloud.compute.v1.BackendBucket;
@@ -258,7 +257,7 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
         try {
             bucket = client.get(getProjectId(), getName());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

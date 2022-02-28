@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AddResourcePoliciesRegionDiskRequest;
 import com.google.cloud.compute.v1.DeleteRegionDiskRequest;
@@ -335,7 +334,7 @@ public class RegionDiskResource extends AbstractDiskResource {
                 .setDisk(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

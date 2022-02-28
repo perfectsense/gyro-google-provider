@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.GetRegionSslCertificateRequest;
 import com.google.cloud.compute.v1.ListRegionSslCertificatesRequest;
@@ -113,7 +112,7 @@ public class RegionSslCertificateFinder
                                 .setRegion(r)
                                 .build()));
 
-                        } catch (NotFoundException | InvalidArgumentException ex) {
+                        } catch (NotFoundException ex) {
                             // ignore
                         }
                     }
@@ -138,7 +137,7 @@ public class RegionSslCertificateFinder
                 certificates.addAll(getSslCertificates(client, filter, region));
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
 
         } finally {

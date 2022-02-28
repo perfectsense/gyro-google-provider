@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteHealthCheckRequest;
 import com.google.cloud.compute.v1.GetHealthCheckRequest;
@@ -365,7 +364,7 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
                 .setHealthCheck(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

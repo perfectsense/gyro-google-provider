@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteRouteRequest;
 import com.google.cloud.compute.v1.GetRouteRequest;
@@ -366,7 +365,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
             route = client.get(GetRouteRequest.newBuilder().setProject(getProjectId())
                 .setRoute(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

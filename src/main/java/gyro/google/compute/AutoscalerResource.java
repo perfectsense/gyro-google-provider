@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Autoscaler;
 import com.google.cloud.compute.v1.AutoscalersClient;
@@ -167,7 +166,7 @@ public class AutoscalerResource extends AbstractAutoscalerResource {
             autoscaler = client.get(GetAutoscalerRequest.newBuilder().setProject(getProjectId())
                 .setAutoscaler(getName()).setZone(getZone()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

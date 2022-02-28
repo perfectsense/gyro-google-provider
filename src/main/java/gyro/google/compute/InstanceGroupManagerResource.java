@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.GetInstanceGroupManagerRequest;
@@ -184,7 +183,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
         List<GyroInstance> instances = new ArrayList<>();
 
         try (InstanceGroupManagersClient client = createClient(InstanceGroupManagersClient.class);
-            InstancesClient instancesClient = createClient(InstancesClient.class)) {
+             InstancesClient instancesClient = createClient(InstancesClient.class)) {
 
             InstanceGroupManagersClient.ListManagedInstancesPagedResponse response = client
                 .listManagedInstances(getProjectId(), getZone(), getName());
@@ -224,7 +223,7 @@ public class InstanceGroupManagerResource extends AbstractInstanceGroupManagerRe
                 .setInstanceGroupManager(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

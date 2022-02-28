@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.google.api.client.util.Data;
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.CustomerEncryptionKey;
 import com.google.cloud.compute.v1.DeleteImageRequest;
@@ -591,7 +590,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
         try {
             image = client.get(GetImageRequest.newBuilder().setProject(getProjectId()).setImage(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

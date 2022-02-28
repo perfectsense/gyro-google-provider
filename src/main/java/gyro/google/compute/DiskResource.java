@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AddResourcePoliciesDiskRequest;
 import com.google.cloud.compute.v1.DeleteDiskRequest;
@@ -324,7 +323,7 @@ public class DiskResource extends AbstractDiskResource {
                 .setDisk(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

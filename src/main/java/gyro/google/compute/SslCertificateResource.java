@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteSslCertificateRequest;
 import com.google.cloud.compute.v1.GetSslCertificateRequest;
@@ -112,7 +111,7 @@ public class SslCertificateResource extends AbstractSslCertificateResource {
                 .setSslCertificate(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

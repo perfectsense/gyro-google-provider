@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AttachDiskInstanceRequest;
 import com.google.cloud.compute.v1.AttachedDisk;
@@ -175,7 +174,7 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
 
                         return true;
 
-                    } catch (NotFoundException | InvalidArgumentException e) {
+                    } catch (NotFoundException e) {
                         return false;
                     }
                 });

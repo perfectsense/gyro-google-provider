@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Metadata;
@@ -167,7 +166,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
             items = metadata.getItemsList().stream().filter(r -> getKey().equals(r.getKey()))
                 .findFirst().orElse(null);
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

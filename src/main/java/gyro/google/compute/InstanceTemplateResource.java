@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteInstanceTemplateRequest;
 import com.google.cloud.compute.v1.GetInstanceTemplateRequest;
@@ -311,7 +310,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
                 .setInstanceTemplate(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

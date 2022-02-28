@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteFirewallRequest;
 import com.google.cloud.compute.v1.Firewall;
@@ -603,7 +602,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
         try {
             firewall = client.get(getProjectId(), getName());
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

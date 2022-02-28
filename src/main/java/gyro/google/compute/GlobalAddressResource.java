@@ -16,7 +16,6 @@
 
 package gyro.google.compute;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Address;
 import com.google.cloud.compute.v1.DeleteGlobalAddressRequest;
@@ -120,7 +119,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
                 .setAddress(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

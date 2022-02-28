@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListNetworkEndpointGroupsRequest;
@@ -127,7 +126,7 @@ public class NetworkEndpointGroupFinder
                 networkEndpointGroups.addAll(getNetworkEndpointGroups(client));
                 networkEndpointGroups.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

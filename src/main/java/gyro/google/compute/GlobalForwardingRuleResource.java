@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteGlobalForwardingRuleRequest;
 import com.google.cloud.compute.v1.ForwardingRule;
@@ -195,7 +194,7 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
 
         try {
             forwardingRule = client.get(getProjectId(), getName());
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

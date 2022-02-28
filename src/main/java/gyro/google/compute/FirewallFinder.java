@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Firewall;
@@ -93,7 +92,7 @@ public class FirewallFinder extends GoogleFinder<FirewallsClient, Firewall, Fire
 
         try {
             firewalls.add(client.get(getProjectId(), filters.get("name")));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

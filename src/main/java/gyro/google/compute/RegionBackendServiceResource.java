@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.BackendService;
 import com.google.cloud.compute.v1.DeleteRegionBackendServiceRequest;
@@ -198,7 +197,7 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
 
             allHealthMap.put("Total", allTotal);
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             throw new GyroException("Failed getting backend statuses!", ex);
         }
 
@@ -219,7 +218,7 @@ public class RegionBackendServiceResource extends AbstractBackendServiceResource
                 .setBackendService(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

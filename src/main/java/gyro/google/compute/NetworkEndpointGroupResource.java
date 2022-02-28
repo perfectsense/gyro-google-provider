@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AttachNetworkEndpointsNetworkEndpointGroupRequest;
 import com.google.cloud.compute.v1.DeleteNetworkEndpointGroupRequest;
@@ -426,7 +425,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
                 .setZone(getZone())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

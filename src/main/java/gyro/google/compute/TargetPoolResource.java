@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AddHealthCheckTargetPoolRequest;
 import com.google.cloud.compute.v1.AddInstanceTargetPoolRequest;
@@ -447,7 +446,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                 .setRegion(getRegion())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 
