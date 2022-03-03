@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Address;
 import com.google.cloud.compute.v1.AddressAggregatedList;
 import com.google.cloud.compute.v1.AddressList;
@@ -118,8 +117,6 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
         String pageToken = null;
 
         do {
-            UnaryCallable<AggregatedListAddressesRequest, AddressAggregatedList> callable = client
-                .aggregatedListCallable();
             AggregatedListAddressesRequest.Builder builder = AggregatedListAddressesRequest.newBuilder();
 
             if (pageToken != null) {
@@ -130,7 +127,8 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
                 builder.setFilter(filter);
             }
 
-            AddressAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            AddressAggregatedList aggregatedList = client.aggregatedList(builder.setProject(getProjectId()).build())
+                .getPage().getResponse();
             pageToken = aggregatedList.getNextPageToken();
 
             if (aggregatedList.getItemsMap() != null) {

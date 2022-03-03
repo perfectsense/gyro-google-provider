@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.ListNetworksRequest;
 import com.google.cloud.compute.v1.Network;
 import com.google.cloud.compute.v1.NetworkList;
@@ -64,15 +63,13 @@ public class NetworkFinder extends GoogleFinder<NetworksClient, Network, Network
 
         try {
             do {
-                UnaryCallable<ListNetworksRequest, NetworksClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
                 ListNetworksRequest.Builder builder = ListNetworksRequest.newBuilder();
 
                 if (nextPageToken != null) {
                     builder.setPageToken(nextPageToken);
                 }
 
-                NetworksClient.ListPagedResponse listPagedResponse = callable.call(builder
+                NetworksClient.ListPagedResponse listPagedResponse = client.list(builder
                     .setProject(getProjectId()).build());
                 networkList = listPagedResponse.getPage().getResponse();
                 nextPageToken = listPagedResponse.getNextPageToken();

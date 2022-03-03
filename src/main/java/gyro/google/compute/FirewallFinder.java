@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Firewall;
 import com.google.cloud.compute.v1.FirewallList;
 import com.google.cloud.compute.v1.FirewallsClient;
@@ -64,9 +63,6 @@ public class FirewallFinder extends GoogleFinder<FirewallsClient, Firewall, Fire
 
         try {
             do {
-                UnaryCallable<ListFirewallsRequest, FirewallsClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
-
                 ListFirewallsRequest.Builder builder = ListFirewallsRequest.newBuilder().setProject(getProjectId());
 
                 if (nextPageToken != null) {

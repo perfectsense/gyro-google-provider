@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListSubnetworksRequest;
 import com.google.cloud.compute.v1.ListSubnetworksRequest;
 import com.google.cloud.compute.v1.Subnetwork;
@@ -93,13 +92,17 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
 
                 } else {
                     SubnetworkList subnetworkList;
-                    String nextPageToken;
+                    String nextPageToken = null;
 
                     do {
-                        UnaryCallable<ListSubnetworksRequest, SubnetworksClient.ListPagedResponse> callable = client
-                            .listPagedCallable();
-                        SubnetworksClient.ListPagedResponse listPagedResponse = callable.call(ListSubnetworksRequest.newBuilder()
-                            .setProject(getProjectId()).setRegion(filters.get("region")).build());
+                        ListSubnetworksRequest.Builder builder = ListSubnetworksRequest.newBuilder()
+                            .setProject(getProjectId()).setRegion(filters.get("region"));
+
+                        if (nextPageToken != null) {
+                            builder.setPageToken(nextPageToken);
+                        }
+
+                        SubnetworksClient.ListPagedResponse listPagedResponse = client.list(builder.build());
                         subnetworkList = listPagedResponse.getPage().getResponse();
                         nextPageToken = listPagedResponse.getNextPageToken();
 
@@ -128,16 +131,14 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
         String nextPageToken = null;
 
         do {
-            UnaryCallable<AggregatedListSubnetworksRequest, SubnetworkAggregatedList> callable = client
-                .aggregatedListCallable();
             AggregatedListSubnetworksRequest.Builder builder = AggregatedListSubnetworksRequest.newBuilder();
 
             if (nextPageToken != null) {
                 builder.setPageToken(nextPageToken);
             }
 
-            SubnetworkAggregatedList aggregatedList = callable.call(builder
-                .setProject(getProjectId()).build());
+            SubnetworkAggregatedList aggregatedList = client.aggregatedList(builder
+                .setProject(getProjectId()).build()).getPage().getResponse();
             nextPageToken = aggregatedList.getNextPageToken();
 
             subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
