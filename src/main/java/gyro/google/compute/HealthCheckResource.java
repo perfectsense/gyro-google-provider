@@ -24,7 +24,7 @@ import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.HealthChecksClient;
 import com.google.cloud.compute.v1.InsertHealthCheckRequest;
 import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.PatchHealthCheckRequest;
+import com.google.cloud.compute.v1.UpdateHealthCheckRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -135,10 +135,10 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
-            HealthCheck healthCheck = getHealthCheck(null);
+            HealthCheck healthCheck = getHealthCheck(null, null);
             Operation operation = client.insertCallable().call(InsertHealthCheckRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setHealthCheckResource(healthCheck)
+                .setProject(getProjectId())
+                .setHealthCheckResource(healthCheck)
                 .build());
 
             waitForCompletion(operation);
@@ -150,8 +150,9 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
-            HealthCheck healthCheck = getHealthCheck(changedFieldNames);
-            Operation operation = client.patchCallable().call(PatchHealthCheckRequest.newBuilder()
+            HealthCheck healthCheck = getHealthCheck(changedFieldNames, getHealthCheckResource(client));
+
+            Operation operation = client.updateCallable().call(UpdateHealthCheckRequest.newBuilder()
                 .setProject(getProjectId())
                 .setHealthCheck(getName())
                 .setHealthCheckResource(healthCheck)
