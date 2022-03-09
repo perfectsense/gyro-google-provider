@@ -110,7 +110,7 @@ import gyro.core.scope.State;
  *              port: 501
  *              port-name: "custom-port"
  *              proxy-header: "PROXY_V1"
- *              request-path: "/myapp"
+ *              request: "/myapp"
  *              response: "okay"
  *          end
  *      end
