@@ -427,15 +427,12 @@ public abstract class AbstractInstanceGroupManagerResource extends ComputeResour
         setVersion(null);
         if (!model.getVersionsList().isEmpty()) {
             List<ComputeInstanceGroupManagerVersion> diffableInstanceGroupManagerVersion =
-                model.getVersionsList()
-                .stream()
-                .map(e -> {
+                model.getVersionsList().stream().map(e -> {
                     ComputeInstanceGroupManagerVersion computeVersion = newSubresource(
                         ComputeInstanceGroupManagerVersion.class);
                     computeVersion.copyFrom(e);
                     return computeVersion;
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toList());
 
             setVersion(diffableInstanceGroupManagerVersion);
         }

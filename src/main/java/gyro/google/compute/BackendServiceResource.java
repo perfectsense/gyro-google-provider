@@ -264,15 +264,17 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
             }
 
             BackendService.Builder backendService = getBackendService(changedFieldNames);
-            Operation operation = client.patchCallable().call(PatchBackendServiceRequest.newBuilder()
-                .setProject(getProject())
-                .setBackendService(getName())
-                .build());
-            waitForCompletion(operation);
 
             if (changedFieldNames.contains("port-name")) {
                 backendService.setPortName(getPortName());
             }
+
+            Operation operation = client.patchCallable().call(PatchBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setBackendService(getName())
+                .setBackendServiceResource(backendService)
+                .build());
+            waitForCompletion(operation);
 
             if (changedFieldNames.contains("signed-url-key")) {
                 // delete old keys

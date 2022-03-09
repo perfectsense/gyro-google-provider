@@ -340,10 +340,10 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                 .collect(Collectors.toList()));
 
         Operation operation = client.addInstancesCallable().call(AddInstancesInstanceGroupRequest.newBuilder()
-                .setProject(getProjectId())
-                .setZone(getZone())
-                .setInstanceGroup(getName())
-                .setInstanceGroupsAddInstancesRequestResource(builder)
+            .setProject(getProjectId())
+            .setZone(getZone())
+            .setInstanceGroup(getName())
+            .setInstanceGroupsAddInstancesRequestResource(builder)
             .build());
 
         waitForCompletion(operation);
