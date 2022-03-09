@@ -25,7 +25,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListNetworkEndpointGroupsRequest;
 import com.google.cloud.compute.v1.ListNetworkEndpointGroupsRequest;
 import com.google.cloud.compute.v1.NetworkEndpointGroup;
@@ -101,9 +100,6 @@ public class NetworkEndpointGroupFinder
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListNetworkEndpointGroupsRequest, NetworkEndpointGroupsClient.ListPagedResponse> callable = client
-                        .listPagedCallable();
-
                     ListNetworkEndpointGroupsRequest.Builder builder = ListNetworkEndpointGroupsRequest.newBuilder()
                         .setZone(filters.get("zone"));
 
@@ -111,9 +107,8 @@ public class NetworkEndpointGroupFinder
                         builder.setPageToken(nextPageToken);
                     }
 
-                    NetworkEndpointGroupsClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
-                        getProjectId())
-                        .build());
+                    NetworkEndpointGroupsClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
+                        getProjectId()).build());
                     networkEndpointGroupList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 

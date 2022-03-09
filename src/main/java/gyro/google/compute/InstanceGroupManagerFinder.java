@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListInstanceGroupManagersRequest;
 import com.google.cloud.compute.v1.InstanceGroupManager;
 import com.google.cloud.compute.v1.InstanceGroupManagerAggregatedList;
@@ -112,9 +111,6 @@ public class InstanceGroupManagerFinder
         String pageToken = null;
 
         do {
-            UnaryCallable<AggregatedListInstanceGroupManagersRequest, InstanceGroupManagerAggregatedList> callable = client
-                .aggregatedListCallable();
-
             AggregatedListInstanceGroupManagersRequest.Builder builder = AggregatedListInstanceGroupManagersRequest.newBuilder();
 
             if (pageToken != null) {
@@ -125,8 +121,8 @@ public class InstanceGroupManagerFinder
                 builder.setFilter(filter);
             }
 
-            InstanceGroupManagerAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId())
-                .build());
+            InstanceGroupManagerAggregatedList aggregatedList = client.aggregatedList(builder.setProject(getProjectId())
+                .build()).getPage().getResponse();
             pageToken = aggregatedList.getNextPageToken();
 
             if (!aggregatedList.getItemsMap().isEmpty()) {

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.HealthCheckList;
 import com.google.cloud.compute.v1.HealthChecksClient;
@@ -64,15 +63,13 @@ public class HttpHealthCheckFinder extends GoogleFinder<HealthChecksClient, Heal
 
         try {
             do {
-                UnaryCallable<ListHealthChecksRequest, HealthChecksClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
                 ListHealthChecksRequest.Builder builder = ListHealthChecksRequest.newBuilder();
 
                 if (nextPageToken != null) {
                     builder.setPageToken(nextPageToken);
                 }
 
-                HealthChecksClient.ListPagedResponse listPagedResponse = callable.call(builder
+                HealthChecksClient.ListPagedResponse listPagedResponse = client.list(builder
                     .setProject(getProjectId()).build());
                 healthCheckList = listPagedResponse.getPage().getResponse();
                 nextPageToken = listPagedResponse.getNextPageToken();

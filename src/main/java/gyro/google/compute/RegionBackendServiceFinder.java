@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.BackendService;
 import com.google.cloud.compute.v1.BackendServiceList;
 import com.google.cloud.compute.v1.ListRegionBackendServicesRequest;
@@ -116,9 +115,6 @@ public class RegionBackendServiceFinder
         for (String region : regions) {
             String nextPageToken = null;
             do {
-                UnaryCallable<ListRegionBackendServicesRequest, RegionBackendServicesClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
-
                 ListRegionBackendServicesRequest.Builder builder = ListRegionBackendServicesRequest.newBuilder()
                     .setRegion(region);
 
@@ -126,7 +122,7 @@ public class RegionBackendServiceFinder
                     builder.setPageToken(nextPageToken);
                 }
 
-                RegionBackendServicesClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                RegionBackendServicesClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
                     getProjectId()).build());
                 backendServiceList = pagedResponse.getPage().getResponse();
                 nextPageToken = pagedResponse.getNextPageToken();

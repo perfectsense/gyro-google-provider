@@ -25,7 +25,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListTargetPoolsRequest;
 import com.google.cloud.compute.v1.ListTargetPoolsRequest;
 import com.google.cloud.compute.v1.TargetPool;
@@ -99,9 +98,6 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListTargetPoolsRequest, TargetPoolsClient.ListPagedResponse> callable = client
-                        .listPagedCallable();
-
                     ListTargetPoolsRequest.Builder builder = ListTargetPoolsRequest.newBuilder()
                         .setRegion(filters.get("region"));
 
@@ -109,9 +105,8 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                         builder.setPageToken(nextPageToken);
                     }
 
-                    TargetPoolsClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
-                        getProjectId())
-                        .build());
+                    TargetPoolsClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
+                        getProjectId()).build());
                     targetPoolList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 

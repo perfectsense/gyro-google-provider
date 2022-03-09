@@ -25,7 +25,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListForwardingRulesRequest;
 import com.google.cloud.compute.v1.ForwardingRule;
 import com.google.cloud.compute.v1.ForwardingRuleAggregatedList;
@@ -99,9 +98,6 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListForwardingRulesRequest, ForwardingRulesClient.ListPagedResponse> callable = client
-                        .listPagedCallable();
-
                     ListForwardingRulesRequest.Builder builder = ListForwardingRulesRequest.newBuilder()
                         .setRegion(filters.get("region"));
 
@@ -109,7 +105,7 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                         builder.setPageToken(nextPageToken);
                     }
 
-                    ForwardingRulesClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                    ForwardingRulesClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
                         getProjectId())
                         .build());
                     forwardingRuleList = pagedResponse.getPage().getResponse();

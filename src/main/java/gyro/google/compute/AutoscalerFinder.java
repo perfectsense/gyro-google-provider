@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListAutoscalersRequest;
 import com.google.cloud.compute.v1.Autoscaler;
 import com.google.cloud.compute.v1.AutoscalerAggregatedList;
@@ -115,9 +114,6 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
         String pageToken = null;
 
         do {
-            UnaryCallable<AggregatedListAutoscalersRequest, AutoscalerAggregatedList> callable = client
-                .aggregatedListCallable();
-
             AggregatedListAutoscalersRequest.Builder builder = AggregatedListAutoscalersRequest.newBuilder();
 
             if (pageToken != null) {
@@ -128,8 +124,8 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
                 builder.setFilter(filter);
             }
 
-            AutoscalerAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId())
-                .build());
+            AutoscalerAggregatedList aggregatedList = client.aggregatedList(builder.setProject(getProjectId())
+                .build()).getPage().getResponse();
             pageToken = aggregatedList.getNextPageToken();
 
             if (aggregatedList.getItemsMap() != null) {
