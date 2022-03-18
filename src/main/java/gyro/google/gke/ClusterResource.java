@@ -722,6 +722,7 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     /**
      * The resource labels for the cluster to use to annotate any related Google Compute Engine resources.
      */
+    @Updatable
     public Map<String, String> getLabels() {
         if (labels == null) {
             labels = new HashMap<>();
