@@ -1098,6 +1098,25 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
             copyFrom(cluster);
 
+            // Master Auth Config sometimes is not available instantly
+            if (getMasterAuthConfig() == null) {
+                Wait.checkEvery(30, TimeUnit.SECONDS)
+                    .atMost(5, TimeUnit.MINUTES)
+                    .prompt(false)
+                    .until(() -> {
+                        Cluster clusterObj = getCluster(client);
+                        if (clusterObj.hasMasterAuth()) {
+                            GkeMasterAuth config = newSubresource(GkeMasterAuth.class);
+                            config.copyFrom(clusterObj.getMasterAuth());
+                            setMasterAuthConfig(config);
+
+                            return true;
+                        }
+
+                        return false;
+                    });
+            }
+
             return true;
         }
     }
@@ -1266,6 +1285,8 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
         state.save();
 
         doRefresh();
+
+        state.save();
     }
 
     @Override
