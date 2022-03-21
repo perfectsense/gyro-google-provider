@@ -372,7 +372,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                     .setProject(getProjectId())
                     .setRegion(getRegion())
                     .setRouter(getName())
-                    .setRouterResource(builder)
+                    .setRouterResource(newRouter)
                     .build());
 
                 waitForCompletion(operation);
