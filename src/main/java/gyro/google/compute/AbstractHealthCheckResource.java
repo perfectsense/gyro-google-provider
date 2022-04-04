@@ -222,33 +222,15 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     @Override
     public void copyFrom(HealthCheck model) {
         setName(model.getName());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
+        setCheckIntervalSec(model.getCheckIntervalSec());
+        setTimeoutSec(model.getTimeoutSec());
+        setUnhealthyThreshold(model.getUnhealthyThreshold());
+        setHealthyThreshold(model.getHealthyThreshold());
 
         if (model.hasType()) {
             setType(HealthCheck.Type.valueOf(model.getType()));
-        }
-
-        if (model.hasCheckIntervalSec()) {
-            setCheckIntervalSec(model.getCheckIntervalSec());
-        }
-
-        if (model.hasTimeoutSec()) {
-            setTimeoutSec(model.getTimeoutSec());
-        }
-
-        if (model.hasUnhealthyThreshold()) {
-            setUnhealthyThreshold(model.getUnhealthyThreshold());
-        }
-
-        if (model.hasHealthyThreshold()) {
-            setHealthyThreshold(model.getHealthyThreshold());
         }
 
         setHttpHealthCheck(null);

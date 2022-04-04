@@ -125,9 +125,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     public void copyFrom(HealthCheck model) {
         super.copyFrom(model);
 
-        if (model.hasRegion()) {
-            setRegion(model.getRegion());
-        }
+        setRegion(model.getRegion());
     }
 
     @Override
@@ -181,8 +179,6 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override

@@ -120,16 +120,17 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
 
     @Override
     public boolean doRefresh() throws Exception {
-        HealthChecksClient client = createClient(HealthChecksClient.class);
-        HealthCheck healthCheck = getHealthCheckResource(client);
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            HealthCheck healthCheck = getHealthCheckResource(client);
 
-        if (healthCheck == null) {
-            return false;
+            if (healthCheck == null) {
+                return false;
+            }
+
+            copyFrom(healthCheck);
+
+            return true;
         }
-
-        copyFrom(healthCheck);
-        client.close();
-        return true;
     }
 
     @Override
@@ -160,8 +161,6 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override
