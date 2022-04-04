@@ -19,7 +19,6 @@ package gyro.google.compute;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.longrunning.OperationFuture;
 import com.google.cloud.compute.v1.Error;
 import com.google.cloud.compute.v1.Errors;
 import com.google.cloud.compute.v1.GetGlobalOperationRequest;
@@ -29,10 +28,10 @@ import com.google.cloud.compute.v1.GlobalOperationsClient;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.RegionOperationsClient;
 import com.google.cloud.compute.v1.ZoneOperationsClient;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.Waiter;
 import gyro.google.GoogleResource;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class ComputeResource extends GoogleResource {
 
@@ -50,63 +49,50 @@ public abstract class ComputeResource extends GoogleResource {
         waitForCompletion(operation, 0, null);
     }
 
-    public void waitForCompletionAsync(OperationFuture<Operation, Operation> future) {
-        waitForCompletionAsync(future, 0, null);
-    }
-
-    public void waitForCompletionAsync(OperationFuture<Operation, Operation> future, long duration, TimeUnit unit) {
-        Waiter waiter = new Waiter().prompt(false);
-
-        if (duration > 0 && unit != null) {
-            waiter.atMost(duration, unit);
-        } else {
-            waiter.atMost(DEFAULT_WAIT_DURATION, DEFAULT_WAIT_TIME_UNIT);
-        }
-
-        waiter.until(() -> future.peekMetadata().isDone());
-    }
-
     public void waitForCompletion(Operation operation, long duration, TimeUnit unit) {
-        Waiter waiter = new Waiter().prompt(false);
+        if (operation != null) {
+            Waiter waiter = new Waiter().prompt(false);
 
-        if (duration > 0 && unit != null) {
-            waiter.atMost(duration, unit);
-        } else {
-            waiter.atMost(DEFAULT_WAIT_DURATION, DEFAULT_WAIT_TIME_UNIT);
-        }
-        waiter.until(() -> {
-            Operation response = null;
-            String zone = operation.getZone();
-
-            if (!StringUtils.isEmpty(zone)) {
-                try (ZoneOperationsClient zoneOperationsClient = createClient(ZoneOperationsClient.class)) {
-                    String[] bits = zone.split("/");
-                    zone = bits[bits.length - 1];
-                    response = zoneOperationsClient.get(GetZoneOperationRequest.newBuilder()
-                        .setOperation(operation.getName()).setProject(getProjectId()).setZone(zone).build());
-                }
+            if (duration > 0 && unit != null) {
+                waiter.atMost(duration, unit);
             } else {
-                String region = operation.getRegion();
+                waiter.atMost(DEFAULT_WAIT_DURATION, DEFAULT_WAIT_TIME_UNIT);
+            }
 
-                if (!StringUtils.isEmpty(region)) {
-                    try (RegionOperationsClient regionOperationsClient = createClient(RegionOperationsClient.class)) {
-                        region = region.substring(region.lastIndexOf("/") + 1);
-                        response = regionOperationsClient.get(GetRegionOperationRequest.newBuilder()
-                            .setOperation(operation.getName()).setProject(getProjectId()).setRegion(region).build());
+            waiter.until(() -> {
+                Operation response = null;
+                String zone = operation.getZone();
+
+                if (!StringUtils.isEmpty(zone)) {
+                    try (ZoneOperationsClient zoneOperationsClient = createClient(ZoneOperationsClient.class)) {
+                        String[] bits = zone.split("/");
+                        zone = bits[bits.length - 1];
+                        response = zoneOperationsClient.get(GetZoneOperationRequest.newBuilder()
+                            .setOperation(operation.getName()).setProject(getProjectId()).setZone(zone).build());
                     }
                 } else {
-                    try (GlobalOperationsClient globalOperationsClient = createClient(GlobalOperationsClient.class)) {
-                        response = globalOperationsClient.get(GetGlobalOperationRequest.newBuilder()
-                            .setOperation(operation.getName()).setProject(getProjectId()).build());
+                    String region = operation.getRegion();
+
+                    if (!StringUtils.isEmpty(region)) {
+                        try (RegionOperationsClient regionOperationsClient = createClient(RegionOperationsClient.class)) {
+                            region = region.substring(region.lastIndexOf("/") + 1);
+                            response = regionOperationsClient.get(GetRegionOperationRequest.newBuilder()
+                                .setOperation(operation.getName()).setProject(getProjectId()).setRegion(region).build());
+                        }
+                    } else {
+                        try (GlobalOperationsClient globalOperationsClient = createClient(GlobalOperationsClient.class)) {
+                            response = globalOperationsClient.get(GetGlobalOperationRequest.newBuilder()
+                                .setOperation(operation.getName()).setProject(getProjectId()).build());
+                        }
                     }
                 }
-            }
 
-            if (response != null && response.getError().getErrorsCount() > 0) {
-                throw new GyroException(formatOperationErrorMessage(response.getError()));
-            }
+                if (response != null && response.getError().getErrorsCount() > 0) {
+                    throw new GyroException(formatOperationErrorMessage(response.getError()));
+                }
 
-            return response != null && response.getStatus().equals(Operation.Status.DONE);
-        });
+                return response != null && response.getStatus().equals(Operation.Status.DONE);
+            });
+        }
     }
 }
