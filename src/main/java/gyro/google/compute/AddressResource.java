@@ -113,6 +113,7 @@ public class AddressResource extends AbstractAddressResource {
             }
 
         }
+
         refresh();
     }
 
@@ -130,10 +131,7 @@ public class AddressResource extends AbstractAddressResource {
     @Override
     public void copyFrom(Address model) {
         super.copyFrom(model);
-
-        if (model.hasNetworkTier()) {
-            setNetworkTier(model.getNetworkTier());
-        }
+        setNetworkTier(model.getNetworkTier());
 
         // API only accepts region name, but model returns the region selfLink so strip name from the end of URL.
         if (model.getRegion().startsWith("http")) {
@@ -141,7 +139,7 @@ public class AddressResource extends AbstractAddressResource {
         }
     }
 
-    private boolean createAddress(AddressesClient client, Address address) throws Exception {
+    private boolean createAddress(AddressesClient client, Address address) {
         try {
             waitForCompletion(client.insertCallable().call(InsertAddressRequest.newBuilder()
                 .setProject(getProjectId())

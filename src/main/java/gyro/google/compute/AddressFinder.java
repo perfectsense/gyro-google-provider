@@ -86,6 +86,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
     protected List<Address> findGoogle(AddressesClient client, Map<String, String> filters) throws Exception {
         List<Address> addresses = new ArrayList<>();
         String pageToken = null;
+
         try {
             if (filters.containsKey("region")) {
 
@@ -102,6 +103,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
 
                     addresses.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
+
             } else {
                 addresses.addAll(getAddresses(client, filters.get("filter")));
             }
@@ -109,6 +111,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
         } finally {
             client.close();
         }
+
         return addresses;
     }
 

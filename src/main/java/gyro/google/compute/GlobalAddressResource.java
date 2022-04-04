@@ -105,9 +105,7 @@ public class GlobalAddressResource extends AbstractAddressResource {
     public void copyFrom(Address model) {
         super.copyFrom(model);
 
-        if (model.hasIpVersion()) {
-            setIpVersion(model.getIpVersion());
-        }
+        setIpVersion(model.getIpVersion());
     }
 
     private Address getAddress(GlobalAddressesClient client) {
