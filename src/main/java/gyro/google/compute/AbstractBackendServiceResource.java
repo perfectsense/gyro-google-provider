@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Data;
 import com.google.cloud.compute.v1.Backend;
 import com.google.cloud.compute.v1.BackendService;
 import com.google.cloud.compute.v1.ConnectionDraining;
@@ -263,22 +262,10 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
     public void copyFrom(BackendService model) {
         setName(model.getName());
         setSelfLink(model.getSelfLink());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasTimeoutSec()) {
-            setTimeoutSec(model.getTimeoutSec());
-        }
-
-        if (model.hasAffinityCookieTtlSec()) {
-            setAffinityCookieTtlSec(model.getAffinityCookieTtlSec());
-        }
-
-        if (model.hasEnableCDN()) {
-            setEnableCdn(model.getEnableCDN());
-        }
+        setDescription(model.getDescription());
+        setTimeoutSec(model.getTimeoutSec());
+        setAffinityCookieTtlSec(model.getAffinityCookieTtlSec());
+        setEnableCdn(model.getEnableCDN());
 
         if (model.hasLocalityLbPolicy()) {
             setLocalityLbPolicy(BackendService.LocalityLbPolicy.valueOf(model.getLocalityLbPolicy()));
@@ -377,7 +364,7 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
                 .stream()
                 .map(e -> String.format("%s:%s", e.getKey(), e.getValue()))
                 .collect(
-                    Collectors.toList()) : Data.nullOf(ArrayList.class));
+                    Collectors.toList()) : new ArrayList<>());
         }
 
         if ((isCreate || changedFieldNames.contains("description")) && getDescription() != null) {

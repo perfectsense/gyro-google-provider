@@ -144,10 +144,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     @Override
     public void copyFrom(BackendService model) {
         super.copyFrom(model);
-
-        if (model.hasPortName()) {
-            setPortName(model.getPortName());
-        }
+        setPortName(model.getPortName());
 
         if (model.hasSecurityPolicy()) {
             setSecurityPolicy(findById(SecurityPolicyResource.class, model.getSecurityPolicy()));
@@ -235,6 +232,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
 
             if (!getSignedUrlKey().isEmpty()) {
                 for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
+
                     waitForCompletion(client.addSignedUrlKeyOperationCallable().call(
                         AddSignedUrlKeyBackendServiceRequest.newBuilder()
                             .setProject(getProject())
@@ -274,6 +272,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setBackendService(getName())
                 .setBackendServiceResource(backendService)
                 .build());
+
             waitForCompletion(operation);
 
             if (changedFieldNames.contains("signed-url-key")) {
@@ -315,6 +314,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setProject(getProject())
                 .setBackendService(getName())
                 .build());
+
             waitForCompletion(response);
         }
     }
@@ -347,6 +347,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setBackendService(getName())
                 .setSecurityPolicyReferenceResource(securityPolicyReference)
                 .build());
+
         waitForCompletion(securityPolicyOperation);
     }
 
