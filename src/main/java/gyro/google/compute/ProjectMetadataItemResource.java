@@ -29,6 +29,7 @@ import com.google.cloud.compute.v1.ProjectsClient;
 import com.google.cloud.compute.v1.SetCommonInstanceMetadataProjectRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.Id;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
@@ -58,6 +59,7 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
      * The key of the metadata item. Allowed characters include letters, digits, ``-``, and ``_``.
      */
     @Required
+    @Id
     public String getKey() {
         return key;
     }
@@ -137,8 +139,8 @@ public class ProjectMetadataItemResource extends ComputeResource implements Copy
             metadata = metadata.toBuilder()
                 .clearItems()
                 .addAllItems(metadata.getItemsList().stream()
-                .filter(r -> !getKey().equals(r.getKey()))
-                .collect(Collectors.toList()))
+                    .filter(r -> !getKey().equals(r.getKey()))
+                    .collect(Collectors.toList()))
                 .build();
 
             setMetadata(client, metadata);
