@@ -54,10 +54,35 @@ import org.apache.commons.lang3.StringUtils;
 @Type("compute-autoscaler")
 public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler, AutoscalerResource> {
 
+    private String name;
+    private String zone;
+
+    /**
+     * Then name of the autoscaler.
+     */
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * The zone in which the autoscaler lives.
+     */
+    public String getZone() {
+        return zone;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
+
     @Override
     protected List<Autoscaler> findAllGoogle(AutoscalersClient client) throws Exception {
         try {
-            return getAutoscalers(client, ResourceScope.ZONE, null);
+            return getAutoscalers(client, null);
         } finally {
             client.close();
         }
@@ -75,6 +100,7 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
                 if (filters.containsKey("name")) {
                     autoscalers.add(client.get(GetAutoscalerRequest.newBuilder().setZone(filters.get("zone"))
                         .setAutoscaler(filters.get("name")).setProject(getProjectId()).build()));
+
                 } else {
                     do {
                         ListAutoscalersRequest.Builder builder = ListAutoscalersRequest.newBuilder()
@@ -91,8 +117,9 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
                         autoscalers.addAll(addressList.getItemsList());
                     } while (!StringUtils.isEmpty(pageToken));
                 }
+
             } else {
-                autoscalers.addAll(getAutoscalers(client, ResourceScope.ZONE, filters));
+                autoscalers.addAll(getAutoscalers(client, filters));
             }
 
         } finally {
@@ -102,13 +129,10 @@ public class AutoscalerFinder extends GoogleFinder<AutoscalersClient, Autoscaler
         return autoscalers;
     }
 
-    private List<Autoscaler> getAutoscalers(
-        AutoscalersClient client, ResourceScope scope, Map<String, String> filterMap) {
+    private List<Autoscaler> getAutoscalers(AutoscalersClient client, Map<String, String> filterMap) {
         String filter = Utils.convertToFilters(filterMap);
 
-        if (scope != null) {
-            filter = StringUtils.join(Arrays.asList(scope.toFilterString(), filter), " ");
-        }
+        filter = StringUtils.join(Arrays.asList(ResourceScope.ZONE.toFilterString(), filter), " ");
 
         List<Autoscaler> autoscalers = new ArrayList<>();
         String pageToken = null;

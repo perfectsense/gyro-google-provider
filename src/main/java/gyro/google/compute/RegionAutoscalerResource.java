@@ -123,8 +123,6 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
                 .setAutoscaler(getName())
                 .build());
 
-            state.save();
-
             waitForCompletion(operation);
         }
     }
