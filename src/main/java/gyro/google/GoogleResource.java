@@ -37,13 +37,13 @@ public abstract class GoogleResource extends Resource {
 
     private static final String OAUTH_ERROR = "OAuth2Credentials instance does not support refreshing the access token";
 
-    protected static <T> T createClient(
+    public static <T> T createClient(
         Class<T> clientClass,
         GoogleCredentials credentials) {
         return credentials.createClient(clientClass);
     }
 
-    protected <T> T createClient(Class<T> clientClass) {
+    public <T> T createClient(Class<T> clientClass) {
         return createClient(clientClass, credentials(GoogleCredentials.class));
     }
 
