@@ -152,6 +152,25 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
     }
 
     @Override
+    public void copyFrom(ResourcePolicy model) {
+        setName(model.getName());
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
+
+        setSnapshotSchedulePolicy(null);
+        if (model.hasSnapshotSchedulePolicy()) {
+            SnapshotSchedulePolicy currentSnapshotSchedulePolicy = newSubresource(SnapshotSchedulePolicy.class);
+            currentSnapshotSchedulePolicy.copyFrom(model.getSnapshotSchedulePolicy());
+
+            setSnapshotSchedulePolicy(currentSnapshotSchedulePolicy);
+        }
+    }
+
+    @Override
     protected boolean doRefresh() throws Exception {
         try (ResourcePoliciesClient client = createClient(ResourcePoliciesClient.class)) {
             ResourcePolicy policy = getResourcePolicy(client);
@@ -203,31 +222,6 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
                 .setRegion(getRegion())
                 .setResourcePolicy(getName())
                 .build()));
-        }
-    }
-
-    @Override
-    public void copyFrom(ResourcePolicy model) {
-        setName(model.getName());
-
-        if (model.hasRegion()) {
-            setRegion(Utils.extractName(model.getRegion()));
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        setSnapshotSchedulePolicy(null);
-        if (model.hasSnapshotSchedulePolicy()) {
-            SnapshotSchedulePolicy currentSnapshotSchedulePolicy = newSubresource(SnapshotSchedulePolicy.class);
-            currentSnapshotSchedulePolicy.copyFrom(model.getSnapshotSchedulePolicy());
-
-            setSnapshotSchedulePolicy(currentSnapshotSchedulePolicy);
         }
     }
 
