@@ -212,6 +212,7 @@ public class SecurityPolicyRule extends ComputeResource
                     .setProject(getProjectId())
                     .setSecurityPolicy(securityPolicyResource.getName())
                     .setSecurityPolicyRuleResource(toSecurityPolicyRule())
+                    .setPriority(getPriority())
                     .build());
 
             waitForCompletion(operation);

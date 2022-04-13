@@ -217,18 +217,9 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     @Override
     public void copyFrom(SecurityPolicy model) {
         setName(model.getName());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasFingerprint()) {
-            setFingerprint(model.getFingerprint());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
+        setFingerprint(model.getFingerprint());
 
         getRule().clear();
         model.getRulesList().forEach(rule -> {
