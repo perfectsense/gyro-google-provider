@@ -231,8 +231,8 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
 
         try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
             waitForCompletion(client.insertCallable().call(InsertInstanceTemplateRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setInstanceTemplateResource(builder)
+                .setProject(getProjectId())
+                .setInstanceTemplateResource(builder)
                 .build()));
         }
 
@@ -248,8 +248,8 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
             waitForCompletion(client.deleteCallable().call(DeleteInstanceTemplateRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setInstanceTemplate(getName())
+                .setProject(getProjectId())
+                .setInstanceTemplate(getName())
                 .build()));
         }
     }
@@ -261,19 +261,17 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
 
     public void copyFrom(InstanceTemplate model, boolean refreshProperties) {
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
 
         if (refreshProperties) {
-            ComputeInstanceProperties diffableProperties = Optional.ofNullable(getProperties())
-                .orElse(newSubresource(ComputeInstanceProperties.class));
-            diffableProperties.copyFrom(model.getProperties());
+            ComputeInstanceProperties diffableProperties = null;
+
+            if (model.hasProperties()) {
+                diffableProperties = Optional.ofNullable(getProperties())
+                    .orElse(newSubresource(ComputeInstanceProperties.class));
+                diffableProperties.copyFrom(model.getProperties());
+            }
 
             setProperties(diffableProperties);
         }

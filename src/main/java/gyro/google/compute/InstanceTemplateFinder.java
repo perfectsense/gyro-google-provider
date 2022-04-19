@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.InstanceTemplate;
 import com.google.cloud.compute.v1.InstanceTemplateList;
@@ -76,6 +75,7 @@ public class InstanceTemplateFinder
                 nextPageToken = instanceTemplateList.getNextPageToken();
 
                 instanceTemplates.addAll(instanceTemplateList.getItemsList());
+
             } while (instanceTemplateList.hasNextPageToken());
 
             return instanceTemplates;
@@ -90,8 +90,10 @@ public class InstanceTemplateFinder
         throws Exception {
         try {
             return Collections.singletonList(client.get(getProjectId(), filters.get("name")));
-        } catch (InvalidArgumentException | NotFoundException ex) {
+
+        } catch (NotFoundException ex) {
             return Collections.emptyList();
+
         } finally {
             client.close();
         }
