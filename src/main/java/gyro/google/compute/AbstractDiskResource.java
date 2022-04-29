@@ -243,25 +243,13 @@ public abstract class AbstractDiskResource extends ComputeResource implements Co
         setName(disk.getName());
         setLabels(disk.getLabelsMap());
         setUsers(disk.getUsersList());
-
-        if (disk.hasSelfLink()) {
-            setSelfLink(disk.getSelfLink());
-        }
-
-        if (disk.hasDescription()) {
-            setDescription(disk.getDescription());
-        }
-
-        if (disk.hasSizeGb()) {
-            setSizeGb(disk.getSizeGb());
-        }
+        setSelfLink(disk.getSelfLink());
+        setDescription(disk.getDescription());
+        setSizeGb(disk.getSizeGb());
+        setPhysicalBlockSizeBytes(disk.getPhysicalBlockSizeBytes());
 
         if (disk.hasSourceSnapshot()) {
             setSourceSnapshot(findById(SnapshotResource.class, disk.getSourceSnapshot()));
-        }
-
-        if (disk.hasPhysicalBlockSizeBytes()) {
-            setPhysicalBlockSizeBytes(disk.getPhysicalBlockSizeBytes());
         }
 
         if (disk.hasStatus()) {

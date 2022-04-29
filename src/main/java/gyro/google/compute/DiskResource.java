@@ -143,9 +143,7 @@ public class DiskResource extends AbstractDiskResource {
     public void copyFrom(Disk model) {
         super.copyFrom(model);
 
-        if (model.hasZone()) {
-            setZone(model.getZone());
-        }
+        setZone(model.getZone());
 
         if (model.hasType()) {
             setType(fromDiskType(model.getType()));
@@ -193,9 +191,9 @@ public class DiskResource extends AbstractDiskResource {
                 .collect(Collectors.toList()));
 
             Operation operation = client.insertCallable().call(InsertDiskRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setZone(getZone())
-                    .setDiskResource(disk)
+                .setProject(getProjectId())
+                .setZone(getZone())
+                .setDiskResource(disk)
                 .build());
 
             waitForCompletion(operation, 30, TimeUnit.SECONDS);
@@ -208,7 +206,6 @@ public class DiskResource extends AbstractDiskResource {
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
 
         try (DisksClient client = createClient(DisksClient.class)) {
-
             if (changedFieldNames.contains("size-gb")) {
                 saveSizeGb(client, (DiskResource) current);
             }
@@ -221,8 +218,6 @@ public class DiskResource extends AbstractDiskResource {
                 saveResourcePolicies(client, (DiskResource) current);
             }
         }
-
-        refresh();
     }
 
     @Override
@@ -238,7 +233,7 @@ public class DiskResource extends AbstractDiskResource {
         }
     }
 
-    private void saveSizeGb(DisksClient client, DiskResource oldDiskResource) throws Exception {
+    private void saveSizeGb(DisksClient client, DiskResource oldDiskResource) {
         if (getSizeGb() < oldDiskResource.getSizeGb()) {
             throw new GyroException(String.format(
                 "Size of the disk cannot be decreased once set. Current size %s.", oldDiskResource.getSizeGb()));
@@ -257,7 +252,7 @@ public class DiskResource extends AbstractDiskResource {
         waitForCompletion(operation);
     }
 
-    private void saveLabels(DisksClient client) throws Exception {
+    private void saveLabels(DisksClient client) {
         ZoneSetLabelsRequest.Builder builder = ZoneSetLabelsRequest.newBuilder();
         builder.putAllLabels(getLabels());
         builder.setLabelFingerprint(getLabelFingerprint());
@@ -271,7 +266,7 @@ public class DiskResource extends AbstractDiskResource {
         waitForCompletion(operation);
     }
 
-    private void saveResourcePolicies(DisksClient client, DiskResource current) throws Exception {
+    private void saveResourcePolicies(DisksClient client, DiskResource current) {
         List<String> removed = current.getResourcePolicy().stream()
             .filter(policy -> !getResourcePolicy().contains(policy))
             .map(ResourcePolicyResource::getSelfLink)

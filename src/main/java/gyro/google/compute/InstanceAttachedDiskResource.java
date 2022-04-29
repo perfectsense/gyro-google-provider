@@ -141,8 +141,6 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                 }
             }
         }
-
-        refresh();
     }
 
     @Override
@@ -192,8 +190,8 @@ public class InstanceAttachedDiskResource extends ComputeResource implements Cop
                 .call(
                     DetachDiskInstanceRequest.newBuilder()
                         .setProject(getProjectId())
-                        .setInstance(getInstance().getName())
-                        .setZone(getInstance().getZone())
+                        .setInstance(resource.getInstance().getName())
+                        .setZone(resource.getInstance().getZone())
                         .setDeviceName(resource.getAttachedDisk().getDeviceName())
                         .build());
 
