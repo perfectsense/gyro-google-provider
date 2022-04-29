@@ -69,7 +69,7 @@ public class RouterBgp extends Diffable implements Copyable<com.google.cloud.com
     /**
      * The list of prefix groups when ``advertise-mode`` is set to ``CUSTOM``.
      */
-    @ValidStrings({ "ALL_SUBNETS", "ALL_VPC_SUBNETS", "ALL_PEER_VPC_SUBNETS" })
+    @ValidStrings("ALL_SUBNETS")
     @Updatable
     public List<String> getAdvertisedGroups() {
         if (advertisedGroups == null) {
@@ -118,7 +118,7 @@ public class RouterBgp extends Diffable implements Copyable<com.google.cloud.com
             setAdvertiseMode(model.getAdvertiseMode());
         }
 
-        setAdvertisedGroups(null);
+        setIpRange(null);
         if (!model.getAdvertisedIpRangesList().isEmpty()) {
             setIpRange(model.getAdvertisedIpRangesList().stream().map(i -> {
                 RouterIpRange routerIpRange = newSubresource(RouterIpRange.class);

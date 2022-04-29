@@ -21,13 +21,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteRouterRequest;
+import com.google.cloud.compute.v1.GetRouterRequest;
 import com.google.cloud.compute.v1.InsertRouterRequest;
-import com.google.cloud.compute.v1.ListRoutersRequest;
 import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.PatchRouterRequest;
 import com.google.cloud.compute.v1.Router;
 import com.google.cloud.compute.v1.RoutersClient;
+import com.google.cloud.compute.v1.UpdateRouterRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -256,14 +258,8 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     @Override
     public void copyFrom(Router model) throws Exception {
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
 
         if (model.hasRegion()) {
             setRegion(Utils.extractName(model.getRegion()));
@@ -321,36 +317,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
     protected void doCreate(GyroUI ui, State state) throws Exception {
         try (RoutersClient client = createClient(RoutersClient.class)) {
 
-            Router.Builder builder = Router.newBuilder();
-            builder.setName(getName());
-
-            if (getRegion() != null) {
-                builder.setRegion(getRegion());
-            }
-
-            if (getDescription() != null) {
-                builder.setDescription(getDescription());
-            }
-
-            if (getRouterInterface() != null) {
-                builder.addAllInterfaces(getRouterInterface().stream()
-                    .map(RouterInterface::toRouterInterface)
-                    .collect(Collectors.toList()));
-            }
-
-            if (getRouterBgpPeer() != null) {
-                builder.addAllBgpPeers(getRouterBgpPeer().stream()
-                    .map(RouterBgpPeer::toRouterBgpPeer)
-                    .collect(Collectors.toList()));
-            }
-
-            if (getRouterBgp() != null) {
-                builder.setBgp(getRouterBgp().toRouterBgp());
-            }
-
-            if (getNetwork() != null) {
-                builder.setNetwork(getNetwork().getSelfLink());
-            }
+            Router.Builder builder = getRouterBuilder();
 
             Operation operation = client.insertCallable().call(InsertRouterRequest.newBuilder()
                 .setProject(getProjectId())
@@ -372,7 +339,7 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                     .setProject(getProjectId())
                     .setRegion(getRegion())
                     .setRouter(getName())
-                    .setRouterResource(builder)
+                    .setRouterResource(newRouter.build())
                     .build());
 
                 waitForCompletion(operation);
@@ -391,11 +358,11 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 builder.setDescription(getDescription());
             }
 
-            if (changedFieldNames.contains("router-bgp")) {
-                builder.setBgp(getRouterBgp() == null
-                    ? com.google.cloud.compute.v1.RouterBgp.newBuilder().build()
-                    : getRouterBgp().toRouterBgp());
-            }
+            //            if (changedFieldNames.contains("router-bgp")) {
+            //                builder.setBgp(getRouterBgp() == null
+            //                    ? com.google.cloud.compute.v1.RouterBgp.newBuilder().build()
+            //                    : getRouterBgp().toRouterBgp());
+            //            }
 
             if (changedFieldNames.contains("router-nat")) {
                 builder.addAllNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
@@ -421,6 +388,23 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 .build());
 
             waitForCompletion(operation);
+
+            builder = ((RouterResource) current).getRouterBuilder();
+
+            if (changedFieldNames.contains("router-bgp")) {
+                builder.setBgp(getRouterBgp() == null
+                    ? com.google.cloud.compute.v1.RouterBgp.newBuilder().build()
+                    : getRouterBgp().toRouterBgp());
+
+                operation = client.updateCallable().call(UpdateRouterRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setRouter(getName())
+                    .setRouterResource(builder.build())
+                    .build());
+
+                waitForCompletion(operation);
+            }
         }
     }
 
@@ -437,10 +421,52 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
         }
     }
 
+    private Router.Builder getRouterBuilder() {
+        Router.Builder builder = Router.newBuilder();
+        builder.setName(getName());
+
+        if (getRegion() != null) {
+            builder.setRegion(getRegion());
+        }
+
+        if (getDescription() != null) {
+            builder.setDescription(getDescription());
+        }
+
+        if (getRouterInterface() != null) {
+            builder.addAllInterfaces(getRouterInterface().stream()
+                .map(RouterInterface::toRouterInterface)
+                .collect(Collectors.toList()));
+        }
+
+        if (getRouterBgpPeer() != null) {
+            builder.addAllBgpPeers(getRouterBgpPeer().stream()
+                .map(RouterBgpPeer::toRouterBgpPeer)
+                .collect(Collectors.toList()));
+        }
+
+        if (getRouterBgp() != null) {
+            builder.setBgp(getRouterBgp().toRouterBgp());
+        }
+
+        if (getNetwork() != null) {
+            builder.setNetwork(getNetwork().getSelfLink());
+        }
+
+        return builder;
+    }
+
     private Router getRouter(RoutersClient client) {
-        return client
-            .list(ListRoutersRequest.newBuilder().setProject(getProjectId()).setRegion(getRegion())
-                .setFilter(String.format("selfLink = \"%s\"", getSelfLink())).build())
-            .getPage().getResponse().getItemsList().stream().findFirst().orElse(null);
+        Router router = null;
+
+        try {
+            router = client.get(GetRouterRequest.newBuilder().setProject(getProjectId())
+                .setRouter(getName()).setRegion(getRegion()).build());
+
+        } catch (NotFoundException ex) {
+            // ignore
+        }
+
+        return router;
     }
 }
