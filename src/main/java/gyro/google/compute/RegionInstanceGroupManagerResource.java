@@ -133,10 +133,10 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
         try (RegionInstanceGroupManagersClient client = createClient(RegionInstanceGroupManagersClient.class)) {
             Operation operation = client.deleteOperationCallable().call(
                 DeleteRegionInstanceGroupManagerRequest.newBuilder()
-                .setProject(getProjectId())
-                .setRegion(getRegion())
-                .setInstanceGroupManager(getName())
-                .build());
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setInstanceGroupManager(getName())
+                    .build());
 
             waitForCompletion(operation);
         }
