@@ -147,9 +147,7 @@ public class RegionDiskResource extends AbstractDiskResource {
     public void copyFrom(Disk disk) {
         super.copyFrom(disk);
 
-        if (disk.hasRegion()) {
-            setRegion(disk.getRegion());
-        }
+        setRegion(disk.getRegion());
 
         if (disk.hasType()) {
             setType(Utils.extractName(disk.getType()));
@@ -220,8 +218,6 @@ public class RegionDiskResource extends AbstractDiskResource {
                 saveResourcePolicies(client, (RegionDiskResource) current);
             }
         }
-
-        refresh();
     }
 
     @Override
