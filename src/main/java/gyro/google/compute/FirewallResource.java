@@ -374,10 +374,7 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
     public void copyFrom(Firewall model) {
         setId(String.valueOf(model.getId()));
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
+        setSelfLink(model.getSelfLink());
 
         if (model.hasDescription()) {
             setDescription(model.getDescription());
@@ -472,8 +469,6 @@ public class FirewallResource extends ComputeResource implements Copyable<Firewa
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override

@@ -25,9 +25,9 @@ import com.google.cloud.compute.v1.Firewall;
 import com.google.cloud.compute.v1.FirewallList;
 import com.google.cloud.compute.v1.FirewallsClient;
 import com.google.cloud.compute.v1.ListFirewallsRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query firewall rue.
