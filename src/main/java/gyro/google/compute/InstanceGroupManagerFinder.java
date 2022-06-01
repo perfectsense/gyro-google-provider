@@ -30,10 +30,10 @@ import com.google.cloud.compute.v1.InstanceGroupManagerList;
 import com.google.cloud.compute.v1.InstanceGroupManagersClient;
 import com.google.cloud.compute.v1.InstanceGroupManagersScopedList;
 import com.google.cloud.compute.v1.ListInstanceGroupManagersRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query an instance group manager.

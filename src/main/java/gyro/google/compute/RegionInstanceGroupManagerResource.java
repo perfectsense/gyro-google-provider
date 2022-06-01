@@ -162,7 +162,7 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
     }
 
     @Override
-    void patch(InstanceGroupManager instanceGroupManager) throws Exception {
+    void patch(InstanceGroupManager instanceGroupManager) {
         try (RegionInstanceGroupManagersClient client = createClient(RegionInstanceGroupManagersClient.class)) {
             Operation operation = client.patchCallable().call(PatchRegionInstanceGroupManagerRequest.newBuilder()
                 .setProject(getProjectId())
