@@ -25,9 +25,9 @@ import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.HealthCheckList;
 import com.google.cloud.compute.v1.HealthChecksClient;
 import com.google.cloud.compute.v1.ListHealthChecksRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query for http health checks.
