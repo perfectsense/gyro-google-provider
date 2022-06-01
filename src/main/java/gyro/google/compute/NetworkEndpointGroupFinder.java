@@ -32,9 +32,9 @@ import com.google.cloud.compute.v1.NetworkEndpointGroupAggregatedList;
 import com.google.cloud.compute.v1.NetworkEndpointGroupList;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsClient;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsScopedList;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query network-endpoint-group.
@@ -44,7 +44,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    network-endpoint-group: $(external-query google::compute-network-endpoint-group { name: 'network-endpoint-group-example', region: 'us-east1-b'})
+ *    network-endpoint-group: $(external-query google::compute-network-endpoint-group { name: 'network-endpoint-group-example', zone: 'us-east1-b'})
  */
 @Type("compute-network-endpoint-group")
 public class NetworkEndpointGroupFinder
