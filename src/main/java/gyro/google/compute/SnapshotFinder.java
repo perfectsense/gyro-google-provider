@@ -25,9 +25,9 @@ import com.google.cloud.compute.v1.ListSnapshotsRequest;
 import com.google.cloud.compute.v1.Snapshot;
 import com.google.cloud.compute.v1.SnapshotList;
 import com.google.cloud.compute.v1.SnapshotsClient;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query for a snapshot created from a zonal disk.
