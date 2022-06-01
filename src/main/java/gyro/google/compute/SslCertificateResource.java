@@ -82,6 +82,7 @@ public class SslCertificateResource extends AbstractSslCertificateResource {
 
             waitForCompletion(operation);
         }
+
         refresh();
     }
 

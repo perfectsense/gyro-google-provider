@@ -25,9 +25,9 @@ import com.google.cloud.compute.v1.ListSslCertificatesRequest;
 import com.google.cloud.compute.v1.SslCertificate;
 import com.google.cloud.compute.v1.SslCertificateList;
 import com.google.cloud.compute.v1.SslCertificatesClient;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query for an SSL certificate.
