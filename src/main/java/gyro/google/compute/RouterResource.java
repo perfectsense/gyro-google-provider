@@ -29,7 +29,6 @@ import com.google.cloud.compute.v1.Operation;
 import com.google.cloud.compute.v1.PatchRouterRequest;
 import com.google.cloud.compute.v1.Router;
 import com.google.cloud.compute.v1.RoutersClient;
-import com.google.cloud.compute.v1.UpdateRouterRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -358,11 +357,11 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 builder.setDescription(getDescription());
             }
 
-            //            if (changedFieldNames.contains("router-bgp")) {
-            //                builder.setBgp(getRouterBgp() == null
-            //                    ? com.google.cloud.compute.v1.RouterBgp.newBuilder().build()
-            //                    : getRouterBgp().toRouterBgp());
-            //            }
+            if (changedFieldNames.contains("router-bgp")) {
+                builder.setBgp(getRouterBgp() == null
+                    ? com.google.cloud.compute.v1.RouterBgp.newBuilder().build()
+                    : getRouterBgp().toRouterBgp());
+            }
 
             if (changedFieldNames.contains("router-nat")) {
                 builder.addAllNats(getRouterNat().stream().map(RouterNat::toRouterNat).collect(Collectors.toList()));
@@ -388,23 +387,6 @@ public class RouterResource extends ComputeResource implements Copyable<Router> 
                 .build());
 
             waitForCompletion(operation);
-
-            builder = ((RouterResource) current).getRouterBuilder();
-
-            if (changedFieldNames.contains("router-bgp")) {
-                builder.setBgp(getRouterBgp() == null
-                    ? com.google.cloud.compute.v1.RouterBgp.newBuilder().build()
-                    : getRouterBgp().toRouterBgp());
-
-                operation = client.updateCallable().call(UpdateRouterRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setRegion(getRegion())
-                    .setRouter(getName())
-                    .setRouterResource(builder.build())
-                    .build());
-
-                waitForCompletion(operation);
-            }
         }
     }
 
