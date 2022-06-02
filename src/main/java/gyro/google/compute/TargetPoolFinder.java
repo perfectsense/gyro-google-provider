@@ -32,9 +32,9 @@ import com.google.cloud.compute.v1.TargetPoolAggregatedList;
 import com.google.cloud.compute.v1.TargetPoolList;
 import com.google.cloud.compute.v1.TargetPoolsClient;
 import com.google.cloud.compute.v1.TargetPoolsScopedList;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query target pool.

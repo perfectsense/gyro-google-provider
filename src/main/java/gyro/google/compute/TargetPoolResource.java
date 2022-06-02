@@ -225,29 +225,14 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     @Override
     public void copyFrom(TargetPool model) throws Exception {
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+        setFailoverRatio(model.getFailoverRatio());
+        setSessionAffinity(model.getSessionAffinity());
+        setRegion(model.getRegion());
 
         if (model.hasBackupPool()) {
             setBackupPool(findById(TargetPoolResource.class, model.getBackupPool()));
-        }
-
-        if (model.hasFailoverRatio()) {
-            setFailoverRatio(model.getFailoverRatio());
-        }
-
-        if (model.hasSessionAffinity()) {
-            setSessionAffinity(model.getSessionAffinity());
-        }
-
-        if (model.hasRegion()) {
-            setRegion(model.getRegion());
         }
 
         setInstances(null);
@@ -284,8 +269,10 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
     protected void doCreate(GyroUI ui, State state) throws Exception {
         TargetPool.Builder builder = TargetPool.newBuilder();
         builder.setName(getName());
+
         builder.addAllInstances(
             getInstances().stream().map(InstanceResource::getSelfLink).collect(Collectors.toList()));
+
         builder.addAllHealthChecks(
             getHealthChecks().stream().map(HttpHealthCheckResource::getSelfLink).collect(Collectors.toList()));
 
@@ -307,9 +294,9 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
 
         try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
             Operation operation = client.insertCallable().call(InsertTargetPoolRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setRegion(getRegion())
-                    .setTargetPoolResource(builder)
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetPoolResource(builder)
                 .build());
 
             waitForCompletion(operation);
@@ -336,6 +323,7 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                     .setTargetPool(getName())
                     .setFailoverRatio(getFailoverRatio())
                     .build());
+
                 waitForCompletion(response);
             }
 
@@ -419,17 +407,15 @@ public class TargetPoolResource extends ComputeResource implements Copyable<Targ
                 }
             }
         }
-
-        refresh();
     }
 
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (TargetPoolsClient client = createClient(TargetPoolsClient.class)) {
             Operation operation = client.deleteCallable().call(DeleteTargetPoolRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setRegion(getRegion())
-                    .setTargetPool(getName())
+                .setProject(getProjectId())
+                .setRegion(getRegion())
+                .setTargetPool(getName())
                 .build());
 
             waitForCompletion(operation);
