@@ -42,7 +42,9 @@ google::compute-region-backend-service region-backend-service-example-region-tar
     description: "Region backend service description."
 
     backend
-        group: $(google::compute-instance-group instance-group-example-region-target-https-proxy)
+        group
+            instance-group: $(google::compute-instance-group instance-group-example-region-target-https-proxy)
+        end
         balancing-mode: "UTILIZATION"
     end
 
@@ -52,7 +54,7 @@ google::compute-region-backend-service region-backend-service-example-region-tar
         draining-timeout-sec: 41
     end
 
-    load-balancing-scheme: "INTERNAL"
+    load-balancing-scheme: "INTERNAL_MANAGED"
 
     protocol: "HTTPS"
     session-affinity: "NONE"

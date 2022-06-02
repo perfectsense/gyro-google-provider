@@ -20,13 +20,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.cloud.compute.v1.Backend;
 import com.google.cloud.compute.v1.BackendService;
-import com.google.cloud.compute.v1.ConnectionDraining;
 import com.google.cloud.compute.v1.InstanceGroupManagersClient;
 import gyro.core.GyroException;
 import gyro.core.resource.Id;
@@ -300,13 +298,8 @@ public abstract class AbstractBackendServiceResource extends ComputeResource imp
 
         setConnectionDraining(null);
         if (model.hasConnectionDraining()) {
-            ComputeConnectionDraining diffableConnectionDraining =
-                Optional.ofNullable(getConnectionDraining())
-                    .orElse(newSubresource(ComputeConnectionDraining.class));
-
-            ConnectionDraining connectionDraining = model.getConnectionDraining();
-            diffableConnectionDraining.copyFrom(connectionDraining);
-
+            ComputeConnectionDraining diffableConnectionDraining = newSubresource(ComputeConnectionDraining.class);
+            diffableConnectionDraining.copyFrom(model.getConnectionDraining());
             setConnectionDraining(diffableConnectionDraining);
         }
 

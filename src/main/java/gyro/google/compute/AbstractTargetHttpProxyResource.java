@@ -106,14 +106,8 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
     @Override
     public void copyFrom(TargetHttpProxy model) {
         setName(model.getName());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
 
         setUrlMap(null);
         if (model.hasUrlMap() && UrlMapResource.isUrlMap(model.getUrlMap())) {
@@ -128,8 +122,9 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
             builder.setDescription(getDescription());
         }
 
-        if (getUrlMap() != null) {
-            builder.setUrlMap(getUrlMapSelfLink()).build();
+        String urlMapSelfLink = getUrlMapSelfLink();
+        if (urlMapSelfLink != null) {
+            builder.setUrlMap(urlMapSelfLink);
         }
 
         return builder.build();
@@ -138,9 +133,11 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
     String getUrlMapSelfLink() {
         if (getUrlMap() != null) {
             return getUrlMap().getSelfLink();
+
         } else if (getRegionUrlMap() != null) {
             return getRegionUrlMap().getSelfLink();
         }
+
         return null;
     }
 
@@ -154,6 +151,7 @@ public abstract class AbstractTargetHttpProxyResource extends ComputeResource im
                 null,
                 "Either 'url-map' or 'region-url-map' is required!"));
         }
+
         return errors;
     }
 }
