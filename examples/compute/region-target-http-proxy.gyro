@@ -55,7 +55,7 @@ google::compute-region-backend-service region-backend-service-example-region-tar
         draining-timeout-sec: 41
     end
 
-    load-balancing-scheme: "INTERNAL"
+    load-balancing-scheme: "INTERNAL_MANAGED"
 
     protocol: "HTTPS"
     session-affinity: "NONE"
@@ -71,6 +71,6 @@ end
 google::compute-region-target-http-proxy region-target-http-proxy-example
     name: "region-target-http-proxy-example"
     description: "Region target http proxy description."
-    region: "us-east1"
+    region: "us-central1"
     region-url-map: $(google::compute-region-url-map region-url-map-example-region-target-http-proxy)
 end

@@ -92,7 +92,6 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
 
             waitForCompletion(response);
         }
-        refresh();
     }
 
     @Override
