@@ -86,13 +86,8 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
     public void copyFrom(ForwardingRule model) {
         super.copyFrom(model);
 
-        if (model.hasRegion()) {
-            setRegion(model.getRegion());
-        }
-
-        if (model.hasTarget()) {
-            setTargetPool(findById(TargetPoolResource.class, model.getTarget()));
-        }
+        setRegion(model.getRegion());
+        setTargetPool(findById(TargetPoolResource.class, model.getTarget()));
     }
 
     @Override
@@ -145,8 +140,6 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override

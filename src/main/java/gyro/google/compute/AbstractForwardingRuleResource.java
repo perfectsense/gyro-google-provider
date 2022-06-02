@@ -205,34 +205,14 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
     @Override
     public void copyFrom(ForwardingRule model) {
         setName(model.getName());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasIPAddress()) {
-            setIpAddress(model.getIPAddress());
-        }
-
-        if (model.hasAllPorts()) {
-            setAllPorts(model.getAllPorts());
-        }
-
-        if (model.hasPortRange()) {
-            setPortRange(model.getPortRange());
-        }
-
-        if (model.hasServiceLabel()) {
-            setServiceLabel(model.getServiceLabel());
-        }
-
-        if (model.hasServiceName()) {
-            setServiceName(model.getServiceName());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
+        setIpAddress(model.getIPAddress());
+        setAllPorts(model.getAllPorts());
+        setPortRange(model.getPortRange());
+        setServiceLabel(model.getServiceLabel());
+        setServiceName(model.getServiceName());
+        setPorts(model.getPortsList());
 
         if (model.hasIPProtocol()) {
             setIpProtocol(ForwardingRule.IPProtocolEnum.valueOf(model.getIPProtocol()));
@@ -250,7 +230,6 @@ public abstract class AbstractForwardingRuleResource extends ComputeResource imp
             setNetworkTier(ForwardingRule.NetworkTier.valueOf(model.getNetworkTier()));
         }
 
-        setPorts(model.getPortsList());
     }
 
     ForwardingRule toForwardingRule() {

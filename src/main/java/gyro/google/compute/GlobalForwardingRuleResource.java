@@ -128,6 +128,7 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
 
             waitForCompletion(operation);
         }
+
         refresh();
     }
 
@@ -148,8 +149,6 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
                 waitForCompletion(operation);
             }
         }
-
-        refresh();
     }
 
     @Override
@@ -174,6 +173,7 @@ public class GlobalForwardingRuleResource extends AbstractForwardingRuleResource
                 null,
                 "Either 'target-http-proxy' or 'target-https-proxy' is required!"));
         }
+
         return errors;
     }
 
