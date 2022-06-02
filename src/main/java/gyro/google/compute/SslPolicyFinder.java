@@ -25,9 +25,9 @@ import com.google.cloud.compute.v1.ListSslPoliciesRequest;
 import com.google.cloud.compute.v1.SslPoliciesClient;
 import com.google.cloud.compute.v1.SslPoliciesList;
 import com.google.cloud.compute.v1.SslPolicy;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query SSL policies.

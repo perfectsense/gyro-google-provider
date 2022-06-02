@@ -213,34 +213,30 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     public void copyFrom(SslPolicy model) {
         setName(model.getName());
         setEnabledFeatures(model.getEnabledFeaturesList());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
+        setSelfLink(model.getSelfLink());
+        setMinTlsVersion(model.getMinTlsVersion());
+        setProfile(model.getProfile());
 
         if (model.hasDescription()) {
             setDescription(model.getDescription());
-        }
-
-        setCustomFeatures(null);
-        if (!model.getCustomFeaturesList().isEmpty()) {
-            setCustomFeatures(model.getCustomFeaturesList());
         }
 
         if (model.hasFingerprint()) {
             setFingerprint(model.getFingerprint());
         }
 
-        if (model.hasMinTlsVersion()) {
-            setMinTlsVersion(model.getMinTlsVersion());
-        }
+        setCustomFeatures(null);
+        if (!model.getCustomFeaturesList().
 
-        if (model.hasProfile()) {
-            setProfile(model.getProfile());
+            isEmpty()) {
+            setCustomFeatures(model.getCustomFeaturesList());
         }
 
         List<Warnings> warnings = model.getWarningsList();
-        getWarning().clear();
+
+        getWarning().
+
+            clear();
         if (!warnings.isEmpty()) {
             setWarning(warnings
                 .stream()
@@ -251,6 +247,7 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
                 })
                 .collect(Collectors.toList()));
         }
+
     }
 
     @Override
@@ -293,8 +290,6 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override
