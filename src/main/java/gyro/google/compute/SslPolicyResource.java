@@ -226,17 +226,13 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
         }
 
         setCustomFeatures(null);
-        if (!model.getCustomFeaturesList().
-
-            isEmpty()) {
+        if (!model.getCustomFeaturesList().isEmpty()) {
             setCustomFeatures(model.getCustomFeaturesList());
         }
 
         List<Warnings> warnings = model.getWarningsList();
 
-        getWarning().
-
-            clear();
+        getWarning().clear();
         if (!warnings.isEmpty()) {
             setWarning(warnings
                 .stream()
