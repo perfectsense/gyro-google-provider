@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteTargetHttpProxyRequest;
 import com.google.cloud.compute.v1.GetTargetHttpProxyRequest;
@@ -93,7 +92,6 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
 
             waitForCompletion(response);
         }
-        refresh();
     }
 
     @Override
@@ -121,7 +119,7 @@ public class TargetHttpProxyResource extends AbstractTargetHttpProxyResource {
                 .setTargetHttpProxy(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

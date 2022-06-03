@@ -20,16 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.ListNetworksRequest;
 import com.google.cloud.compute.v1.Network;
 import com.google.cloud.compute.v1.NetworkList;
 import com.google.cloud.compute.v1.NetworksClient;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query network.
@@ -65,15 +63,13 @@ public class NetworkFinder extends GoogleFinder<NetworksClient, Network, Network
 
         try {
             do {
-                UnaryCallable<ListNetworksRequest, NetworksClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
                 ListNetworksRequest.Builder builder = ListNetworksRequest.newBuilder();
 
                 if (nextPageToken != null) {
                     builder.setPageToken(nextPageToken);
                 }
 
-                NetworksClient.ListPagedResponse listPagedResponse = callable.call(builder
+                NetworksClient.ListPagedResponse listPagedResponse = client.list(builder
                     .setProject(getProjectId()).build());
                 networkList = listPagedResponse.getPage().getResponse();
                 nextPageToken = listPagedResponse.getNextPageToken();
@@ -94,7 +90,7 @@ public class NetworkFinder extends GoogleFinder<NetworksClient, Network, Network
 
         try {
             networks.add(client.get(getProjectId(), filters.get("name")));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

@@ -29,7 +29,6 @@ import com.google.cloud.compute.v1.AttachedDisk;
 import com.google.cloud.compute.v1.InstanceProperties;
 import com.google.cloud.compute.v1.Items;
 import com.google.cloud.compute.v1.Metadata;
-import com.google.cloud.compute.v1.ShieldedInstanceConfig;
 import com.google.cloud.compute.v1.Tags;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.CollectionMax;
@@ -69,7 +68,7 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
     private List<String> tags;
 
     /**
-     * Enables instances created based on this template to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own.
+     * When set to ``true`` instances are created based on this template to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own.
      * If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify true.
      */
     public Boolean getCanIpForward() {
@@ -278,27 +277,16 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
 
     @Override
     public void copyFrom(InstanceProperties model) {
-        if (model.hasCanIpForward()) {
-            setCanIpForward(model.getCanIpForward());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasMachineType()) {
-            setMachineType(model.getMachineType());
-        }
-
-        if (model.hasMinCpuPlatform()) {
-            setMinCpuPlatform(model.getMinCpuPlatform());
-        }
+        setCanIpForward(model.getCanIpForward());
+        setDescription(model.getDescription());
+        setMachineType(model.getMachineType());
+        setMinCpuPlatform(model.getMinCpuPlatform());
 
         if (model.hasTags()) {
             setTags(model.getTags().getItemsList());
         }
 
-        setLabels(model.getLabels());
+        setLabels(model.getLabelsMap());
 
         List<InstanceAttachedDisk> diffableAttachedDisks = null;
         List<AttachedDisk> disks = model.getDisksList();
@@ -377,7 +365,6 @@ public class ComputeInstanceProperties extends Diffable implements Copyable<Inst
         }
 
         setShieldedInstanceConfig(null);
-        ShieldedInstanceConfig shieldedInstanceConfig = model.getShieldedInstanceConfig();
         if (model.hasShieldedInstanceConfig()) {
             ComputeShieldedInstanceConfig diffableShieldedInstanceConfig =
                 newSubresource(ComputeShieldedInstanceConfig.class);

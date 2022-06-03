@@ -70,12 +70,13 @@ public class ComputeSourceInstanceParams extends Diffable implements Copyable<So
 
     public SourceInstanceParams toSourceInstanceParams() {
         SourceInstanceParams.Builder builder = SourceInstanceParams.newBuilder();
-        List<ComputeDiskInstantiationConfig> diskConfig = getDiskConfig();
+        List<ComputeDiskInstantiationConfig> config = getDiskConfig();
 
-        if (!diskConfig.isEmpty()) {
-            builder.addAllDiskConfigs(diskConfig.stream().map(ComputeDiskInstantiationConfig::toDiskInstantiationConfig)
+        if (!config.isEmpty()) {
+            builder.addAllDiskConfigs(config.stream().map(ComputeDiskInstantiationConfig::toDiskInstantiationConfig)
                 .collect(Collectors.toList()));
         }
+
         return builder.build();
     }
 

@@ -20,16 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.HealthCheckList;
 import com.google.cloud.compute.v1.HealthChecksClient;
 import com.google.cloud.compute.v1.ListHealthChecksRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query for http health checks.
@@ -65,15 +63,13 @@ public class HttpHealthCheckFinder extends GoogleFinder<HealthChecksClient, Heal
 
         try {
             do {
-                UnaryCallable<ListHealthChecksRequest, HealthChecksClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
                 ListHealthChecksRequest.Builder builder = ListHealthChecksRequest.newBuilder();
 
                 if (nextPageToken != null) {
                     builder.setPageToken(nextPageToken);
                 }
 
-                HealthChecksClient.ListPagedResponse listPagedResponse = callable.call(builder
+                HealthChecksClient.ListPagedResponse listPagedResponse = client.list(builder
                     .setProject(getProjectId()).build());
                 healthCheckList = listPagedResponse.getPage().getResponse();
                 nextPageToken = listPagedResponse.getNextPageToken();
@@ -94,7 +90,7 @@ public class HttpHealthCheckFinder extends GoogleFinder<HealthChecksClient, Heal
 
         try {
             healthChecks.add(client.get(getProjectId(), filters.get("name")));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

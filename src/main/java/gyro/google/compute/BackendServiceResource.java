@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AddSignedUrlKeyBackendServiceRequest;
 import com.google.cloud.compute.v1.BackendService;
@@ -145,10 +144,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     @Override
     public void copyFrom(BackendService model) {
         super.copyFrom(model);
-
-        if (model.hasPortName()) {
-            setPortName(model.getPortName());
-        }
+        setPortName(model.getPortName());
 
         if (model.hasSecurityPolicy()) {
             setSecurityPolicy(findById(SecurityPolicyResource.class, model.getSecurityPolicy()));
@@ -202,7 +198,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setBackendService(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 
@@ -236,6 +232,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
 
             if (!getSignedUrlKey().isEmpty()) {
                 for (BackendSignedUrlKey urlKey : getSignedUrlKey()) {
+
                     waitForCompletion(client.addSignedUrlKeyOperationCallable().call(
                         AddSignedUrlKeyBackendServiceRequest.newBuilder()
                             .setProject(getProject())
@@ -265,15 +262,18 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
             }
 
             BackendService.Builder backendService = getBackendService(changedFieldNames);
-            Operation operation = client.patchCallable().call(PatchBackendServiceRequest.newBuilder()
-                .setProject(getProject())
-                .setBackendService(getName())
-                .build());
-            waitForCompletion(operation);
 
             if (changedFieldNames.contains("port-name")) {
                 backendService.setPortName(getPortName());
             }
+
+            Operation operation = client.patchCallable().call(PatchBackendServiceRequest.newBuilder()
+                .setProject(getProject())
+                .setBackendService(getName())
+                .setBackendServiceResource(backendService)
+                .build());
+
+            waitForCompletion(operation);
 
             if (changedFieldNames.contains("signed-url-key")) {
                 // delete old keys
@@ -314,6 +314,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setProject(getProject())
                 .setBackendService(getName())
                 .build());
+
             waitForCompletion(response);
         }
     }
@@ -346,6 +347,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
                 .setBackendService(getName())
                 .setSecurityPolicyReferenceResource(securityPolicyReference)
                 .build());
+
         waitForCompletion(securityPolicyOperation);
     }
 

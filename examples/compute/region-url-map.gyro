@@ -1,10 +1,11 @@
-google::compute-health-check health-check-example-region-url-map
+google::compute-regional-health-check health-check-example-region-url-map
     name: "health-check-example-region-url-map"
     check-interval-sec: 30
     description: "Health check description."
     healthy-threshold: 8
     timeout-sec: 29
     unhealthy-threshold: 6
+    region: "us-central1"
 
     http-health-check
         proxy-header: "PROXY_V1"
@@ -42,17 +43,15 @@ google::compute-region-backend-service region-backend-service-example-region-url
     description: "Region backend service description."
 
     backend
-        group: $(google::compute-instance-group instance-group-example-region-url-map)
+        group
+            instance-group: $(google::compute-instance-group instance-group-example-region-url-map)
+        end
         balancing-mode: "UTILIZATION"
     end
 
-    health-check: [ $(google::compute-health-check health-check-example-region-url-map) ]
+    health-check: [ $(google::compute-regional-health-check health-check-example-region-url-map) ]
 
-    connection-draining
-        draining-timeout-sec: 41
-    end
-
-    load-balancing-scheme: "INTERNAL"
+    load-balancing-scheme: "INTERNAL_MANAGED"
 
     protocol: "HTTPS"
     session-affinity: "NONE"
@@ -78,4 +77,3 @@ google::compute-region-url-map region-url-map-example
         end
     end
 end
-

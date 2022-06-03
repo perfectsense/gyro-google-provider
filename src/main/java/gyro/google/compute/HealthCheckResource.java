@@ -18,14 +18,13 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteHealthCheckRequest;
 import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.HealthChecksClient;
 import com.google.cloud.compute.v1.InsertHealthCheckRequest;
 import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.PatchHealthCheckRequest;
+import com.google.cloud.compute.v1.UpdateHealthCheckRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -111,7 +110,7 @@ import gyro.core.scope.State;
  *              port: 501
  *              port-name: "custom-port"
  *              proxy-header: "PROXY_V1"
- *              request-path: "/myapp"
+ *              request: "/myapp"
  *              response: "okay"
  *          end
  *      end
@@ -121,25 +120,26 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
 
     @Override
     public boolean doRefresh() throws Exception {
-        HealthChecksClient client = createClient(HealthChecksClient.class);
-        HealthCheck healthCheck = getHealthCheckResource(client);
+        try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
+            HealthCheck healthCheck = getHealthCheckResource(client);
 
-        if (healthCheck == null) {
-            return false;
+            if (healthCheck == null) {
+                return false;
+            }
+
+            copyFrom(healthCheck);
+
+            return true;
         }
-
-        copyFrom(healthCheck);
-        client.close();
-        return true;
     }
 
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
-            HealthCheck healthCheck = getHealthCheck(null);
+            HealthCheck healthCheck = getHealthCheck(null, null);
             Operation operation = client.insertCallable().call(InsertHealthCheckRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setHealthCheckResource(healthCheck)
+                .setProject(getProjectId())
+                .setHealthCheckResource(healthCheck)
                 .build());
 
             waitForCompletion(operation);
@@ -151,8 +151,9 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (HealthChecksClient client = createClient(HealthChecksClient.class)) {
-            HealthCheck healthCheck = getHealthCheck(changedFieldNames);
-            Operation operation = client.patchCallable().call(PatchHealthCheckRequest.newBuilder()
+            HealthCheck healthCheck = getHealthCheck(changedFieldNames, getHealthCheckResource(client));
+
+            Operation operation = client.updateCallable().call(UpdateHealthCheckRequest.newBuilder()
                 .setProject(getProjectId())
                 .setHealthCheck(getName())
                 .setHealthCheckResource(healthCheck)
@@ -160,8 +161,6 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override
@@ -181,7 +180,7 @@ public class HealthCheckResource extends AbstractHealthCheckResource {
 
         try {
             healthCheck = client.get(getProjectId(), getName());
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

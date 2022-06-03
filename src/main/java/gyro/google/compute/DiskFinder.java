@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListDisksRequest;
 import com.google.cloud.compute.v1.Disk;
 import com.google.cloud.compute.v1.DiskAggregatedList;
@@ -97,15 +95,13 @@ public class DiskFinder extends GoogleFinder<DisksClient, Disk, DiskResource> {
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListDisksRequest, DisksClient.ListPagedResponse> callable = client.listPagedCallable();
-
                     ListDisksRequest.Builder builder = ListDisksRequest.newBuilder().setZone(filters.get("zone"));
 
                     if (nextPageToken != null) {
                         builder.setPageToken(nextPageToken);
                     }
 
-                    DisksClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(getProjectId())
+                    DisksClient.ListPagedResponse pagedResponse = client.list(builder.setProject(getProjectId())
                         .build());
                     diskList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
@@ -119,7 +115,7 @@ public class DiskFinder extends GoogleFinder<DisksClient, Disk, DiskResource> {
                 disks.addAll(getDisks(client));
                 disks.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

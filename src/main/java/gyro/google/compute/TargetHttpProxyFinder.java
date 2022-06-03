@@ -25,9 +25,9 @@ import com.google.cloud.compute.v1.ListTargetHttpProxiesRequest;
 import com.google.cloud.compute.v1.TargetHttpProxiesClient;
 import com.google.cloud.compute.v1.TargetHttpProxy;
 import com.google.cloud.compute.v1.TargetHttpProxyList;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query for a target http proxy.

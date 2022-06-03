@@ -74,7 +74,7 @@ public class FirewallRule extends Diffable {
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         if (!getProtocol().equals("tcp") && !getProtocol().equals("udp") && !getPorts().isEmpty()) {

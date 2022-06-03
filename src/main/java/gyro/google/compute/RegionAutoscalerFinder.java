@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Autoscaler;
 import com.google.cloud.compute.v1.GetRegionAutoscalerRequest;
@@ -30,12 +29,12 @@ import com.google.cloud.compute.v1.ListRegionsRequest;
 import com.google.cloud.compute.v1.Region;
 import com.google.cloud.compute.v1.RegionAutoscalersClient;
 import com.google.cloud.compute.v1.RegionsClient;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query a region autoscaler.
@@ -54,6 +53,31 @@ import gyro.google.util.Utils;
 @Type("compute-region-autoscaler")
 public class RegionAutoscalerFinder
     extends GoogleFinder<RegionAutoscalersClient, Autoscaler, RegionAutoscalerResource> {
+
+    private String name;
+    private String region;
+
+    /**
+     * Then name of the autoscaler.
+     */
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * The zone in which the autoscaler lives.
+     */
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
 
     @Override
     protected List<Autoscaler> findAllGoogle(RegionAutoscalersClient client) throws Exception {
@@ -88,7 +112,7 @@ public class RegionAutoscalerFinder
                             autoscalers.add(client.get(GetRegionAutoscalerRequest.newBuilder().setAutoscaler(name)
                                 .setProject(getProjectId()).setRegion(r).build()));
 
-                        } catch (NotFoundException | InvalidArgumentException ex) {
+                        } catch (NotFoundException ex) {
                             // ignore
                         }
                     }
@@ -113,7 +137,7 @@ public class RegionAutoscalerFinder
                 autoscalers.addAll(getAutoscalers(client, filter, region));
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
 
         } finally {

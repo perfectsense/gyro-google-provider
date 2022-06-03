@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.google.api.client.util.Data;
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.CustomerEncryptionKey;
 import com.google.cloud.compute.v1.DeleteImageRequest;
@@ -386,47 +385,17 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
     @SuppressWarnings("unchecked")
     public void copyFrom(Image model) {
         setName(model.getName());
-        setLabels(model.getLabels());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasFamily()) {
-            setFamily(model.getFamily());
-        }
-
-        if (model.hasArchiveSizeBytes()) {
-            setArchiveSizeBytes(model.getArchiveSizeBytes());
-        }
-
-        if (model.hasDiskSizeGb()) {
-            setDiskSizeGb(model.getDiskSizeGb());
-        }
-
-        if (model.hasLabelFingerprint()) {
-            setLabelFingerprint(model.getLabelFingerprint());
-        }
-
-        if (model.hasSourceDiskId()) {
-            setSourceDiskId(model.getSourceDiskId());
-        }
-
-        if (model.hasSourceImageId()) {
-            setSourceImageId(model.getSourceImageId());
-        }
-
-        if (model.hasSourceSnapshotId()) {
-            setSourceSnapshotId(model.getSourceSnapshotId());
-        }
-
-        if (model.hasStatus()) {
-            setStatus(model.getStatus());
-        }
+        setLabels(model.getLabelsMap());
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
+        setFamily(model.getFamily());
+        setArchiveSizeBytes(model.getArchiveSizeBytes());
+        setDiskSizeGb(model.getDiskSizeGb());
+        setLabelFingerprint(model.getLabelFingerprint());
+        setSourceDiskId(model.getSourceDiskId());
+        setSourceImageId(model.getSourceImageId());
+        setSourceSnapshotId(model.getSourceSnapshotId());
+        setStatus(model.getStatus());
 
         if (model.hasSourceDisk()) {
             setSourceDisk(findById(DiskResource.class, model.getSourceDisk()));
@@ -547,8 +516,6 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override
@@ -591,7 +558,7 @@ public class ImageResource extends ComputeResource implements Copyable<Image> {
         try {
             image = client.get(GetImageRequest.newBuilder().setProject(getProjectId()).setImage(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

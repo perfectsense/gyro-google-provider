@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteRegionTargetHttpsProxyRequest;
 import com.google.cloud.compute.v1.GetRegionTargetHttpsProxyRequest;
@@ -129,14 +128,8 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
     @Override
     public void copyFrom(TargetHttpsProxy model) {
         super.copyFrom(model);
-
-        if (model.hasRegion()) {
-            setRegion(model.getRegion());
-        }
-
-        if (model.hasQuicOverride()) {
-            setQuicOverride(model.getQuicOverride());
-        }
+        setRegion(model.getRegion());
+        setQuicOverride(model.getQuicOverride());
 
         setRegionUrlMap(null);
         if (model.hasUrlMap()) {
@@ -177,12 +170,15 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
             TargetHttpsProxy.Builder builder = toTargetHttpsProxy().toBuilder();
             builder.setRegion(getRegion());
             builder.setUrlMap(getRegionUrlMap().getSelfLink());
+
             if (getQuicOverride() != null) {
                 builder.setQuicOverride(getQuicOverride());
             }
+
             if (getSslPolicy() != null) {
                 builder.setSslPolicy(getSslPolicy().getSelfLink());
             }
+
             if (getRegionSslCertificates() != null) {
                 builder.addAllSslCertificates(getRegionSslCertificates().stream()
                     .map(AbstractSslCertificateResource::getSelfLink)
@@ -229,7 +225,7 @@ public class RegionTargetHttpsProxyResource extends AbstractTargetHttpsProxyReso
                 .setTargetHttpsProxy(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

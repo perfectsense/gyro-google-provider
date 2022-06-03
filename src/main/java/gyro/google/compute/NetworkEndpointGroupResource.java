@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AttachNetworkEndpointsNetworkEndpointGroupRequest;
 import com.google.cloud.compute.v1.DeleteNetworkEndpointGroupRequest;
@@ -45,6 +44,7 @@ import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
 /**
@@ -158,6 +158,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     /**
      * The type of the network endpoint group. Currently only supported value is ``GCE_VM_IP_PORT``. Defaults to ``GCE_VM_IP_PORT``.
      */
+    @ValidStrings("GCE_VM_IP_PORT")
     public String getType() {
         if (type == null) {
             type = "GCE_VM_IP_PORT";
@@ -189,7 +190,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
     }
 
     /**
-     * The Id of the network endpoint group
+     * The ID of the network endpoint group
      */
     @Output
     public String getId() {
@@ -227,32 +228,15 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
 
     @Override
     public void copyFrom(NetworkEndpointGroup networkEndpointGroup) throws Exception {
+        setName(networkEndpointGroup.getName());
+        setSelfLink(networkEndpointGroup.getSelfLink());
+        setType(networkEndpointGroup.getNetworkEndpointType());
+        setNetwork(findById(NetworkResource.class, networkEndpointGroup.getNetwork()));
+        setSubnet(findById(SubnetworkResource.class, networkEndpointGroup.getSubnetwork()));
+        setDefaultPort(networkEndpointGroup.getDefaultPort());
+
         if (networkEndpointGroup.hasId()) {
             setId(String.valueOf(networkEndpointGroup.getId()));
-        }
-
-        if (networkEndpointGroup.hasName()) {
-            setName(networkEndpointGroup.getName());
-        }
-
-        if (networkEndpointGroup.hasSelfLink()) {
-            setSelfLink(networkEndpointGroup.getSelfLink());
-        }
-
-        if (networkEndpointGroup.hasNetworkEndpointType()) {
-            setType(networkEndpointGroup.getNetworkEndpointType());
-        }
-
-        if (networkEndpointGroup.hasNetwork()) {
-            setNetwork(findById(NetworkResource.class, networkEndpointGroup.getNetwork()));
-        }
-
-        if (networkEndpointGroup.hasSubnetwork()) {
-            setSubnet(findById(SubnetworkResource.class, networkEndpointGroup.getSubnetwork()));
-        }
-
-        if (networkEndpointGroup.hasDefaultPort()) {
-            setDefaultPort(networkEndpointGroup.getDefaultPort());
         }
 
         if (networkEndpointGroup.hasDescription()) {
@@ -426,7 +410,7 @@ public class NetworkEndpointGroupResource extends ComputeResource implements Cop
                 .setZone(getZone())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

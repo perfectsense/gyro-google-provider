@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListResourcePoliciesRequest;
 import com.google.cloud.compute.v1.ListResourcePoliciesRequest;
 import com.google.cloud.compute.v1.ResourcePoliciesClient;
@@ -88,6 +87,7 @@ public class ResourcePolicyFinder extends GoogleFinder<ResourcePoliciesClient, R
         throws Exception {
         List<ResourcePolicy> addresses = new ArrayList<>();
         String pageToken = null;
+
         try {
             if (filters.containsKey("region")) {
 
@@ -106,6 +106,7 @@ public class ResourcePolicyFinder extends GoogleFinder<ResourcePoliciesClient, R
 
                     addresses.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
+
             } else {
                 return getResourcePolicies(client, filters.get("filter"));
             }
@@ -121,8 +122,6 @@ public class ResourcePolicyFinder extends GoogleFinder<ResourcePoliciesClient, R
         String pageToken = null;
 
         do {
-            UnaryCallable<AggregatedListResourcePoliciesRequest, ResourcePolicyAggregatedList> callable = client
-                .aggregatedListCallable();
             AggregatedListResourcePoliciesRequest.Builder builder = AggregatedListResourcePoliciesRequest.newBuilder();
 
             if (pageToken != null) {
@@ -133,7 +132,8 @@ public class ResourcePolicyFinder extends GoogleFinder<ResourcePoliciesClient, R
                 builder.setFilter(filter);
             }
 
-            ResourcePolicyAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            ResourcePolicyAggregatedList aggregatedList = client.aggregatedList(builder.setProject(getProjectId())
+                .build()).getPage().getResponse();
             pageToken = aggregatedList.getNextPageToken();
 
             if (aggregatedList.getItemsMap() != null) {

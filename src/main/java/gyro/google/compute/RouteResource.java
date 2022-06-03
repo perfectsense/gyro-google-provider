@@ -19,12 +19,10 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteRouteRequest;
 import com.google.cloud.compute.v1.GetRouteRequest;
@@ -43,6 +41,7 @@ import gyro.core.validation.Range;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Creates a route.
@@ -216,21 +215,15 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     public void copyFrom(Route model) {
         setName(model.getName());
         setTags(new HashSet<>(model.getTagsList()));
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+        setDestRange(model.getDestRange());
+        setNextHopGateway(model.getNextHopGateway());
+        setNextHopVpnTunnel(model.getNextHopVpnTunnel());
+        setNextHopIp(model.getNextHopIp());
 
         if (model.hasId()) {
             setId(String.valueOf(model.getId()));
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasDestRange()) {
-            setDestRange(model.getDestRange());
         }
 
         if (model.hasNetwork()) {
@@ -239,18 +232,6 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
 
         if (model.hasPriority()) {
             setPriority((long) model.getPriority());
-        }
-
-        if (model.hasNextHopGateway()) {
-            setNextHopGateway(model.getNextHopGateway());
-        }
-
-        if (model.hasNextHopVpnTunnel()) {
-            setNextHopVpnTunnel(model.getNextHopVpnTunnel());
-        }
-
-        if (model.hasNextHopIp()) {
-            setNextHopIp(model.getNextHopIp());
         }
     }
 
@@ -303,14 +284,14 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
             }
 
             Operation operation = client.insertCallable().call(InsertRouteRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setRouteResource(builder)
+                .setProject(getProjectId())
+                .setRouteResource(builder)
                 .buildPartial());
 
             waitForCompletion(operation);
 
-            Route route = client.get(getProjectId(), getName());
-            copyFrom(route);
+            doRefresh();
+
             if (builder.getWarningsList() != null && !builder.getWarningsList().isEmpty()) {
                 GyroCore.ui().write(
                     "\n@|cyan Route created with warnings:|@ %s\n",
@@ -321,7 +302,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
 
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
-
+        // Update not supported for routes
     }
 
     @Override
@@ -337,23 +318,16 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
     }
 
     @Override
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
         long count = Stream.of(getNextHopGateway(), getNextHopIp(), getNextHopVpnTunnel())
-            .filter(Objects::nonNull)
+            .filter(r -> !StringUtils.isEmpty(r))
             .count();
 
-        if (count == 0) {
-            errors.add(new ValidationError(
-                this,
-                null,
-                "One of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' is required."));
-        } else if (count > 1) {
-            errors.add(new ValidationError(
-                this,
-                null,
-                "Only one of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' can be set."));
+        if (count != 1) {
+            errors.add(new ValidationError(this, null,
+                "Exactly one of 'next-hop-gateway', 'next-hop-ip', or 'next-hop-vpn-tunnel' should be set."));
         }
 
         return errors;
@@ -366,7 +340,7 @@ public class RouteResource extends ComputeResource implements Copyable<Route> {
             route = client.get(GetRouteRequest.newBuilder().setProject(getProjectId())
                 .setRoute(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

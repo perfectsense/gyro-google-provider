@@ -41,7 +41,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     private String type;
 
     /**
-     * Whether the disk will be auto-deleted when the instance is deleted, but not when the disk is detached from the instance.
+     * When set to ``true`` the disk will be auto-deleted when the instance is deleted, but not when the disk is detached from the instance.
      */
     public Boolean getAutoDelete() {
         return autoDelete;
@@ -52,7 +52,7 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
     }
 
     /**
-     * This is a boot disk the virtual machine will use the first partition of the disk for its root filesystem.
+     * When set to ``true``, the virtual machine will use the first partition of the boot disk for its root filesystem.
      */
     public Boolean getBoot() {
         return boot;
@@ -188,28 +188,17 @@ public class InstanceAttachedDisk extends Diffable implements Copyable<AttachedD
 
     @Override
     public void copyFrom(AttachedDisk model) {
+        setDeviceName(model.getDeviceName());
+        setDiskInterface(model.getInterface());
+        setMode(model.getMode());
+        setType(model.getType());
+
         if (model.hasAutoDelete()) {
             setAutoDelete(model.getAutoDelete());
         }
 
         if (model.hasBoot()) {
             setBoot(model.getBoot());
-        }
-
-        if (model.hasDeviceName()) {
-            setDeviceName(model.getDeviceName());
-        }
-
-        if (model.hasInterface()) {
-            setDiskInterface(model.getInterface());
-        }
-
-        if (model.hasMode()) {
-            setMode(model.getMode());
-        }
-
-        if (model.hasType()) {
-            setType(model.getType());
         }
 
         setSource(null);

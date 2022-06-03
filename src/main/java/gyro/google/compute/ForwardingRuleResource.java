@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteForwardingRuleRequest;
 import com.google.cloud.compute.v1.ForwardingRule;
@@ -87,13 +86,8 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
     public void copyFrom(ForwardingRule model) {
         super.copyFrom(model);
 
-        if (model.hasRegion()) {
-            setRegion(model.getRegion());
-        }
-
-        if (model.hasTarget()) {
-            setTargetPool(findById(TargetPoolResource.class, model.getTarget()));
-        }
+        setRegion(model.getRegion());
+        setTargetPool(findById(TargetPoolResource.class, model.getTarget()));
     }
 
     @Override
@@ -146,8 +140,6 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override
@@ -168,7 +160,7 @@ public class ForwardingRuleResource extends AbstractForwardingRuleResource {
 
         try {
             forwardingRule = client.get(getProjectId(), getRegion(), getName());
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

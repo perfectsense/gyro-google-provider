@@ -222,33 +222,15 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
     @Override
     public void copyFrom(HealthCheck model) {
         setName(model.getName());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
+        setCheckIntervalSec(model.getCheckIntervalSec());
+        setTimeoutSec(model.getTimeoutSec());
+        setUnhealthyThreshold(model.getUnhealthyThreshold());
+        setHealthyThreshold(model.getHealthyThreshold());
 
         if (model.hasType()) {
             setType(HealthCheck.Type.valueOf(model.getType()));
-        }
-
-        if (model.hasCheckIntervalSec()) {
-            setCheckIntervalSec(model.getCheckIntervalSec());
-        }
-
-        if (model.hasTimeoutSec()) {
-            setTimeoutSec(model.getTimeoutSec());
-        }
-
-        if (model.hasUnhealthyThreshold()) {
-            setUnhealthyThreshold(model.getUnhealthyThreshold());
-        }
-
-        if (model.hasHealthyThreshold()) {
-            setHealthyThreshold(model.getHealthyThreshold());
         }
 
         setHttpHealthCheck(null);
@@ -292,55 +274,86 @@ public abstract class AbstractHealthCheckResource extends ComputeResource implem
         }
     }
 
-    public HealthCheck getHealthCheck(Set<String> changedFieldNames) {
+    public HealthCheck getHealthCheck(Set<String> changedFieldNames, HealthCheck currentHealthCheck) {
         boolean isUpdate = changedFieldNames != null && (changedFieldNames.size() > 0);
 
-        HealthCheck.Builder healthCheck = HealthCheck.newBuilder();
+        HealthCheck.Builder healthCheck;
+        if (currentHealthCheck == null) {
+            healthCheck = HealthCheck.newBuilder();
+        } else {
+            healthCheck = currentHealthCheck.toBuilder();
+        }
 
         if (!isUpdate) {
             healthCheck.setName(getName());
         }
 
-        if ((!isUpdate || changedFieldNames.contains("check-interval-sec")) && getCheckIntervalSec() != null) {
-            healthCheck.setCheckIntervalSec(getCheckIntervalSec());
+        if ((!isUpdate || changedFieldNames.contains("check-interval-sec"))) {
+            if (getCheckIntervalSec() != null) {
+                healthCheck.setCheckIntervalSec(getCheckIntervalSec());
+            } else {
+                healthCheck.clearCheckIntervalSec();
+            }
         }
 
-        if ((!isUpdate || changedFieldNames.contains("description")) && getDescription() != null) {
-            healthCheck.setDescription(getDescription());
+        if ((!isUpdate || changedFieldNames.contains("description"))) {
+            if (getDescription() != null) {
+                healthCheck.setDescription(getDescription());
+            } else {
+                healthCheck.clearDescription();
+            }
         }
 
-        if ((!isUpdate || changedFieldNames.contains("healthy-threshold")) && getHealthyThreshold() != null) {
-            healthCheck.setHealthyThreshold(getHealthyThreshold());
+        if ((!isUpdate || changedFieldNames.contains("healthy-threshold"))) {
+            if (getHealthyThreshold() != null) {
+                healthCheck.setHealthyThreshold(getHealthyThreshold());
+            } else {
+                healthCheck.clearHealthyThreshold();
+            }
         }
 
-        if ((!isUpdate || changedFieldNames.contains("timeout-sec")) && getTimeoutSec() != null) {
-            healthCheck.setTimeoutSec(getTimeoutSec());
+        if ((!isUpdate || changedFieldNames.contains("timeout-sec"))) {
+            if (getTimeoutSec() != null) {
+                healthCheck.setTimeoutSec(getTimeoutSec());
+            } else {
+                healthCheck.clearTimeoutSec();
+            }
         }
 
-        if ((!isUpdate || changedFieldNames.contains("unhealthy-threshold")) && getUnhealthyThreshold() != null) {
-            healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
+        if ((!isUpdate || changedFieldNames.contains("unhealthy-threshold"))) {
+            if (getUnhealthyThreshold() != null) {
+                healthCheck.setUnhealthyThreshold(getUnhealthyThreshold());
+            } else {
+                healthCheck.clearUnhealthyThreshold();
+            }
         }
 
+        healthCheck.clearType();
+        healthCheck.clearHttpHealthCheck();
         if (getHttpHealthCheck() != null) {
             healthCheck.setType(getHttpHealthCheck().getType().name());
             healthCheck.setHttpHealthCheck(getHttpHealthCheck().toHttpHealthCheck());
         }
 
+        healthCheck.clearHttpsHealthCheck();
         if (getHttpsHealthCheck() != null) {
             healthCheck.setType(getHttpsHealthCheck().getType().name());
             healthCheck.setHttpsHealthCheck(getHttpsHealthCheck().toHttpsHealthCheck());
         }
 
+        healthCheck.clearHttp2HealthCheck();
         if (getHttp2HealthCheck() != null) {
             healthCheck.setType(getHttp2HealthCheck().getType().name());
             healthCheck.setHttp2HealthCheck(getHttp2HealthCheck().toHttp2HealthCheck());
         }
 
+        healthCheck.clearSslHealthCheck();
         if (getSslHealthCheck() != null) {
             healthCheck.setType(getSslHealthCheck().getType().name());
             healthCheck.setSslHealthCheck(getSslHealthCheck().toSslHealthCheck());
         }
 
+        healthCheck.clearTcpHealthCheck();
         if (getTcpHealthCheck() != null) {
             healthCheck.setType(getTcpHealthCheck().getType().name());
             healthCheck.setTcpHealthCheck(getTcpHealthCheck().toTcpHealthCheck());

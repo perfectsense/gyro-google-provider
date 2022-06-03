@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.CreateSnapshotDiskRequest;
 import com.google.cloud.compute.v1.CreateSnapshotRegionDiskRequest;
@@ -289,42 +288,20 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
     @Override
     public void copyFrom(Snapshot snapshot) {
         setName(snapshot.getName());
-
-        if (snapshot.hasSelfLink()) {
-            setSelfLink(snapshot.getSelfLink());
-        }
-
-        if (snapshot.hasDescription()) {
-            setDescription(snapshot.getDescription());
-        }
-
-        if (snapshot.hasStatus()) {
-            setStatus(snapshot.getStatus());
-        }
-
-        if (snapshot.hasSourceDiskId()) {
-            setSourceDiskId(snapshot.getSourceDiskId());
-        }
-
-        if (snapshot.hasDiskSizeGb()) {
-            setDiskSizeGb(snapshot.getDiskSizeGb());
-        }
-
-        if (snapshot.hasStorageBytes()) {
-            setStorageBytes(snapshot.getStorageBytes());
-        }
-
-        if (snapshot.hasLabelFingerprint()) {
-            setLabelFingerprint(snapshot.getLabelFingerprint());
-        }
+        setSelfLink(snapshot.getSelfLink());
+        setDescription(snapshot.getDescription());
+        setStatus(snapshot.getStatus());
+        setSourceDiskId(snapshot.getSourceDiskId());
+        setDiskSizeGb(snapshot.getDiskSizeGb());
+        setStorageBytes(snapshot.getStorageBytes());
+        setLabelFingerprint(snapshot.getLabelFingerprint());
+        setLabels(snapshot.getLabelsMap());
+        setStorageLocations(snapshot.getStorageLocationsList());
 
         if (snapshot.hasSourceDisk()) {
             setSourceDisk(findById(DiskResource.class, snapshot.getSourceDisk()));
             setSourceRegionDisk(findById(RegionDiskResource.class, snapshot.getSourceDisk()));
         }
-
-        setLabels(snapshot.getLabelsMap());
-        setStorageLocations(snapshot.getStorageLocationsList());
     }
 
     @Override
@@ -342,7 +319,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
         }
     }
 
-    public void doCreateZoneSnapshot(GyroUI ui, State state) throws Exception {
+    public void doCreateZoneSnapshot(GyroUI ui, State state) {
         try (DisksClient client = createClient(DisksClient.class)) {
             Snapshot.Builder builder = Snapshot.newBuilder().setName(getName());
             builder.putAllLabels(getLabels());
@@ -367,13 +344,14 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
                     .setProject(getProjectId())
                     .setDisk(getSourceDisk().getName())
                     .setSnapshotResource(builder)
+                    .setZone(getSourceDisk().getZone())
                     .build());
 
             waitForCompletion(operation);
         }
     }
 
-    public void doCreateRegionSnapshot(GyroUI ui, State state) throws Exception {
+    public void doCreateRegionSnapshot(GyroUI ui, State state) {
         try (RegionDisksClient client = createClient(RegionDisksClient.class)) {
             Snapshot.Builder builder = Snapshot.newBuilder().setName(getName());
             builder.putAllLabels(getLabels());
@@ -394,12 +372,12 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             builder.setSourceDisk(getSourceRegionDisk().getSelfLink());
 
             Operation operation = client.createSnapshotCallable().call(
-                    CreateSnapshotRegionDiskRequest.newBuilder()
-                        .setProject(getProjectId())
-                        .setDisk(getSourceRegionDisk().getName())
-                        .setSnapshotResource(builder)
-                        .setRegion(getSourceRegionDisk().getRegion())
-                        .build());
+                CreateSnapshotRegionDiskRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setDisk(getSourceRegionDisk().getName())
+                    .setSnapshotResource(builder)
+                    .setRegion(getSourceRegionDisk().getRegion())
+                    .build());
 
             waitForCompletion(operation);
         }
@@ -486,7 +464,7 @@ public class SnapshotResource extends ComputeResource implements Copyable<Snapsh
             snapshot = client.get(GetSnapshotRequest.newBuilder().setProject(getProjectId())
                 .setSnapshot(getName()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

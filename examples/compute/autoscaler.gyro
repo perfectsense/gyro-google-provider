@@ -54,3 +54,4 @@ google::compute-autoscaler autoscaler-example
     instance-group-manager: $(google::compute-instance-group-manager autoscaler-instance-group-manager-example)
     zone: $zone
 end
+@print: $(external-query google::compute-autoscaler { zone: 'us-central1-a' })

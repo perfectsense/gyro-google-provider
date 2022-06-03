@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteHealthCheckRequest;
 import com.google.cloud.compute.v1.GetHealthCheckRequest;
@@ -202,30 +201,12 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
     @Override
     public void copyFrom(HealthCheck model) throws Exception {
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasCheckIntervalSec()) {
-            setCheckIntervalSec(model.getCheckIntervalSec());
-        }
-
-        if (model.hasTimeoutSec()) {
-            setTimeoutSec(model.getTimeoutSec());
-        }
-
-        if (model.hasHealthyThreshold()) {
-            setHealthyThreshold(model.getHealthyThreshold());
-        }
-
-        if (model.hasUnhealthyThreshold()) {
-            setUnhealthyThreshold(model.getUnhealthyThreshold());
-        }
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+        setCheckIntervalSec(model.getCheckIntervalSec());
+        setTimeoutSec(model.getTimeoutSec());
+        setHealthyThreshold(model.getHealthyThreshold());
+        setUnhealthyThreshold(model.getUnhealthyThreshold());
 
         if (model.hasHttpHealthCheck()) {
             setHost(model.getHttpHealthCheck().getHost());
@@ -260,6 +241,7 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
 
             waitForCompletion(operation);
         }
+
         refresh();
     }
 
@@ -276,7 +258,6 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
 
             waitForCompletion(operation);
         }
-        refresh();
     }
 
     @Override
@@ -365,7 +346,7 @@ public class HttpHealthCheckResource extends ComputeResource implements Copyable
                 .setHealthCheck(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

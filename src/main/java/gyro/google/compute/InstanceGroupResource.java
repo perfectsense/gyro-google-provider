@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.AddInstancesInstanceGroupRequest;
 import com.google.cloud.compute.v1.DeleteInstanceGroupRequest;
@@ -341,10 +340,10 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                 .collect(Collectors.toList()));
 
         Operation operation = client.addInstancesCallable().call(AddInstancesInstanceGroupRequest.newBuilder()
-                .setProject(getProjectId())
-                .setZone(getZone())
-                .setInstanceGroup(getName())
-                .setInstanceGroupsAddInstancesRequestResource(builder)
+            .setProject(getProjectId())
+            .setZone(getZone())
+            .setInstanceGroup(getName())
+            .setInstanceGroupsAddInstancesRequestResource(builder)
             .build());
 
         waitForCompletion(operation);
@@ -435,7 +434,7 @@ public class InstanceGroupResource extends ComputeResource implements Copyable<I
                 .setInstanceGroup(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

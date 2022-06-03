@@ -22,9 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.ForwardingRule;
 import com.google.cloud.compute.v1.ForwardingRuleList;
 import com.google.cloud.compute.v1.GlobalForwardingRulesClient;
@@ -76,7 +74,7 @@ public class GlobalForwardingRuleFinder
 
         try {
             forwardingRules.add(client.get(getProjectId(), filters.get("name")));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
@@ -92,16 +90,13 @@ public class GlobalForwardingRuleFinder
         String nextPageToken = null;
 
         do {
-            UnaryCallable<ListGlobalForwardingRulesRequest, GlobalForwardingRulesClient.ListPagedResponse> callable =
-                client.listPagedCallable();
-
             ListGlobalForwardingRulesRequest.Builder builder = ListGlobalForwardingRulesRequest.newBuilder();
 
             if (nextPageToken != null) {
                 builder.setPageToken(nextPageToken);
             }
 
-            GlobalForwardingRulesClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+            GlobalForwardingRulesClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
                 getProjectId()).build());
             forwardingRuleList = pagedResponse.getPage().getResponse();
             nextPageToken = pagedResponse.getNextPageToken();

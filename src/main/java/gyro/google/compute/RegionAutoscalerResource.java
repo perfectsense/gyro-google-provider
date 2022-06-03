@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Optional;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Autoscaler;
 import com.google.cloud.compute.v1.DeleteRegionAutoscalerRequest;
@@ -124,8 +123,6 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
                 .setAutoscaler(getName())
                 .build());
 
-            state.save();
-
             waitForCompletion(operation);
         }
     }
@@ -173,7 +170,7 @@ public class RegionAutoscalerResource extends AbstractAutoscalerResource {
                 .setAutoscaler(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

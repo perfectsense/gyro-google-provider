@@ -24,7 +24,7 @@ google::compute-regional-health-check regional-health-check-example
 
     ssl-health-check
         proxy-header: "PROXY_V1"
-        request-path: "/myapp"
+        request: "/myapp"
         response: "okay"
     end
 end

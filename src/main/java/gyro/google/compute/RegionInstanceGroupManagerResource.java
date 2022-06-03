@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.Data;
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteRegionInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.GetRegionInstanceGroupManagerRequest;
@@ -134,10 +133,10 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
         try (RegionInstanceGroupManagersClient client = createClient(RegionInstanceGroupManagersClient.class)) {
             Operation operation = client.deleteOperationCallable().call(
                 DeleteRegionInstanceGroupManagerRequest.newBuilder()
-                .setProject(getProjectId())
-                .setRegion(getRegion())
-                .setInstanceGroupManager(getName())
-                .build());
+                    .setProject(getProjectId())
+                    .setRegion(getRegion())
+                    .setInstanceGroupManager(getName())
+                    .build());
 
             waitForCompletion(operation);
         }
@@ -163,7 +162,7 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
     }
 
     @Override
-    void patch(InstanceGroupManager instanceGroupManager) throws Exception {
+    void patch(InstanceGroupManager instanceGroupManager) {
         try (RegionInstanceGroupManagersClient client = createClient(RegionInstanceGroupManagersClient.class)) {
             Operation operation = client.patchCallable().call(PatchRegionInstanceGroupManagerRequest.newBuilder()
                 .setProject(getProjectId())
@@ -224,7 +223,7 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
         List<GyroInstance> instances = new ArrayList<>();
 
         try (RegionInstanceGroupManagersClient client = createClient(RegionInstanceGroupManagersClient.class);
-            InstancesClient instancesClient = createClient(InstancesClient.class)
+             InstancesClient instancesClient = createClient(InstancesClient.class)
         ) {
             RegionInstanceGroupManagersClient.ListManagedInstancesPagedResponse response = client
                 .listManagedInstances(getProjectId(), getRegion(), getName());
@@ -264,7 +263,7 @@ public class RegionInstanceGroupManagerResource extends AbstractInstanceGroupMan
                 .setInstanceGroupManager(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

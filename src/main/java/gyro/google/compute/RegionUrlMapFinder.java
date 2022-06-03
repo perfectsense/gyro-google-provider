@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.GetRegionUrlMapRequest;
 import com.google.cloud.compute.v1.ListRegionUrlMapsRequest;
@@ -108,7 +107,7 @@ public class RegionUrlMapFinder extends GoogleFinder<RegionUrlMapsClient, UrlMap
                             urlMaps.add(client.get(GetRegionUrlMapRequest.newBuilder().setUrlMap(name)
                                 .setProject(getProjectId()).setRegion(r).build()));
 
-                        } catch (NotFoundException | InvalidArgumentException ex) {
+                        } catch (NotFoundException ex) {
                             // ignore
                         }
                     }
@@ -133,7 +132,7 @@ public class RegionUrlMapFinder extends GoogleFinder<RegionUrlMapsClient, UrlMap
                 urlMaps.addAll(getUrlMaps(client, filter, region));
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
 
         } finally {

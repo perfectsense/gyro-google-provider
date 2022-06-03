@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.InstanceGroupManagersClient;
 import com.psddev.dari.util.ObjectUtils;
@@ -117,7 +116,7 @@ public class ComputeBackendGroup extends Diffable implements Copyable<String> {
         try (InstanceGroupManagersClient client = parent.getClient()) {
             client.get(project, zone, name);
             return true;
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             return false;
         } catch (GyroException ex) {
             throw ex;

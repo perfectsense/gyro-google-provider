@@ -115,18 +115,9 @@ public abstract class AbstractSslCertificateResource extends ComputeResource imp
     @Override
     public void copyFrom(SslCertificate model) throws Exception {
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasCertificate()) {
-            setCertificate(model.getCertificate());
-        }
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+        setCertificate(model.getCertificate());
     }
 
     protected String readCertificateFile() {

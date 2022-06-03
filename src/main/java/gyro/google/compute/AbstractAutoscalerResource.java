@@ -173,18 +173,9 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
     @Override
     public void copyFrom(Autoscaler model) {
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasRecommendedSize()) {
-            setRecommendedSize(model.getRecommendedSize());
-        }
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+        setRecommendedSize(model.getRecommendedSize());
 
         if (model.hasStatus()) {
             setStatus(Autoscaler.Status.valueOf(model.getStatus()));
@@ -238,7 +229,6 @@ public abstract class AbstractAutoscalerResource extends ComputeResource impleme
         if (autoscaler != null) {
             patch(autoscaler);
         }
-        refresh();
     }
 
     private Autoscaler constructPatchRequest(Set<String> changedFieldNames) {

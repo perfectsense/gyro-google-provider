@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteInstanceRequest;
 import com.google.cloud.compute.v1.GetInstanceRequest;
@@ -123,14 +122,17 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     private List<InstanceAttachedDisk> initializeDisk;
     private Boolean canIpForward;
     private String status;
+    private List<ComputeServiceAccount> serviceAccount;
+    private Map<String, String> metadata;
+    private List<String> tags;
+    private InstanceTemplateResource sourceTemplate;
+
+    // Read-only
     private String hostName;
     private String creationDate;
     private String id;
     private String publicIp;
     private String privateIp;
-    private List<ComputeServiceAccount> serviceAccount;
-    private Map<String, String> metadata;
-    private List<String> tags;
 
     /**
      * The name of the resource when initially creating the resource.
@@ -191,6 +193,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         if (networkInterface == null) {
             networkInterface = new ArrayList<>();
         }
+
         return networkInterface;
     }
 
@@ -199,7 +202,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
-     * If enabled allows this instance to send and receive packets with non-matching destination or source IPs. Defaults to ``false``.
+     * When set to ``true``, this instance is allowed to send and receive packets with non-matching destination or source IPs. Defaults to ``false``.
      */
     public Boolean getCanIpForward() {
         return canIpForward;
@@ -217,6 +220,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         if (disk == null) {
             disk = new ArrayList<>();
         }
+
         return disk;
     }
 
@@ -279,7 +283,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
     }
 
     /**
-     * The status of the instance. Setting a value of `TERMINATED`` will stop the instance while setting the value to ``RUNNING`` will start an instance. See also `instance status <https://cloud.google.com/compute/docs/instances/instance-life-cycle#instance_statuses/>`_.
+     * The status of the instance. Setting a value of ``TERMINATED`` will stop the instance while setting the value to ``RUNNING`` will start an instance. See also `instance status <https://cloud.google.com/compute/docs/instances/instance-life-cycle#instance_statuses/>`_.
      */
     @Updatable
     @ValidStrings({ "RUNNING", "TERMINATED" })
@@ -289,6 +293,58 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    /**
+     * The list of service accounts that are authorized for the instance.
+     */
+    public List<ComputeServiceAccount> getServiceAccount() {
+        if (serviceAccount == null) {
+            serviceAccount = new ArrayList<>();
+        }
+
+        return serviceAccount;
+    }
+
+    public void setServiceAccount(List<ComputeServiceAccount> serviceAccount) {
+        this.serviceAccount = serviceAccount;
+    }
+
+    /**
+     * The metadata of the instance, specified with key/value pairs.
+     * Keys may only contain alphanumeric characters, dashes, and underscores, and must be 1-128 characters in length.
+     * Values must be 0-262144 characters in length.
+     */
+    @Updatable
+    public Map<String, String> getMetadata() {
+        if (metadata == null) {
+            metadata = new HashMap<>();
+        }
+
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    /**
+     * The set of tags for the instance.
+     * All tags for an instance must be unique.
+     */
+    @Updatable
+    @CollectionMax(64)
+    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
+    public List<String> getTags() {
+        if (tags == null) {
+            tags = new ArrayList<>();
+        }
+
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
     }
 
     /**
@@ -349,58 +405,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
     public void setPrivateIp(String privateIp) {
         this.privateIp = privateIp;
-    }
-
-    /**
-     * The list of service accounts that are authorized for the instance.
-     */
-    public List<ComputeServiceAccount> getServiceAccount() {
-        if (serviceAccount == null) {
-            serviceAccount = new ArrayList<>();
-        }
-
-        return serviceAccount;
-    }
-
-    public void setServiceAccount(List<ComputeServiceAccount> serviceAccount) {
-        this.serviceAccount = serviceAccount;
-    }
-
-    /**
-     * The metadata of the instance, specified with key/value pairs.
-     * Keys may only contain alphanumeric characters, dashes, and underscores, and must be 1-128 characters in length.
-     * Values must be 0-262144 characters in length.
-     */
-    @Updatable
-    public Map<String, String> getMetadata() {
-        if (metadata == null) {
-            metadata = new HashMap<>();
-        }
-
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    /**
-     * The set of tags for the instance.
-     * All tags for an instance must be unique.
-     */
-    @Updatable
-    @CollectionMax(64)
-    @Regex(value = "^[a-z]([-a-z0-9]{0,61}[a-z0-9]$)?", message = "only dashes, lowercase letters, or digits. The first character must be a lowercase letter, and the last character cannot be a dash. Each tag must be 1-63 characters.")
-    public List<String> getTags() {
-        if (tags == null) {
-            tags = new ArrayList<>();
-        }
-
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
     }
 
     @Override
@@ -536,7 +540,13 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
 
             if (changedFieldNames.contains("machine-type")) {
                 InstancesSetMachineTypeRequest.Builder builder = InstancesSetMachineTypeRequest.newBuilder()
-                        .setMachineType(getMachineType());
+                    .setMachineType(getMachineType());
+
+                client.stopCallable().call(StopInstanceRequest.newBuilder()
+                    .setProject(getProjectId())
+                    .setZone(getZone())
+                    .setInstance(getName())
+                    .build());
 
                 waitForCompletion(client.setMachineTypeCallable().call(
                     SetMachineTypeInstanceRequest.newBuilder()
@@ -547,8 +557,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                         .build()));
             }
         }
-
-        refresh();
     }
 
     @Override
@@ -569,34 +577,25 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
         setZone(model.getZone().substring(model.getZone().lastIndexOf("/") + 1));
         setSelfLink(model.getSelfLink());
         setLabels(model.getLabelsMap());
+        setDescription(model.getDescription());
+        setMachineType(model.getMachineType());
+        setLabelFingerprint(model.getLabelFingerprint());
+        setCanIpForward(model.getCanIpForward());
+        setCreationDate(model.getCreationTimestamp());
+        setHostName(model.getHostname());
 
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
+        setNetworkInterface(model.getNetworkInterfacesList().stream()
+            .map(networkInterface -> {
+                InstanceNetworkInterface newNetworkInterface = newSubresource(InstanceNetworkInterface.class);
+                newNetworkInterface.copyFrom(networkInterface);
 
-        if (model.hasMachineType()) {
-            setMachineType(model.getMachineType());
-        }
-
-        if (model.hasLabelFingerprint()) {
-            setLabelFingerprint(model.getLabelFingerprint());
-        }
-
-        if (model.hasCanIpForward()) {
-            setCanIpForward(model.getCanIpForward());
-        }
-
-        if (model.hasCreationTimestamp()) {
-            setCreationDate(model.getCreationTimestamp());
-        }
-
-        if (model.hasHostname()) {
-            setHostName(model.getHostname());
-        }
+                return newNetworkInterface;
+            })
+            .collect(Collectors.toList()));
 
         setPrivateIp(getNetworkInterface().get(0).getNetworkIp());
-        setPublicIp(null);
 
+        setPublicIp(null);
         getNetworkInterface().stream()
             .filter(o -> !o.getAccessConfig().isEmpty())
             .map(o -> o.getAccessConfig().get(0))
@@ -618,14 +617,6 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
             || Instance.Status.TERMINATED.name().equals(model.getStatus())) {
             setStatus(model.hasStatus() ? model.getStatus() : null);
         }
-
-        setNetworkInterface(model.getNetworkInterfacesList().stream()
-            .map(networkInterface -> {
-                InstanceNetworkInterface newNetworkInterface = newSubresource(InstanceNetworkInterface.class);
-                newNetworkInterface.copyFrom(networkInterface);
-                return newNetworkInterface;
-            })
-            .collect(Collectors.toList()));
 
         setDisk(model.getDisksList().stream()
             .map(disk -> {
@@ -665,6 +656,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                     Items.Builder builder1 = Items.newBuilder();
                     builder1.setKey(e.getKey());
                     builder1.setValue(e.getValue());
+
                     return builder1.build();
                 })
                 .collect(Collectors.toList())
@@ -742,7 +734,7 @@ public class InstanceResource extends ComputeResource implements GyroInstance, C
                 .setInstance(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

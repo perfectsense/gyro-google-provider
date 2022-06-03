@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteSslPolicyRequest;
 import com.google.cloud.compute.v1.GetSslPolicyRequest;
@@ -214,13 +213,16 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
     public void copyFrom(SslPolicy model) {
         setName(model.getName());
         setEnabledFeatures(model.getEnabledFeaturesList());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
+        setSelfLink(model.getSelfLink());
+        setMinTlsVersion(model.getMinTlsVersion());
+        setProfile(model.getProfile());
 
         if (model.hasDescription()) {
             setDescription(model.getDescription());
+        }
+
+        if (model.hasFingerprint()) {
+            setFingerprint(model.getFingerprint());
         }
 
         setCustomFeatures(null);
@@ -228,19 +230,8 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
             setCustomFeatures(model.getCustomFeaturesList());
         }
 
-        if (model.hasFingerprint()) {
-            setFingerprint(model.getFingerprint());
-        }
-
-        if (model.hasMinTlsVersion()) {
-            setMinTlsVersion(model.getMinTlsVersion());
-        }
-
-        if (model.hasProfile()) {
-            setProfile(model.getProfile());
-        }
-
         List<Warnings> warnings = model.getWarningsList();
+
         getWarning().clear();
         if (!warnings.isEmpty()) {
             setWarning(warnings
@@ -252,6 +243,7 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
                 })
                 .collect(Collectors.toList()));
         }
+
     }
 
     @Override
@@ -294,8 +286,6 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override
@@ -349,7 +339,7 @@ public class SslPolicyResource extends ComputeResource implements Copyable<SslPo
                 .setSslPolicy(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

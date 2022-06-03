@@ -50,4 +50,3 @@ google::compute-region-instance-group-manager region-instance-group-manager-exam
 	target-size: 1
     region: $region
 end
-

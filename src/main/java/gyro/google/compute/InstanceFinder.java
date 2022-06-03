@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListInstancesRequest;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceAggregatedList;
@@ -118,8 +117,6 @@ public class InstanceFinder extends GoogleFinder<InstancesClient, Instance, Inst
         String pageToken = null;
 
         do {
-            UnaryCallable<AggregatedListInstancesRequest, InstanceAggregatedList> callable = client
-                .aggregatedListCallable();
             AggregatedListInstancesRequest.Builder builder = AggregatedListInstancesRequest.newBuilder();
 
             if (pageToken != null) {
@@ -130,7 +127,8 @@ public class InstanceFinder extends GoogleFinder<InstancesClient, Instance, Inst
                 builder.setFilter(filter);
             }
 
-            InstanceAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            InstanceAggregatedList aggregatedList = client.aggregatedList(builder.setProject(getProjectId()).build())
+                .getPage().getResponse();
             pageToken = aggregatedList.getNextPageToken();
 
             if (aggregatedList.getItemsMap() != null) {

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.GetRegionInstanceGroupManagerRequest;
 import com.google.cloud.compute.v1.InstanceGroupManager;
@@ -30,12 +29,12 @@ import com.google.cloud.compute.v1.ListRegionsRequest;
 import com.google.cloud.compute.v1.Region;
 import com.google.cloud.compute.v1.RegionInstanceGroupManagersClient;
 import com.google.cloud.compute.v1.RegionsClient;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.google.GoogleCredentials;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query a region instance group manager.
@@ -89,7 +88,7 @@ public class RegionInstanceGroupManagerFinder
                             instanceGroupManagers.add(client.get(GetRegionInstanceGroupManagerRequest.newBuilder()
                                 .setInstanceGroupManager(name).setProject(getProjectId()).setRegion(r).build()));
 
-                        } catch (NotFoundException | InvalidArgumentException ex) {
+                        } catch (NotFoundException ex) {
                             // ignore
                         }
                     }
@@ -116,7 +115,7 @@ public class RegionInstanceGroupManagerFinder
                 instanceGroupManagers.addAll(getInstanceGroupManagers(client, filter, region));
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
 
         } finally {

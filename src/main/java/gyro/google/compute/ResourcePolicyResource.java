@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteResourcePolicyRequest;
 import com.google.cloud.compute.v1.GetResourcePolicyRequest;
@@ -153,6 +152,25 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
     }
 
     @Override
+    public void copyFrom(ResourcePolicy model) {
+        setName(model.getName());
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+
+        if (model.hasRegion()) {
+            setRegion(Utils.extractName(model.getRegion()));
+        }
+
+        setSnapshotSchedulePolicy(null);
+        if (model.hasSnapshotSchedulePolicy()) {
+            SnapshotSchedulePolicy currentSnapshotSchedulePolicy = newSubresource(SnapshotSchedulePolicy.class);
+            currentSnapshotSchedulePolicy.copyFrom(model.getSnapshotSchedulePolicy());
+
+            setSnapshotSchedulePolicy(currentSnapshotSchedulePolicy);
+        }
+    }
+
+    @Override
     protected boolean doRefresh() throws Exception {
         try (ResourcePoliciesClient client = createClient(ResourcePoliciesClient.class)) {
             ResourcePolicy policy = getResourcePolicy(client);
@@ -207,31 +225,6 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
         }
     }
 
-    @Override
-    public void copyFrom(ResourcePolicy model) {
-        setName(model.getName());
-
-        if (model.hasRegion()) {
-            setRegion(Utils.extractName(model.getRegion()));
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        setSnapshotSchedulePolicy(null);
-        if (model.hasSnapshotSchedulePolicy()) {
-            SnapshotSchedulePolicy currentSnapshotSchedulePolicy = newSubresource(SnapshotSchedulePolicy.class);
-            currentSnapshotSchedulePolicy.copyFrom(model.getSnapshotSchedulePolicy());
-
-            setSnapshotSchedulePolicy(currentSnapshotSchedulePolicy);
-        }
-    }
-
     private ResourcePolicy getResourcePolicy(ResourcePoliciesClient client) {
         ResourcePolicy resourcePolicy = null;
 
@@ -239,7 +232,7 @@ public class ResourcePolicyResource extends ComputeResource implements Copyable<
             resourcePolicy = client.get(GetResourcePolicyRequest.newBuilder().setProject(getProjectId())
                 .setResourcePolicy(getName()).setRegion(getRegion()).build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

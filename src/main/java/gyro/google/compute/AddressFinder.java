@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Address;
 import com.google.cloud.compute.v1.AddressAggregatedList;
 import com.google.cloud.compute.v1.AddressList;
@@ -31,9 +30,9 @@ import com.google.cloud.compute.v1.AddressesClient;
 import com.google.cloud.compute.v1.AddressesScopedList;
 import com.google.cloud.compute.v1.AggregatedListAddressesRequest;
 import com.google.cloud.compute.v1.ListAddressesRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Query for regional addresses.
@@ -87,6 +86,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
     protected List<Address> findGoogle(AddressesClient client, Map<String, String> filters) throws Exception {
         List<Address> addresses = new ArrayList<>();
         String pageToken = null;
+
         try {
             if (filters.containsKey("region")) {
 
@@ -103,6 +103,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
 
                     addresses.addAll(addressList.getItemsList());
                 } while (!StringUtils.isEmpty(pageToken));
+
             } else {
                 addresses.addAll(getAddresses(client, filters.get("filter")));
             }
@@ -110,6 +111,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
         } finally {
             client.close();
         }
+
         return addresses;
     }
 
@@ -118,8 +120,6 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
         String pageToken = null;
 
         do {
-            UnaryCallable<AggregatedListAddressesRequest, AddressAggregatedList> callable = client
-                .aggregatedListCallable();
             AggregatedListAddressesRequest.Builder builder = AggregatedListAddressesRequest.newBuilder();
 
             if (pageToken != null) {
@@ -130,7 +130,8 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
                 builder.setFilter(filter);
             }
 
-            AddressAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            AddressAggregatedList aggregatedList = client.aggregatedList(builder.setProject(getProjectId()).build())
+                .getPage().getResponse();
             pageToken = aggregatedList.getNextPageToken();
 
             if (aggregatedList.getItemsMap() != null) {
@@ -138,6 +139,7 @@ public class AddressFinder extends GoogleFinder<AddressesClient, Address, Addres
                     .map(AddressesScopedList::getAddressesList)
                     .filter(Objects::nonNull)
                     .flatMap(Collection::stream)
+                    .filter(a -> StringUtils.isNotBlank(a.getRegion()))
                     .collect(Collectors.toList()));
             }
 

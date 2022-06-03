@@ -2,15 +2,14 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.GetRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.HealthCheck;
 import com.google.cloud.compute.v1.InsertRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.Operation;
-import com.google.cloud.compute.v1.PatchRegionHealthCheckRequest;
 import com.google.cloud.compute.v1.RegionHealthChecksClient;
+import com.google.cloud.compute.v1.UpdateRegionHealthCheckRequest;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
@@ -98,11 +97,11 @@ import gyro.core.validation.Required;
  *          unhealthy-threshold: 6
  *          region: "us-east1"
  *
- *          ssh-health-check
+ *          ssl-health-check
  *              port: 501
  *              port-name: "custom-port"
  *              proxy-header: "PROXY_V1"
- *              request-path: "/myapp"
+ *              request: "/myapp"
  *              response: "okay"
  *          end
  *      end
@@ -126,9 +125,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     public void copyFrom(HealthCheck model) {
         super.copyFrom(model);
 
-        if (model.hasRegion()) {
-            setRegion(model.getRegion());
-        }
+        setRegion(model.getRegion());
     }
 
     @Override
@@ -149,7 +146,7 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         try (RegionHealthChecksClient client = createClient(RegionHealthChecksClient.class)) {
-            HealthCheck.Builder builder = getHealthCheck(null).toBuilder();
+            HealthCheck.Builder builder = getHealthCheck(null, null).toBuilder();
             builder.setRegion(getRegion());
 
             Operation operation = client.insertCallable().call(InsertRegionHealthCheckRequest.newBuilder()
@@ -167,13 +164,13 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     @Override
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         try (RegionHealthChecksClient client = createClient(RegionHealthChecksClient.class)) {
-            HealthCheck.Builder builder = getHealthCheck(changedFieldNames).toBuilder();
+            HealthCheck.Builder builder = getHealthCheck(changedFieldNames, getRegionHealthCheck(client)).toBuilder();
 
             if (changedFieldNames.contains("region")) {
                 builder.setRegion(getRegion());
             }
 
-            Operation operation = client.patchCallable().call(PatchRegionHealthCheckRequest.newBuilder()
+            Operation operation = client.updateCallable().call(UpdateRegionHealthCheckRequest.newBuilder()
                 .setProject(getProjectId())
                 .setRegion(getRegion())
                 .setHealthCheck(getName())
@@ -182,8 +179,6 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
 
             waitForCompletion(operation);
         }
-
-        refresh();
     }
 
     @Override
@@ -200,19 +195,19 @@ public class RegionalHealthCheckResource extends AbstractHealthCheckResource {
     }
 
     private HealthCheck getRegionHealthCheck(RegionHealthChecksClient client) {
-        HealthCheck autoscaler = null;
+        HealthCheck healthCheck = null;
 
         try {
-            autoscaler = client.get(GetRegionHealthCheckRequest.newBuilder()
+            healthCheck = client.get(GetRegionHealthCheckRequest.newBuilder()
                 .setProject(getProjectId())
                 .setRegion(getRegion())
                 .setHealthCheck(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 
-        return autoscaler;
+        return healthCheck;
     }
 }

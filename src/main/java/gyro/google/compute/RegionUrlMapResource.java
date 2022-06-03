@@ -18,7 +18,6 @@ package gyro.google.compute;
 
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteRegionUrlMapRequest;
 import com.google.cloud.compute.v1.GetRegionUrlMapRequest;
@@ -182,7 +181,7 @@ public class RegionUrlMapResource extends AbstractUrlMapResource {
                 .setUrlMap(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

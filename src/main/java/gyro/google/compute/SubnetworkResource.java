@@ -19,9 +19,9 @@ package gyro.google.compute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import com.google.api.gax.longrunning.OperationFuture;
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.GetSubnetworkRequest;
 import com.google.cloud.compute.v1.InsertSubnetworkRequest;
@@ -31,7 +31,6 @@ import com.google.cloud.compute.v1.SetPrivateIpGoogleAccessSubnetworkRequest;
 import com.google.cloud.compute.v1.Subnetwork;
 import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksSetPrivateIpGoogleAccessRequest;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -228,35 +227,15 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     @Override
     public void copyFrom(Subnetwork model) {
         setName(model.getName());
+        setSelfLink(model.getSelfLink());
+        setDescription(model.getDescription());
+        setIpCidrRange(model.getIpCidrRange());
+        setEnableFlowLogs(model.getEnableFlowLogs());
+        setPrivateIpGoogleAccess(model.getPrivateIpGoogleAccess());
+        setNetwork(findById(NetworkResource.class, model.getNetwork()));
 
         if (model.hasId()) {
             setId(String.valueOf(model.getId()));
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasIpCidrRange()) {
-            setIpCidrRange(model.getIpCidrRange());
-        }
-
-        if (model.hasEnableFlowLogs()) {
-            setEnableFlowLogs(model.getEnableFlowLogs());
-        }
-
-        if (model.hasPrivateIpGoogleAccess()) {
-            setPrivateIpGoogleAccess(model.getPrivateIpGoogleAccess());
-        }
-
-        if (model.hasNetwork()) {
-            setNetwork(findById(
-                NetworkResource.class,
-                model.getNetwork()));
         }
 
         if (model.hasRegion()) {
@@ -357,8 +336,6 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
                     .build());
 
                 waitForCompletion(operation);
-            } catch (Exception ex) {
-                throw new GyroException(ex);
             }
         }
 
@@ -398,14 +375,12 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
     }
 
     @Override
-    public void doDelete(GyroUI ui, State state) {
+    public void doDelete(GyroUI ui, State state) throws ExecutionException, InterruptedException {
         try (SubnetworksClient client = createClient(SubnetworksClient.class)) {
             OperationFuture<Operation, Operation> future = client.deleteAsync(getProjectId(), getRegion(), getName());
             Operation operation = future.get();
 
             waitForCompletion(operation);
-        } catch (Exception ex) {
-            throw new GyroException(ex);
         }
     }
 
@@ -431,7 +406,7 @@ public class SubnetworkResource extends ComputeResource implements Copyable<Subn
                 .setRegion(getRegion())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

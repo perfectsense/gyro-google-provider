@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListForwardingRulesRequest;
 import com.google.cloud.compute.v1.ForwardingRule;
 import com.google.cloud.compute.v1.ForwardingRuleAggregatedList;
@@ -100,9 +98,6 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListForwardingRulesRequest, ForwardingRulesClient.ListPagedResponse> callable = client
-                        .listPagedCallable();
-
                     ListForwardingRulesRequest.Builder builder = ListForwardingRulesRequest.newBuilder()
                         .setRegion(filters.get("region"));
 
@@ -110,7 +105,7 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                         builder.setPageToken(nextPageToken);
                     }
 
-                    ForwardingRulesClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                    ForwardingRulesClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
                         getProjectId())
                         .build());
                     forwardingRuleList = pagedResponse.getPage().getResponse();
@@ -129,7 +124,7 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                 forwardingRules.addAll(getForwardingRules(client));
                 forwardingRules.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
@@ -163,7 +158,7 @@ public class ForwardingRuleFinder extends GoogleFinder<ForwardingRulesClient, Fo
                 .filter(forwardingRule -> forwardingRule.getRegion() != null)
                 .collect(Collectors.toList()));
 
-        } while (nextPageToken != null);
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return forwardingRules;
     }

@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListTargetPoolsRequest;
 import com.google.cloud.compute.v1.ListTargetPoolsRequest;
 import com.google.cloud.compute.v1.TargetPool;
@@ -34,9 +32,9 @@ import com.google.cloud.compute.v1.TargetPoolAggregatedList;
 import com.google.cloud.compute.v1.TargetPoolList;
 import com.google.cloud.compute.v1.TargetPoolsClient;
 import com.google.cloud.compute.v1.TargetPoolsScopedList;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query target pool.
@@ -100,9 +98,6 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListTargetPoolsRequest, TargetPoolsClient.ListPagedResponse> callable = client
-                        .listPagedCallable();
-
                     ListTargetPoolsRequest.Builder builder = ListTargetPoolsRequest.newBuilder()
                         .setRegion(filters.get("region"));
 
@@ -110,9 +105,8 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                         builder.setPageToken(nextPageToken);
                     }
 
-                    TargetPoolsClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
-                        getProjectId())
-                        .build());
+                    TargetPoolsClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
+                        getProjectId()).build());
                     targetPoolList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
@@ -125,7 +119,7 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                 targetPools.addAll(getTargetPools(client));
                 targetPools.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
@@ -159,7 +153,7 @@ public class TargetPoolFinder extends GoogleFinder<TargetPoolsClient, TargetPool
                 .filter(targetPool -> targetPool.getRegion() != null)
                 .collect(Collectors.toList()));
 
-        } while (nextPageToken != null);
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return targetPools;
     }

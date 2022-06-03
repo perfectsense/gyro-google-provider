@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListInstanceGroupsRequest;
 import com.google.cloud.compute.v1.InstanceGroup;
 import com.google.cloud.compute.v1.InstanceGroupAggregatedList;
@@ -100,9 +98,6 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListInstanceGroupsRequest, InstanceGroupsClient.ListPagedResponse> callable = client
-                        .listPagedCallable();
-
                     ListInstanceGroupsRequest.Builder builder = ListInstanceGroupsRequest.newBuilder()
                         .setZone(filters.get("zone"));
 
@@ -110,9 +105,8 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
                         builder.setPageToken(nextPageToken);
                     }
 
-                    InstanceGroupsClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
-                        getProjectId())
-                        .build());
+                    InstanceGroupsClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
+                        getProjectId()).build());
                     forwardingRuleList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
@@ -125,7 +119,7 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
                 instanceGroups.addAll(getInstanceGroups(client));
                 instanceGroups.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
@@ -139,15 +133,14 @@ public class InstanceGroupFinder extends GoogleFinder<InstanceGroupsClient, Inst
         String pageToken = null;
 
         do {
-            UnaryCallable<AggregatedListInstanceGroupsRequest, InstanceGroupAggregatedList> callable = client
-                .aggregatedListCallable();
             AggregatedListInstanceGroupsRequest.Builder builder = AggregatedListInstanceGroupsRequest.newBuilder();
 
             if (pageToken != null) {
                 builder.setPageToken(pageToken);
             }
 
-            InstanceGroupAggregatedList aggregatedList = callable.call(builder.setProject(getProjectId()).build());
+            InstanceGroupAggregatedList aggregatedList = client.aggregatedList(builder.setProject(getProjectId())
+                .build()).getPage().getResponse();
             pageToken = aggregatedList.getNextPageToken();
 
             if (aggregatedList.getItemsMap() != null) {

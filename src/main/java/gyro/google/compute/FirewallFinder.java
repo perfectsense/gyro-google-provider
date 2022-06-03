@@ -20,16 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.Firewall;
 import com.google.cloud.compute.v1.FirewallList;
 import com.google.cloud.compute.v1.FirewallsClient;
 import com.google.cloud.compute.v1.ListFirewallsRequest;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query firewall rue.
@@ -65,9 +63,6 @@ public class FirewallFinder extends GoogleFinder<FirewallsClient, Firewall, Fire
 
         try {
             do {
-                UnaryCallable<ListFirewallsRequest, FirewallsClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
-
                 ListFirewallsRequest.Builder builder = ListFirewallsRequest.newBuilder().setProject(getProjectId());
 
                 if (nextPageToken != null) {
@@ -93,7 +88,7 @@ public class FirewallFinder extends GoogleFinder<FirewallsClient, Firewall, Fire
 
         try {
             firewalls.add(client.get(getProjectId(), filters.get("name")));
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

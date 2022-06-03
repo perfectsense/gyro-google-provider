@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.Image;
 import com.google.cloud.compute.v1.ImageList;
 import com.google.cloud.compute.v1.ImagesClient;
@@ -100,16 +101,20 @@ public class ImageFinder extends GoogleFinder<ImagesClient, Image, ImageResource
 
     @Override
     protected List<Image> findGoogle(ImagesClient client, Map<String, String> filters) throws Exception {
-        List<Image> images;
+        List<Image> images = new ArrayList<>();
 
-        if (filters.containsKey("name")) {
-            images = Collections.singletonList(client.get(
-                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("name")));
-        } else if (filters.containsKey("family")) {
-            images = Collections.singletonList(client.getFromFamily(
-                filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("family")));
-        } else {
-            images = listImages(client, filters.get("project"));
+        try {
+            if (filters.containsKey("name")) {
+                images = Collections.singletonList(client.get(
+                    filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("name")));
+            } else if (filters.containsKey("family")) {
+                images = Collections.singletonList(client.getFromFamily(
+                    filters.containsKey("project") ? filters.get("project") : getProjectId(), filters.get("family")));
+            } else {
+                images = listImages(client, filters.get("project"));
+            }
+        } catch (NotFoundException ex) {
+            // ignore
         }
 
         return images;

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.compute.v1.DeleteInstanceTemplateRequest;
 import com.google.cloud.compute.v1.GetInstanceTemplateRequest;
@@ -232,8 +231,8 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
 
         try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
             waitForCompletion(client.insertCallable().call(InsertInstanceTemplateRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setInstanceTemplateResource(builder)
+                .setProject(getProjectId())
+                .setInstanceTemplateResource(builder)
                 .build()));
         }
 
@@ -249,8 +248,8 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
     public void doDelete(GyroUI ui, State state) throws Exception {
         try (InstanceTemplatesClient client = createClient(InstanceTemplatesClient.class)) {
             waitForCompletion(client.deleteCallable().call(DeleteInstanceTemplateRequest.newBuilder()
-                    .setProject(getProjectId())
-                    .setInstanceTemplate(getName())
+                .setProject(getProjectId())
+                .setInstanceTemplate(getName())
                 .build()));
         }
     }
@@ -262,19 +261,17 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
 
     public void copyFrom(InstanceTemplate model, boolean refreshProperties) {
         setName(model.getName());
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
 
         if (refreshProperties) {
-            ComputeInstanceProperties diffableProperties = Optional.ofNullable(getProperties())
-                .orElse(newSubresource(ComputeInstanceProperties.class));
-            diffableProperties.copyFrom(model.getProperties());
+            ComputeInstanceProperties diffableProperties = null;
+
+            if (model.hasProperties()) {
+                diffableProperties = Optional.ofNullable(getProperties())
+                    .orElse(newSubresource(ComputeInstanceProperties.class));
+                diffableProperties.copyFrom(model.getProperties());
+            }
 
             setProperties(diffableProperties);
         }
@@ -311,7 +308,7 @@ public class InstanceTemplateResource extends ComputeResource implements Copyabl
                 .setInstanceTemplate(getName())
                 .build());
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         }
 

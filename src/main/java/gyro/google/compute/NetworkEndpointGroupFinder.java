@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListNetworkEndpointGroupsRequest;
 import com.google.cloud.compute.v1.ListNetworkEndpointGroupsRequest;
 import com.google.cloud.compute.v1.NetworkEndpointGroup;
@@ -34,9 +32,9 @@ import com.google.cloud.compute.v1.NetworkEndpointGroupAggregatedList;
 import com.google.cloud.compute.v1.NetworkEndpointGroupList;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsClient;
 import com.google.cloud.compute.v1.NetworkEndpointGroupsScopedList;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query network-endpoint-group.
@@ -46,7 +44,7 @@ import gyro.google.GoogleFinder;
  *
  * .. code-block:: gyro
  *
- *    network-endpoint-group: $(external-query google::compute-network-endpoint-group { name: 'network-endpoint-group-example', region: 'us-east1-b'})
+ *    network-endpoint-group: $(external-query google::compute-network-endpoint-group { name: 'network-endpoint-group-example', zone: 'us-east1-b'})
  */
 @Type("compute-network-endpoint-group")
 public class NetworkEndpointGroupFinder
@@ -102,9 +100,6 @@ public class NetworkEndpointGroupFinder
                 String nextPageToken = null;
 
                 do {
-                    UnaryCallable<ListNetworkEndpointGroupsRequest, NetworkEndpointGroupsClient.ListPagedResponse> callable = client
-                        .listPagedCallable();
-
                     ListNetworkEndpointGroupsRequest.Builder builder = ListNetworkEndpointGroupsRequest.newBuilder()
                         .setZone(filters.get("zone"));
 
@@ -112,9 +107,8 @@ public class NetworkEndpointGroupFinder
                         builder.setPageToken(nextPageToken);
                     }
 
-                    NetworkEndpointGroupsClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
-                        getProjectId())
-                        .build());
+                    NetworkEndpointGroupsClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
+                        getProjectId()).build());
                     networkEndpointGroupList = pagedResponse.getPage().getResponse();
                     nextPageToken = pagedResponse.getNextPageToken();
 
@@ -127,7 +121,7 @@ public class NetworkEndpointGroupFinder
                 networkEndpointGroups.addAll(getNetworkEndpointGroups(client));
                 networkEndpointGroups.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();

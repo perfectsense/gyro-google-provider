@@ -168,29 +168,17 @@ public abstract class AbstractAddressResource extends ComputeResource implements
     @Override
     public void copyFrom(Address model) {
         setName(model.getName());
-
-        if (model.hasDescription()) {
-            setDescription(model.getDescription());
-        }
-
-        if (model.hasSelfLink()) {
-            setSelfLink(model.getSelfLink());
-        }
+        setDescription(model.getDescription());
+        setSelfLink(model.getSelfLink());
+        setAddress(model.getAddress());
+        setPrefixLength(model.getPrefixLength());
 
         if (model.hasStatus()) {
             setStatus(Address.Status.valueOf(model.getStatus()));
         }
 
-        if (model.hasAddress()) {
-            setAddress(model.getAddress());
-        }
-
         if (model.hasAddressType()) {
             setAddressType(Address.AddressType.valueOf(model.getAddressType()));
-        }
-
-        if (model.hasPrefixLength()) {
-            setPrefixLength(model.getPrefixLength());
         }
 
         if (model.hasPurpose()) {

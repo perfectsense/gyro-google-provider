@@ -22,9 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.AggregatedListSubnetworksRequest;
 import com.google.cloud.compute.v1.ListSubnetworksRequest;
 import com.google.cloud.compute.v1.Subnetwork;
@@ -32,9 +30,9 @@ import com.google.cloud.compute.v1.SubnetworkAggregatedList;
 import com.google.cloud.compute.v1.SubnetworkList;
 import com.google.cloud.compute.v1.SubnetworksClient;
 import com.google.cloud.compute.v1.SubnetworksScopedList;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Query subnet.
@@ -76,34 +74,11 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
 
     @Override
     protected List<Subnetwork> findAllGoogle(SubnetworksClient client) throws Exception {
-        List<Subnetwork> subnetworks = new ArrayList<>();
-        String nextPageToken = null;
-
         try {
-            do {
-                UnaryCallable<AggregatedListSubnetworksRequest, SubnetworkAggregatedList> callable = client
-                    .aggregatedListCallable();
-                AggregatedListSubnetworksRequest.Builder builder = AggregatedListSubnetworksRequest.newBuilder();
-
-                if (nextPageToken != null) {
-                    builder.setPageToken(nextPageToken);
-                }
-
-                SubnetworkAggregatedList aggregatedList = callable.call(builder
-                    .setProject(getProjectId()).build());
-                nextPageToken = aggregatedList.getNextPageToken();
-
-                subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
-                    .map(SubnetworksScopedList::getSubnetworksList)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-            } while (!StringUtils.isEmpty(nextPageToken));
-
+            return getAllSubnets(client);
         } finally {
             client.close();
         }
-
-        return subnetworks;
     }
 
     @Override
@@ -117,13 +92,17 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
 
                 } else {
                     SubnetworkList subnetworkList;
-                    String nextPageToken;
+                    String nextPageToken = null;
 
                     do {
-                        UnaryCallable<ListSubnetworksRequest, SubnetworksClient.ListPagedResponse> callable = client
-                            .listPagedCallable();
-                        SubnetworksClient.ListPagedResponse listPagedResponse = callable.call(ListSubnetworksRequest.newBuilder()
-                            .setProject(getProjectId()).setRegion(filters.get("region")).build());
+                        ListSubnetworksRequest.Builder builder = ListSubnetworksRequest.newBuilder()
+                            .setProject(getProjectId()).setRegion(filters.get("region"));
+
+                        if (nextPageToken != null) {
+                            builder.setPageToken(nextPageToken);
+                        }
+
+                        SubnetworksClient.ListPagedResponse listPagedResponse = client.list(builder.build());
                         subnetworkList = listPagedResponse.getPage().getResponse();
                         nextPageToken = listPagedResponse.getNextPageToken();
 
@@ -133,13 +112,40 @@ public class SubnetworkFinder extends GoogleFinder<SubnetworksClient, Subnetwork
 
                     } while (!StringUtils.isEmpty(nextPageToken));
                 }
+            } else {
+                subnetworks.addAll(getAllSubnets(client).stream().filter(s -> s.getName().equals(filters.get("name")))
+                    .collect(Collectors.toList()));
             }
 
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
         }
+
+        return subnetworks;
+    }
+
+    private List<Subnetwork> getAllSubnets(SubnetworksClient client) {
+        List<Subnetwork> subnetworks = new ArrayList<>();
+        String nextPageToken = null;
+
+        do {
+            AggregatedListSubnetworksRequest.Builder builder = AggregatedListSubnetworksRequest.newBuilder();
+
+            if (nextPageToken != null) {
+                builder.setPageToken(nextPageToken);
+            }
+
+            SubnetworkAggregatedList aggregatedList = client.aggregatedList(builder
+                .setProject(getProjectId()).build()).getPage().getResponse();
+            nextPageToken = aggregatedList.getNextPageToken();
+
+            subnetworks.addAll(aggregatedList.getItemsMap().values().stream()
+                .map(SubnetworksScopedList::getSubnetworksList)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
+        } while (!StringUtils.isEmpty(nextPageToken));
 
         return subnetworks;
     }

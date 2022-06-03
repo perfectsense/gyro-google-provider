@@ -23,9 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.UnaryCallable;
 import com.google.cloud.compute.v1.BackendService;
 import com.google.cloud.compute.v1.BackendServiceList;
 import com.google.cloud.compute.v1.ListRegionBackendServicesRequest;
@@ -100,7 +98,7 @@ public class RegionBackendServiceFinder
                 backendServices.addAll(getBackendServices(client, getRegions()));
                 backendServices.removeIf(d -> !d.getName().equals(filters.get("name")));
             }
-        } catch (NotFoundException | InvalidArgumentException ex) {
+        } catch (NotFoundException ex) {
             // ignore
         } finally {
             client.close();
@@ -117,9 +115,6 @@ public class RegionBackendServiceFinder
         for (String region : regions) {
             String nextPageToken = null;
             do {
-                UnaryCallable<ListRegionBackendServicesRequest, RegionBackendServicesClient.ListPagedResponse> callable = client
-                    .listPagedCallable();
-
                 ListRegionBackendServicesRequest.Builder builder = ListRegionBackendServicesRequest.newBuilder()
                     .setRegion(region);
 
@@ -127,7 +122,7 @@ public class RegionBackendServiceFinder
                     builder.setPageToken(nextPageToken);
                 }
 
-                RegionBackendServicesClient.ListPagedResponse pagedResponse = callable.call(builder.setProject(
+                RegionBackendServicesClient.ListPagedResponse pagedResponse = client.list(builder.setProject(
                     getProjectId()).build());
                 backendServiceList = pagedResponse.getPage().getResponse();
                 nextPageToken = pagedResponse.getNextPageToken();
