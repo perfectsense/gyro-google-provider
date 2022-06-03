@@ -1,3 +1,11 @@
+## 1.0.0 (June 3rd, 2022)
+
+ENHANCEMENTS:
+
+* [231](https://github.com/perfectsense/gyro-google-provider/pull/231): Implement support for GKE v1beta1 resources.
+* [232](https://github.com/perfectsense/gyro-google-provider/pull/232): Update google cloud libraries bom to 24.2.0
+* [239](https://github.com/perfectsense/gyro-google-provider/pull/239): Supporting google client creation outside of the provider.
+
 ## 0.99.3 (January 28th, 2022)
 
 ENHANCEMENTS:
@@ -17,7 +25,6 @@ ISSUES FIXED:
 
 * [207](https://github.com/perfectsense/gyro-google-provider/issues/207): Fix service account role refresh error on custom role.
 * [226](https://github.com/perfectsense/gyro-google-provider/pull/226): Allow uniform bucket level access to be updated.
-
 
 ## 0.99.2 (August 25th, 2020)
 
