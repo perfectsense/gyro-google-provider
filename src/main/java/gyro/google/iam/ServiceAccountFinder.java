@@ -16,15 +16,18 @@
 
 package gyro.google.iam;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.api.services.iam.v1.Iam;
+import com.google.api.services.iam.v1.model.ListServiceAccountsResponse;
 import com.google.api.services.iam.v1.model.ServiceAccount;
 import gyro.core.Type;
 import gyro.google.GoogleFinder;
 import gyro.google.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Query service account.
@@ -66,33 +69,60 @@ public class ServiceAccountFinder extends GoogleFinder<Iam, ServiceAccount, Serv
 
     @Override
     protected List<ServiceAccount> findAllGoogle(Iam client) throws Exception {
-        return client.projects()
-            .serviceAccounts()
-            .list(String.format("projects/%s", getProjectId()))
-            .execute()
-            .getAccounts();
+        String token = null;
+        List<ServiceAccount> serviceAccounts = new ArrayList<>();
+
+        do {
+            Iam.Projects.ServiceAccounts.List list = client.projects()
+                .serviceAccounts()
+                .list(String.format("projects/%s", getProjectId()))
+                .setPageSize(20);
+
+            if (!StringUtils.isBlank(token)) {
+                list = list.setPageToken(token);
+            }
+
+            ListServiceAccountsResponse response = list.execute();
+            token = response.getNextPageToken();
+
+            serviceAccounts.addAll(response.getAccounts());
+        } while (!StringUtils.isBlank(token));
+
+        return serviceAccounts;
     }
 
     @Override
     protected List<ServiceAccount> findGoogle(Iam client, Map<String, String> filters) throws Exception {
-        List<ServiceAccount> accounts = client.projects()
-            .serviceAccounts()
-            .list(String.format("projects/%s", getProjectId()))
-            .execute()
-            .getAccounts();
+        String token = null;
+        List<ServiceAccount> serviceAccounts = new ArrayList<>();
 
-        if (filters.containsKey("name")) {
-            accounts = accounts.stream()
-                .filter(a -> Utils.getServiceAccountNameFromId(a.getName()).equals(filters.get("name")))
-                .collect(
-                    Collectors.toList());
-        }
+        do {
+            Iam.Projects.ServiceAccounts.List list = client.projects()
+                .serviceAccounts()
+                .list(String.format("projects/%s", getProjectId()))
+                .setPageSize(20);
 
-        if (filters.containsKey("display-name")) {
-            accounts = accounts.stream()
-                .filter(a -> a.getDisplayName().equals(filters.get("display-name"))).collect(Collectors.toList());
-        }
+            if (!StringUtils.isBlank(token)) {
+                list = list.setPageToken(token);
+            }
 
-        return accounts;
+            ListServiceAccountsResponse response = list.execute();
+            token = response.getNextPageToken();
+
+            if (filters.containsKey("name")) {
+                serviceAccounts.addAll(response.getAccounts().stream()
+                    .filter(a -> Utils.getServiceAccountNameFromId(a.getName()).equals(filters.get("name")))
+                    .collect(
+                        Collectors.toList()));
+            }
+
+            if (filters.containsKey("display-name")) {
+                serviceAccounts.addAll(response.getAccounts().stream()
+                    .filter(a -> a.getDisplayName().equals(filters.get("display-name"))).collect(Collectors.toList()));
+            }
+
+        } while (!StringUtils.isBlank(token));
+
+        return serviceAccounts;
     }
 }
