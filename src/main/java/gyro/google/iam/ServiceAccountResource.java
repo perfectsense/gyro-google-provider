@@ -33,6 +33,7 @@ import com.google.api.services.iam.v1.Iam;
 import com.google.api.services.iam.v1.model.CreateServiceAccountRequest;
 import com.google.api.services.iam.v1.model.DisableServiceAccountRequest;
 import com.google.api.services.iam.v1.model.EnableServiceAccountRequest;
+import com.google.api.services.iam.v1.model.ListServiceAccountsResponse;
 import com.google.api.services.iam.v1.model.ServiceAccount;
 import gyro.core.GyroUI;
 import gyro.core.Type;
@@ -46,6 +47,7 @@ import gyro.core.validation.Required;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 import gyro.google.util.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Creates a service account.
@@ -172,12 +174,30 @@ public class ServiceAccountResource extends GoogleResource implements Copyable<S
     @Override
     protected boolean doRefresh() throws Exception {
         Iam client = createClient(Iam.class);
+        String token = null;
+        ServiceAccount serviceAccount;
 
-        ServiceAccount serviceAccount = client.projects()
-            .serviceAccounts()
-            .list(String.format("projects/%s", getProjectId()))
-            .execute()
-            .getAccounts().stream().filter(r -> r.getName().equals(getId())).findFirst().orElse(null);
+        do {
+            Iam.Projects.ServiceAccounts.List list = client.projects()
+                .serviceAccounts()
+                .list(String.format("projects/%s", getProjectId()))
+                .setPageSize(20);
+
+            if (!StringUtils.isBlank(token)) {
+                list = list.setPageToken(token);
+            }
+
+            ListServiceAccountsResponse response = list.execute();
+            token = response.getNextPageToken();
+
+            serviceAccount = response.getAccounts().stream()
+                .filter(r -> r.getName().equals(getId())).findFirst().orElse(null);
+
+            if (serviceAccount != null) {
+                token = null;
+            }
+
+        } while (!StringUtils.isBlank(token));
 
         if (serviceAccount == null) {
             return false;
