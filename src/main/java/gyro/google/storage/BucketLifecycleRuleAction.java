@@ -17,9 +17,10 @@
 package gyro.google.storage;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
-import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.Action;
+import com.google.cloud.storage.BucketInfo.LifecycleRule.LifecycleAction;
+import com.google.cloud.storage.BucketInfo.LifecycleRule.SetStorageClassLifecycleAction;
+import com.google.cloud.storage.StorageClass;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -27,7 +28,7 @@ import gyro.google.Copyable;
 /**
  * The action to take.
  */
-public class BucketLifecycleRuleAction extends Diffable implements Copyable<Action> {
+public class BucketLifecycleRuleAction extends Diffable implements Copyable<LifecycleAction> {
 
     private String storageClass;
     private String type;
@@ -67,16 +68,24 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
             values.add(String.format("type = %s", getType()));
         }
 
-        return values.stream().collect(Collectors.joining("; "));
+        return String.join("; ", values);
     }
 
     @Override
-    public void copyFrom(Action model) {
-        setStorageClass(model.getStorageClass());
-        setType(model.getType());
+    public void copyFrom(LifecycleAction model) {
+        setType(model.getActionType());
+
+        if (model instanceof SetStorageClassLifecycleAction) {
+            SetStorageClassLifecycleAction action = (SetStorageClassLifecycleAction) model;
+            setStorageClass(action.getStorageClass().name());
+        }
     }
 
-    public Action toLifecycleRuleAction() {
-        return new Action().setStorageClass(getStorageClass()).setType(getType());
+    public LifecycleAction toLifecycleRuleAction() {
+        if (getType().equals("Delete")) {
+            return LifecycleAction.newDeleteAction();
+        } else {
+            return LifecycleAction.newSetStorageClassAction(StorageClass.valueOf(getStorageClass()));
+        }
     }
 }

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.storage.model.Bucket.Lifecycle;
+import com.google.cloud.storage.BucketInfo;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
@@ -29,7 +29,7 @@ import gyro.google.Copyable;
 /**
  * The Buckets lifecycle configuration.
  */
-public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
+public class BucketLifecycle extends Diffable implements Copyable<BucketInfo> {
 
     private List<BucketLifecycleRule> rule;
 
@@ -52,18 +52,16 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
         this.rule = rule;
     }
 
-    public void copyFrom(Lifecycle model) {
+    public void copyFrom(BucketInfo model) {
         getRule().clear();
-        if (model.getRule() != null) {
-            setRule(model.getRule().stream()
-                .map(r -> {
-                    BucketLifecycleRule bucketLifecycleRule = newSubresource(BucketLifecycleRule.class);
-                    bucketLifecycleRule.copyFrom(r);
-                    return bucketLifecycleRule;
-                })
-                .collect(Collectors.toList())
-            );
-        }
+        setRule(model.getLifecycleRules().stream()
+            .map(r -> {
+                BucketLifecycleRule bucketLifecycleRule = newSubresource(BucketLifecycleRule.class);
+                bucketLifecycleRule.copyFrom(r);
+                return bucketLifecycleRule;
+            })
+            .collect(Collectors.toList())
+        );
     }
 
     @Override
@@ -71,10 +69,9 @@ public class BucketLifecycle extends Diffable implements Copyable<Lifecycle> {
         return "";
     }
 
-    public Lifecycle toLifecycle() {
-        return new Lifecycle()
-            .setRule(getRule().stream()
+    public List<BucketInfo.LifecycleRule> toLifecycle() {
+        return getRule().stream()
                 .map(BucketLifecycleRule::toLifecycleRule)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
     }
 }

@@ -16,7 +16,7 @@
 
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket.IamConfiguration;
+import com.google.cloud.storage.BucketInfo;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
@@ -24,7 +24,7 @@ import gyro.google.Copyable;
 /**
  * Subresource for setting the Bucket IamConfiguration configuration to a Bucket.
  */
-public class BucketIamConfiguration extends Diffable implements Copyable<IamConfiguration> {
+public class BucketIamConfiguration extends Diffable implements Copyable<BucketInfo.IamConfiguration> {
 
     private BucketUniformBucketLevelAccess uniformBucketLevelAccess;
 
@@ -48,16 +48,17 @@ public class BucketIamConfiguration extends Diffable implements Copyable<IamConf
     }
 
     @Override
-    public void copyFrom(IamConfiguration model) {
+    public void copyFrom(BucketInfo.IamConfiguration model) {
         BucketUniformBucketLevelAccess bucketUniformBucketLevelAccess = newSubresource(BucketUniformBucketLevelAccess.class);
-        bucketUniformBucketLevelAccess.copyFrom(model.getUniformBucketLevelAccess());
+        bucketUniformBucketLevelAccess.copyFrom(model);
         setUniformBucketLevelAccess(bucketUniformBucketLevelAccess);
     }
 
-    public IamConfiguration toBucketIamConfiguration() {
-        return new IamConfiguration()
-            .setUniformBucketLevelAccess(getUniformBucketLevelAccess() == null
+    public BucketInfo.IamConfiguration toBucketIamConfiguration() {
+        return BucketInfo.IamConfiguration.newBuilder()
+            .setIsUniformBucketLevelAccessEnabled(getUniformBucketLevelAccess() == null
                 ? null
-                : getUniformBucketLevelAccess().toIamConfigurationUniformBucketLevelAccess());
+                : getUniformBucketLevelAccess().getEnabled())
+            .build();
     }
 }

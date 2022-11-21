@@ -16,15 +16,16 @@
 
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket.Lifecycle.Rule;
+import com.google.cloud.storage.BucketInfo.LifecycleRule;
 import gyro.core.resource.Diffable;
+import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 /**
  * The Buckets lifecycle configuration.
  */
-public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
+public class BucketLifecycleRule extends Diffable implements Copyable<LifecycleRule> {
 
     private BucketLifecycleRuleAction action;
     private BucketLifecycleRuleCondition condition;
@@ -49,6 +50,7 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
      * @subresource gyro.google.storage.BucketLifecycleRuleCondition
      */
     @Required
+    @Updatable
     public BucketLifecycleRuleCondition getCondition() {
         return condition;
     }
@@ -66,7 +68,7 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
     }
 
     @Override
-    public void copyFrom(Rule model) {
+    public void copyFrom(LifecycleRule model) {
         BucketLifecycleRuleAction bucketLifecycleRuleAction = newSubresource(BucketLifecycleRuleAction.class);
         bucketLifecycleRuleAction.copyFrom(model.getAction());
         setAction(bucketLifecycleRuleAction);
@@ -76,9 +78,7 @@ public class BucketLifecycleRule extends Diffable implements Copyable<Rule> {
         setCondition(bucketLifecycleRuleCondition);
     }
 
-    public Rule toLifecycleRule() {
-        return new Rule()
-            .setAction(getAction().toLifecycleRuleAction())
-            .setCondition(getCondition().toLifecycleRuleCondition());
+    public LifecycleRule toLifecycleRule() {
+        return new LifecycleRule(getAction().toLifecycleRuleAction(), getCondition().toLifecycleRuleCondition());
     }
 }

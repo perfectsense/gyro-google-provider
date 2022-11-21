@@ -34,6 +34,8 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.ClientSettings;
 import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.auth.Credentials;
@@ -67,6 +69,8 @@ public class GoogleCredentials extends Credentials {
                 .map(clientClass::cast)
                 .orElseThrow(() -> new GyroException(
                     String.format("Unable to create %s client", clientClass.getSimpleName())));
+        } else if (Storage.class.isAssignableFrom(clientClass)) {
+            return (T) getStorageClient();
         } else {
             return getNonGeneralizedClient(clientClass);
         }
@@ -113,6 +117,13 @@ public class GoogleCredentials extends Credentials {
         }
     }
 
+    public Storage getStorageClient() {
+        return StorageOptions.newBuilder()
+            .setCredentials(getGoogleCredentials())
+            .build()
+            .getService();
+    }
+
     private <T, E extends ClientSettings> T getNonGeneralizedClient(Class<T> clientClass) {
         try {
             Class<E> settingsClass = (Class<E>) clientClass.getDeclaredField("settings").getType();
@@ -120,7 +131,7 @@ public class GoogleCredentials extends Credentials {
             return (T) clientClass.getDeclaredMethod("create", settingsClass).invoke(null, newBuilder
                 .setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials())).build());
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | IOException | NoSuchFieldException ex) {
-            throw new GyroException(String.format("Unable to create %s client", clientClass.getSimpleName()));
+            throw new GyroException(String.format("Unable to create %s client", clientClass), ex);
         }
     }
 

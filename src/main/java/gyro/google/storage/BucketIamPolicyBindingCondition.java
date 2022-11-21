@@ -16,7 +16,7 @@
 
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Expr;
+import com.google.cloud.Condition;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
@@ -25,7 +25,7 @@ import gyro.google.Copyable;
 /*
  *   The Bucket's IAM policy binding condition configuration.
  */
-public class BucketIamPolicyBindingCondition extends Diffable implements Copyable<Expr> {
+public class BucketIamPolicyBindingCondition extends Diffable implements Copyable<Condition> {
 
     private String description;
     private String expression;
@@ -73,13 +73,17 @@ public class BucketIamPolicyBindingCondition extends Diffable implements Copyabl
     }
 
     @Override
-    public void copyFrom(Expr model) {
+    public void copyFrom(Condition model) {
         setDescription(model.getDescription());
         setExpression(model.getExpression());
         setTitle(model.getTitle());
     }
 
-    public Expr toCondition() {
-        return new Expr().setDescription(getDescription()).setExpression(getExpression()).setTitle(getTitle());
+    public Condition toCondition() {
+        return Condition.newBuilder()
+            .setDescription(getDescription())
+            .setExpression(getExpression())
+            .setTitle(getTitle())
+            .build();
     }
 }
