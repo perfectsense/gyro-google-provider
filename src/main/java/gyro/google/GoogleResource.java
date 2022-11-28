@@ -58,14 +58,17 @@ public abstract class GoogleResource extends Resource {
         RETRY:
         try {
             return doRefresh();
-        } catch (IllegalStateException ise) {
-            if (ise.getMessage().contains(OAUTH_ERROR)) {
-                credentials(GoogleCredentials.class).refresh();
-                break RETRY;
+        } catch (IllegalStateException | GyroException ex) {
+            Throwable cause = ex;
+            while (cause != null) {
+                if (cause instanceof IllegalStateException && cause.getMessage().contains(OAUTH_ERROR)) {
+                    credentials(GoogleCredentials.class).refresh();
+                    break RETRY;
+                }
+
+                cause = cause.getCause();
             }
 
-            throw ise;
-        } catch (GyroException ex) {
             throw ex;
         } catch (GoogleJsonResponseException je) {
             if (je.getStatusCode() == 404 || (je.getDetails() != null && je.getDetails().getCode() == 404)) {
