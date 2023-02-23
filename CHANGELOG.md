@@ -1,3 +1,9 @@
+## 1.0.1 (February, 2023)
+
+ISSUES FIXED:
+
+* [244](https://github.com/perfectsense/gyro-google-provider/pull/244): Fix Service account refresh issue.
+
 ## 1.0.0 (June 3rd, 2022)
 
 ENHANCEMENTS:
