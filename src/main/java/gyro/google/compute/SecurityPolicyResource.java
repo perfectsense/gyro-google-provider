@@ -76,6 +76,8 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     private List<SecurityPolicyRule> rule;
     private SecurityPolicyRule defaultRule;
     private String fingerprint;
+    private SecurityPolicyAdaptiveProtection adaptiveProtectionConfig;
+    private SecurityPolicyAdvancedOptions advancedOptionsConfig;
 
     // Read-only
     private String selfLink;
@@ -144,6 +146,30 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
     public void setFingerprint(String fingerprint) {
         this.fingerprint = fingerprint;
+    }
+
+    /**
+     * Adaptive protection config for this security policy.
+     */
+    @Updatable
+    public SecurityPolicyAdaptiveProtection getAdaptiveProtectionConfig() {
+        return adaptiveProtectionConfig;
+    }
+
+    public void setAdaptiveProtectionConfig(SecurityPolicyAdaptiveProtection adaptiveProtectionConfig) {
+        this.adaptiveProtectionConfig = adaptiveProtectionConfig;
+    }
+
+    /**
+     * Advanced option config for this security policy.
+     */
+    @Updatable
+    public SecurityPolicyAdvancedOptions getAdvancedOptionsConfig() {
+        return advancedOptionsConfig;
+    }
+
+    public void setAdvancedOptionsConfig(SecurityPolicyAdvancedOptions advancedOptionsConfig) {
+        this.advancedOptionsConfig = advancedOptionsConfig;
     }
 
     /**
@@ -232,6 +258,22 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
                 getRule().add(securityPolicyRule);
             }
         });
+
+        setAdaptiveProtectionConfig(null);
+        SecurityPolicyAdaptiveProtection adaptiveProtection = newSubresource(
+            SecurityPolicyAdaptiveProtection.class);
+        if (model.hasAdaptiveProtectionConfig()) {
+            adaptiveProtection.copyFrom(model.getAdaptiveProtectionConfig());
+            setAdaptiveProtectionConfig(adaptiveProtection);
+        }
+
+        setAdvancedOptionsConfig(null);
+        SecurityPolicyAdvancedOptions advancedOptions = newSubresource(
+            SecurityPolicyAdvancedOptions.class);
+        if (model.hasAdvancedOptionsConfig()) {
+            advancedOptions.copyFrom(model.getAdvancedOptionsConfig());
+            setAdvancedOptionsConfig(advancedOptions);
+        }
     }
 
     private SecurityPolicy toSecurityPolicy() {
@@ -248,6 +290,14 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
         if (getFingerprint() != null) {
             builder.setFingerprint(getFingerprint());
+        }
+
+        if (getAdaptiveProtectionConfig() != null) {
+            builder.setAdaptiveProtectionConfig(getAdaptiveProtectionConfig().toAdaptiveProtection());
+        }
+
+        if (getAdvancedOptionsConfig() != null) {
+            builder.setAdvancedOptionsConfig(getAdvancedOptionsConfig().toAdvancedOptions());
         }
 
         return builder.build();
