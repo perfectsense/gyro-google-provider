@@ -77,6 +77,8 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     private SecurityPolicyRule defaultRule;
     private String fingerprint;
     private SecurityPolicyAdaptiveProtection adaptiveProtectionConfig;
+
+    // TODO: Not yet supported in UI
     private SecurityPolicyAdvancedOptions advancedOptionsConfig;
 
     // Read-only
@@ -150,6 +152,8 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
     /**
      * Adaptive protection config for this security policy.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyAdaptiveProtection
      */
     @Updatable
     public SecurityPolicyAdaptiveProtection getAdaptiveProtectionConfig() {
@@ -162,6 +166,8 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
     /**
      * Advanced option config for this security policy.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyAdvancedOptions
      */
     @Updatable
     public SecurityPolicyAdvancedOptions getAdvancedOptionsConfig() {

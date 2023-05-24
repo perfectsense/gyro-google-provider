@@ -16,6 +16,8 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.google.cloud.compute.v1.AddRuleSecurityPolicyRequest;
@@ -29,7 +31,9 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
+import org.apache.commons.lang3.StringUtils;
 
 public class SecurityPolicyRule extends ComputeResource
     implements Copyable<com.google.cloud.compute.v1.SecurityPolicyRule> {
@@ -39,6 +43,9 @@ public class SecurityPolicyRule extends ComputeResource
     private String action;
     private Boolean preview;
     private SecurityPolicyRuleMatcher match;
+    private SecurityPolicyRuleHttpHeaderActionConfig headerAction;
+    private SecurityPolicyRuleRedirectOptionsConfig redirectConfig;
+    private SecurityPolicyRuleRateLimitOptionsConfig rateLimitConfig;
 
     /**
      * The description of the security policy rule.
@@ -69,7 +76,7 @@ public class SecurityPolicyRule extends ComputeResource
      */
     @Updatable
     @Required
-    @ValidStrings({ "allow", "deny(403)", "deny(404)", "deny(502)" })
+    @ValidStrings({ "allow", "deny(403)", "deny(404)", "deny(502)", "rate_based_ban", "redirect", "throttle" })
     public String getAction() {
         return action;
     }
@@ -79,10 +86,14 @@ public class SecurityPolicyRule extends ComputeResource
     }
 
     /**
-     * The preview flag indicates that this rule is not enforced.
+     * The preview flag indicates that this rule is not enforced. Defaults to ``false``.
      */
     @Updatable
     public Boolean getPreview() {
+        if (preview == null) {
+            preview = false;
+        }
+
         return preview;
     }
 
@@ -105,9 +116,52 @@ public class SecurityPolicyRule extends ComputeResource
         this.match = match;
     }
 
+    /**
+     * The header action to take for this rule.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRuleHttpHeaderActionConfig
+     */
+    @Updatable
+    public SecurityPolicyRuleHttpHeaderActionConfig getHeaderAction() {
+        return headerAction;
+    }
+
+    public void setHeaderAction(SecurityPolicyRuleHttpHeaderActionConfig headerAction) {
+        this.headerAction = headerAction;
+    }
+
+    /**
+     * The redirect configuration for this rule.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRuleRedirectOptionsConfig
+     */
+    @Updatable
+    public SecurityPolicyRuleRedirectOptionsConfig getRedirectConfig() {
+        return redirectConfig;
+    }
+
+    public void setRedirectConfig(SecurityPolicyRuleRedirectOptionsConfig redirectConfig) {
+        this.redirectConfig = redirectConfig;
+    }
+
+    /**
+     * The rate limit configuration for this rule.
+     *
+     * @subresource gyro.google.compute.SecurityPolicyRuleRateLimitOptionsConfig
+     */
+    @Updatable
+    public SecurityPolicyRuleRateLimitOptionsConfig getRateLimitConfig() {
+        return rateLimitConfig;
+    }
+
+    public void setRateLimitConfig(SecurityPolicyRuleRateLimitOptionsConfig rateLimitConfig) {
+        this.rateLimitConfig = rateLimitConfig;
+    }
+
     @Override
     public String primaryKey() {
-        return "with priority " + getPriority();
+        return String.format("%swith priority %s",
+            (StringUtils.isBlank(getDescription()) ? "" : String.format("(%s) ", getDescription())), getPriority());
     }
 
     com.google.cloud.compute.v1.SecurityPolicyRule toSecurityPolicyRule() {
@@ -132,6 +186,18 @@ public class SecurityPolicyRule extends ComputeResource
 
         if (getPreview() != null) {
             builder.setPreview(getPreview());
+        }
+
+        if (getHeaderAction() != null) {
+            builder.setHeaderAction(getHeaderAction().toSecurityPolicyRuleHttpHeaderAction());
+        }
+
+        if (getRedirectConfig() != null) {
+            builder.setRedirectOptions(getRedirectConfig().toSecurityPolicyRuleRedirectOptions());
+        }
+
+        if (getRateLimitConfig() != null) {
+            builder.setRateLimitOptions(getRateLimitConfig().toSecurityPolicyRuleRateLimitOptions());
         }
 
         return builder.build();
@@ -161,6 +227,33 @@ public class SecurityPolicyRule extends ComputeResource
             matcher.copyFrom(model.getMatch());
 
             setMatch(matcher);
+        }
+
+        setHeaderAction(null);
+        if (model.hasHeaderAction()) {
+            SecurityPolicyRuleHttpHeaderActionConfig headerActionConfig = newSubresource(
+                SecurityPolicyRuleHttpHeaderActionConfig.class);
+            headerActionConfig.copyFrom(model.getHeaderAction());
+
+            setHeaderAction(headerActionConfig);
+        }
+
+        setRedirectConfig(null);
+        if (model.hasRedirectOptions()) {
+            SecurityPolicyRuleRedirectOptionsConfig redirectOptionsConfig = newSubresource(
+                SecurityPolicyRuleRedirectOptionsConfig.class);
+            redirectOptionsConfig.copyFrom(model.getRedirectOptions());
+
+            setRedirectConfig(redirectOptionsConfig);
+        }
+
+        setRateLimitConfig(null);
+        if (model.hasRateLimitOptions()) {
+            SecurityPolicyRuleRateLimitOptionsConfig rateLimitOptionsConfig = newSubresource(
+                SecurityPolicyRuleRateLimitOptionsConfig.class);
+            rateLimitOptionsConfig.copyFrom(model.getRateLimitOptions());
+
+            setRateLimitConfig(rateLimitOptionsConfig);
         }
     }
 
@@ -206,6 +299,30 @@ public class SecurityPolicyRule extends ComputeResource
                 builder.setMatch(getMatch().toSecurityPolicyRuleMatcher());
             }
 
+            if (changedFieldNames.contains("header-action")) {
+                if (getHeaderAction() == null) {
+                    builder.clearHeaderAction();
+                } else {
+                    builder.setHeaderAction(getHeaderAction().toSecurityPolicyRuleHttpHeaderAction());
+                }
+            }
+
+            if (changedFieldNames.contains("redirect-config")) {
+                if (getRedirectConfig() == null) {
+                    builder.clearRedirectOptions();
+                } else {
+                    builder.setRedirectOptions(getRedirectConfig().toSecurityPolicyRuleRedirectOptions());
+                }
+            }
+
+            if (changedFieldNames.contains("rate-limit-config")) {
+                if (getRateLimitConfig() == null) {
+                    builder.clearRateLimitOptions();
+                } else {
+                    builder.setRateLimitOptions(getRateLimitConfig().toSecurityPolicyRuleRateLimitOptions());
+                }
+            }
+
             SecurityPolicyResource securityPolicyResource = (SecurityPolicyResource) this.parentResource();
             Operation operation = client.patchRuleCallable().call(
                 PatchRuleSecurityPolicyRequest.newBuilder()
@@ -234,5 +351,43 @@ public class SecurityPolicyRule extends ComputeResource
                 waitForCompletion(operation);
             }
         }
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (!"allow".equals(getAction()) && getHeaderAction() != null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "'header-action' can only be set when 'action' is set to 'allow'."));
+        }
+
+        if (!"redirect".equals(getAction()) && getRedirectConfig() != null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "'redirect-config' can only be set when 'action' is set to 'redirect'."));
+        } else if ("redirect".equals(getAction()) && getRedirectConfig() == null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "'redirect-config' is required when 'action' is set to 'redirect'."));
+        }
+
+        if ((!"rate_based_ban".equals(getAction()) && !"throttle".equals(getAction())) && getRateLimitConfig() != null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "'rate-limit-config' can only be set when 'action' is set to 'rate_based_ban' or 'throttle'."));
+        } else if (getAction().matches("rate_based_ban|throttle") && getRateLimitConfig() == null) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "'rate-limit-config' is required when 'action' is set to 'rate_based_ban' or 'throttle'."));
+        }
+
+        return errors;
     }
 }
