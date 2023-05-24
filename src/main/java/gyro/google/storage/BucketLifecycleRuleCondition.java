@@ -17,11 +17,13 @@
 package gyro.google.storage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.google.api.client.util.DateTime;
-import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.Condition;
+import com.google.cloud.storage.BucketInfo.LifecycleRule.LifecycleCondition;
+import com.google.cloud.storage.StorageClass;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -29,12 +31,14 @@ import gyro.google.Copyable;
 /**
  * The condition(s) under which the action will be taken.
  */
-public class BucketLifecycleRuleCondition extends Diffable implements Copyable<Condition> {
+public class BucketLifecycleRuleCondition extends Diffable implements Copyable<LifecycleCondition> {
 
     private Integer age;
     private String createdBefore;
     private Boolean isLive;
     private List<String> matchesStorageClass;
+    private List<String> matchesPrefix;
+    private List<String> matchesSuffix;
     private Integer numNewerVersions;
 
     /**
@@ -93,6 +97,22 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
         this.numNewerVersions = numNewerVersions;
     }
 
+    public List<String> getMatchesPrefix() {
+        return matchesPrefix;
+    }
+
+    public void setMatchesPrefix(List<String> matchesPrefix) {
+        this.matchesPrefix = matchesPrefix;
+    }
+
+    public List<String> getMatchesSuffix() {
+        return matchesSuffix;
+    }
+
+    public void setMatchesSuffix(List<String> matchesSuffix) {
+        this.matchesSuffix = matchesSuffix;
+    }
+
     @Override
     public String primaryKey() {
         ArrayList<String> values = new ArrayList<>();
@@ -111,28 +131,35 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
         }
 
         if (getMatchesStorageClass() != null) {
-            values.add(String.format("matches-storage-class = [%s]", getMatchesStorageClass().stream()
-                .collect(Collectors.joining(", "))));
+            values.add(String.format("matches-storage-class = [%s]", String.join(", ", getMatchesStorageClass())));
         }
 
-        return values.stream().collect(Collectors.joining("; "));
+        return String.join("; ", values);
     }
 
     @Override
-    public void copyFrom(Condition model) {
+    public void copyFrom(LifecycleCondition model) {
         setAge(model.getAge());
         setCreatedBefore(model.getCreatedBefore() == null ? null : model.getCreatedBefore().toStringRfc3339());
         setIsLive(model.getIsLive());
-        setMatchesStorageClass(model.getMatchesStorageClass());
-        setNumNewerVersions(model.getNumNewerVersions());
+        setNumNewerVersions(model.getNumberOfNewerVersions());
     }
 
-    public Condition toLifecycleRuleCondition() {
-        return new Condition()
+    public LifecycleCondition toLifecycleRuleCondition() {
+        List<StorageClass> storageClasses = getMatchesStorageClass() == null
+            ? Collections.emptyList()
+            : getMatchesStorageClass().stream()
+                .map(StorageClass::valueOf)
+                .collect(Collectors.toList());
+
+        return LifecycleCondition.newBuilder()
             .setAge(getAge())
             .setCreatedBefore(getCreatedBefore() == null ? null : DateTime.parseRfc3339(getCreatedBefore()))
             .setIsLive(getIsLive())
-            .setMatchesStorageClass(getMatchesStorageClass())
-            .setNumNewerVersions(getNumNewerVersions());
+            .setMatchesStorageClass(storageClasses)
+            .setNumberOfNewerVersions(getNumNewerVersions())
+            .setMatchesPrefix(getMatchesPrefix())
+            .setMatchesSuffix(getMatchesSuffix())
+            .build();
     }
 }

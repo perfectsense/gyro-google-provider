@@ -25,10 +25,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.google.api.client.util.Data;
-import com.google.api.services.storage.Storage;
-import com.google.api.services.storage.model.Bucket;
-import com.google.api.services.storage.model.Policy;
+import com.google.cloud.Policy;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.BucketInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageClass;
 import gyro.core.GyroUI;
 import gyro.core.Type;
 import gyro.core.resource.Id;
@@ -440,11 +441,8 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Override
     public boolean doRefresh() throws Exception {
         Storage storage = createClient(Storage.class);
-        Bucket bucket = storage.buckets()
-            .get(getName())
-            .setProjection("full")
-            .execute();
 
+        Bucket bucket = storage.get(getName());
         if (bucket == null) {
             return false;
         }
@@ -457,40 +455,45 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Override
     public void doCreate(GyroUI ui, State state) throws Exception {
         Storage storage = createClient(Storage.class);
-        Bucket bucket = new Bucket();
+        BucketInfo.Builder bucketBuilder = Bucket.newBuilder(getName());
 
-        bucket.setName(getName());
-        bucket.setLabels(getLabels());
-        bucket.setLocation(getLocation());
-        bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
-        bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
-        bucket.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
-        bucket.setIamConfiguration(
+        bucketBuilder.setName(getName());
+        bucketBuilder.setLabels(getLabels());
+        bucketBuilder.setLocation(getLocation());
+        bucketBuilder.setDefaultEventBasedHold(getDefaultEventBasedHold());
+        bucketBuilder.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
+        bucketBuilder.setIamConfiguration(
             getIamConfiguration() == null ? null : getIamConfiguration().toBucketIamConfiguration());
-        bucket.setLifecycle(getLifecycle() == null ? null : getLifecycle().toLifecycle());
-        bucket.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
-        bucket.setRetentionPolicy(
-            getRetentionPolicy() == null ? null : getRetentionPolicy().toBucketRententionPolicy());
-        bucket.setStorageClass(getStorageClass());
-        bucket.setVersioning(getVersioning() == null ? null : getVersioning().toBucketVersioning());
-        bucket.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
+        bucketBuilder.setLifecycleRules(getLifecycle() == null ? null : getLifecycle().toLifecycle());
+        bucketBuilder.setLogging(getLogging() == null ? null : getLogging().toBucketLogging());
+        bucketBuilder.setRetentionPeriod(
+            getRetentionPolicy() == null ? null : getRetentionPolicy().getRetentionPeriod());
+        bucketBuilder.setStorageClass(StorageClass.valueOf(getStorageClass()));
+        bucketBuilder.setVersioningEnabled(getVersioning() == null ? null : getVersioning().getEnabled());
+        //bucketBuilder.setWebsite(getWebsite() == null ? null : getWebsite().toBucketWebsite());
+        //bucketBuilder.setBilling(getBilling() == null ? null : getBilling().toBucketBilling());
 
-        Storage.Buckets.Insert insert = storage.buckets()
-            .insert(getProjectId(), bucket)
-            .setUserProject(getUserProject())
-            .setProjection("full");
+        BucketInfo bucketInfo = bucketBuilder.build();
+
+        List<Storage.BucketTargetOption> options = new ArrayList<>();
+        if (getUserProject() != null) {
+            options.add(Storage.BucketTargetOption.userProject(getUserProject()));
+        }
+        options.add(Storage.BucketTargetOption.projection("full"));
 
         if (getIamConfiguration() != null
             && getIamConfiguration().getUniformBucketLevelAccess() != null
             && Boolean.FALSE.equals(getIamConfiguration().getUniformBucketLevelAccess().getEnabled())) {
-            insert.setPredefinedAcl(getPredefinedAcl()).setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl());
+
+            options.add(Storage.BucketTargetOption.predefinedAcl(Storage.PredefinedAcl.valueOf(getPredefinedAcl())));
+            options.add(Storage.BucketTargetOption.predefinedDefaultObjectAcl(Storage.PredefinedAcl.valueOf(getPredefinedDefaultObjectAcl())));
         }
 
-        bucket = insert.execute();
+        Bucket bucket = storage.create(bucketInfo, options.toArray(new Storage.BucketTargetOption[0]));
 
         if (getIamPolicy() != null) {
             state.save();
-            storage.buckets().setIamPolicy(getName(), getIamPolicy().toPolicy()).execute();
+            storage.setIamPolicy(getName(), getIamPolicy().toPolicy());
         }
 
         copyFrom(bucket);
@@ -500,87 +503,89 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     public void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         Storage storage = createClient(Storage.class);
         BucketResource currentResource = (BucketResource) current;
-        Bucket bucket = new Bucket();
+
+        Bucket.Builder bucketBuilder = storage.get(getName()).toBuilder();
 
         if (changedFieldNames.contains("labels")) {
             // To remove an entry you must pass the key with a Data.NULL_STRING value.
             Map<String, String> updateLabels = new HashMap<>();
-            currentResource.getLabels().forEach((key, value) -> updateLabels.put(key, Data.NULL_STRING));
+            currentResource.getLabels().forEach((key, value) -> updateLabels.put(key, ""));
             updateLabels.putAll(getLabels());
-            bucket.setLabels(updateLabels);
+            bucketBuilder.setLabels(updateLabels);
         }
 
         if (changedFieldNames.contains("location")) {
-            bucket.setLocation(getLocation());
+            bucketBuilder.setLocation(getLocation());
         }
 
         if (changedFieldNames.contains("default-event-based-hold")) {
-            bucket.setDefaultEventBasedHold(getDefaultEventBasedHold());
+            bucketBuilder.setDefaultEventBasedHold(getDefaultEventBasedHold());
         }
 
         if (changedFieldNames.contains("cors")) {
-            bucket.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
+            bucketBuilder.setCors(getCors().stream().map(BucketCors::toBucketCors).collect(Collectors.toList()));
         }
 
         if (changedFieldNames.contains("billing")) {
-            bucket.setBilling(
-                getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
+            //bucketBuilder.setBilling(
+            //    getBilling() == null ? Data.nullOf(Bucket.Billing.class) : getBilling().toBucketBilling());
         }
 
         if (changedFieldNames.contains("iam-configuration")) {
-            bucket.setIamConfiguration(getIamConfiguration() == null
-                ? Data.nullOf(Bucket.IamConfiguration.class)
-                : getIamConfiguration().toBucketIamConfiguration());
+            bucketBuilder.setIamConfiguration(getIamConfiguration().toBucketIamConfiguration());
         }
 
         if (changedFieldNames.contains("lifecycle")) {
-            bucket.setLifecycle(
-                getLifecycle() == null ? Data.nullOf(Bucket.Lifecycle.class) : getLifecycle().toLifecycle());
+            bucketBuilder.setLifecycleRules(getLifecycle().toLifecycle());
         }
 
         if (changedFieldNames.contains("logging")) {
-            bucket.setLogging(
-                getLogging() == null ? Data.nullOf(Bucket.Logging.class) : getLogging().toBucketLogging());
+            bucketBuilder.setLogging(getLogging().toBucketLogging());
         }
 
         if (changedFieldNames.contains("retention-policy")) {
-            bucket.setRetentionPolicy(getRetentionPolicy() == null
-                ? Data.nullOf(Bucket.RetentionPolicy.class)
-                : getRetentionPolicy().toBucketRententionPolicy());
+            bucketBuilder.setRetentionPeriod(getRetentionPolicy().getRetentionPeriod());
         }
 
         if (changedFieldNames.contains("storage-class")) {
-            bucket.setStorageClass(getStorageClass());
+            bucketBuilder.setStorageClass(StorageClass.valueOf(getStorageClass()));
         }
 
         if (changedFieldNames.contains("versioning")) {
-            bucket.setVersioning(
-                getVersioning() == null ? Data.nullOf(Bucket.Versioning.class) : getVersioning().toBucketVersioning());
+            bucketBuilder.setVersioningEnabled(getVersioning().getEnabled());
         }
 
         if (changedFieldNames.contains("website")) {
-            bucket.setWebsite(
-                getWebsite() == null ? Data.nullOf(Bucket.Website.class) : getWebsite().toBucketWebsite());
+            //bucketBuilder.setWebsite(getWebsite().toBucketWebsite());
         }
 
-        Storage.Buckets.Patch patch = storage.buckets()
-            .patch(getName(), bucket)
-            .setUserProject(getUserProject())
-            .setProjection("full");
+        List<Storage.BucketTargetOption> options = new ArrayList<>();
+        if (getUserProject() != null) {
+            options.add(Storage.BucketTargetOption.userProject(getUserProject()));
+        }
+        options.add(Storage.BucketTargetOption.projection("full"));
 
         if (getIamConfiguration() != null
             && getIamConfiguration().getUniformBucketLevelAccess() != null
             && Boolean.FALSE.equals(getIamConfiguration().getUniformBucketLevelAccess().getEnabled())) {
-           patch.setPredefinedAcl(getPredefinedAcl()).setPredefinedDefaultObjectAcl(getPredefinedDefaultObjectAcl());
+
+            if (getPredefinedAcl() != null) {
+                options.add(Storage.BucketTargetOption.predefinedAcl(
+                    Storage.PredefinedAcl.valueOf(getPredefinedAcl().toUpperCase())));
+
+                bucketBuilder.setAcl(null);
+            } else if (getPredefinedDefaultObjectAcl() != null) {
+                options.add(Storage.BucketTargetOption.predefinedDefaultObjectAcl(
+                    Storage.PredefinedAcl.valueOf(getPredefinedDefaultObjectAcl().toUpperCase())));
+            }
         }
 
-        bucket = patch.execute();
+        Bucket bucket = bucketBuilder.build();
+        bucket.update(options.toArray(new Storage.BucketTargetOption[0]));
 
-        if (changedFieldNames.contains("iam-policy") && getIamPolicy() != null) {
-            storage.buckets()
-                .setIamPolicy(
-                    getName(),
-                    getIamPolicy().toPolicy()).execute();
+        if (getIamPolicy() != null) {
+            state.save();
+            storage.setIamPolicy(getName(), getIamPolicy().toPolicy());
         }
 
         copyFrom(bucket);
@@ -589,8 +594,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     @Override
     public void doDelete(GyroUI ui, State state) throws Exception {
         Storage storage = createClient(Storage.class);
-        storage.buckets().delete(getName())
-            .execute();
+
+        Bucket bucket = storage.get(getName());
+        bucket.delete();
     }
 
     @Override
@@ -622,19 +628,19 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
     public void copyFrom(Bucket model) throws Exception {
         Storage storage = createClient(Storage.class);
 
-        setId(model.getId());
+        setId(model.getGeneratedId());
         setName(model.getName());
         setLabels(model.getLabels());
         setLocation(model.getLocation());
-        setStorageClass(model.getStorageClass());
+        setStorageClass(model.getStorageClass().name());
         setSelfLink(model.getSelfLink());
 
-        setBilling(null);
-        if (model.getBilling() != null) {
-            BucketBilling bucketBilling = newSubresource(BucketBilling.class);
-            bucketBilling.copyFrom(model.getBilling());
-            setBilling(bucketBilling);
-        }
+        //setBilling(null);
+        //if (model.getBilling() != null) {
+        //    BucketBilling bucketBilling = newSubresource(BucketBilling.class);
+        //    bucketBilling.copyFrom(model.getBilling());
+        //    setBilling(bucketBilling);
+        //}
 
         setIamConfiguration(null);
         if (model.getIamConfiguration() != null) {
@@ -644,9 +650,9 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         }
 
         setLifecycle(null);
-        if (model.getLifecycle() != null) {
+        if (model.getLifecycleRules() != null) {
             BucketLifecycle bucketLifecycle = newSubresource(BucketLifecycle.class);
-            bucketLifecycle.copyFrom(model.getLifecycle());
+            bucketLifecycle.copyFrom(model);
             setLifecycle(bucketLifecycle);
         }
 
@@ -658,25 +664,25 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         }
 
         setRetentionPolicy(null);
-        if (model.getRetentionPolicy() != null) {
+        if (model.getRetentionPeriod() != null) {
             BucketRetentionPolicy policy = newSubresource(BucketRetentionPolicy.class);
-            policy.copyFrom(model.getRetentionPolicy());
+            policy.setRetentionPeriod(model.getRetentionPeriod());
             setRetentionPolicy(policy);
         }
 
         setVersioning(null);
-        if (model.getVersioning() != null) {
+        if (model.versioningEnabled() != null) {
             BucketVersioning bucketVersioning = newSubresource(BucketVersioning.class);
-            bucketVersioning.copyFrom(model.getVersioning());
+            bucketVersioning.setEnabled(model.versioningEnabled());
             setVersioning(bucketVersioning);
         }
 
-        setWebsite(null);
-        if (model.getWebsite() != null) {
-            BucketWebsite bucketWebsite = newSubresource(BucketWebsite.class);
-            bucketWebsite.copyFrom(model.getWebsite());
-            setWebsite(bucketWebsite);
-        }
+        //setWebsite(null);
+        //if (model.getWebsite() != null) {
+        //    BucketWebsite bucketWebsite = newSubresource(BucketWebsite.class);
+        //    bucketWebsite.copyFrom(model.getWebsite());
+        //    setWebsite(bucketWebsite);
+        //}
 
         getCors().clear();
         if (model.getCors() != null) {
@@ -691,10 +697,7 @@ public class BucketResource extends GoogleResource implements Copyable<Bucket> {
         }
 
         setIamPolicy(null);
-        Policy iamPolicy = storage.buckets()
-            .getIamPolicy(getName())
-            .set("optionsRequestedPolicyVersion", 3)
-            .execute();
+        Policy iamPolicy = storage.getIamPolicy(getName());
         if (iamPolicy != null) {
             BucketIamPolicy bucketIamPolicy = newSubresource(BucketIamPolicy.class);
             bucketIamPolicy.copyFrom(iamPolicy);

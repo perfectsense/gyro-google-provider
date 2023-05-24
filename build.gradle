@@ -65,7 +65,7 @@ configurations {
 dependencies {
     api 'gyro:gyro-core:1.1.2'
 
-    implementation enforcedPlatform('com.google.cloud:libraries-bom:24.2.0')
+    implementation enforcedPlatform('com.google.cloud:libraries-bom:26.1.5')
     // XXX: com.google.apis:google-api-services-iam:v1-rev316-1.25.0 uses older version of com.google.api-client:google-api-client
     implementation 'com.google.api-client:google-api-client:1.31.5'
     implementation 'com.google.apis:google-api-services-iam:v1-rev316-1.25.0'
@@ -76,7 +76,8 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-container'
     implementation 'com.google.cloud:google-cloud-storage'
     implementation 'com.google.cloud:google-cloud-pubsub'
-    implementation 'com.google.cloud:google-cloud-artifact-registry:0.2.1'
+    implementation 'com.google.cloud:google-cloud-artifact-registry'
+    implementation 'com.google.javascript:closure-compiler:v20221102'
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
 
     gyroDoclet "gyro:gyro-doclet:1.0.0"

@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.storage.model.Expr;
-import com.google.api.services.storage.model.Policy;
+import com.google.cloud.Binding;
+import com.google.cloud.Condition;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
@@ -30,7 +30,7 @@ import gyro.google.Copyable;
 /*
  *   The Bucket's IAM policy binding configuration.
  */
-public class BucketIamPolicyBinding extends Diffable implements Copyable<Policy.Bindings> {
+public class BucketIamPolicyBinding extends Diffable implements Copyable<Binding> {
 
     private String role;
     private List<String> members;
@@ -87,11 +87,11 @@ public class BucketIamPolicyBinding extends Diffable implements Copyable<Policy.
     }
 
     @Override
-    public void copyFrom(Policy.Bindings model) {
+    public void copyFrom(Binding model) {
         setRole(model.getRole());
         setCondition(null);
         if (model.getCondition() != null) {
-            Expr condition = model.getCondition();
+            Condition condition = model.getCondition();
             BucketIamPolicyBindingCondition iamCondition = newSubresource(BucketIamPolicyBindingCondition.class);
             iamCondition.copyFrom(condition);
             setCondition(iamCondition);
@@ -103,14 +103,15 @@ public class BucketIamPolicyBinding extends Diffable implements Copyable<Policy.
         }
     }
 
-    public Policy.Bindings toBinding() {
-        Policy.Bindings policyBinding = new Policy.Bindings();
-        policyBinding.setMembers(getMembers());
-        policyBinding.setRole(getRole());
+    public Binding toBinding() {
+        Binding.Builder builder = Binding.newBuilder()
+            .setRole(getRole())
+            .setMembers(getMembers());
+
         if (getCondition() != null) {
-            policyBinding.setCondition(getCondition().toCondition());
+            builder.setCondition(getCondition().toCondition());
         }
 
-        return policyBinding;
+        return builder.build();
     }
 }

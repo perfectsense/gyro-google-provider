@@ -16,7 +16,7 @@
 
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket.Logging;
+import com.google.cloud.storage.BucketInfo;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
@@ -24,7 +24,7 @@ import gyro.google.Copyable;
 /**
  * The bucket's logging configuration setting the destination bucket and optional name prefix for the current bucket's logs.
  */
-public class BucketLogging extends Diffable implements Copyable<Logging> {
+public class BucketLogging extends Diffable implements Copyable<BucketInfo.Logging> {
 
     private BucketResource logBucket;
     private String logObjectPrefix;
@@ -59,14 +59,15 @@ public class BucketLogging extends Diffable implements Copyable<Logging> {
     }
 
     @Override
-    public void copyFrom(Logging model) {
+    public void copyFrom(BucketInfo.Logging model) {
         setLogBucket(model.getLogBucket() != null ? findById(BucketResource.class, model.getLogBucket()) : null);
         setLogObjectPrefix(model.getLogObjectPrefix());
     }
 
-    public Logging toBucketLogging() {
-        return new Logging()
+    public BucketInfo.Logging toBucketLogging() {
+        return BucketInfo.Logging.newBuilder()
             .setLogBucket(getLogBucket() != null ? getLogBucket().getName() : null)
-            .setLogObjectPrefix(getLogObjectPrefix());
+            .setLogObjectPrefix(getLogObjectPrefix())
+            .build();
     }
 }

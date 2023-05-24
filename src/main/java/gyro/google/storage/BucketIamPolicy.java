@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.storage.model.Policy;
+import com.google.cloud.Policy;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -86,12 +86,13 @@ public class BucketIamPolicy extends Diffable implements Copyable<Policy> {
     @Override
     public void copyFrom(Policy model) {
         setVersion(model.getVersion());
-        setResourceId(model.getResourceId());
+
         getBindings().clear();
         if (model.getBindings() != null) {
-            setBindings(model.getBindings().stream().map(binding -> {
+            setBindings(model.getBindingsList().stream().map(binding -> {
                     BucketIamPolicyBinding iamBinding = newSubresource(BucketIamPolicyBinding.class);
                     iamBinding.copyFrom(binding);
+
                     return iamBinding;
                 }).collect(Collectors.toList())
             );
@@ -99,7 +100,9 @@ public class BucketIamPolicy extends Diffable implements Copyable<Policy> {
     }
 
     public Policy toPolicy() {
-        return new Policy().setVersion(3).setResourceId(getResourceId())
-            .setBindings(getBindings().stream().map(BucketIamPolicyBinding::toBinding).collect(Collectors.toList()));
+        return Policy.newBuilder()
+            .setVersion(3)
+            .setBindings(getBindings().stream().map(BucketIamPolicyBinding::toBinding).collect(Collectors.toList()))
+            .build();
     }
 }

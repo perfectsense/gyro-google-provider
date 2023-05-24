@@ -16,8 +16,7 @@
 
 package gyro.google.storage;
 
-import com.google.api.services.storage.model.Bucket;
-import com.google.api.services.storage.model.Bucket.IamConfiguration.UniformBucketLevelAccess;
+import com.google.cloud.storage.BucketInfo;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.google.Copyable;
@@ -25,7 +24,7 @@ import gyro.google.Copyable;
 /**
  * UniformBucketLevelAccess configuration for a Bucket.
  */
-public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<UniformBucketLevelAccess> {
+public class BucketUniformBucketLevelAccess extends Diffable implements Copyable<BucketInfo.IamConfiguration> {
 
     private Boolean enabled;
 
@@ -46,11 +45,13 @@ public class BucketUniformBucketLevelAccess extends Diffable implements Copyable
     }
 
     @Override
-    public void copyFrom(UniformBucketLevelAccess model) {
-        setEnabled(model.getEnabled());
+    public void copyFrom(BucketInfo.IamConfiguration model) {
+        setEnabled(model.isUniformBucketLevelAccessEnabled());
     }
 
-    public UniformBucketLevelAccess toIamConfigurationUniformBucketLevelAccess() {
-        return new Bucket.IamConfiguration.UniformBucketLevelAccess().setEnabled(getEnabled());
+    public BucketInfo.IamConfiguration toIamConfigurationUniformBucketLevelAccess() {
+        return BucketInfo.IamConfiguration.newBuilder()
+            .setIsUniformBucketLevelAccessEnabled(getEnabled())
+            .build();
     }
 }

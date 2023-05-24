@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.api.services.storage.model.Bucket.Cors;
+import com.google.cloud.StringEnumValue;
+import com.google.cloud.storage.Cors;
+import com.google.cloud.storage.HttpMethod;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
@@ -89,36 +91,42 @@ public class BucketCors extends Diffable implements Copyable<Cors> {
         }
 
         if (getMethod() != null) {
-            values.add(String.format("method(s) = [%s]", getMethod().stream()
-                .collect(Collectors.joining(", "))));
+            values.add(String.format("method(s) = [%s]", String.join(", ", getMethod())));
         }
 
         if (getOrigin() != null) {
-            values.add(String.format("origin(s) = [%s]", getOrigin().stream()
-                .collect(Collectors.joining(", "))));
+            values.add(String.format("origin(s) = [%s]", String.join(", ", getOrigin())));
         }
 
         if (getResponseHeader() != null) {
-            values.add(String.format("response-header(s) = [%s]", getResponseHeader().stream()
-                .collect(Collectors.joining(", "))));
+            values.add(String.format("response-header(s) = [%s]", String.join(", ", getResponseHeader())));
         }
 
-        return values.stream().collect(Collectors.joining("; "));
+        return String.join("; ", values);
     }
 
     @Override
     public void copyFrom(Cors model) {
         setMaxAgeSeconds(model.getMaxAgeSeconds());
-        setMethod(model.getMethod());
-        setOrigin(model.getOrigin());
-        setResponseHeader(model.getResponseHeader());
+        setMethod(model.getMethods().stream().map(StringEnumValue::name).collect(Collectors.toList()));
+        setOrigin(model.getOrigins().stream().map(Cors.Origin::getValue).collect(Collectors.toList()));
+        setResponseHeader(model.getResponseHeaders());
     }
 
     public Cors toBucketCors() {
-        return new Cors()
+        List<HttpMethod> methods = getMethod().stream()
+            .map(HttpMethod::valueOf)
+            .collect(Collectors.toList());
+
+        List<com.google.cloud.storage.Cors.Origin> origins = getOrigin().stream()
+            .map(com.google.cloud.storage.Cors.Origin::of)
+            .collect(Collectors.toList());
+
+        return com.google.cloud.storage.Cors.newBuilder()
             .setMaxAgeSeconds(getMaxAgeSeconds())
-            .setMethod(getMethod())
-            .setOrigin(getOrigin())
-            .setResponseHeader(getResponseHeader());
+            .setMethods(methods)
+            .setOrigins(origins)
+            .setResponseHeaders(getResponseHeader())
+            .build();
     }
 }
