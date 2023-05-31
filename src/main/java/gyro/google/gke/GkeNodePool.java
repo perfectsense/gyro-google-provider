@@ -29,6 +29,7 @@ import com.google.container.v1beta1.DeleteNodePoolRequest;
 import com.google.container.v1beta1.GetNodePoolRequest;
 import com.google.container.v1beta1.NodePool;
 import com.google.container.v1beta1.SetNodePoolAutoscalingRequest;
+import com.google.container.v1beta1.SetNodePoolSizeRequest;
 import com.google.container.v1beta1.UpdateNodePoolRequest;
 import gyro.core.GyroUI;
 import gyro.core.Wait;
@@ -112,6 +113,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
      * The initial node count for the pool.
      */
     @Required
+    @Updatable
     public Integer getInitialNodeCount() {
         return initialNodeCount;
     }
@@ -328,6 +330,21 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
         try (ClusterManagerClient client = createClient(ClusterManagerClient.class)) {
 
             UpdateNodePoolRequest.Builder builder = UpdateNodePoolRequest.newBuilder();
+
+            if (changedFieldNames.contains("initial-node-count")) {
+                client.setNodePoolSize(SetNodePoolSizeRequest.newBuilder()
+                    .setName(getNodePoolId())
+                    .setNodeCount(getInitialNodeCount())
+                    .build());
+
+                Wait.atMost(30, TimeUnit.MINUTES)
+                    .checkEvery(5, TimeUnit.MINUTES)
+                    .until(() -> {
+                        NodePool nodePool = getNodePool(client);
+                        return nodePool.getStatus().equals(NodePool.Status.RUNNING)
+                            && nodePool.getInitialNodeCount() == getInitialNodeCount();
+                    });
+            }
 
             if (changedFieldNames.contains("config")) {
                 if (getConfig().getWorkloadMetadataConfig() != null) {
