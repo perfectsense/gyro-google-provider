@@ -63,7 +63,7 @@ public class SecurityPolicyRuleRedirectOptionsConfig extends Diffable
 
     @Override
     public String primaryKey() {
-        return null;
+        return "";
     }
 
     @Override
