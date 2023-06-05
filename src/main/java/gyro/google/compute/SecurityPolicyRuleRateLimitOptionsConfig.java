@@ -39,11 +39,11 @@ public class SecurityPolicyRuleRateLimitOptionsConfig extends Diffable
     private String conformAction;
     private String exceedAction;
 
-    // TODO: Not supported by the api yet
+    // Not supported by the api yet
     private String enforceOnKey;
     private String enforceOnKeyName;
 
-    // TODO: Not supported in the UI yet
+    // Not supported in the UI yet
     private SecurityPolicyRuleRedirectOptionsConfig exceedRedirectConfig;
 
     /**

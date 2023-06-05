@@ -222,7 +222,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     private String fingerprint;
     private SecurityPolicyAdaptiveProtection adaptiveProtectionConfig;
 
-    // TODO: Not yet supported in UI
+    // Not yet supported in UI
     private SecurityPolicyAdvancedOptions advancedOptionsConfig;
 
     // Read-only
