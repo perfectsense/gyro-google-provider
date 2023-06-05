@@ -25,6 +25,7 @@ import com.google.cloud.compute.v1.SecurityPolicyRuleRateLimitOptionsThreshold;
 import com.google.cloud.compute.v1.SecurityPolicyRuleRedirectOptions;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.DependsOn;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
@@ -122,6 +123,7 @@ public class SecurityPolicyRuleRateLimitOptionsConfig extends Diffable
      * The key to enforce the rate limit on.
      */
     @Updatable
+    @ValidStrings({ "ALL", "IP", "HTTP_HEADER", "XFF_IP", "HTTP_COOKIE", "HTTP_PATH", "SNI", "REGION_CODE" })
     public String getEnforceOnKey() {
         return enforceOnKey;
     }
@@ -134,6 +136,7 @@ public class SecurityPolicyRuleRateLimitOptionsConfig extends Diffable
      * The name of the key to enforce the rate limit on.
      */
     @Updatable
+    @DependsOn("enforce-on-key")
     public String getEnforceOnKeyName() {
         return enforceOnKeyName;
     }
@@ -295,6 +298,16 @@ public class SecurityPolicyRuleRateLimitOptionsConfig extends Diffable
                 null,
                 "'exceed-redirect-options' is only valid when 'exceed-action' is set to 'redirect'."
             ));
+        }
+
+        if (configuredFields.contains("enforce-on-key-name") && getEnforceOnKey() != null) {
+            if (!"HTTP_COOKIE".equals(getEnforceOnKey()) && !"HTTP_HEADER".equals(getEnforceOnKey())) {
+                errors.add(new ValidationError(
+                    this,
+                    null,
+                    "'enforce-on-key-name' is only valid when 'enforce-on-key' is set to either 'HTTP_COOKIE' or 'HTTP_HEADER'."
+                ));
+            }
         }
 
         return errors;

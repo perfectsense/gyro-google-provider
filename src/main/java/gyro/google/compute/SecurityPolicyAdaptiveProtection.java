@@ -16,12 +16,17 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import com.google.cloud.compute.v1.SecurityPolicyAdaptiveProtectionConfig;
 import com.google.cloud.compute.v1.SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class SecurityPolicyAdaptiveProtection extends Diffable implements Copyable<SecurityPolicyAdaptiveProtectionConfig> {
@@ -80,5 +85,16 @@ public class SecurityPolicyAdaptiveProtection extends Diffable implements Copyab
                 .setRuleVisibility(getRuleVisibility())
                 .build())
             .build();
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (configuredFields.contains("rule-visibility") && !getEnabled() && getRuleVisibility() != null) {
+            errors.add(new ValidationError(this, "rule-visibility", "'rule-visibility' can only be set when 'enabled' is set to true."));
+        }
+
+        return errors;
     }
 }
