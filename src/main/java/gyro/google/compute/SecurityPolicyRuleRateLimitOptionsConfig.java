@@ -287,7 +287,7 @@ public class SecurityPolicyRuleRateLimitOptionsConfig extends Diffable
             errors.add(new ValidationError(
                 this,
                 null,
-                "When 'exceed-action' is set to redirect, exceed-redirect-options is required."
+                "When 'exceed-action' is set to 'redirect', 'exceed-redirect-options' is required."
             ));
         } else if (!"redirect".equals(getExceedAction()) && getExceedRedirectConfig() != null) {
             errors.add(new ValidationError(
