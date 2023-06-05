@@ -30,7 +30,7 @@ public class SecurityPolicyAdaptiveProtection extends Diffable implements Copyab
     private String ruleVisibility;
 
     /**
-     * Weather to enable adaptive protection. Defaults to ``false``.
+     * When set to ``true``, enable adaptive protection. Defaults to ``false``.
      */
     @Required
     @Updatable
