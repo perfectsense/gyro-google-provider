@@ -61,7 +61,8 @@ public class SecurityPolicyAdvancedOptions extends Diffable implements Copyable<
 
     @Override
     public void copyFrom(SecurityPolicyAdvancedOptionsConfig model) {
-
+        setJsonParsing(model.getJsonParsing());
+        setLogLevel(model.getLogLevel());
     }
 
     @Override
