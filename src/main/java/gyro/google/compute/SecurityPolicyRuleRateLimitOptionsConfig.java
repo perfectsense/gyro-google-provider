@@ -61,7 +61,7 @@ public class SecurityPolicyRuleRateLimitOptionsConfig extends Diffable
     }
 
     /**
-     * The ban duration in seconds. Only valid when rule `action` is set to `rate_based_ban`.
+     * The ban duration in seconds. Only valid when rule ``action`` is set to ``rate_based_ban``.
      */
     @Updatable
     public Integer getBanDurationSec() {
