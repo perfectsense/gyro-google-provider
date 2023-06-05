@@ -47,7 +47,7 @@ public class SecurityPolicyRuleRateLimitOptionsConfig extends Diffable
     private SecurityPolicyRuleRedirectOptionsConfig exceedRedirectConfig;
 
     /**
-     * The ban threshold config. Only valid when rule `action` is set to `rate_based_ban`.
+     * The ban threshold config. Only valid when rule ``action`` is set to ``rate_based_ban``.
      *
      * @subresource gyro.google.compute.SecurityPolicyRuleRateLimitOptionsThresholdConfig
      */
