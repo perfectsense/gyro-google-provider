@@ -16,10 +16,16 @@
 
 package gyro.google.compute;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
-import gyro.core.validation.Required;
+import gyro.core.validation.ConflictsWith;
+import gyro.core.validation.DependsOn;
 import gyro.core.validation.ValidStrings;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class SecurityPolicyRuleMatcher extends Diffable
@@ -28,13 +34,15 @@ public class SecurityPolicyRuleMatcher extends Diffable
     private SecurityPolicyRuleMatcherConfig config;
     private String versionedExpr;
 
+    private SecurityMatcherRuleExpressionConfig expressionConfig;
+
     /**
      * The configuration for the security policy rule matcher.
      *
      * @subresource gyro.google.compute.SecurityPolicyRuleMatcherConfig
      */
-    @Required
     @Updatable
+    @DependsOn("versioned-expr")
     public SecurityPolicyRuleMatcherConfig getConfig() {
         return config;
     }
@@ -46,8 +54,8 @@ public class SecurityPolicyRuleMatcher extends Diffable
     /**
      * The versioned expression of the security policy rule matcher. Currently only supported value is ``SRC_IPS_V1``.
      */
-    @Required
     @Updatable
+    @DependsOn("config")
     @ValidStrings("SRC_IPS_V1")
     public String getVersionedExpr() {
         return versionedExpr;
@@ -55,6 +63,21 @@ public class SecurityPolicyRuleMatcher extends Diffable
 
     public void setVersionedExpr(String versionedExpr) {
         this.versionedExpr = versionedExpr;
+    }
+
+    /**
+     * The configuration for the security policy rule matcher expression.
+     *
+     * @subresource gyro.google.compute.SecurityMatcherRuleExpressionConfig
+     */
+    @Updatable
+    @ConflictsWith({"config", "versioned-expr"})
+    public SecurityMatcherRuleExpressionConfig getExpressionConfig() {
+        return expressionConfig;
+    }
+
+    public void setExpressionConfig(SecurityMatcherRuleExpressionConfig expressionConfig) {
+        this.expressionConfig = expressionConfig;
     }
 
     @Override
@@ -75,14 +98,39 @@ public class SecurityPolicyRuleMatcher extends Diffable
 
             setConfig(config);
         }
+
+        if (model.hasExpr()) {
+            SecurityMatcherRuleExpressionConfig exprConfig = newSubresource(SecurityMatcherRuleExpressionConfig.class);
+            exprConfig.copyFrom(model.getExpr());
+
+            setExpressionConfig(exprConfig);
+        }
     }
 
     public com.google.cloud.compute.v1.SecurityPolicyRuleMatcher toSecurityPolicyRuleMatcher() {
         com.google.cloud.compute.v1.SecurityPolicyRuleMatcher.Builder builder = com.google.cloud.compute.v1.SecurityPolicyRuleMatcher
             .newBuilder();
-        builder.setVersionedExpr(getVersionedExpr());
-        builder.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
+
+        if (getConfig() != null) {
+            builder.setVersionedExpr(getVersionedExpr());
+            builder.setConfig(getConfig().toSecurityPolicyRuleMatcherConfig());
+        }
+
+        if (getExpressionConfig() != null) {
+            builder.setExpr(getExpressionConfig().toExpr());
+        }
 
         return builder.build();
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (getConfig() == null && getExpressionConfig() == null) {
+            errors.add(new ValidationError(this, null, "Either 'config' or 'expression-config' is required."));
+        }
+
+        return errors;
     }
 }
