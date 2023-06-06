@@ -1,4 +1,11 @@
-## 1.0.1 (February, 2023)
+## 1.1.0 (June 7th, 2023)
+
+ENHANCEMENTS:
+
+* [250](https://github.com/perfectsense/gyro-google-provider/pull/250): Add additional options for Security Policy Resource (Cloud Armor).
+* [251](https://github.com/perfectsense/gyro-google-provider/pull/250): Allow modifying node size of a gke node pool.
+
+## 1.0.1 (February 23rd, 2023)
 
 ISSUES FIXED:
 
