@@ -40,7 +40,6 @@ import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
-import gyro.core.validation.ValidationError;
 
 /**
  * Creates a backend service.
@@ -126,7 +125,7 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
     }
 
     /**
-     * The security policy associated with this backend service. This can only be added when ``enableCdn`` is ``false``.
+     * The security policy associated with this backend service.
      */
     @Updatable
     public SecurityPolicyResource getSecurityPolicy() {
@@ -275,19 +274,6 @@ public class BackendServiceResource extends AbstractBackendServiceResource {
             .setSecurityPolicy(getProjectId(), getName(), securityPolicyReference)
             .execute();
         waitForCompletion(client, securityPolicyOperation);
-    }
-
-    @Override
-    public List<ValidationError> validate(Set<String> configuredFields) {
-        List<ValidationError> errors = new ArrayList<>();
-        if (getEnableCdn() != null && getEnableCdn().equals(Boolean.TRUE) && getSecurityPolicy() != null) {
-            errors.add(new ValidationError(
-                this,
-                "enable-cdn",
-                "'enable-cdn' can't be true when a security policy is provided."));
-        }
-
-        return errors;
     }
 
     public Map<String, Map<String, Integer>> instanceHealth() {
