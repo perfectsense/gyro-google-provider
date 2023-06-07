@@ -1,3 +1,9 @@
+## 1.1.1 (June 8th, 2023)
+
+ISSUES FIXED:
+
+* [254](https://github.com/perfectsense/gyro-google-provider/pull/254): Removes the validation for disabling cdn when security policy is configured for a backend service resource.
+
 ## 1.1.0 (June 7th, 2023)
 
 ENHANCEMENTS:
