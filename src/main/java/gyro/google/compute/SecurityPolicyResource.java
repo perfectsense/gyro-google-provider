@@ -37,6 +37,7 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
@@ -341,6 +342,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     /**
      * The type of the security policy.
      */
+    @ValidStrings({"CLOUD_ARMOR", "CLOUD_ARMOR_EDGE", "CLOUD_ARMOR_INTERNAL_SERVICE", "CLOUD_ARMOR_NETWORK"})
     @Required
     public String getSecurityPolicyType() {
         return securityPolicyType;
