@@ -1,3 +1,9 @@
+## 1.1.2 (June 21st, 2023)
+
+ENHANCEMENTS:
+
+* [256](https://github.com/perfectsense/gyro-google-provider/pull/256): Add option to configure edge security policy options.
+
 ## 1.1.1 (June 8th, 2023)
 
 ISSUES FIXED:
