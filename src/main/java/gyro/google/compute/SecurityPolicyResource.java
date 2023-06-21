@@ -37,6 +37,8 @@ import gyro.core.resource.Updatable;
 import gyro.core.scope.State;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 /**
@@ -221,6 +223,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
     private SecurityPolicyRule defaultRule;
     private String fingerprint;
     private SecurityPolicyAdaptiveProtection adaptiveProtectionConfig;
+    private String securityPolicyType;
 
     // Not yet supported in UI
     private SecurityPolicyAdvancedOptions advancedOptionsConfig;
@@ -336,6 +339,19 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         this.defaultRule = defaultRule;
     }
 
+    /**
+     * The type of the security policy.
+     */
+    @ValidStrings({"CLOUD_ARMOR", "CLOUD_ARMOR_EDGE", "CLOUD_ARMOR_INTERNAL_SERVICE", "CLOUD_ARMOR_NETWORK"})
+    @Required
+    public String getSecurityPolicyType() {
+        return securityPolicyType;
+    }
+
+    public void setSecurityPolicyType(String securityPolicyType) {
+        this.securityPolicyType = securityPolicyType;
+    }
+
     @Override
     protected boolean doRefresh() throws Exception {
         try (SecurityPoliciesClient client = createClient(SecurityPoliciesClient.class)) {
@@ -396,6 +412,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         setDescription(model.getDescription());
         setSelfLink(model.getSelfLink());
         setFingerprint(model.getFingerprint());
+        setSecurityPolicyType(model.getType());
 
         getRule().clear();
         model.getRulesList().forEach(rule -> {
@@ -428,7 +445,7 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
 
     private SecurityPolicy toSecurityPolicy() {
         SecurityPolicy.Builder builder = SecurityPolicy.newBuilder();
-        builder.setName(getName());
+        builder.setName(getName()).setType(getSecurityPolicyType());
 
         if (getDescription() != null) {
             builder.setDescription(getDescription());
@@ -465,5 +482,18 @@ public class SecurityPolicyResource extends ComputeResource implements Copyable<
         }
 
         return route;
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (configuredFields.contains("adaptive-protection-config")) {
+            if (getAdaptiveProtectionConfig() != null && !getSecurityPolicyType().equals("CLOUD_ARMOR")) {
+                errors.add(new ValidationError(this, "adaptive-protection-config", "'adaptive-protection-config' is not allowed when security-policy-type is not set to 'CLOUD_ARMOR'."));
+            }
+        }
+
+        return errors;
     }
 }

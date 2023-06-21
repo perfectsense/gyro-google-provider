@@ -85,6 +85,8 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
 
     private List<BackendSignedUrlKey> signedUrlKey;
 
+    private SecurityPolicyResource securityPolicy;
+
     /**
      * Cloud Storage bucket name.
      */
@@ -179,6 +181,18 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
         this.signedUrlKey = signedUrlKey;
     }
 
+    /**
+     * The security policy associated with this backend bucket.
+     */
+    @Updatable
+    public SecurityPolicyResource getSecurityPolicy() {
+        return securityPolicy;
+    }
+
+    public void setSecurityPolicy(SecurityPolicyResource securityPolicy) {
+        this.securityPolicy = securityPolicy;
+    }
+
     @Override
     public void copyFrom(BackendBucket model) {
         BucketResource bucketResource = null;
@@ -195,6 +209,10 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
 
         if (model.hasEnableCdn()) {
             setEnableCdn(model.getEnableCdn());
+        }
+
+        if (model.hasEdgeSecurityPolicy()) {
+            setSecurityPolicy(findById(SecurityPolicyResource.class, model.getEdgeSecurityPolicy()));
         }
 
         setCdnPolicy(null);
@@ -281,6 +299,10 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
 
             if (getCdnPolicy() != null) {
                 builder.setCdnPolicy(getCdnPolicy().toBackendBucketCdnPolicy());
+            }
+
+            if (getSecurityPolicy() != null) {
+                builder.setEdgeSecurityPolicy(getSecurityPolicy().getName());
             }
 
             Operation operation = client.insertCallable().call(InsertBackendBucketRequest.newBuilder()
