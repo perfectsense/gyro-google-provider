@@ -20,7 +20,7 @@ plugins {
     id 'maven-publish'
 }
 
-def releaseVersion = '1.2.1'
+def releaseVersion = '1.2.0'
 def releaseBuild = false;
 
 if (System.getenv('CI')) {

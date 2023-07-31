@@ -1,7 +1,3 @@
-## 1.2.1 (July 31st, 2023)
-
-* Updated Function call to getSelfLink() over getName() to fix issue with BackendBucketResource
-
 ## 1.1.2 (June 21st, 2023)
 
 ENHANCEMENTS:
