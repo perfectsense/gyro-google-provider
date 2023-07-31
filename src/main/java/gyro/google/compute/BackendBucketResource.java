@@ -302,7 +302,7 @@ public class BackendBucketResource extends ComputeResource implements Copyable<B
             }
 
             if (getSecurityPolicy() != null) {
-                builder.setEdgeSecurityPolicy(getSecurityPolicy().getName());
+                builder.setEdgeSecurityPolicy(getSecurityPolicy().getSelfLink());
             }
 
             Operation operation = client.insertCallable().call(InsertBackendBucketRequest.newBuilder()
