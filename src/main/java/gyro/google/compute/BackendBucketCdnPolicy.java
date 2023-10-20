@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.google.cloud.compute.v1.BackendBucketCdnPolicyCacheKeyPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
@@ -273,7 +272,7 @@ public class BackendBucketCdnPolicy extends Diffable
         return com.google.cloud.compute.v1.BackendBucketCdnPolicy.newBuilder()
             .setSignedUrlCacheMaxAgeSec(getSignedUrlMaxAge())
             .setCacheMode(getCacheMode())
-            .setCacheKeyPolicy(BackendBucketCdnPolicyCacheKeyPolicy.newBuilder().build())
+            .setCacheKeyPolicy(getCacheKeyPolicy() != null ? getCacheKeyPolicy().toBackendBucketCdnPolicyCacheKeyPolicy() : new BackendBucketCdnCacheKeyPolicy().toBackendBucketCdnPolicyCacheKeyPolicy())
             .addAllBypassCacheOnRequestHeaders(getBypassCacheOnRequestHeader().stream()
                 .map(BackendBucketCdnBypassCacheOnRequestHeader::toBackendBucketCdnPolicyBypassCacheOnRequestHeader)
                 .collect(Collectors.toList()))
