@@ -73,10 +73,9 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     /**
-     * Specifies the cache mode for all responses from this backend bucket.
+     * Specifies the cache mode for all responses from this backend bucket. Defaults to ``CACHE_ALL_STATIC``.
      */
     @ValidStrings({"CACHE_ALL_STATIC", "FORCE_CACHE_ALL", "INVALID_CACHE_MODE", "USE_ORIGIN_HEADERS"})
-    @Required
     @Updatable
     public String getCacheMode() {
         if (cacheMode == null) {
