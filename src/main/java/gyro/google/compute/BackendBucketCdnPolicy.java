@@ -157,10 +157,14 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     /**
-     * Specifies the TTL for cached content served to clients.
+     * Specifies the TTL for cached content served to clients. Defaults to ``0``.
      */
     @Updatable
     public Integer getClientTtl() {
+        if (clientTtl == null) {
+            clientTtl = 0;
+        }
+
         return clientTtl;
     }
 
@@ -169,10 +173,14 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     /**
-     * Specifies the TTL for cached responses served to clients that do not send a max-age, min-fresh, or s-max-age directive.
+     * Specifies the TTL for cached responses served to clients that do not send a max-age, min-fresh, or s-max-age directive. Defaults to ``0``.
      */
     @Updatable
     public Integer getDefaultTtl() {
+        if (defaultTtl == null) {
+            defaultTtl = 0;
+        }
+
         return defaultTtl;
     }
 
@@ -181,10 +189,14 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     /**
-     * Specifies the maximum allowed TTL for cached content served to clients.
+     * Specifies the maximum allowed TTL for cached content served to clients. Defaults to ``0``.
      */
     @Updatable
     public Integer getMaxTtl() {
+        if (maxTtl == null) {
+            maxTtl = 0;
+        }
+
         return maxTtl;
     }
 
@@ -209,10 +221,14 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     /**
-     * Specifies the number of seconds to serve the content without contacting the origin.
+     * Specifies the number of seconds to serve the content without contacting the origin. Defaults to ``0``.
      */
     @Updatable
     public Integer getServeWhileStale() {
+        if (serveWhileStale == null) {
+            serveWhileStale = 0;
+        }
+
         return serveWhileStale;
     }
 
@@ -276,15 +292,15 @@ public class BackendBucketCdnPolicy extends Diffable
             .addAllBypassCacheOnRequestHeaders(getBypassCacheOnRequestHeader().stream()
                 .map(BackendBucketCdnBypassCacheOnRequestHeader::toBackendBucketCdnPolicyBypassCacheOnRequestHeader)
                 .collect(Collectors.toList()))
-            .setClientTtl(getClientTtl() != null ? getClientTtl() : 0)
-            .setDefaultTtl(getDefaultTtl() != null ? getDefaultTtl() : 0)
-            .setMaxTtl(getMaxTtl() != null ? getMaxTtl() : 0)
+            .setClientTtl(getClientTtl())
+            .setDefaultTtl(getDefaultTtl())
+            .setMaxTtl(getMaxTtl())
             .setNegativeCaching(getNegativeCaching())
             .addAllNegativeCachingPolicy(getNegativeCachingPolicy().stream()
                 .map(BackendBucketCdnNegativeCachingPolicy::toBackendBucketCdnPolicyNegativeCachingPolicy)
                 .collect(Collectors.toList()))
             .setRequestCoalescing(getRequestCoalescing())
-            .setServeWhileStale(getServeWhileStale() != null ? getServeWhileStale() : 0)
+            .setServeWhileStale(getServeWhileStale())
             .addAllSignedUrlKeyNames(getSignedUrlKeyNames())
             .build();
     }
