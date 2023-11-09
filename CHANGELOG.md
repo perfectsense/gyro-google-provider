@@ -1,3 +1,9 @@
+## 1.1.3 (July 31st, 2023)
+
+ISSUES FIXED:
+
+* [258](https://github.com/perfectsense/gyro-google-provider/pull/258): Fix edge security policy ref link error.
+
 ## 1.1.2 (June 21st, 2023)
 
 ENHANCEMENTS:
