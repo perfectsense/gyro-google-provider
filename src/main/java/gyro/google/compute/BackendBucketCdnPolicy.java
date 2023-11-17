@@ -302,5 +302,7 @@ public class BackendBucketCdnPolicy extends Diffable
             .setServeWhileStale(getServeWhileStale())
             .addAllSignedUrlKeyNames(getSignedUrlKeyNames())
             .build();
+            System.out.println("\nnegative caching disabled !!\n");
+            builder.setNegativeCaching(false);
     }
 }

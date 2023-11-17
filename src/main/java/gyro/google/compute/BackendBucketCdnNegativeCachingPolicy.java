@@ -19,6 +19,7 @@ package gyro.google.compute;
 import com.google.cloud.compute.v1.BackendBucketCdnPolicyNegativeCachingPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidNumbers;
 import gyro.google.Copyable;
 
 public class BackendBucketCdnNegativeCachingPolicy extends Diffable implements Copyable<BackendBucketCdnPolicyNegativeCachingPolicy> {
@@ -30,6 +31,7 @@ public class BackendBucketCdnNegativeCachingPolicy extends Diffable implements C
      * The HTTP status code to define custom set of rules.
      */
     @Required
+    @ValidNumbers({300, 301, 302, 307, 308, 404, 405, 410, 421, 451, 501})
     public Integer getCode() {
         return code;
     }
