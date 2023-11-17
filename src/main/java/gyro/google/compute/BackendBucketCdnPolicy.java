@@ -18,13 +18,16 @@ package gyro.google.compute;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.DependsOn;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class BackendBucketCdnPolicy extends Diffable
@@ -75,7 +78,7 @@ public class BackendBucketCdnPolicy extends Diffable
     /**
      * Specifies the cache mode for all responses from this backend bucket. Defaults to ``CACHE_ALL_STATIC``.
      */
-    @ValidStrings({"CACHE_ALL_STATIC", "FORCE_CACHE_ALL", "INVALID_CACHE_MODE", "USE_ORIGIN_HEADERS"})
+    @ValidStrings({"CACHE_ALL_STATIC", "FORCE_CACHE_ALL", "USE_ORIGIN_HEADERS"})
     @Updatable
     public String getCacheMode() {
         if (cacheMode == null) {
@@ -138,10 +141,11 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     /**
-     * Specifies the negative caching configuration.
+     * Specifies the negative caching configuration. Can only be set if ``negative-caching`` is set to ``true``.
      *
      * @subresource gyro.google.compute.BackendBucketCdnNegativeCachingPolicy
      */
+    @DependsOn("negative-caching")
     @Updatable
     public List<BackendBucketCdnNegativeCachingPolicy> getNegativeCachingPolicy() {
         if (negativeCachingPolicy == null) {
@@ -160,10 +164,6 @@ public class BackendBucketCdnPolicy extends Diffable
      */
     @Updatable
     public Integer getClientTtl() {
-        if (clientTtl == null) {
-            clientTtl = 0;
-        }
-
         return clientTtl;
     }
 
@@ -176,10 +176,6 @@ public class BackendBucketCdnPolicy extends Diffable
      */
     @Updatable
     public Integer getDefaultTtl() {
-        if (defaultTtl == null) {
-            defaultTtl = 0;
-        }
-
         return defaultTtl;
     }
 
@@ -192,10 +188,6 @@ public class BackendBucketCdnPolicy extends Diffable
      */
     @Updatable
     public Integer getMaxTtl() {
-        if (maxTtl == null) {
-            maxTtl = 0;
-        }
-
         return maxTtl;
     }
 
@@ -284,25 +276,60 @@ public class BackendBucketCdnPolicy extends Diffable
     }
 
     com.google.cloud.compute.v1.BackendBucketCdnPolicy toBackendBucketCdnPolicy() {
-        return com.google.cloud.compute.v1.BackendBucketCdnPolicy.newBuilder()
+        com.google.cloud.compute.v1.BackendBucketCdnPolicy.Builder builder = com.google.cloud.compute.v1.BackendBucketCdnPolicy.newBuilder()
             .setSignedUrlCacheMaxAgeSec(getSignedUrlMaxAge())
             .setCacheMode(getCacheMode())
-            .setCacheKeyPolicy(getCacheKeyPolicy() != null ? getCacheKeyPolicy().toBackendBucketCdnPolicyCacheKeyPolicy() : new BackendBucketCdnCacheKeyPolicy().toBackendBucketCdnPolicyCacheKeyPolicy())
+            .setCacheKeyPolicy(getCacheKeyPolicy() != null
+                ? getCacheKeyPolicy().toBackendBucketCdnPolicyCacheKeyPolicy()
+                : new BackendBucketCdnCacheKeyPolicy().toBackendBucketCdnPolicyCacheKeyPolicy())
             .addAllBypassCacheOnRequestHeaders(getBypassCacheOnRequestHeader().stream()
                 .map(BackendBucketCdnBypassCacheOnRequestHeader::toBackendBucketCdnPolicyBypassCacheOnRequestHeader)
                 .collect(Collectors.toList()))
-            .setClientTtl(getClientTtl())
-            .setDefaultTtl(getDefaultTtl())
-            .setMaxTtl(getMaxTtl())
-            .setNegativeCaching(getNegativeCaching())
-            .addAllNegativeCachingPolicy(getNegativeCachingPolicy().stream()
-                .map(BackendBucketCdnNegativeCachingPolicy::toBackendBucketCdnPolicyNegativeCachingPolicy)
-                .collect(Collectors.toList()))
             .setRequestCoalescing(getRequestCoalescing())
             .setServeWhileStale(getServeWhileStale())
-            .addAllSignedUrlKeyNames(getSignedUrlKeyNames())
-            .build();
-            System.out.println("\nnegative caching disabled !!\n");
-            builder.setNegativeCaching(false);
+            .addAllSignedUrlKeyNames(getSignedUrlKeyNames());
+
+        if (getClientTtl() != null) {
+            builder = builder.setClientTtl(getClientTtl());
+        } else {
+            builder = builder.clearClientTtl();
+        }
+
+        if (getDefaultTtl() != null) {
+            builder = builder.setDefaultTtl(getDefaultTtl());
+        } else {
+            builder = builder.clearDefaultTtl();
+        }
+
+        if (getMaxTtl() != null) {
+            builder = builder.setMaxTtl(getMaxTtl());
+        } else {
+            builder = builder.clearMaxTtl();
+        }
+
+        if (getNegativeCaching()) {
+            builder = builder.setNegativeCaching(getNegativeCaching()).addAllNegativeCachingPolicy(getNegativeCachingPolicy().stream()
+                .map(BackendBucketCdnNegativeCachingPolicy::toBackendBucketCdnPolicyNegativeCachingPolicy)
+                .collect(Collectors.toList()));
+        } else {
+            builder = builder.clearNegativeCachingPolicy();
+            builder = builder.clearNegativeCaching();
+        }
+
+        return builder.build();
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (!getNegativeCaching() && configuredFields.contains("negative-caching-policy") && !getNegativeCachingPolicy().isEmpty()) {
+            errors.add(new ValidationError(
+                this,
+                null,
+                "'negative-caching-policy' can only be set when 'negative-caching' is enabled."));
+        }
+
+        return errors;
     }
 }
