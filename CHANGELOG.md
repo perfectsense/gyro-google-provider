@@ -1,3 +1,9 @@
+## 1.1.4 (December 19th, 2023)
+
+ENHANCEMENTS:
+
+* [260](https://github.com/perfectsense/gyro-google-provider/issues/260): Allow full control of configuring cdn values of backend bucket resources.
+
 ## 1.1.3 (July 31st, 2023)
 
 ISSUES FIXED:
