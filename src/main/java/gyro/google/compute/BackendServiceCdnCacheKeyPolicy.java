@@ -33,6 +33,7 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
     private Boolean includeQueryString;
     private List<String> queryStringBlacklist;
     private List<String> queryStringWhitelist;
+    private List<String> includeHttpHeaders;
 
     /**
      * If true, requests to different hosts will be cached separately.
@@ -102,6 +103,22 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
         this.queryStringWhitelist = queryStringWhitelist;
     }
 
+    /**
+     * The HTTP request headers (by name) to be used in the cache key.
+     */
+    @Updatable
+    public List<String> getIncludeHttpHeaders() {
+        if (includeHttpHeaders == null) {
+            includeHttpHeaders = new ArrayList<>();
+        }
+
+        return includeHttpHeaders;
+    }
+
+    public void setIncludeHttpHeaders(List<String> includeHttpHeaders) {
+        this.includeHttpHeaders = includeHttpHeaders;
+    }
+
     @Override
     public String primaryKey() {
         return "";
@@ -123,6 +140,7 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
 
         setQueryStringBlacklist(model.getQueryStringBlacklistList());
         setQueryStringWhitelist(model.getQueryStringWhitelistList());
+        setIncludeHttpHeaders(model.getIncludeHttpHeadersList());
     }
 
     CacheKeyPolicy toCacheKeyPolicy() {
@@ -132,6 +150,7 @@ public class BackendServiceCdnCacheKeyPolicy extends Diffable implements Copyabl
             .setIncludeQueryString(TRUE.equals(getIncludeQueryString()))
             .addAllQueryStringBlacklist(getQueryStringBlacklist())
             .addAllQueryStringWhitelist(getQueryStringWhitelist())
+            .addAllIncludeHttpHeaders(getIncludeHttpHeaders())
             .build();
     }
 }
