@@ -1,3 +1,9 @@
+## 1.1.5 (May 29th, 2024)
+
+ENHANCEMENTS:
+
+* [264](https://github.com/perfectsense/gyro-google-provider/issues/264): Add X-Forwarded-Host header to the CDN-policy's cache-key-policy.
+
 ## 1.1.4 (December 19th, 2023)
 
 ENHANCEMENTS:
