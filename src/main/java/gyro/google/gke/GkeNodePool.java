@@ -27,6 +27,7 @@ import com.google.cloud.container.v1beta1.ClusterManagerClient;
 import com.google.container.v1beta1.CreateNodePoolRequest;
 import com.google.container.v1beta1.DeleteNodePoolRequest;
 import com.google.container.v1beta1.GetNodePoolRequest;
+import com.google.container.v1beta1.NodeLabels;
 import com.google.container.v1beta1.NodePool;
 import com.google.container.v1beta1.SetNodePoolAutoscalingRequest;
 import com.google.container.v1beta1.SetNodePoolSizeRequest;
@@ -350,8 +351,12 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
                 if (getConfig().getWorkloadMetadataConfig() != null) {
                     builder.setWorkloadMetadataConfig(getConfig().getWorkloadMetadataConfig()
                         .toWorkloadMetadataConfig());
-                    updateCluster(client, builder);
-                    builder.clear();
+                }
+
+                if (getConfig().getLabels() != null) {
+                    NodeLabels.Builder nlBuilder = NodeLabels.newBuilder();
+                    nlBuilder.putAllLabels(getConfig().getLabels());
+                    builder.setLabels(nlBuilder.build());
                 }
 
                 builder.setImageType(getConfig().getImageType());
