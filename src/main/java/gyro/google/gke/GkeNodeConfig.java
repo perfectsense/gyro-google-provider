@@ -136,6 +136,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
     /**
      * The map of Kubernetes labels (key/value pairs) to be applied to each node. These will added in addition to any default label(s) that Kubernetes may apply to the node. In case of conflict in label keys, the applied set may differ depending on the Kubernetes version -- it's best to assume the behavior is undefined and conflicts should be avoided. For more information, including usage and the valid values, see `Working with objects <https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/>`_.
      */
+    @Updatable
     public Map<String, String> getLabels() {
         if (labels == null) {
             labels = new HashMap<>();
