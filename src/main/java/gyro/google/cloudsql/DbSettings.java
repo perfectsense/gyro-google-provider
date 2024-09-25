@@ -58,13 +58,15 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
     private DbMaintenanceWindow maintenanceWindow;
     private DbPasswordValidationPolicy passwordValidationPolicy;
     private String pricingPlan;
-    private Long settingsVersion;
     private DbSqlServerAuditConfig sqlServerAuditConfig;
     private Boolean storageAutoResize;
     private Long storageAutoResizeLimit;
     private String tier;
     private String timeZone;
     private Map<String, String> userLabels;
+
+    // Read-only
+    private Long settingsVersion;
 
     /**
      * The activation policy specifies when the instance is activated.

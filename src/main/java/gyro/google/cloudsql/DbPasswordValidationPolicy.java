@@ -16,11 +16,16 @@
 
 package gyro.google.cloudsql;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import com.google.api.services.sqladmin.model.PasswordValidationPolicy;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class DbPasswordValidationPolicy extends Diffable implements Copyable<PasswordValidationPolicy> {
@@ -147,5 +152,21 @@ public class DbPasswordValidationPolicy extends Diffable implements Copyable<Pas
         }
 
         return policy;
+    }
+
+    @Override
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (configuredFields.contains("enable-password-policy") && !getEnablePasswordPolicy() &&
+            (getDisallowUsernameSubstring() != null || getMinLength() != null || getComplexity() != null
+                || getPasswordChangeInterval() != null || getReuseInterval() != null)) {
+            errors.add(new ValidationError(
+                this,
+                "enable-password-policy",
+                "'enable-password-policy' needs to be set to 'true' explicitly, in order to enable other password validation options."));
+        }
+
+        return errors;
     }
 }

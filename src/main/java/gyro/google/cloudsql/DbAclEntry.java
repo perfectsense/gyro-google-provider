@@ -70,11 +70,19 @@ public class DbAclEntry extends Diffable implements Copyable<AclEntry> {
 
     @Override
     public String primaryKey() {
-        return String.format(
-            "Acl Entry [Value: %s, Expiration Time: %s, Name: %s]",
-            getValue(),
-            getExpirationTime(),
-            getName());
+        StringBuilder sb = new StringBuilder();
+        sb.append("Acl Entry [Value: ").append(getValue());
+
+        if (getName() != null) {
+            sb.append(", Name: ").append(getName());
+        }
+
+        if (getExpirationTime() != null) {
+            sb.append(", Expiration Time: ").append(getExpirationTime());
+        }
+
+        sb.append("]");
+        return sb.toString();
     }
 
     public AclEntry toAclEntry() {

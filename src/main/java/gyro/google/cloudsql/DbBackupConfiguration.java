@@ -104,7 +104,7 @@ public class DbBackupConfiguration extends Diffable implements Copyable<BackupCo
      * The start time for the daily backup configuration in UTC timezone in the 24 hour format - `HH:MM`.
      */
     @Updatable
-    @Regex("[0-2][0-9]:[0-5][0-9]")
+    @Regex("([01][0-9]|2[0-3]):([0-5][0-9])")
     public String getStartTime() {
         return startTime;
     }

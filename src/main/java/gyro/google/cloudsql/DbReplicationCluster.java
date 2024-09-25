@@ -20,6 +20,7 @@ import com.google.api.services.sqladmin.model.ReplicationCluster;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
+import gyro.core.validation.Required;
 import gyro.google.Copyable;
 
 public class DbReplicationCluster extends Diffable implements Copyable<ReplicationCluster> {
@@ -37,6 +38,7 @@ public class DbReplicationCluster extends Diffable implements Copyable<Replicati
      * Only for Enterprise Plus edition instances.
      */
     @Updatable
+    @Required
     public String getFailoverDrReplicaName() {
         return failoverDrReplicaName;
     }

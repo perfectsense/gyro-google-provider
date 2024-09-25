@@ -20,6 +20,7 @@ import com.google.api.services.sqladmin.model.MaintenanceWindow;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;
+import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
@@ -35,6 +36,7 @@ public class DbMaintenanceWindow extends Diffable implements Copyable<Maintenanc
      */
     @Range(min = 1, max = 7)
     @Updatable
+    @Required
     public Integer getDay() {
         return day;
     }
@@ -48,6 +50,7 @@ public class DbMaintenanceWindow extends Diffable implements Copyable<Maintenanc
      */
     @Range(min = 0, max = 23)
     @Updatable
+    @Required
     public Integer getHour() {
         return hour;
     }
@@ -62,6 +65,7 @@ public class DbMaintenanceWindow extends Diffable implements Copyable<Maintenanc
      */
     @ValidStrings({ "canary", "stable", "week5" })
     @Updatable
+    @Required
     public String getUpdateTrack() {
         return updateTrack;
     }

@@ -24,6 +24,7 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.DependsOn;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidationError;
 import gyro.google.Copyable;
 
 public class DbPscConfig extends Diffable implements Copyable<PscConfig> {
@@ -81,5 +82,19 @@ public class DbPscConfig extends Diffable implements Copyable<PscConfig> {
         }
 
         return config;
+    }
+
+    @Override
+    public List<ValidationError> validate() {
+        List<ValidationError> errors = new ArrayList<>();
+
+        if (!getPscEnabled() && !getAllowedConsumerProjects().isEmpty()) {
+            errors.add(new ValidationError(
+                this,
+                "allowed-consumer-projects",
+                "'psc-enabled' should be set to 'true' in order to set 'allowed-consumer-projects'."));
+        }
+
+        return errors;
     }
 }

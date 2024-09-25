@@ -110,10 +110,7 @@ public class DbInsightsConfig extends Diffable implements Copyable<InsightsConfi
 
     public InsightsConfig toInsightsConfig() {
         InsightsConfig config = new InsightsConfig();
-
-        if (getQueryInsightsEnabled() != null) {
-            config.setQueryInsightsEnabled(getQueryInsightsEnabled());
-        }
+        config.setQueryInsightsEnabled(getQueryInsightsEnabled());
 
         if (getQueryPlansPerMinute() != null) {
             config.setQueryPlansPerMinute(getQueryPlansPerMinute());
