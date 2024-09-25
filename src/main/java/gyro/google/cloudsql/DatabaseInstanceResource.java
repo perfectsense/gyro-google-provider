@@ -94,6 +94,7 @@ import gyro.google.GoogleResource;
  *                ipv4-enabled: true
  *                server-ca-mode: 'GOOGLE_MANAGED_INTERNAL_CA'
  *                ssl-mode: 'ALLOW_UNENCRYPTED_AND_ENCRYPTED'
+ *                private-network: $(external-query google::compute-network { name: "test-db" })
  *
  *                authorized-networks
  *                    name: "example-QA-enviroment"
@@ -105,6 +106,14 @@ import gyro.google.GoogleResource;
  *                zone: 'us-central1-c'
  *                secondary-zone: 'us-central1-b'
  *            end
+ *
+ *            password-validation-policy
+ *                complexity: "COMPLEXITY_DEFAULT"
+ *                disallow-username-substring: true
+ *                enable-password-policy: true
+ *                min-length: 8
+ *                reuse-interval: 1
+ *            end
  *        end
  *
  *        database-version: "MYSQL_8_0_31"
@@ -113,6 +122,12 @@ import gyro.google.GoogleResource;
  *        instance-type: "CLOUD_SQL_INSTANCE"
  *        region: "us-central1"
  *        backend-type: "SECOND_GEN"
+ *
+ *        scheduled-maintenance
+ *            can-reschedule: true
+ *            schedule-deadline-time: "2025-02-31T23:59:59.00Z"
+ *            start-time: "2024-12-31T23:59:59.00Z"
+ *        end
  *    end
  *
  *    google::database-instance database-instance-example-replica
@@ -788,7 +803,7 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
 
         setMasterInstance(null);
         if (model.getMasterInstanceName() != null) {
-            setMasterInstance(findById(DatabaseInstanceResource.class, model.getMasterInstanceName()));
+            setMasterInstance(findById(DatabaseInstanceResource.class, model.getMasterInstanceName().split(":")[1]));
         }
 
         setOnPremisesConfiguration(null);
