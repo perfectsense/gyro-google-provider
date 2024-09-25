@@ -69,7 +69,7 @@ google::database-instance database-instance-example
 
     scheduled-maintenance
         can-reschedule: true
-        schedule-deadline-time: "2025-02-31T23:59:59.00Z"
+        schedule-deadline-time: "2024-08-30T23:59:59.00Z"
         start-time: "2024-12-31T23:59:59.00Z"
     end
 end
