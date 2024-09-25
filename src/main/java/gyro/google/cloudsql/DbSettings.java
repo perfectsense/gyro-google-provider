@@ -28,6 +28,7 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
 import gyro.core.validation.Range;
+import gyro.core.validation.Required;
 import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 
@@ -410,23 +411,7 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
      * The tier (or machine type) for this instance.
      */
     @Updatable
-    @ValidStrings({
-        "db-custom-1-3840",
-        "db-custom-2-7680",
-        "db-custom-4-15360",
-        "db-custom-8-30720",
-        "db-custom-16-61440",
-        "db-custom-32-122880",
-        "db-custom-64-245760",
-        "db-custom-96-368640",
-        "db-custom-2-13312",
-        "db-custom-4-26624",
-        "db-custom-8-53248",
-        "db-custom-16-106496",
-        "db-custom-32-212992",
-        "db-custom-64-425984",
-        "db-custom-96-638976"
-    })
+    @Required
     public String getTier() {
         return tier;
     }
@@ -643,6 +628,7 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
             for (DbDatabaseFlag flag : getDatabaseFlags()) {
                 flags.add(flag.toDatabaseFlags());
             }
+
             settings.setDatabaseFlags(flags);
         }
 
@@ -659,6 +645,7 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
             for (DbDenyMaintenancePeriod period : getDenyMaintenancePeriods()) {
                 periods.add(period.toDenyMaintenancePeriod());
             }
+
             settings.setDenyMaintenancePeriods(periods);
         }
 

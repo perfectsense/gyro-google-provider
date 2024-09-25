@@ -20,7 +20,6 @@ import com.google.api.services.sqladmin.model.BackupConfiguration;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Output;
 import gyro.core.resource.Updatable;
-import gyro.core.validation.Range;
 import gyro.core.validation.Regex;
 import gyro.core.validation.Required;
 import gyro.google.Copyable;
@@ -116,7 +115,6 @@ public class DbBackupConfiguration extends Diffable implements Copyable<BackupCo
      * The number of days of transaction logs we retain for point in time restore, from 1-7.
      */
     @Updatable
-    @Range(min = 1, max = 7)
     public Integer getTransactionLogRetentionDays() {
         return transactionLogRetentionDays;
     }
@@ -149,7 +147,7 @@ public class DbBackupConfiguration extends Diffable implements Copyable<BackupCo
 
         setBackupRetentionSettings(null);
         if (model.getBackupRetentionSettings() != null) {
-            DbBackupRetentionSettings settings = new DbBackupRetentionSettings();
+            DbBackupRetentionSettings settings = newSubresource(DbBackupRetentionSettings.class);
             settings.copyFrom(model.getBackupRetentionSettings());
             setBackupRetentionSettings(settings);
         }

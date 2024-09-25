@@ -45,7 +45,10 @@ public class DbDiskEncryptionConfiguration extends Diffable implements Copyable<
 
     @Override
     public void copyFrom(DiskEncryptionConfiguration model) throws Exception {
-        setKey(findById(CryptoKeyResource.class, model.getKmsKeyName()));
+        setKey(null);
+        if (model.getKmsKeyName() != null) {
+            setKey(findById(CryptoKeyResource.class, model.getKmsKeyName()));
+        }
     }
 
     public DiskEncryptionConfiguration toDiskEncryptionConfiguration() {

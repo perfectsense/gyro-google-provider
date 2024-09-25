@@ -72,7 +72,7 @@ public class DbReplicaConfiguration extends Diffable implements Copyable<Replica
 
         setMysqlReplicaConfiguration(null);
         if (model.getMysqlReplicaConfiguration() != null) {
-            DbMySqlReplicaConfiguration config = new DbMySqlReplicaConfiguration();
+            DbMySqlReplicaConfiguration config = newSubresource(DbMySqlReplicaConfiguration.class);
             config.copyFrom(model.getMysqlReplicaConfiguration());
             setMysqlReplicaConfiguration(config);
         }

@@ -16,15 +16,26 @@
 
 package gyro.google.cloudsql;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.sqladmin.SQLAdmin;
 import com.google.api.services.sqladmin.model.DatabaseInstance;
+import com.google.api.services.sqladmin.model.Operation;
+import com.google.api.services.sqladmin.model.OperationError;
+import com.google.api.services.sqladmin.model.OperationErrors;
+import com.google.api.services.sqladmin.model.Settings;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.TimeoutSettings;
 import gyro.core.Type;
+import gyro.core.Waiter;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
@@ -35,6 +46,94 @@ import gyro.core.validation.ValidStrings;
 import gyro.google.Copyable;
 import gyro.google.GoogleResource;
 
+/**
+ * Creates a database instance.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: gyro
+ *
+ *    google::database-instance database-instance-example
+ *        name: "gyro-db-test"
+ *
+ *        settings
+ *            activation-policy: "ALWAYS"
+ *            availability-type: "REGIONAL"
+ *            connector-enforcement: "NOT_REQUIRED"
+ *            data-disk-size-gb: 20
+ *            data-disk-type: 'PD_SSD'
+ *            deletion-protection-enabled: false
+ *            pricing-plan: "PER_USE"
+ *            storage-auto-resize: true
+ *            storage-auto-resize-limit: 100
+ *            tier: "db-perf-optimized-N-2"
+ *            edition: "ENTERPRISE_PLUS"
+ *
+ *            data-cache-config
+ *                data-cache-enabled: true
+ *            end
+ *
+ *            backup-configuration
+ *                enabled: true
+ *                start-time: "09:00"
+ *                transaction-log-retention-days: 14
+ *                binary-log-enabled: true
+ *
+ *                backup-retention-settings
+ *                    retention-unit: "COUNT"
+ *                    retained-backups: 15
+ *                end
+ *            end
+ *
+ *            user-labels: {
+ *                "example": "example"
+ *            }
+ *
+ *            ip-configuration
+ *                ipv4-enabled: true
+ *                server-ca-mode: 'GOOGLE_MANAGED_INTERNAL_CA'
+ *                ssl-mode: 'ALLOW_UNENCRYPTED_AND_ENCRYPTED'
+ *
+ *                authorized-networks
+ *                    name: "example-QA-enviroment"
+ *                    value: "3.131.207.174/32"
+ *                end
+ *            end
+ *
+ *            location-preference
+ *                zone: 'us-central1-c'
+ *                secondary-zone: 'us-central1-b'
+ *            end
+ *        end
+ *
+ *        database-version: "MYSQL_8_0_31"
+ *        gce-zone: "us-central1-c"
+ *        secondary-gce-zone: "us-central1-b"
+ *        instance-type: "CLOUD_SQL_INSTANCE"
+ *        region: "us-central1"
+ *        backend-type: "SECOND_GEN"
+ *    end
+ *
+ *    google::database-instance database-instance-example-replica
+ *        name: "gyro-db-test-replica"
+ *        master-instance: $(google::database-instance database-instance-example)
+ *
+ *        settings
+ *            edition: "ENTERPRISE_PLUS"
+ *            tier: "db-perf-optimized-N-2"
+ *
+ *            ip-configuration
+ *                ipv4-enabled: true
+ *            end
+ *
+ *            location-preference
+ *                zone: 'us-central1-c'
+ *                secondary-zone: 'us-central1-b'
+ *            end
+ *        end
+ *    end
+ */
 @Type("database-instance")
 public class DatabaseInstanceResource extends GoogleResource implements Copyable<DatabaseInstance> {
 
@@ -47,7 +146,6 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
     private String gceZone;
     private String secondaryGceZone;
     private String instanceType;
-    private List<DbIpMapping> ipAddresses;
     private DatabaseInstanceResource masterInstance;
     private String name;
     private DbOnPremisesConfiguration onPremisesConfiguration;
@@ -79,6 +177,7 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
     private Boolean satisfiesPzi;
     private Boolean satisfiesPzs;
     private String sqlNetworkArchitecture;
+    private List<DbIpMapping> ipAddresses;
 
     /**
      * The type of the backend that is used for this instance.
@@ -229,24 +328,6 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
     }
 
     /**
-     * The list of IP addresses for this instance.
-     *
-     * @subresource gyro.google.cloudsql.DbIpMapping
-     */
-    @Updatable
-    public List<DbIpMapping> getIpAddresses() {
-        if (ipAddresses == null) {
-            ipAddresses = new ArrayList<>();
-        }
-
-        return ipAddresses;
-    }
-
-    public void setIpAddresses(List<DbIpMapping> ipAddresses) {
-        this.ipAddresses = ipAddresses;
-    }
-
-    /**
      * The instance which will act as primary in the replication setup.
      *
      * @resource gyro.google.cloudsql.DatabaseInstanceResource
@@ -264,6 +345,7 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
      * The name of the instance.
      */
     @Required
+    @Id
     public String getName() {
         return name;
     }
@@ -345,6 +427,7 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
      * @subresource gyro.google.cloudsql.DbSettings
      */
     @Updatable
+    @Required
     public DbSettings getSettings() {
         return settings;
     }
@@ -381,7 +464,6 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
     /**
      * The URI for this instance.
      */
-    @Id
     @Output
     public String getSelfLink() {
         return selfLink;
@@ -625,6 +707,24 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
         this.sqlNetworkArchitecture = sqlNetworkArchitecture;
     }
 
+    /**
+     * The list of IP addresses for this instance.
+     *
+     * @subresource gyro.google.cloudsql.DbIpMapping
+     */
+    @Output
+    public List<DbIpMapping> getIpAddresses() {
+        if (ipAddresses == null) {
+            ipAddresses = new ArrayList<>();
+        }
+
+        return ipAddresses;
+    }
+
+    public void setIpAddresses(List<DbIpMapping> ipAddresses) {
+        this.ipAddresses = ipAddresses;
+    }
+
     @Override
     public void copyFrom(DatabaseInstance model) throws Exception {
         setBackendType(model.getBackendType());
@@ -654,21 +754,21 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
 
         setDiskEncryptionConfiguration(null);
         if (model.getDiskEncryptionConfiguration() != null) {
-            DbDiskEncryptionConfiguration config = new DbDiskEncryptionConfiguration();
+            DbDiskEncryptionConfiguration config = newSubresource(DbDiskEncryptionConfiguration.class);
             config.copyFrom(model.getDiskEncryptionConfiguration());
             setDiskEncryptionConfiguration(config);
         }
 
         setDiskEncryptionStatus(null);
         if (model.getDiskEncryptionStatus() != null) {
-            DbDiskEncryptionStatus config = new DbDiskEncryptionStatus();
+            DbDiskEncryptionStatus config = newSubresource(DbDiskEncryptionStatus.class);
             config.copyFrom(model.getDiskEncryptionStatus());
             setDiskEncryptionStatus(config);
         }
 
         setFailoverReplica(null);
         if (model.getFailoverReplica() != null) {
-            DbFailoverReplica config = new DbFailoverReplica();
+            DbFailoverReplica config = newSubresource(DbFailoverReplica.class);
             config.copyFrom(model.getFailoverReplica());
             setFailoverReplica(config);
         }
@@ -677,7 +777,7 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
         if (model.getIpAddresses() != null && !model.getIpAddresses().isEmpty()) {
             setIpAddresses(model.getIpAddresses().stream()
                 .map(ipMapping -> {
-                    DbIpMapping config = new DbIpMapping();
+                    DbIpMapping config = newSubresource(DbIpMapping.class);
                     config.copyFrom(ipMapping);
                     return config;
                 })
@@ -691,35 +791,35 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
 
         setOnPremisesConfiguration(null);
         if (model.getOnPremisesConfiguration() != null) {
-            DbOnPremisesConfiguration config = new DbOnPremisesConfiguration();
+            DbOnPremisesConfiguration config = newSubresource(DbOnPremisesConfiguration.class);
             config.copyFrom(model.getOnPremisesConfiguration());
             setOnPremisesConfiguration(config);
         }
 
         setReplicaConfiguration(null);
         if (model.getReplicaConfiguration() != null) {
-            DbReplicaConfiguration config = new DbReplicaConfiguration();
+            DbReplicaConfiguration config = newSubresource(DbReplicaConfiguration.class);
             config.copyFrom(model.getReplicaConfiguration());
             setReplicaConfiguration(config);
         }
 
         setReplicationCluster(null);
         if (model.getReplicationCluster() != null) {
-            DbReplicationCluster config = new DbReplicationCluster();
+            DbReplicationCluster config = newSubresource(DbReplicationCluster.class);
             config.copyFrom(model.getReplicationCluster());
             setReplicationCluster(config);
         }
 
         setScheduledMaintenance(null);
         if (model.getScheduledMaintenance() != null) {
-            DbSqlScheduledMaintenance config = new DbSqlScheduledMaintenance();
+            DbSqlScheduledMaintenance config = newSubresource(DbSqlScheduledMaintenance.class);
             config.copyFrom(model.getScheduledMaintenance());
             setScheduledMaintenance(config);
         }
 
         setSettings(null);
         if (model.getSettings() != null) {
-            DbSettings config = new DbSettings();
+            DbSettings config = newSubresource(DbSettings.class);
             config.copyFrom(model.getSettings());
             setSettings(config);
         }
@@ -731,7 +831,7 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
 
         setServerCaCert(null);
         if (model.getServerCaCert() != null) {
-            DbSslCert config = new DbSslCert();
+            DbSslCert config = newSubresource(DbSslCert.class);
             config.copyFrom(model.getServerCaCert());
             setServerCaCert(config);
         }
@@ -740,7 +840,7 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
         if (model.getUpgradableDatabaseVersions() != null) {
             setUpgradableDatabaseVersions(model.getUpgradableDatabaseVersions().stream()
                 .map(upgradableDatabaseVersion -> {
-                    DbAvailableDatabaseVersion config = new DbAvailableDatabaseVersion();
+                    DbAvailableDatabaseVersion config = newSubresource(DbAvailableDatabaseVersion.class);
                     config.copyFrom(upgradableDatabaseVersion);
                     return config;
                 })
@@ -749,14 +849,14 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
 
         setGeminiConfig(null);
         if (model.getGeminiConfig() != null) {
-            DbGeminiInstanceConfig config = new DbGeminiInstanceConfig();
+            DbGeminiInstanceConfig config = newSubresource(DbGeminiInstanceConfig.class);
             config.copyFrom(model.getGeminiConfig());
             setGeminiConfig(config);
         }
 
         setOutOfDiskReport(null);
         if (model.getOutOfDiskReport() != null) {
-            DbSqlOutOfDiskReport config = new DbSqlOutOfDiskReport();
+            DbSqlOutOfDiskReport config = newSubresource(DbSqlOutOfDiskReport.class);
             config.copyFrom(model.getOutOfDiskReport());
             setOutOfDiskReport(config);
         }
@@ -780,158 +880,47 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
     @Override
     protected void doCreate(GyroUI ui, State state) throws Exception {
         SQLAdmin client = createClient(SQLAdmin.class);
-        DatabaseInstance databaseInstance = new DatabaseInstance();
 
         if (getReplicationCluster() != null) {
             throw new GyroException(
                 "The 'replication-cluster' field is not supported for creating a new instance. It can only be configured in an update call.");
         }
 
-        if (getBackendType() != null) {
-            databaseInstance.setBackendType(getBackendType());
+        try {
+            Operation execute = client.instances().insert(getProjectId(), getDatabaseInstance()).execute();
+            waitForCompletion(execute,
+                15, TimeUnit.MINUTES, TimeoutSettings.Action.CREATE);
+        } catch (GoogleJsonResponseException ex) {
+            if (ex.getStatusCode() == 409) {
+                throw new GyroException("Ran into error", ex);
+            } else {
+                throw ex;
+            }
         }
-
-        if (getDatabaseVersion() != null) {
-            databaseInstance.setDatabaseVersion(getDatabaseVersion());
-        }
-
-        if (getDiskEncryptionConfiguration() != null) {
-            databaseInstance.setDiskEncryptionConfiguration(getDiskEncryptionConfiguration().toDiskEncryptionConfiguration());
-        }
-
-        if (getDiskEncryptionStatus() != null) {
-            databaseInstance.setDiskEncryptionStatus(getDiskEncryptionStatus().toDiskEncryptionStatus());
-        }
-
-        if (getFailoverReplica() != null) {
-            databaseInstance.setFailoverReplica(getFailoverReplica().toFailoverReplica());
-        }
-
-        if (getGceZone() != null) {
-            databaseInstance.setGceZone(getGceZone());
-        }
-
-        if (getInstanceType() != null) {
-            databaseInstance.setInstanceType(getInstanceType());
-        }
-
-        if (getIpAddresses() != null && !getIpAddresses().isEmpty()) {
-            databaseInstance.setIpAddresses(getIpAddresses().stream()
-                .map(DbIpMapping::toIpMapping)
-                .collect(java.util.stream.Collectors.toList()));
-        }
-
-        if (getMasterInstance() != null) {
-            databaseInstance.setMasterInstanceName(getMasterInstance().getConnectionName());
-        }
-
-        if (getName() != null) {
-            databaseInstance.setName(getName());
-        }
-
-        if (getOnPremisesConfiguration() != null) {
-            databaseInstance.setOnPremisesConfiguration(getOnPremisesConfiguration().toOnPremisesConfiguration());
-        }
-
-        if (getProject() != null) {
-            databaseInstance.setProject(getProject());
-        }
-
-        if (getRegion() != null) {
-            databaseInstance.setRegion(getRegion());
-        }
-
-        if (getReplicaConfiguration() != null) {
-            databaseInstance.setReplicaConfiguration(getReplicaConfiguration().toReplicaConfiguration());
-        }
-
-        if (getRootPassword() != null) {
-            databaseInstance.setRootPassword(getRootPassword());
-        }
-
-        if (getScheduledMaintenance() != null) {
-            databaseInstance.setScheduledMaintenance(getScheduledMaintenance().toSqlScheduledMaintenance());
-        }
-
-        if (getSecondaryGceZone() != null) {
-            databaseInstance.setSecondaryGceZone(getSecondaryGceZone());
-        }
-
-        if (getSettings() != null) {
-            databaseInstance.setSettings(getSettings().toSettings());
-        }
-
-        if (getSwitchTransactionLogsToCloudStorageEnabled() != null) {
-            databaseInstance.setSwitchTransactionLogsToCloudStorageEnabled(getSwitchTransactionLogsToCloudStorageEnabled());
-        }
-
-        client.instances().insert(getProjectId(), databaseInstance);
     }
 
     @Override
     protected void doUpdate(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception {
         SQLAdmin client = createClient(SQLAdmin.class);
-        DatabaseInstance databaseInstance = new DatabaseInstance();
 
-        if (changedFieldNames.contains("replication-cluster")) {
-            databaseInstance.setReplicationCluster(
-                getReplicationCluster() == null ? null : getReplicationCluster().toReplicationCluster());
+        DatabaseInstanceResource currentInstance = (DatabaseInstanceResource) current;
+        if (changedFieldNames.contains("settings") && !StringUtils.equals(
+            currentInstance.getSettings().getEdition(), getSettings().getEdition())) {
+            Settings newSettings = new Settings();
+            newSettings.setEdition(getSettings().getEdition());
+            newSettings.setSettingsVersion(getSettings().getSettingsVersion());
+
+            if (getSettings().getTier() != null) {
+                newSettings.setTier(getSettings().getTier());
+            }
+
+            waitForCompletion(client.instances()
+                    .patch(getProjectId(), getName(), new DatabaseInstance().setSettings(newSettings)).execute(),
+                15, TimeUnit.MINUTES, TimeoutSettings.Action.UPDATE);
         }
 
-        if (changedFieldNames.contains("backend-type")) {
-            databaseInstance.setBackendType(getBackendType());
-        }
-
-        if (changedFieldNames.contains("failover-replica")) {
-            databaseInstance.setFailoverReplica(
-                getFailoverReplica() == null ? null : getFailoverReplica().toFailoverReplica());
-        }
-
-        if (changedFieldNames.contains("gce-zone")) {
-            databaseInstance.setGceZone(getGceZone());
-        }
-
-        if (changedFieldNames.contains("instance-type")) {
-            databaseInstance.setInstanceType(getInstanceType());
-        }
-
-        if (changedFieldNames.contains("ip-addresses")) {
-            databaseInstance.setIpAddresses(getIpAddresses().stream()
-                .map(DbIpMapping::toIpMapping)
-                .collect(java.util.stream.Collectors.toList()));
-        }
-
-        if (changedFieldNames.contains("master-instance")) {
-            databaseInstance.setMasterInstanceName(
-                getMasterInstance() == null ? null : getMasterInstance().getConnectionName());
-        }
-
-        if (changedFieldNames.contains("replica-configuration")) {
-            databaseInstance.setReplicaConfiguration(
-                getReplicaConfiguration() == null ? null : getReplicaConfiguration().toReplicaConfiguration());
-        }
-
-        if (changedFieldNames.contains("scheduled-maintenance")) {
-            databaseInstance.setScheduledMaintenance(
-                getScheduledMaintenance() == null ? null : getScheduledMaintenance().toSqlScheduledMaintenance());
-        }
-
-        if (changedFieldNames.contains("secondary-gce-zone")) {
-            databaseInstance.setSecondaryGceZone(getSecondaryGceZone());
-        }
-
-        if (getSettings() != null) {
-            databaseInstance.setSettings(getSettings() == null ? null : getSettings().toSettings());
-        }
-
-        if (changedFieldNames.contains("switch-transaction-logs-to-cloud-storage-enabled")) {
-            databaseInstance.setSwitchTransactionLogsToCloudStorageEnabled(
-                getSwitchTransactionLogsToCloudStorageEnabled() == null
-                    ? null : getSwitchTransactionLogsToCloudStorageEnabled());
-        }
-
-        client.instances().patch(getProjectId(), getName(), databaseInstance);
-
+        waitForCompletion(client.instances().update(getProjectId(), getName(), getDatabaseInstance()).execute(),
+            15, TimeUnit.MINUTES, TimeoutSettings.Action.UPDATE);
     }
 
     @Override
@@ -941,10 +930,90 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
         }
 
         SQLAdmin client = createClient(SQLAdmin.class);
-        client.instances().delete(getProjectId(), getName()).execute();
+        waitForCompletion(client.instances().delete(getProjectId(), getName()).execute(),
+            10, TimeUnit.MINUTES, TimeoutSettings.Action.DELETE);
+    }
+
+    private DatabaseInstance getDatabaseInstance() throws IOException {
+        DatabaseInstance databaseInstance;
+        try {
+            databaseInstance = createClient(SQLAdmin.class).instances().get(getProjectId(), getName()).execute();
+
+        } catch (GoogleJsonResponseException ex) {
+            if (ex.getStatusCode() == 404) {
+                databaseInstance = new DatabaseInstance();
+
+            } else {
+                throw ex;
+            }
+        }
+
+        databaseInstance.setName(getName());
+        databaseInstance.setSettings(getSettings().toSettings());
+        databaseInstance.setBackendType(getBackendType() == null ? null : getBackendType());
+        databaseInstance.setDatabaseVersion(getDatabaseVersion() == null ? null : getDatabaseVersion());
+        databaseInstance.setDiskEncryptionConfiguration(getDiskEncryptionConfiguration() == null
+            ? null : getDiskEncryptionConfiguration().toDiskEncryptionConfiguration());
+        databaseInstance.setDiskEncryptionStatus(
+            getDiskEncryptionStatus() == null ? null : getDiskEncryptionStatus().toDiskEncryptionStatus());
+        databaseInstance.setFailoverReplica(
+            getFailoverReplica() == null ? null : getFailoverReplica().toFailoverReplica());
+        databaseInstance.setGceZone(getGceZone() == null ? null : getGceZone());
+        databaseInstance.setInstanceType(getInstanceType() == null ? null : getInstanceType());
+        databaseInstance.setMasterInstanceName(
+            getMasterInstance() == null ? null : getMasterInstance().getName());
+        databaseInstance.setOnPremisesConfiguration(
+            getOnPremisesConfiguration() == null ? null : getOnPremisesConfiguration().toOnPremisesConfiguration());
+        databaseInstance.setProject(getProject() == null ? null : getProject());
+        databaseInstance.setRegion(getRegion() == null ? null : getRegion());
+        databaseInstance.setReplicaConfiguration(
+            getReplicaConfiguration() == null ? null : getReplicaConfiguration().toReplicaConfiguration());
+        databaseInstance.setRootPassword(getRootPassword() == null ? null : getRootPassword());
+        databaseInstance.setScheduledMaintenance(
+            getScheduledMaintenance() == null ? null : getScheduledMaintenance().toSqlScheduledMaintenance());
+        databaseInstance.setSecondaryGceZone(getSecondaryGceZone() == null ? null : getSecondaryGceZone());
+        databaseInstance.setSwitchTransactionLogsToCloudStorageEnabled(
+            getSwitchTransactionLogsToCloudStorageEnabled() == null
+                ? null : getSwitchTransactionLogsToCloudStorageEnabled());
+        databaseInstance.setReplicationCluster(
+            getReplicationCluster() == null ? null : getReplicationCluster().toReplicationCluster());
+
+        if (getIpAddresses() != null && !getIpAddresses().isEmpty()) {
+            databaseInstance.setIpAddresses(getIpAddresses().stream()
+                .map(DbIpMapping::toIpMapping)
+                .collect(java.util.stream.Collectors.toList()));
+        }
+
+        return databaseInstance;
     }
 
     public String getProject() {
         return getProjectId();
+    }
+
+    public void waitForCompletion(Operation operation, long duration, TimeUnit unit, TimeoutSettings.Action action) {
+        if (operation != null) {
+            Waiter waiter = new Waiter().prompt(false);
+            waiter.atMost(duration, unit);
+            waiter.resourceOverrides(this, action);
+
+            waiter.until(() -> {
+                Operation response = createClient(SQLAdmin.class).operations()
+                    .get(getProjectId(), operation.getName())
+                    .execute();
+
+                if (response != null && response.getError() != null && !response.getError().isEmpty()) {
+                    throw new GyroException(formatOperationErrorMessage(response.getError()));
+                }
+
+                return response != null && response.getStatus().equals("DONE");
+            });
+        }
+    }
+
+    protected static String formatOperationErrorMessage(OperationErrors error) {
+        return error.getErrors().stream()
+            .map(OperationError::getMessage)
+            .collect(Collectors.joining("\n"));
     }
 }

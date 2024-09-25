@@ -68,7 +68,10 @@ public class DbSqlServerAuditConfig extends Diffable implements Copyable<SqlServ
 
     @Override
     public void copyFrom(SqlServerAuditConfig model) throws Exception {
-        setBucket(findById(BucketResource.class, model.getBucket()));
+        setBucket(null);
+        if (model.getBucket() != null) {
+            setBucket(findById(BucketResource.class, model.getBucket()));
+        }
         setRetentionInterval(model.getRetentionInterval());
         setUploadInterval(model.getUploadInterval());
     }

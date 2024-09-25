@@ -45,7 +45,10 @@ public class DbDiskEncryptionStatus extends Diffable implements Copyable<DiskEnc
 
     @Override
     public void copyFrom(DiskEncryptionStatus model) throws Exception {
-        setKeyVersion(findById(CryptoKeyVersionResource.class, model.getKmsKeyVersionName()));
+        setKeyVersion(null);
+        if (model.getKmsKeyVersionName() != null) {
+            setKeyVersion(findById(CryptoKeyVersionResource.class, model.getKmsKeyVersionName()));
+        }
     }
 
     public DiskEncryptionStatus toDiskEncryptionStatus() {

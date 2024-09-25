@@ -146,12 +146,19 @@ public class DbIpConfiguration extends Diffable implements Copyable<IpConfigurat
         setIpv4Enabled(model.getIpv4Enabled());
         setServerCaMode(model.getServerCaMode());
         setSslMode(model.getSslMode());
-        setPrivateNetwork(findById(NetworkResource.class, model.getPrivateNetwork()));
+
+        setPrivateNetwork(null);
+        String network = model.getPrivateNetwork();
+        String selfLinkPrefix = "https://www.googleapis.com/compute/v1/";
+        if (network != null) {
+            network = network.startsWith(selfLinkPrefix) ? network : selfLinkPrefix + network;
+            setPrivateNetwork(findById(NetworkResource.class, network));
+        }
 
         getAuthorizedNetworks().clear();
         if (model.getAuthorizedNetworks() != null) {
             getAuthorizedNetworks().addAll(model.getAuthorizedNetworks().stream().map(n -> {
-                DbAclEntry entry = new DbAclEntry();
+                DbAclEntry entry = newSubresource(DbAclEntry.class);
                 entry.copyFrom(n);
                 return entry;
             }).collect(Collectors.toList()));
@@ -159,7 +166,7 @@ public class DbIpConfiguration extends Diffable implements Copyable<IpConfigurat
 
         setPscConfig(null);
         if (model.getPscConfig() != null) {
-            DbPscConfig config = new DbPscConfig();
+            DbPscConfig config = newSubresource(DbPscConfig.class);
             config.copyFrom(model.getPscConfig());
             setPscConfig(config);
         }
