@@ -52,6 +52,8 @@ public class DbIpConfiguration extends Diffable implements Copyable<IpConfigurat
 
     /**
      * The list of external networks that are allowed to connect to the instance using the IP.
+     *
+     * @subresource gyro.google.cloudsql.DbAclEntry
      */
     @Updatable
     public List<DbAclEntry> getAuthorizedNetworks() {
@@ -104,6 +106,8 @@ public class DbIpConfiguration extends Diffable implements Copyable<IpConfigurat
 
     /**
      * The PSC settings for this instance.
+     *
+     * @subresource gyro.google.cloudsql.DbPscConfig
      */
     @Updatable
     public DbPscConfig getPscConfig() {

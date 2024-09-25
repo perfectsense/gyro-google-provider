@@ -39,6 +39,8 @@ public class DbBackupConfiguration extends Diffable implements Copyable<BackupCo
 
     /**
      * The backup retention settings.
+     *
+     * @subresource gyro.google.cloudsql.DbBackupRetentionSettings
      */
     @Updatable
     public DbBackupRetentionSettings getBackupRetentionSettings() {

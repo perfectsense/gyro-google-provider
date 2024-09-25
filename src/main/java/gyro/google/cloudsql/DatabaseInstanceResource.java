@@ -645,6 +645,8 @@ public class DatabaseInstanceResource extends GoogleResource implements Copyable
 
     /**
      * The out of disk report for this instance.
+     *
+     * @subresource gyro.google.cloudsql.DbSqlOutOfDiskReport
      */
     @Output
     public DbSqlOutOfDiskReport getOutOfDiskReport() {

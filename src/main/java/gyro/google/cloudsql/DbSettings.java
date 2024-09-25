@@ -81,6 +81,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The active Directory configuration, relevant only for Cloud SQL for SQL Server.
+     *
+     * @subresource gyro.google.cloudsql.DbSqlActiveDirectoryConfig
      */
     @Updatable
     public DbSqlActiveDirectoryConfig getActiveDirectoryConfig() {
@@ -93,6 +95,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The advanced machine configuration for the instances relevant only for SQL Server.
+     *
+     * @subresource gyro.google.cloudsql.DbAdvancedMachineFeatures
      */
     @Updatable
     public DbAdvancedMachineFeatures getAdvancedMachineFeatures() {
@@ -118,6 +122,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The daily backup configuration for the instance.
+     *
+     * @subresource gyro.google.cloudsql.DbBackupConfiguration
      */
     @Updatable
     public DbBackupConfiguration getBackupConfiguration() {
@@ -167,6 +173,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The configuration for data cache.
+     *
+     * @subresource gyro.google.cloudsql.DbDataCacheConfig
      */
     @Updatable
     public DbDataCacheConfig getDataCacheConfig() {
@@ -204,6 +212,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The database flags passed to the instance at startup.
+     *
+     * @subresource gyro.google.cloudsql.DbDatabaseFlag
      */
     @Updatable
     public List<DbDatabaseFlag> getDatabaseFlags() {
@@ -244,6 +254,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The date ranges during when all CSA rollout will be denied.
+     *
+     * @subresource gyro.google.cloudsql.DbDenyMaintenancePeriod
      */
     @Updatable
     public List<DbDenyMaintenancePeriod> getDenyMaintenancePeriods() {
@@ -298,6 +310,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The insights config.
+     *
+     * @subresource gyro.google.cloudsql.DbInsightsConfig
      */
     @Updatable
     public DbInsightsConfig getInsightsConfig() {
@@ -311,6 +325,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
     /**
      * The settings for IP Management. This allows to enable or disable the instance IP and manage which external
      * networks can connect to the instance.
+     *
+     * @subresource gyro.google.cloudsql.DbIpConfiguration
      */
     @Updatable
     public DbIpConfiguration getIpConfiguration() {
@@ -323,6 +339,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The location preference settings.
+     *
+     * @subresource gyro.google.cloudsql.DbLocationPreference
      */
     @Updatable
     public DbLocationPreference getLocationPreference() {
@@ -336,6 +354,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
     /**
      * The maintenance window for this instance. This specifies when the instance can be restarted for maintenance
      * purposes.
+     *
+     * @subresource gyro.google.cloudsql.DbMaintenanceWindow
      */
     @Updatable
     public DbMaintenanceWindow getMaintenanceWindow() {
@@ -348,6 +368,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The local user password validation policy of the instance.
+     *
+     * @subresource gyro.google.cloudsql.DbPasswordValidationPolicy
      */
     @Updatable
     public DbPasswordValidationPolicy getPasswordValidationPolicy() {
@@ -373,6 +395,8 @@ public class DbSettings extends Diffable implements Copyable<Settings> {
 
     /**
      * The configuration for SQL Server audit logging.
+     *
+     * @subresource gyro.google.cloudsql.DbSqlServerAuditConfig
      */
     @Updatable
     public DbSqlServerAuditConfig getSqlServerAuditConfig() {
