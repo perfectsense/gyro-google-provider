@@ -158,9 +158,9 @@ public class DbPasswordValidationPolicy extends Diffable implements Copyable<Pas
     public List<ValidationError> validate(Set<String> configuredFields) {
         List<ValidationError> errors = new ArrayList<>();
 
-        if (configuredFields.contains("enable-password-policy") && !getEnablePasswordPolicy() &&
-            (getDisallowUsernameSubstring() != null || getMinLength() != null || getComplexity() != null
-                || getPasswordChangeInterval() != null || getReuseInterval() != null)) {
+        if (configuredFields.contains("enable-password-policy") && !getEnablePasswordPolicy()
+            && (getDisallowUsernameSubstring() != null || getMinLength() != null || getComplexity() != null
+            || getPasswordChangeInterval() != null || getReuseInterval() != null)) {
             errors.add(new ValidationError(
                 this,
                 "enable-password-policy",
