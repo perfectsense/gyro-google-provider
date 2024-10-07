@@ -366,7 +366,10 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
                     builder.setTaints(ntBuilder.build());
                 }
 
-                builder.setImageType(getConfig().getImageType());
+                if (getConfig().getImageType() != null) {
+                    builder.setImageType(getConfig().getImageType());
+                }
+
                 updateCluster(client, builder);
                 builder.clear();
             }
