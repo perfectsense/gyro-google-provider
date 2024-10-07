@@ -2,7 +2,7 @@
 
 ISSUES FIXED:
 
-[275](https://github.com/perfectsense/gyro-google-provider/pull/275): Fixes updating GKE node taints
+[267](https://github.com/perfectsense/gyro-google-provider/issues/267): Fixes updating GKE node taints
 
 ## 1.1.7 (September 12th, 2024)
 
