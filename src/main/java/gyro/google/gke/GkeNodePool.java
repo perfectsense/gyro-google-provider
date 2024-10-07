@@ -29,6 +29,7 @@ import com.google.container.v1beta1.DeleteNodePoolRequest;
 import com.google.container.v1beta1.GetNodePoolRequest;
 import com.google.container.v1beta1.NodeLabels;
 import com.google.container.v1beta1.NodePool;
+import com.google.container.v1beta1.NodeTaints;
 import com.google.container.v1beta1.SetNodePoolAutoscalingRequest;
 import com.google.container.v1beta1.SetNodePoolSizeRequest;
 import com.google.container.v1beta1.UpdateNodePoolRequest;
@@ -357,6 +358,12 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
                     NodeLabels.Builder nlBuilder = NodeLabels.newBuilder();
                     nlBuilder.putAllLabels(getConfig().getLabels());
                     builder.setLabels(nlBuilder.build());
+                }
+
+                if (getConfig().getTaint() != null) {
+                    NodeTaints.Builder ntBuilder = NodeTaints.newBuilder();
+                    getConfig().getTaint().stream().map(GkeNodeTaint::toNodeTaint).forEach(ntBuilder::addTaints);
+                    builder.setTaints(ntBuilder.build());
                 }
 
                 builder.setImageType(getConfig().getImageType());
