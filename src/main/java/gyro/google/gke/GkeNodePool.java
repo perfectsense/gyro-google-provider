@@ -348,7 +348,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
                     });
             }
 
-            if (changedFieldNames.contains("config")) {
+            if (changedFieldNames.contains("config") && getConfig() != null) {
                 if (getConfig().getWorkloadMetadataConfig() != null) {
                     builder.setWorkloadMetadataConfig(getConfig().getWorkloadMetadataConfig()
                         .toWorkloadMetadataConfig());
