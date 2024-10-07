@@ -29,6 +29,7 @@ import com.google.container.v1beta1.DeleteNodePoolRequest;
 import com.google.container.v1beta1.GetNodePoolRequest;
 import com.google.container.v1beta1.NodeLabels;
 import com.google.container.v1beta1.NodePool;
+import com.google.container.v1beta1.NodeTaints;
 import com.google.container.v1beta1.SetNodePoolAutoscalingRequest;
 import com.google.container.v1beta1.SetNodePoolSizeRequest;
 import com.google.container.v1beta1.UpdateNodePoolRequest;
@@ -347,7 +348,7 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
                     });
             }
 
-            if (changedFieldNames.contains("config")) {
+            if (changedFieldNames.contains("config") && getConfig() != null) {
                 if (getConfig().getWorkloadMetadataConfig() != null) {
                     builder.setWorkloadMetadataConfig(getConfig().getWorkloadMetadataConfig()
                         .toWorkloadMetadataConfig());
@@ -359,7 +360,16 @@ public class GkeNodePool extends GoogleResource implements Copyable<NodePool> {
                     builder.setLabels(nlBuilder.build());
                 }
 
-                builder.setImageType(getConfig().getImageType());
+                if (getConfig().getTaint() != null) {
+                    NodeTaints.Builder ntBuilder = NodeTaints.newBuilder();
+                    getConfig().getTaint().stream().map(GkeNodeTaint::toNodeTaint).forEach(ntBuilder::addTaints);
+                    builder.setTaints(ntBuilder.build());
+                }
+
+                if (getConfig().getImageType() != null) {
+                    builder.setImageType(getConfig().getImageType());
+                }
+
                 updateCluster(client, builder);
                 builder.clear();
             }

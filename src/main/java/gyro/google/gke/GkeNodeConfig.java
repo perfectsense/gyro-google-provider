@@ -244,6 +244,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
      *
      * @subresource gyro.google.gke.GkeNodeTaint
      */
+    @Updatable
     public Set<GkeNodeTaint> getTaint() {
         if (taint == null) {
             taint = new HashSet<>();
