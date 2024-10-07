@@ -1,3 +1,9 @@
+## 1.1.7 (September 12th, 2024)
+
+ISSUES FIXED:
+
+[271](https://github.com/perfectsense/gyro-google-provider/issues/271): Fix update GKE node labels.
+
 ## 1.1.6 (August 20th, 2024)
 
 ISSUES FIXED:
