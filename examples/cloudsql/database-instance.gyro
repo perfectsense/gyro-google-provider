@@ -1,0 +1,94 @@
+google::database-instance database-instance-example
+    name: "gyro-db-test"
+
+    settings
+        activation-policy: "ALWAYS"
+        availability-type: "REGIONAL"
+        connector-enforcement: "NOT_REQUIRED"
+        data-disk-size-gb: 20
+        data-disk-type: 'PD_SSD'
+        deletion-protection-enabled: false
+        pricing-plan: "PER_USE"
+        storage-auto-resize: true
+        storage-auto-resize-limit: 100
+        tier: "db-perf-optimized-N-2"
+        edition: "ENTERPRISE_PLUS"
+
+        data-cache-config
+            data-cache-enabled: true
+        end
+
+        backup-configuration
+            enabled: true
+            start-time: "09:00"
+            transaction-log-retention-days: 14
+            binary-log-enabled: true
+
+            backup-retention-settings
+                retention-unit: "COUNT"
+                retained-backups: 15
+            end
+        end
+
+        user-labels: {
+            "example": "example"
+        }
+
+        ip-configuration
+            ipv4-enabled: true
+            server-ca-mode: 'GOOGLE_MANAGED_INTERNAL_CA'
+            ssl-mode: 'ALLOW_UNENCRYPTED_AND_ENCRYPTED'
+            private-network: $(external-query google::compute-network { name: "test-db" })
+
+            authorized-networks
+                name: "example-QA-enviroment"
+                value: "3.131.207.174/32"
+            end
+        end
+
+        location-preference
+            zone: 'us-central1-c'
+            secondary-zone: 'us-central1-b'
+        end
+
+        password-validation-policy
+            complexity: "COMPLEXITY_DEFAULT"
+            disallow-username-substring: true
+            enable-password-policy: true
+            min-length: 8
+            reuse-interval: 1
+        end
+    end
+
+    database-version: "MYSQL_8_0_31"
+    gce-zone: "us-central1-c"
+    secondary-gce-zone: "us-central1-b"
+    instance-type: "CLOUD_SQL_INSTANCE"
+    region: "us-central1"
+    backend-type: "SECOND_GEN"
+
+    scheduled-maintenance
+        can-reschedule: true
+        schedule-deadline-time: "2024-08-30T23:59:59.00Z"
+        start-time: "2024-12-31T23:59:59.00Z"
+    end
+end
+
+google::database-instance database-instance-example-replica
+    name: "gyro-db-test-replica"
+    master-instance: $(google::database-instance database-instance-example)
+
+    settings
+        edition: "ENTERPRISE_PLUS"
+        tier: "db-perf-optimized-N-2"
+
+        ip-configuration
+            ipv4-enabled: true
+        end
+
+        location-preference
+            zone: 'us-central1-c'
+            secondary-zone: 'us-central1-b'
+        end
+    end
+end
