@@ -1,3 +1,9 @@
+## 1.1.8 (October 7th, 2024)
+
+ISSUES FIXED:
+
+[267](https://github.com/perfectsense/gyro-google-provider/issues/267): Fixes updating GKE node taints
+
 ## 1.1.7 (September 12th, 2024)
 
 ISSUES FIXED:
