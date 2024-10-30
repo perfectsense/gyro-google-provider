@@ -42,7 +42,7 @@ Load the Google provider in your project by consuming it as a `plugin` directive
 
 ```shell
 @repository: 'https://artifactory.psdops.com/gyro-releases'
-@plugin: 'gyro:gyro-google-provider:1.1.0'
+@plugin: 'gyro:gyro-google-provider:1.2.0'
 ```
 
 #### Authentication ####
