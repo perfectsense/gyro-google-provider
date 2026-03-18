@@ -1,3 +1,9 @@
+## 1.2.1 (March 16th, 2026)
+
+ENHANCEMENTS:
+
+* [279](https://github.com/perfectsense/gyro-google-provider/pull/279) Increase version options on database instances to all current versions.
+
 ## 1.2.0 (October 30th, 2024)
 
 ENHANCEMENTS:
