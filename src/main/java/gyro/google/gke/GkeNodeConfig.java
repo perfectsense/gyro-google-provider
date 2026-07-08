@@ -43,6 +43,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
     private Integer localSsdCount;
     private List<String> tags;
     private Boolean preemptible;
+    private Boolean spot;
     private List<GkeAcceleratorConfig> accelerators;
     private String diskType;
     private String minCpuPlatform;
@@ -187,6 +188,17 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
     }
 
     /**
+     * When set to ``true``, the nodes are created as spot VM instances. See also `Spot <https://cloud.google.com/compute/docs/instances/spot>_.
+     */
+    public Boolean getSpot() {
+        return spot;
+    }
+
+    public void setSpot(Boolean spot) {
+        this.spot = spot;
+    }
+
+    /**
      * The list of hardware accelerators to be attached to each node. See also `GPUs <https://cloud.google.com/compute/docs/gpus>`_.
      *
      * @subresource gyro.google.gke.GkeAcceleratorConfig
@@ -324,6 +336,7 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
         setLocalSsdCount(model.getLocalSsdCount());
         setTags(model.getTagsList());
         setPreemptible(model.getPreemptible());
+        setSpot(model.getSpot());
         setDiskType(model.getDiskType());
         setMinCpuPlatform(model.getMinCpuPlatform());
         setNodeGroup(model.getNodeGroup());
@@ -405,6 +418,9 @@ public class GkeNodeConfig extends Diffable implements Copyable<NodeConfig> {
         }
         if (getPreemptible() != null) {
             builder.setPreemptible(getPreemptible());
+        }
+        if (getSpot() != null) {
+            builder.setSpot(getSpot());
         }
         if (!getAccelerators().isEmpty()) {
             builder.addAllAccelerators(getAccelerators().stream().map(GkeAcceleratorConfig::toAcceleratorConfig)
