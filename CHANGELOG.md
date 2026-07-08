@@ -1,3 +1,9 @@
+## 1.2.2 (Jul 8th, 2026)
+
+ENHANCEMENTS:
+
+* [281](https://github.com/perfectsense/gyro-google-provider/pull/281) Support spot vms types for gke nodes
+
 ## 1.2.1 (March 16th, 2026)
 
 ENHANCEMENTS:
