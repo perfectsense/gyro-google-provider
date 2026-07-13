@@ -33,9 +33,11 @@ import com.google.container.v1beta1.ClusterUpdate;
 import com.google.container.v1beta1.CreateClusterRequest;
 import com.google.container.v1beta1.DeleteClusterRequest;
 import com.google.container.v1beta1.GetClusterRequest;
+import com.google.container.v1beta1.GetOperationRequest;
 import com.google.container.v1beta1.IntraNodeVisibilityConfig;
 import com.google.container.v1beta1.LoggingComponentConfig;
 import com.google.container.v1beta1.LoggingConfig;
+import com.google.container.v1beta1.Operation;
 import com.google.container.v1beta1.SetLabelsRequest;
 import com.google.container.v1beta1.SetNetworkPolicyRequest;
 import com.google.container.v1beta1.UpdateClusterRequest;
@@ -1295,19 +1297,20 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
 
             ClusterUpdate.Builder builder = ClusterUpdate.newBuilder();
 
-            if (changedFieldNames.contains("addons-config")) {
+            if (changedFieldNames.contains("addons-config") && getAddonsConfig() != null) {
                 builder.setDesiredAddonsConfig(getAddonsConfig().toAddonsConfig());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("master-authorized-networks-config")) {
+            if (changedFieldNames.contains("master-authorized-networks-config")
+                && getMasterAuthorizedNetworksConfig() != null) {
                 builder.setDesiredMasterAuthorizedNetworksConfig(getMasterAuthorizedNetworksConfig().toMasterAuthorizedNetworksConfig());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("binary-authorization-config")) {
+            if (changedFieldNames.contains("binary-authorization-config") && getBinaryAuthorizationConfig() != null) {
                 builder.setDesiredBinaryAuthorization(getBinaryAuthorizationConfig().toBinaryAuthorization());
                 updateCluster(client, builder);
                 builder.clear();
@@ -1323,66 +1326,77 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("database-encryption")) {
+            if (changedFieldNames.contains("database-encryption") && getDatabaseEncryption() != null) {
                 builder.setDesiredDatabaseEncryption(getDatabaseEncryption().toDatabaseEncryption());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (getNetworkConfig() != null) {
-                if (getNetworkConfig().getDefaultSnatStatus() != null) {
-                    builder.setDesiredDefaultSnatStatus(getNetworkConfig().getDefaultSnatStatus()
-                        .toDefaultSnatStatus());
+            if (changedFieldNames.contains("network-config") && getNetworkConfig() != null) {
+                GkeNetworkConfig oldNetworkConfig = ((ClusterResource) current).getNetworkConfig();
+
+                GkeDefaultSnatStatus defaultSnatStatus = getNetworkConfig().getDefaultSnatStatus();
+                Boolean oldDefaultSnatDisabled = oldNetworkConfig != null && oldNetworkConfig.getDefaultSnatStatus() != null
+                    ? oldNetworkConfig.getDefaultSnatStatus().getDisabled()
+                    : null;
+
+                if (defaultSnatStatus != null && !defaultSnatStatus.getDisabled().equals(oldDefaultSnatDisabled)) {
+                    builder.setDesiredDefaultSnatStatus(defaultSnatStatus.toDefaultSnatStatus());
                     updateCluster(client, builder);
                     builder.clear();
                 }
 
-                if (getNetworkConfig().getEnableIntraNodeVisibility() != null) {
+                Boolean enableIntraNodeVisibility = getNetworkConfig().getEnableIntraNodeVisibility();
+                Boolean oldEnableIntraNodeVisibility = oldNetworkConfig != null
+                    ? oldNetworkConfig.getEnableIntraNodeVisibility()
+                    : null;
+
+                if (enableIntraNodeVisibility != null && !enableIntraNodeVisibility.equals(oldEnableIntraNodeVisibility)) {
                     builder.setDesiredIntraNodeVisibilityConfig(IntraNodeVisibilityConfig.newBuilder()
-                        .setEnabled(getNetworkConfig().getEnableIntraNodeVisibility())
+                        .setEnabled(enableIntraNodeVisibility)
                         .build());
                     updateCluster(client, builder);
                     builder.clear();
                 }
             }
 
-            if (changedFieldNames.contains("master-version")) {
+            if (changedFieldNames.contains("master-version") && getMasterVersion() != null) {
                 builder.setDesiredMasterVersion(getMasterVersion());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("resource-usage-export-config")) {
+            if (changedFieldNames.contains("resource-usage-export-config") && getResourceUsageExportConfig() != null) {
                 builder.setDesiredResourceUsageExportConfig(getResourceUsageExportConfig().toResourceUsageExportConfig());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("private-cluster-config")) {
+            if (changedFieldNames.contains("private-cluster-config") && getPrivateClusterConfig() != null) {
                 builder.setDesiredPrivateClusterConfig(getPrivateClusterConfig().toPrivateClusterConfig());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("vertical-pod-autoscaling")) {
+            if (changedFieldNames.contains("vertical-pod-autoscaling") && getVerticalPodAutoscaling() != null) {
                 builder.setDesiredVerticalPodAutoscaling(getVerticalPodAutoscaling().toVerticalPodAutoscaling());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("shielded-nodes")) {
+            if (changedFieldNames.contains("shielded-nodes") && getShieldedNodes() != null) {
                 builder.setDesiredShieldedNodes(getShieldedNodes().toShieldedNodes());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("release-channel")) {
+            if (changedFieldNames.contains("release-channel") && getReleaseChannel() != null) {
                 builder.setDesiredReleaseChannel(getReleaseChannel().toReleaseChannel());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("workload-identity-config")) {
+            if (changedFieldNames.contains("workload-identity-config") && getWorkloadIdentityConfig() != null) {
                 builder.setDesiredWorkloadIdentityConfig(getWorkloadIdentityConfig().toWorkloadIdentityConfig());
                 updateCluster(client, builder);
                 builder.clear();
@@ -1394,32 +1408,37 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("logging-service")) {
+            if (changedFieldNames.contains("logging-service") && getLoggingService() != null) {
                 builder.setDesiredLoggingService(getLoggingService());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("monitoring-service")) {
+            if (changedFieldNames.contains("monitoring-service") && getMonitoringService() != null) {
                 builder.setDesiredMonitoringService(getMonitoringService());
                 updateCluster(client, builder);
                 builder.clear();
             }
 
-            if (changedFieldNames.contains("network-policy-config")) {
-                client.setNetworkPolicy(SetNetworkPolicyRequest.newBuilder()
+            if (changedFieldNames.contains("network-policy-config") && getNetworkPolicyConfig() != null) {
+                Operation operation = client.setNetworkPolicy(SetNetworkPolicyRequest.newBuilder()
                     .setName(getClusterId())
                     .setNetworkPolicy(getNetworkPolicyConfig().toNetworkPolicy()).build());
 
-                waitForActiveStatus(client);
+                waitForOperationComplete(client, operation);
             }
 
             if (changedFieldNames.contains("labels")) {
-                client.setLabels(SetLabelsRequest.newBuilder().setLabelFingerprint(getLabelFingerPrint())
-                    .putAllResourceLabels(getLabels()).setName(getClusterId()).build());
+                Operation operation = client.setLabels(SetLabelsRequest.newBuilder()
+                    .setLabelFingerprint(getLabelFingerPrint())
+                    .putAllResourceLabels(getLabels())
+                    .setName(getClusterId())
+                    .build());
+
+                waitForOperationComplete(client, operation);
             }
 
-            if (changedFieldNames.contains("identity-service-config")) {
+            if (changedFieldNames.contains("identity-service-config") && getIdentityServiceConfig() != null) {
                 builder.setDesiredIdentityServiceConfig(getIdentityServiceConfig().toIdentityServiceConfig());
                 updateCluster(client, builder);
                 builder.clear();
@@ -1455,18 +1474,28 @@ public class ClusterResource extends GoogleResource implements Copyable<Cluster>
     }
 
     private void updateCluster(ClusterManagerClient client, ClusterUpdate.Builder builder) {
-        client.updateCluster(UpdateClusterRequest.newBuilder()
+        Operation operation = client.updateCluster(UpdateClusterRequest.newBuilder()
             .setName(getClusterId())
             .setUpdate(builder.build())
             .build());
 
-        waitForActiveStatus(client);
+        waitForOperationComplete(client, operation);
     }
 
     private void waitForActiveStatus(ClusterManagerClient client) {
         Wait.atMost(20, TimeUnit.MINUTES)
             .checkEvery(1, TimeUnit.MINUTES)
             .until(() -> getCluster(client).getStatus().equals(Cluster.Status.RUNNING));
+    }
+
+    private void waitForOperationComplete(ClusterManagerClient client, Operation operation) {
+        String operationName = String.format("projects/%s/locations/%s/operations/%s",
+            getProjectId(), getLocation(), operation.getName());
+
+        Wait.atMost(20, TimeUnit.MINUTES)
+            .checkEvery(10, TimeUnit.SECONDS)
+            .until(() -> client.getOperation(GetOperationRequest.newBuilder().setName(operationName).build())
+                .getStatus() == Operation.Status.DONE);
     }
 
     private Cluster getCluster(ClusterManagerClient client) {
