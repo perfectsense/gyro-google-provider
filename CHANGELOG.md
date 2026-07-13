@@ -1,3 +1,9 @@
+## 1.2.3 (Jul 13th, 2026)
+
+ISSUES FIXED:
+
+[283](https://github.com/perfectsense/gyro-google-provider/pull/283): Fix update calls with correct null pointers checks and waiting for operations instead of status
+
 ## 1.2.2 (Jul 8th, 2026)
 
 ENHANCEMENTS:
