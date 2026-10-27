@@ -1,3 +1,9 @@
+## 1.3.1 (Unreleased)
+
+ISSUES FIXED:
+
+* [TBD](https://github.com/perfectsense/gyro-google-provider/pull/TBD): Fix google::crypto-key so next-rotation-date is updatable, omitted next-rotation-date and primary-key-version-id are left unmanaged instead of reverting automatic rotations, and empty updates are not sent.
+
 ## 1.2.3 (Jul 13th, 2026)
 
 ISSUES FIXED:
