@@ -113,8 +113,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The next date when the symmetric key should rotate.
+     * The next date when the symmetric key should rotate. Defaults to ``rotation-period`` days from creation. If omitted, the next rotation date of an existing key is left unmanaged.
      */
+    @Updatable
     @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "a string matching the @|bold mm/dd/yyyy|@ format")
     public String getNextRotationDate() {
         return nextRotationDate;
@@ -182,7 +183,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The ID of the primary key version.
+     * The ID of the primary key version. If omitted, the primary key version is left unmanaged so automatic rotations are not reverted.
      */
     @Updatable
     public String getPrimaryKeyVersionId() {
@@ -282,9 +283,11 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         }
 
         if (getNextRotationDate() != null) {
-            SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
+            builder = builder.setNextRotationTime(toNextRotationTime());
+
+        } else if (getRotationPeriod() != null) {
             builder = builder.setNextRotationTime(Timestamp.newBuilder()
-                .setSeconds(format.parse(getNextRotationDate()).getTime() / 1000)
+                .setSeconds(System.currentTimeMillis() / 1000 + getRotationPeriod() * 86400)
                 .build());
         }
 
@@ -318,9 +321,15 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         FieldMask.Builder fieldMaskBuilder = FieldMask.newBuilder();
         CryptoKey.Builder cryptoKeyBuilder = CryptoKey.newBuilder().setName(getId());
 
-        if (changedFieldNames.contains("rotation-period")) {
+        if (changedFieldNames.contains("rotation-period") && getRotationPeriod() != null) {
             cryptoKeyBuilder.setRotationPeriod(Duration.newBuilder().setSeconds(getRotationPeriod() * 86400).build());
             fieldMaskBuilder.addPaths("rotation_period");
+        }
+
+        // An omitted next-rotation-date is unmanaged, so it is not cleared.
+        if (changedFieldNames.contains("next-rotation-date") && getNextRotationDate() != null) {
+            cryptoKeyBuilder.setNextRotationTime(toNextRotationTime());
+            fieldMaskBuilder.addPaths("next_rotation_time");
         }
 
         if (changedFieldNames.contains("crypto-key-version-template")) {
@@ -334,7 +343,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
             fieldMaskBuilder.addPaths("labels");
         }
 
-        client.updateCryptoKey(cryptoKeyBuilder.build(), fieldMaskBuilder.build());
+        if (fieldMaskBuilder.getPathsCount() > 0) {
+            client.updateCryptoKey(cryptoKeyBuilder.build(), fieldMaskBuilder.build());
+        }
 
         String parent = CryptoKeyPathName.format(
             getProjectId(),
@@ -342,7 +353,8 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
             Utils.getKmsKeyRingNameFromId(getKeyRing().getId()),
             getName());
 
-        if (changedFieldNames.contains("primary-key-version-id")) {
+        // An omitted primary-key-version-id is unmanaged, so automatic rotations are not reverted.
+        if (changedFieldNames.contains("primary-key-version-id") && getPrimaryKeyVersionId() != null) {
             client.updateCryptoKeyPrimaryVersion(parent, Utils.getKmsPrimaryKeyVersionFromId(getPrimaryKeyVersionId()));
         }
 
@@ -359,11 +371,11 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         List<ValidationError> errors = new ArrayList<>();
 
         if (getPurpose().equals(CryptoKeyPurpose.ENCRYPT_DECRYPT)) {
-            if (!configuredFields.contains("next-rotation-date") || !configuredFields.contains("rotation-period")) {
+            if (!configuredFields.contains("rotation-period")) {
                 errors.add(new ValidationError(
                     this,
                     null,
-                    "Both 'next-rotation-date' and 'rotation-period' are required if 'purpose' is set to 'ENCRYPT_DECRYPT'"));
+                    "'rotation-period' is required if 'purpose' is set to 'ENCRYPT_DECRYPT'"));
             }
 
         } else {
@@ -377,6 +389,14 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         }
 
         return errors;
+    }
+
+    private Timestamp toNextRotationTime() throws Exception {
+        SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
+
+        return Timestamp.newBuilder()
+            .setSeconds(format.parse(getNextRotationDate()).getTime() / 1000)
+            .build();
     }
 
     private void refreshVersions() {
