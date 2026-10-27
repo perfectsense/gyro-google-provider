@@ -46,7 +46,7 @@ public class BucketLifecycleRuleAction extends Diffable implements Copyable<Acti
     /**
      * Type of the action to take on condition.
      */
-    @ValidStrings({ "Delete", "SetStorageClass" })
+    @ValidStrings({ "Delete", "SetStorageClass", "AbortIncompleteMultipartUpload" })
     public String getType() {
         return type;
     }
