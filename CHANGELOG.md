@@ -1,3 +1,9 @@
+## 1.3.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* [285](https://github.com/perfectsense/gyro-google-provider/pull/285): Add matches-prefix and matches-suffix lifecycle conditions and AbortIncompleteMultipartUpload lifecycle action to google::bucket.
+
 ## 1.2.3 (Jul 13th, 2026)
 
 ISSUES FIXED:
