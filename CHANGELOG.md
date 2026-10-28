@@ -2,7 +2,7 @@
 
 ISSUES FIXED:
 
-* [286](https://github.com/perfectsense/gyro-google-provider/pull/286): Fix google::crypto-key so next-rotation-date is updatable, omitted next-rotation-date and primary-key-version-id are left unmanaged instead of reverting automatic rotations, and empty updates are not sent.
+* [286](https://github.com/perfectsense/gyro-google-provider/pull/286): Allow google::crypto-key to opt into GCP-managed rotation by omitting next-rotation-date and primary-key-version-id. Keys that still set them no longer revert automatic rotations, and empty updates are not sent.
 
 ## 1.2.3 (Jul 13th, 2026)
 
