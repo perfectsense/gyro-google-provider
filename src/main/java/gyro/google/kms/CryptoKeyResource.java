@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import com.google.cloud.kms.v1.CryptoKey;
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose;
@@ -35,6 +36,7 @@ import com.google.protobuf.FieldMask;
 import com.google.protobuf.Timestamp;
 import gyro.core.GyroUI;
 import gyro.core.Type;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Id;
 import gyro.core.resource.Output;
 import gyro.core.resource.Resource;
@@ -113,8 +115,10 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The next date when the symmetric key should rotate.
+     * The next date when the symmetric key should rotate. Only used when the key is created; once the key has rotated, a configured date that differs from GCP is skipped with a warning.
+     * Omit it, along with ``primary-key-version-id``, to let GCP manage rotation, in which case it defaults to ``rotation-period`` days from creation or from a ``rotation-period`` change.
      */
+    @Updatable
     @Regex(value = "^(1[0-2]|0[1-9])/(3[01]|[012][0-9]|)/[0-9]{4}$", message = "a string matching the @|bold mm/dd/yyyy|@ format")
     public String getNextRotationDate() {
         return nextRotationDate;
@@ -182,7 +186,7 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
     }
 
     /**
-     * The ID of the primary key version.
+     * The ID of the primary key version. If omitted, the primary key version is left unmanaged so automatic rotations are not reverted.
      */
     @Updatable
     public String getPrimaryKeyVersionId() {
@@ -230,12 +234,13 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
 
         if (model.hasNextRotationTime()) {
             DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = new Date(model.getNextRotationTime().getSeconds() * 1000L);
             setNextRotationDate(dateFormat.format(date));
         }
 
         if (model.hasRotationPeriod()) {
-            setRotationPeriod(model.getRotationPeriod().getSeconds() / 86400);
+            setRotationPeriod(model.getRotationPeriod().getSeconds() / 86400L);
         }
 
         if (model.getVersionTemplate() != null) {
@@ -278,14 +283,14 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
             .setVersionTemplate(getCryptoKeyVersionTemplate().toCryptoKeyVersionTemplate());
 
         if (getRotationPeriod() != null) {
-            builder = builder.setRotationPeriod(Duration.newBuilder().setSeconds(getRotationPeriod() * 86400).build());
+            builder = builder.setRotationPeriod(Duration.newBuilder().setSeconds(getRotationPeriod() * 86400L).build());
         }
 
         if (getNextRotationDate() != null) {
-            SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
-            builder = builder.setNextRotationTime(Timestamp.newBuilder()
-                .setSeconds(format.parse(getNextRotationDate()).getTime() / 1000)
-                .build());
+            builder = builder.setNextRotationTime(toNextRotationTime());
+
+        } else if (getRotationPeriod() != null) {
+            builder = builder.setNextRotationTime(defaultNextRotationTime());
         }
 
         String parent = KeyRingName.format(
@@ -318,9 +323,30 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         FieldMask.Builder fieldMaskBuilder = FieldMask.newBuilder();
         CryptoKey.Builder cryptoKeyBuilder = CryptoKey.newBuilder().setName(getId());
 
-        if (changedFieldNames.contains("rotation-period")) {
-            cryptoKeyBuilder.setRotationPeriod(Duration.newBuilder().setSeconds(getRotationPeriod() * 86400).build());
+        // Omitting next-rotation-date opts the key into GCP-managed rotation.
+        boolean nextRotationDateConfigured = DiffableInternals.getConfiguredFields(this).contains("next-rotation-date");
+
+        // A configured next-rotation-date that differs from GCP means the key has rotated since it was set,
+        // so pushing it (or the pinned primary version) back would revert the rotation.
+        boolean rotated = nextRotationDateConfigured && changedFieldNames.contains("next-rotation-date");
+
+        if (rotated) {
+            ui.write(
+                "%n@|yellow Skipping next-rotation-date and primary-key-version-id for %s: next-rotation-date '%s' differs from GCP ('%s'). "
+                    + "Remove both fields to let GCP manage rotation.|@%n",
+                getName(),
+                getNextRotationDate(),
+                ((CryptoKeyResource) current).getNextRotationDate());
+        }
+
+        if (changedFieldNames.contains("rotation-period") && getRotationPeriod() != null) {
+            cryptoKeyBuilder.setRotationPeriod(Duration.newBuilder().setSeconds(getRotationPeriod() * 86400L).build());
             fieldMaskBuilder.addPaths("rotation_period");
+
+            if (!nextRotationDateConfigured) {
+                cryptoKeyBuilder.setNextRotationTime(defaultNextRotationTime());
+                fieldMaskBuilder.addPaths("next_rotation_time");
+            }
         }
 
         if (changedFieldNames.contains("crypto-key-version-template")) {
@@ -334,7 +360,9 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
             fieldMaskBuilder.addPaths("labels");
         }
 
-        client.updateCryptoKey(cryptoKeyBuilder.build(), fieldMaskBuilder.build());
+        if (fieldMaskBuilder.getPathsCount() > 0) {
+            client.updateCryptoKey(cryptoKeyBuilder.build(), fieldMaskBuilder.build());
+        }
 
         String parent = CryptoKeyPathName.format(
             getProjectId(),
@@ -342,7 +370,8 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
             Utils.getKmsKeyRingNameFromId(getKeyRing().getId()),
             getName());
 
-        if (changedFieldNames.contains("primary-key-version-id")) {
+        // An omitted primary-key-version-id is unmanaged, so automatic rotations are not reverted.
+        if (changedFieldNames.contains("primary-key-version-id") && getPrimaryKeyVersionId() != null && !rotated) {
             client.updateCryptoKeyPrimaryVersion(parent, Utils.getKmsPrimaryKeyVersionFromId(getPrimaryKeyVersionId()));
         }
 
@@ -359,11 +388,11 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         List<ValidationError> errors = new ArrayList<>();
 
         if (getPurpose().equals(CryptoKeyPurpose.ENCRYPT_DECRYPT)) {
-            if (!configuredFields.contains("next-rotation-date") || !configuredFields.contains("rotation-period")) {
+            if (!configuredFields.contains("rotation-period")) {
                 errors.add(new ValidationError(
                     this,
                     null,
-                    "Both 'next-rotation-date' and 'rotation-period' are required if 'purpose' is set to 'ENCRYPT_DECRYPT'"));
+                    "'rotation-period' is required if 'purpose' is set to 'ENCRYPT_DECRYPT'"));
             }
 
         } else {
@@ -377,6 +406,21 @@ public class CryptoKeyResource extends GoogleResource implements Copyable<Crypto
         }
 
         return errors;
+    }
+
+    private Timestamp toNextRotationTime() throws Exception {
+        SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        return Timestamp.newBuilder()
+            .setSeconds(format.parse(getNextRotationDate()).getTime() / 1000)
+            .build();
+    }
+
+    private Timestamp defaultNextRotationTime() {
+        return Timestamp.newBuilder()
+            .setSeconds(System.currentTimeMillis() / 1000 + getRotationPeriod() * 86400L)
+            .build();
     }
 
     private void refreshVersions() {
