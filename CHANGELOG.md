@@ -1,3 +1,11 @@
+# 1.2.4 (Nov 2nd, 2026)
+
+ENHANCEMENTS:
+
+[285](https://github.com/perfectsense/gyro-google-provider/pull/285): Support matches-prefix/suffix in bucket lifecycle rules
+[286](https://github.com/perfectsense/gyro-google-provider/pull/286): Crypto-key rotation fields for automatic rotations
+
+
 ## 1.2.3 (Jul 13th, 2026)
 
 ISSUES FIXED:
