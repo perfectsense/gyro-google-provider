@@ -36,6 +36,8 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
     private Boolean isLive;
     private List<String> matchesStorageClass;
     private Integer numNewerVersions;
+    private List<String> matchesPrefix;
+    private List<String> matchesSuffix;
 
     /**
      * Age of an object in days.
@@ -93,6 +95,28 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
         this.numNewerVersions = numNewerVersions;
     }
 
+    /**
+     * Matches objects whose name begins with any of the prefixes specified.
+     */
+    public List<String> getMatchesPrefix() {
+        return matchesPrefix;
+    }
+
+    public void setMatchesPrefix(List<String> matchesPrefix) {
+        this.matchesPrefix = matchesPrefix;
+    }
+
+    /**
+     * Matches objects whose name ends with any of the suffixes specified.
+     */
+    public List<String> getMatchesSuffix() {
+        return matchesSuffix;
+    }
+
+    public void setMatchesSuffix(List<String> matchesSuffix) {
+        this.matchesSuffix = matchesSuffix;
+    }
+
     @Override
     public String primaryKey() {
         ArrayList<String> values = new ArrayList<>();
@@ -115,6 +139,16 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
                 .collect(Collectors.joining(", "))));
         }
 
+        if (getMatchesPrefix() != null) {
+            values.add(String.format("matches-prefix = [%s]", getMatchesPrefix().stream()
+                .collect(Collectors.joining(", "))));
+        }
+
+        if (getMatchesSuffix() != null) {
+            values.add(String.format("matches-suffix = [%s]", getMatchesSuffix().stream()
+                .collect(Collectors.joining(", "))));
+        }
+
         return values.stream().collect(Collectors.joining("; "));
     }
 
@@ -125,6 +159,8 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
         setIsLive(model.getIsLive());
         setMatchesStorageClass(model.getMatchesStorageClass());
         setNumNewerVersions(model.getNumNewerVersions());
+        setMatchesPrefix(model.getMatchesPrefix());
+        setMatchesSuffix(model.getMatchesSuffix());
     }
 
     public Condition toLifecycleRuleCondition() {
@@ -133,6 +169,8 @@ public class BucketLifecycleRuleCondition extends Diffable implements Copyable<C
             .setCreatedBefore(getCreatedBefore() == null ? null : DateTime.parseRfc3339(getCreatedBefore()))
             .setIsLive(getIsLive())
             .setMatchesStorageClass(getMatchesStorageClass())
-            .setNumNewerVersions(getNumNewerVersions());
+            .setNumNewerVersions(getNumNewerVersions())
+            .setMatchesPrefix(getMatchesPrefix())
+            .setMatchesSuffix(getMatchesSuffix());
     }
 }
